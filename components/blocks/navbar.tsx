@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Fan } from "lucide-react";
+import { isAuthenticated } from "@/lib/server-utils";
+import LogoutButton from "@/features/auth/components/LogoutButton";
 
-function NavBar() {
+async function NavBar() {
   return (
     <nav className="bg-background/95 border-border flex flex-row items-center justify-between border-b p-2 backdrop-blur">
       <div className="flex flex-row items-center gap-2">
@@ -25,8 +27,16 @@ function NavBar() {
       </div>
 
       <div className="mr-4 flex flex-row gap-4">
-        <button>Login</button>
-        <button>Register</button>
+        {(await isAuthenticated()) ? (
+          <>
+            <LogoutButton />
+          </>
+        ) : (
+          <>
+            <button>Login</button>
+            <button>Register</button>
+          </>
+        )}
       </div>
     </nav>
   );
