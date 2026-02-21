@@ -1,19 +1,18 @@
 import Link from "next/link";
 import { Fan } from "lucide-react";
 import { isAuthenticated } from "@/lib/server-utils";
-import LogoutButton from "@/features/auth/components/LogoutButton";
+import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
+import UserMenu from "./UserMenu";
 
 async function NavBar() {
+  const authed = await isAuthenticated();
+
   return (
-    <nav className="bg-background/95 border-border flex flex-row items-center justify-between border-b p-2 backdrop-blur">
+    <nav className="border-border flex flex-row items-center justify-between border-b p-2 backdrop-blur bg-white dark:bg-[#0e1113]">
       <div className="flex flex-row items-center gap-2">
-        {/* Logo */}
         <Fan color="black" size={48} className="mx-2" />
+        <div>Thesis Group 3</div>
 
-        {/* Name */}
-        <div className="">Thesis Group 3</div>
-
-        {/* Links */}
         <div className="ml-6">
           <div className="flex flex-row gap-6">
             <Link href={"/dashboard"}>Dashboard</Link>
@@ -21,20 +20,23 @@ async function NavBar() {
             <Link href={"/plagarism-checker"}>Plagarism Checker</Link>
             <Link href={"/about"}>About</Link>
             <Link href={"/faq"}>FAQ</Link>
-            {/* <Link>Admin</Link> */}
           </div>
         </div>
       </div>
 
-      <div className="mr-4 flex flex-row gap-4">
-        {(await isAuthenticated()) ? (
-          <>
-            <LogoutButton />
-          </>
+      <div className="mr-4 flex flex-row gap-2 items-center">
+        {authed ? (
+          <LogoutButton />
         ) : (
           <>
-            <button>Login</button>
-            <button>Register</button>
+            <Link
+              href="/login"
+              className="text-sm rounded-3xl cursor-pointer bg-blue-600 px-4 py-2 hover:bg-blue-700 text-white"
+            >
+              Log In
+            </Link>
+
+            <UserMenu loginHref="/login" registerHref="/register" />
           </>
         )}
       </div>

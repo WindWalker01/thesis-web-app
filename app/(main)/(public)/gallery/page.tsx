@@ -1,5 +1,7 @@
-function GalleryPage() {
-  return <h1>Community Gallery Page</h1>;
-}
+import GalleryPage from "@/features/(user)/gallery/components/Page";
 
-export default GalleryPage;
+export default function Gallery() {
+  return (
+    <GalleryPage />
+  );
+}
