@@ -84,7 +84,7 @@ export default function UserMenu({
                 <div
                     role="menu"
                     className={[
-                        "absolute right-0 mt-2 w-56 overflow-hidden",
+                        "absolute right-0 mt-2 w-56 overflow-hidden z-99",
                         "rounded-2xl border border-[#EDEFF1] dark:border-[#343536]",
                         "bg-white dark:bg-[#272729] shadow-lg",
                     ].join(" ")}
