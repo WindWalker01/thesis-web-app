@@ -48,6 +48,9 @@
 }
 
 :root {
+  --primary-blue: #3b82f6; /* Tailwind blue-500 */
+  --primary-light-blue: #60a5fa; 
+  --primary-dark-blue: #1d4ed8; 
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -83,6 +86,9 @@
 }
 
 .dark {
+  --primary-blue: #60a5fa;
+  --primary-light-blue: #93c5fd;
+  --primary-dark-blue: #1e40af;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

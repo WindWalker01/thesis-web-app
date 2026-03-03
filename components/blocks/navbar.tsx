@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { BrainCircuitIcon } from "lucide-react";
 
 function NavBar() {
   return (
@@ -11,31 +11,33 @@ function NavBar() {
 
           {/* Logo + Brand */}
           <div className="flex items-center gap-2">
-            <ShieldCheck className="text-primary" size={28} />
-            <span className="text-lg font-bold tracking-tight">
-              ArtForgeLab
-            </span>
+            <BrainCircuitIcon className="text-blue-500" size={28} />
+              <span className="text-lg text-blue-500 font-bold tracking-tight">Art 
+                <span className="text-orange-600">Forge
+                  <span className="text-primary">Lab</span>
+                </span>
+              </span>
           </div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <Link href="/dashboard" className="hover:text-primary transition-colors">
+            <Link href="/dashboard" className="hover:text-blue-500">
               Dashboard
             </Link>
 
-            <Link href="/gallery" className="hover:text-primary transition-colors">
+            <Link href="/gallery" className="hover:text-blue-500">
               Community
             </Link>
 
-            <Link href="/plagarism-checker" className="hover:text-primary transition-colors">
+            <Link href="/plagarism-checker" className="hover:text-blue-500">
               Plagiarism Checker
             </Link>
 
-            <Link href="/about" className="hover:text-primary transition-colors">
+            <Link href="/about" className="hover:text-blue-500">
               About
             </Link>
 
-            <Link href="/faq" className="hover:text-primary transition-colors">
+            <Link href="/faq" className="hover:text-blue-500">
               FAQ
             </Link>
           </div>
@@ -44,7 +46,7 @@ function NavBar() {
         {/* RIGHT SIDE */}
         <div className="flex items-center gap-4">
 
-          <button className="text-sm font-medium hover:text-primary transition-colors">
+          <button className="text-sm font-medium hover:text-blue-500">
             Login
           </button>
 
