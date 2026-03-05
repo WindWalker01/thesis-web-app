@@ -1,19 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import NavBar from "@/components/blocks/navbar";
 import {
   ChevronDown,
+  Upload,
   ShieldUser,
   FileClockIcon,
   Scale,
   Zap,
-  Palette,
-  Camera,
-  PenTool,
-  GemIcon,
-  Layout,
-  BrainCircuit,
   Mail,
   Share2Icon,
   Globe,
@@ -26,12 +22,17 @@ import {
   Blocks,
   AlertTriangle,
   MapPin,
+  BrainCircuit,
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+// useInView triggers animations only when the section enters the viewport
 import { useInView } from "react-intersection-observer";
 
 export default function Home() {
+
+  // collectorsRef attaches to the Collectors section; collectorsInView becomes true when it's visible
   const [collectorsRef, collectorsInView] = useInView({
     threshold: 0.3,
     triggerOnce: false,
@@ -39,23 +40,20 @@ export default function Home() {
   });
 
   return (
-    // FIX 1 — overflow-x-hidden prevents tooltip & wide elements from
-    //          causing horizontal scroll on narrow screens
+    // overflow-x-hidden prevents wide elements and tooltips from causing horizontal scroll
     <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
 
-      {/* ================= NAVBAR ================= */}
       <NavBar />
 
       {/* ================= HERO ================= */}
       <section className="relative pt-16">
         <div
-          // FIX 2 — backgroundPosition "center top" keeps the focal point
-          //          visible on portrait/narrow screens
           className="min-h-[85vh] lg:min-h-[90vh] flex items-center justify-center px-4"
           style={{
             background:
               "linear-gradient(rgba(16, 34, 22, 0.7), rgba(16, 34, 22, 0.9)), url('/landing-page-elements/landing-page-bg.avif')",
             backgroundSize: "cover",
+            // "center top" keeps the focal point visible on portrait/narrow screens
             backgroundPosition: "center top",
           }}
         >
@@ -64,12 +62,10 @@ export default function Home() {
               Protecting Digital Creativity with{" "}
               <span className="text-blue-500">Confidence</span>
             </h1>
-
             <p className="text-base md:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
               A thesis project dedicated to digital IP protection, ensuring transparency
               and authenticity for every creator in the evolving digital landscape.
             </p>
-
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <button className="bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 hover:scale-105 transition-transform cursor-pointer">
                 Sign Up
@@ -87,7 +83,6 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gray-100 dark:bg-slate-900 rounded-3xl p-6 md:p-12 lg:p-20 shadow-2xl border border-primary/10 flex flex-col md:flex-row items-center gap-10 lg:gap-20">
 
-            {/* IMAGE */}
             <motion.div
               className="w-full md:w-1/2 rounded-2xl overflow-hidden aspect-video relative"
               initial={{ opacity: 0, x: -80 }}
@@ -103,7 +98,6 @@ export default function Home() {
               />
             </motion.div>
 
-            {/* TEXT CONTENT */}
             <motion.div
               className="w-full md:w-1/2 space-y-6"
               initial={{ opacity: 0, x: 80 }}
@@ -114,13 +108,11 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
                 Transparency &amp; Authenticity
               </h2>
-
               <p className="text-base md:text-lg text-justify text-slate-600 dark:text-slate-400 leading-relaxed">
                 Our platform focuses on securing digital assets through advanced verification
                 methods, providing creators with the confidence they deserve. By leveraging
                 cryptographic proof-of-ownership, we bridge the gap between creation and legal protection.
               </p>
-
               <ul className="space-y-4">
                 {[
                   {
@@ -142,8 +134,6 @@ export default function Home() {
                 ].map((item, index) => (
                   <motion.li
                     key={item.title}
-                    // FIX 3 — tooltip width clamped to min(24rem, 90vw) so it
-                    //          never overflows the screen on phones
                     className="relative group flex items-center gap-3 text-sm font-medium cursor-pointer"
                     initial={{ opacity: 0, x: 40 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -161,8 +151,10 @@ export default function Home() {
                     <span className="group-hover:text-blue-500 transition-colors">{item.title}</span>
                     <InfoIcon className="w-4 h-4 text-primary opacity-70 group-hover:opacity-100 animate-pulse shrink-0" />
 
-                    {/* Tooltip — clamped so it never causes horizontal scroll on mobile */}
-                    <div className="absolute left-0 top-10 w-[min(24rem,90vw)] p-4 rounded-xl bg-blue-300 shadow-2xl border-2 border-blue-950 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-1 transition-all duration-300 pointer-events-none z-50">
+                    {/* Tooltip — w-[min(24rem,90vw)] clamps width so it never overflows on mobile */}
+                    <div className="absolute left-0 top-10 w-[min(24rem,90vw)] p-4 rounded-xl bg-blue-300 shadow-2xl border-2
+                                    border-blue-950 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-1
+                                    transition-all duration-300 pointer-events-none z-50">
                       <p className="text-sm text-primary dark:text-slate-300 leading-relaxed text-justify">
                         {item.desc}
                       </p>
@@ -179,7 +171,6 @@ export default function Home() {
       {/* ================= CATEGORIES ================= */}
       <section id="categories" className="py-16 md:py-20 bg-orange-300/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* FIX 4 — mb-15 is not valid Tailwind; replaced with mb-12 md:mb-16 */}
           <div className="text-center mb-12 md:mb-16">
             <motion.h2
               className="text-2xl md:text-3xl lg:text-4xl font-black mb-4"
@@ -201,43 +192,78 @@ export default function Home() {
             </motion.p>
           </div>
 
-          {/* FIX 5 — gap-14 was too large on mobile; now scales gap-6 → gap-10 → gap-14 */}
+          {/* ─── Category image data ──────────────────────────────────────────────
+              PNG files live in /public/landing-page-elements/ in your project.
+              To add, remove, or rename a category — edit this array only.
+          ──────────────────────────────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 lg:gap-14">
             {[
-              { label: "Digital Paintings", icon: Palette, desc: "High-resolution artwork protection for digital masterworks." },
-              { label: "Photography", icon: Camera, desc: "Metadata preservation and license tracking for professional photographers." },
-              { label: "Illustrations", icon: PenTool, desc: "Comprehensive IP verification for vectors and character designs." },
-              { label: "NFTs", icon: GemIcon, desc: "On-chain identity confirmation for crypto-native creative assets." },
-              { label: "Graphic Designs", icon: Layout, desc: "Branding and typography asset protection for commercial designers." },
-              { label: "AI Art", icon: BrainCircuit, desc: "Emerging IP framework for AI-assisted creative workflows." },
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, y: 60 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.07 }}
-                  viewport={{ once: false, amount: 0.2 }}
-                  className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl hover:-translate-y-2 hover:shadow-xl transition-all duration-500 border border-transparent hover:border-blue-400 cursor-pointer"
-                >
-                  <Icon className="w-10 h-10 text-blue-500 mb-4" strokeWidth={2} />
-                  <h3 className="text-lg md:text-xl font-bold mb-2">{item.label}</h3>
-                  <p className="text-slate-500 text-sm">{item.desc}</p>
-                </motion.div>
-              );
-            })}
+              {
+                label: "Digital Paintings",
+                img:   "/landing-page-elements/starry-night.png",
+                desc:  "High-resolution artwork protection for digital masterworks.",
+              },
+              {
+                label: "Photography",
+                img:   "/landing-page-elements/photography.png",
+                desc:  "Metadata preservation and license tracking for professional photographers.",
+              },
+              {
+                label: "Illustrations",
+                img:   "/landing-page-elements/digital-art.png",
+                desc:  "Comprehensive IP verification for vectors and character designs.",
+              },
+              {
+                label: "NFTs",
+                img:   "/landing-page-elements/art.png",
+                desc:  "On-chain identity confirmation for crypto-native creative assets.",
+              },
+              {
+                label: "Graphic Designs",
+                img:   "/landing-page-elements/graphic-design.png",
+                desc:  "Branding and typography asset protection for commercial designers.",
+              },
+              {
+                label: "AI Art",
+                img:   "/landing-page-elements/ai-image.png",
+                desc:  "Emerging IP framework for AI-assisted creative workflows.",
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.07 }}
+                viewport={{ once: false, amount: 0.2 }}
+                className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl hover:-translate-y-2 hover:shadow-xl transition-all
+                           duration-500 border border-transparent hover:border-blue-400 cursor-pointer"
+              >
+                {/* PNG icon — replaces the previous Lucide icon */}
+                <div className="w-12 h-12 mb-4 relative">
+                  <Image
+                    src={item.img}
+                    alt={item.label}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold mb-2">{item.label}</h3>
+                <p className="text-slate-500 text-sm">{item.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* ================= COLLECTORS ================= */}
+      {/* ref={collectorsRef} lets useInView detect when this section is on screen */}
       <section className="py-16 md:py-24" ref={collectorsRef}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
 
-            {/* Text & Cards */}
             <div className="w-full lg:w-1/2 space-y-8">
+              {/* animate uses collectorsInView instead of whileInView because this section
+                  uses a ref-based observer, not Framer Motion's built-in viewport detection */}
               <motion.h2
                 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight"
                 initial={{ y: 30, opacity: 0 }}
@@ -246,7 +272,6 @@ export default function Home() {
               >
                 Empowering Collectors with Verified Provenance
               </motion.h2>
-
               <motion.p
                 className="text-base md:text-lg text-slate-600 dark:text-slate-400"
                 initial={{ y: 30, opacity: 0 }}
@@ -259,12 +284,12 @@ export default function Home() {
                 protected by the creator&apos;s direct authorization.
               </motion.p>
 
-              {/* FIX 6 — flex-col on xs → flex-row from sm so cards don't overflow 320px screens */}
               <div className="flex flex-col sm:flex-row gap-4">
                 {[
                   { stat: "67.67%", label: "Verification Accuracy" },
                   { stat: "Transparency", label: "Immutable Records" },
                 ].map((item, index) => (
+                  // clipPath animates the card wiping in from left to right
                   <motion.div
                     key={item.label}
                     className="flex-1 p-5 md:p-6 rounded-xl bg-background-light border-l-4 border-blue-400 shadow-2xl shadow-blue-200"
@@ -279,9 +304,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Image */}
             <div className="w-full lg:w-1/2">
-              {/* FIX 7 — fixed h-[500px] replaced with responsive height steps */}
               <motion.div
                 className="rounded-3xl overflow-hidden shadow-2xl shadow-blue-600 relative w-full h-[260px] sm:h-[380px] lg:h-[500px]"
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -312,37 +335,16 @@ export default function Home() {
               The most secure foundation for your digital legacy.
             </p>
           </div>
-
-          {/* FIX 8 — added sm:grid-cols-2 step so it looks better on tablets */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              {
-                icon: ShieldUser,
-                title: "Secure Hashing",
-                desc: "Advanced cryptographic algorithms to fingerprint every digital asset.",
-              },
-              {
-                icon: FileClockIcon,
-                title: "Immutability",
-                desc: "Distributed ledger technology ensures records can never be altered.",
-              },
-              {
-                icon: Scale,
-                title: "Legal Ready",
-                desc: "Exports court-admissible certificates of authenticity for IP disputes.",
-              },
-              {
-                icon: Zap,
-                title: "Instant Proof",
-                desc: "Generate proof of existence and ownership in under 60 seconds.",
-              },
+              { icon: ShieldUser,    title: "Secure Hashing",  desc: "Advanced cryptographic algorithms to fingerprint every digital asset." },
+              { icon: FileClockIcon, title: "Immutability",    desc: "Distributed ledger technology ensures records can never be altered." },
+              { icon: Scale,         title: "Legal Ready",     desc: "Exports court-admissible certificates of authenticity for IP disputes." },
+              { icon: Zap,           title: "Instant Proof",   desc: "Generate proof of existence and ownership in under 60 seconds." },
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <div
-                  key={item.title}
-                  className="p-6 md:p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
-                >
+                <div key={item.title} className="p-6 md:p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
                   <Icon className="text-blue-300 w-10 h-10 mb-4" strokeWidth={2} />
                   <h3 className="text-lg md:text-xl font-bold mb-3">{item.title}</h3>
                   <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
@@ -364,20 +366,16 @@ export default function Home() {
               Meet the dedicated team developing the future of digital IP.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12 cursor-pointer">
             {[
-              { name: "Ruzzel", role: "Lead Developer", img: "/team-image/ruzzel.jpg" },
-              { name: "Tenshin", role: "Front/Backend Engineer", img: "/team-image/tenshin.jpg" },
-              { name: "Nathaniel", role: "UI/UX Designer", img: "/team-image/nathanielSD.jpg" },
+              { name: "Ruzzel",    role: "Lead Developer",         img: "/team-image/ruzzel.jpg" },
+              { name: "Tenshin",   role: "Front/Backend Engineer", img: "/team-image/tenshin.jpg" },
+              { name: "Nathaniel", role: "UI/UX Designer",         img: "/team-image/nathanielSD.jpg" },
             ].map((member) => (
               <div key={member.name} className="text-center group relative">
-                {/* FIX 9 — avatar slightly smaller on mobile (w-40/h-40 → w-48/h-48 on md+)
-                            role tooltip uses whitespace-nowrap & reduced translate on mobile */}
                 <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto mb-6 p-1 rounded-full border-4 border-dotted border-orange-500
                                 shadow-[0_0_15px_rgba(255,165,0,0.4)] transition-all duration-500
-                                group-hover:shadow-[0_0_30px_rgba(255,165,0,0.8)]
-                                group-hover:scale-105">
+                                group-hover:shadow-[0_0_30px_rgba(255,165,0,0.8)] group-hover:scale-105">
                   <div className="w-full h-full rounded-full overflow-hidden bg-slate-200 relative">
                     <Image
                       src={member.img}
@@ -386,7 +384,7 @@ export default function Home() {
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   </div>
-
+                  {/* Role label floats above the avatar on hover via -translate-y */}
                   <div className="absolute left-1/2 top-0 transform -translate-x-1/2 whitespace-nowrap opacity-0
                                   group-hover:opacity-100 group-hover:-translate-y-12 md:group-hover:-translate-y-16
                                   transition-all duration-500 ease-out
@@ -395,7 +393,6 @@ export default function Home() {
                     {member.role}
                   </div>
                 </div>
-
                 <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{member.name}</h3>
               </div>
             ))}
@@ -404,7 +401,8 @@ export default function Home() {
       </section>
 
       {/* ================= FAQ ================= */}
-      <section className="py-16 md:py-24 bg-primary/5">
+      {/* id="faq-section" is the anchor target for the FAQ link in the navbar More dropdown */}
+      <section id="faq-section" className="py-16 md:py-24 bg-primary/5">
         <div className="max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-12">
             Frequently Asked Questions
@@ -426,12 +424,8 @@ export default function Home() {
               },
             ].map((faq) => {
               const [isOpen, setIsOpen] = useState(faq.open || false);
-
               return (
-                <div
-                  key={faq.q}
-                  className="rounded-xl overflow-hidden border border-orange-300 dark:border-slate-700 select-none"
-                >
+                <div key={faq.q} className="rounded-xl overflow-hidden border border-orange-300 dark:border-slate-700 select-none">
                   <motion.div
                     className="flex items-center justify-between p-4 md:p-6 cursor-pointer font-bold
                                 bg-gradient-to-r from-orange-200 to-orange-100 dark:from-slate-900 dark:to-slate-800
@@ -451,23 +445,22 @@ export default function Home() {
                     </motion.div>
                   </motion.div>
 
+                  {/* AnimatePresence enables the exit animation when the answer collapses */}
                   <AnimatePresence initial={false}>
                     {isOpen && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
                         animate={{
-                          height: "auto",
-                          opacity: 1,
+                          height: "auto", opacity: 1,
                           transition: {
-                            height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
+                            height:  { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
                             opacity: { duration: 0.25, delay: 0.1 },
                           },
                         }}
                         exit={{
-                          height: 0,
-                          opacity: 0,
+                          height: 0, opacity: 0,
                           transition: {
-                            height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
+                            height:  { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
                             opacity: { duration: 0.2 },
                           },
                         }}
@@ -487,7 +480,6 @@ export default function Home() {
       </section>
 
       {/* ================= CTA ================= */}
-      {/* FIX 10 — p-12 → p-6 sm:p-10 md:p-12 so CTA isn't cramped on mobile */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto rounded-3xl overflow-hidden bg-gradient-to-r from-orange-400 via-amber-500 to-amber-400 p-6 sm:p-10 md:p-12 text-center text-white">
           <h2 className="text-2xl md:text-4xl font-black mb-4 md:mb-6">
@@ -498,43 +490,50 @@ export default function Home() {
             modern cryptographic technology.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-primary-dark border-2 border-amber-200 text-white px-8 md:px-10 py-4 rounded-xl
-                              font-bold text-base md:text-lg hover:scale-105 transition-transform shadow-lg cursor-pointer">
+            {/* Get Started — redirects to the registration form */}
+            <Link
+              href="/register"
+              className="bg-primary-dark border-2 border-amber-200 text-white px-8 md:px-10 py-4 rounded-xl font-bold text-base
+                         md:text-lg hover:scale-105 transition-transform shadow-lg text-center"
+            >
               Get Started
-            </button>
-            <button className="bg-white/20 backdrop-blur-md border border-white/30 text-primary
-                                px-8 md:px-10 py-4 rounded-xl font-bold text-base md:text-lg hover:bg-white/30 transition-all cursor-pointer">
+            </Link>
+            <Link
+              href="/about"
+              className="bg-white/20 backdrop-blur-md border border-white/30 text-primary px-8 md:px-10 py-4 rounded-xl font-bold text-base
+                         md:text-lg hover:bg-white/30 transition-all cursor-pointer"
+            >
               About Us
-            </button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* ================= FOOTER ================= */}
       <footer className="bg-slate-900 text-white">
-
-        {/* Top accent bar */}
         <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-orange-400" />
-
-        {/* Main footer grid */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16 pb-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 mb-12 md:mb-14">
 
-            {/* Col 1 · About — spans 2 cols on sm so it has breathing room */}
+            {/* sm:col-span-2 gives the About column more width on tablet so the text isn't too narrow */}
             <div className="sm:col-span-2 lg:col-span-1 space-y-5">
               <div className="flex items-center gap-2">
-                <BrainCircuitIcon className="text-blue-400 shrink-0" size={26} />
+                <Image
+                    src="/landing-page-elements/AFL_logoWeb.png"
+                    alt="Logo"
+                    width={60}
+                    height={70}
+                    className="shrink-0"
+                  />
                 <span className="text-lg font-bold tracking-tight">
                   <span className="text-blue-400">Art</span>
                   <span className="text-orange-500">Forge</span>
                   <span className="text-white">Lab</span>
                 </span>
               </div>
-
               <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 border-l-2 border-blue-500 pl-3">
                 Advancing Digital IP Protection
               </p>
-
               <p className="text-sm text-slate-400 leading-relaxed text-justify">
                 ArtForgeLab is an academic research initiative developing a
                 Web-based Intellectual Property Rights Management System for
@@ -545,7 +544,6 @@ export default function Home() {
                 to provide secure proof of authorship, plagiarism detection, and
                 transparent ownership verification for digital creative works.
               </p>
-
               <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2">
                 <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
                 <span className="text-xs text-blue-300 font-medium">
@@ -554,11 +552,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Col 2 · Platform */}
+            {/* Platform Links */}
             <div className="space-y-5">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">
-                Platform
-              </h4>
+              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">Platform</h4>
               <ul className="space-y-3 text-sm text-slate-400">
                 {[
                   { icon: FileText,      label: "Artwork Registration" },
@@ -578,16 +574,13 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Col 3 · Resources */}
+            {/* Resources Links */}
             <div className="space-y-5">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">
-                Resources
-              </h4>
+              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">Resources</h4>
               <ul className="space-y-3 text-sm text-slate-400">
                 {[
                   { icon: BookOpen,     label: "Intellectual Property Guide" },
                   { icon: BrainCircuit, label: "How Perceptual Hashing Works" },
-                  { icon: FileText,     label: "ISO 25010 Evaluation Criteria" },
                   { icon: Scale,        label: "Research Documentation" },
                   { icon: ShieldCheck,  label: "Support Center" },
                 ].map(({ icon: Icon, label }) => (
@@ -601,23 +594,19 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* Col 4 · Contact */}
+            {/* Contact */}
             <div className="space-y-5">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">
-                Research Team
-              </h4>
-
+              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">Research Team</h4>
               <p className="text-sm text-slate-400 leading-relaxed">
                 This system was developed as partial fulfillment of an
                 undergraduate thesis requirement. For academic inquiries,
                 system feedback, or collaboration proposals, please reach
                 out through the channels below.
               </p>
-
               <ul className="space-y-3 text-sm text-slate-400">
                 <li className="flex items-start gap-3">
                   <Mail className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                  {/* FIX 11 — break-all prevents long email from overflowing on mobile */}
+                  {/* break-all splits the email if it's too long to fit on one line on mobile */}
                   <span className="break-all">artforgelab@thesis.edu.ph</span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -625,19 +614,14 @@ export default function Home() {
                   <span>Philippines, 2026</span>
                 </li>
               </ul>
-
               <div className="flex gap-3 pt-1">
                 {[
                   { icon: Globe,      label: "Website" },
                   { icon: Share2Icon, label: "Share" },
                   { icon: Mail,       label: "Email" },
                 ].map(({ icon: Icon, label }) => (
-                  <a
-                    key={label}
-                    href="#"
-                    aria-label={label}
-                    className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/40 transition-all"
-                  >
+                  <a key={label} href="#" aria-label={label}
+                    className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/40 transition-all">
                     <Icon className="w-4 h-4 text-blue-400" />
                   </a>
                 ))}
@@ -650,9 +634,7 @@ export default function Home() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
               <div className="space-y-1 min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
-                  Legal Disclaimer
-                </p>
+                <p className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">Legal Disclaimer</p>
                 <p className="text-xs text-slate-400 leading-relaxed">
                   ArtForgeLab provides cryptographic proof-of-existence and similarity detection as{" "}
                   <span className="text-slate-300 font-medium">evidentiary support</span> for
@@ -671,26 +653,36 @@ export default function Home() {
             </div>
           </div>
 
-          {/* FIX 12 — bottom link row: flex-wrap + gap-x/gap-y so it wraps
-                       cleanly on 375px instead of overflowing horizontally */}
+          {/* flex-wrap + gap-x/gap-y lets the links wrap to a second line on small screens */}
           <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
             <p className="text-center md:text-left leading-relaxed">
               © 2026 ArtForgeLab &mdash; A Thesis Project on{" "}
-              <span className="text-slate-400">
-                Intellectual Property Rights Management for Digital Artists
-              </span>{" "}
+              <span className="text-slate-400">Intellectual Property Rights Management for Digital Artists</span>{" "}
               Using Perceptual Hashing &amp; Blockchain Technology.
             </p>
             <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-              {["Privacy Policy", "Terms of Use", "Copyright Notice", "Disclaimer"].map((link) => (
-                <a key={link} href="#" className="hover:text-white transition-colors whitespace-nowrap">
-                  {link}
-                </a>
+              {["Privacy Policy", "Terms of Use"].map((link) => (
+                <a key={link} href="#" className="hover:text-white transition-colors whitespace-nowrap">{link}</a>
               ))}
             </div>
           </div>
         </div>
       </footer>
+
+      {/* ================= FLOATING UPLOAD BUTTON ================= */}
+      {/* TODO: hide this button when user is not logged in (wrap with isLoggedIn check) */}
+      {/* Fixed to bottom-right; z-50 keeps it above all sections */}
+      <Link
+        href="/upload-form"
+        aria-label="Upload artwork"
+        className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full
+                   bg-orange-500 text-white shadow-lg shadow-orange-400/40
+                   flex items-center justify-center
+                   hover:bg-orange-600 hover:scale-110 hover:shadow-orange-500/60
+                   transition-all duration-300"
+      >
+        <Upload className="w-6 h-6" />
+      </Link>
 
     </main>
   );
