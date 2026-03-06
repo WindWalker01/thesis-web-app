@@ -18,7 +18,7 @@ type UseReportModalArgs = {
   postId?: string;
 };
 
-export function useReportModal({ open, onOpenChange, onSubmit, postId }: UseReportModalArgs) {
+export function useReportArtworkModal({ open, onOpenChange, onSubmit, postId }: UseReportModalArgs) {
   /**
    * React.useId creates a stable unique id for this component instance.
    * Useful if multiple modals can exist, preventing duplicate form IDs.

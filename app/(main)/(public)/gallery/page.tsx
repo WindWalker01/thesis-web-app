@@ -5,3 +5,4 @@ export default function Gallery() {
     <GalleryPage />
   );
 }
+git status

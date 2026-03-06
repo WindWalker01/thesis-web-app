@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { cn } from "@/lib/client-utils"; 
-import { useReportModal } from "../hooks/useReportModal";
+import { useReportArtworkModal } from "../hooks/useReportArtworkModal";
 import { REPORT_REASONS, type ReportReason, type ReportPayload } from "../types";
 
 /**
@@ -25,7 +25,7 @@ import { REPORT_REASONS, type ReportReason, type ReportPayload } from "../types"
  * - onSubmit: callback to send the report payload to backend / API
  * - postId: identify which post is being reported
  */
-type ReportModalProps = {
+type ReportArtworkModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
@@ -34,14 +34,14 @@ type ReportModalProps = {
   postId?: string;
 };
 
-export function ReportModal({
+export function ReportArtworkModal({
   open,
   onOpenChange,
   title,
   username,
   onSubmit,
   postId,
-}: ReportModalProps) {
+}: ReportArtworkModalProps) {
   /**
    * Custom hook encapsulates all "business logic" for reporting:
    * - current reason/details/context inputs
@@ -62,7 +62,7 @@ export function ReportModal({
     needsContext,
     isSubmitting,
     handleSubmit,
-  } = useReportModal({ open, onOpenChange, onSubmit, postId });
+  } = useReportArtworkModal({ open, onOpenChange, onSubmit, postId });
 
   /**
    * Decide if we need to show an extra "context" Textarea and what it should say.

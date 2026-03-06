@@ -11,10 +11,10 @@ export default async function AuthenticatedLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  /* 
+    if (!user) {
+      redirect("/login");
+    } */
 
   return <>{children}</>;
 }
