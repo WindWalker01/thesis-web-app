@@ -1,86 +1,210 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CloudUpload, ImageUp } from "lucide-react";
-import Image from "next/image";
-import { useRef, useState, useEffect } from "react";
+import {
+  RotateCcw,
+  Download,
+  AlertTriangle,
+  Globe,
+  ArrowLeftRight,
+} from "lucide-react";
 
-function PlagarismCheckerPage() {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [image, setImage] = useState<File | null>(null);
+import {
+  type Stage,
+  type Mode,
+  ModeToggle,
+  AnalyzingScreen,
+  WebModeUpload,
+  WebModeResult,
+  CompareModeUpload,
+  CompareModeResult,
+} from "@/features/plagiarise-checker";
 
-  const [preview, setPreview] = useState<string | null>(null);
+export default function PlagiarismCheckerPage() {
+  const [mode, setMode] = useState<Mode>("web");
+  const [stage, setStage] = useState<Stage>("upload");
+  const [progress, setProgress] = useState(0);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
+  const [webPreview, setWebPreview] = useState<string | null>(null);
+  const [comparePreviewA, setComparePreviewA] = useState<string | null>(null);
+  const [comparePreviewB, setComparePreviewB] = useState<string | null>(null);
 
-    setImage(file);
+  // Cleanup all object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (webPreview) URL.revokeObjectURL(webPreview);
+      if (comparePreviewA) URL.revokeObjectURL(comparePreviewA);
+      if (comparePreviewB) URL.revokeObjectURL(comparePreviewB);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setPreview(previewUrl);
+  const runAnalysis = () => {
+    setStage("analyzing");
+    setProgress(0);
+    let p = 0;
+    const interval = setInterval(() => {
+      p += Math.random() * 12 + 4;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(interval);
+        setTimeout(() => setStage("result"), 400);
+      }
+      setProgress(Math.min(Math.floor(p), 100));
+    }, 180);
+  };
+
+  const handleWebUpload = (file: File) => {
+    if (webPreview) URL.revokeObjectURL(webPreview);
+    setWebPreview(URL.createObjectURL(file));
+    runAnalysis();
+  };
+
+  const handleCompareUploadA = (file: File) => {
+    if (comparePreviewA) URL.revokeObjectURL(comparePreviewA);
+    setComparePreviewA(URL.createObjectURL(file));
+  };
+
+  const handleCompareUploadB = (file: File) => {
+    if (comparePreviewB) URL.revokeObjectURL(comparePreviewB);
+    setComparePreviewB(URL.createObjectURL(file));
+  };
+
+  const handleClearA = () => {
+    if (comparePreviewA) {
+      URL.revokeObjectURL(comparePreviewA);
+      setComparePreviewA(null);
     }
   };
 
-  const handleUploadButtonClick = () => {
-    inputRef.current?.click();
+  const handleClearB = () => {
+    if (comparePreviewB) {
+      URL.revokeObjectURL(comparePreviewB);
+      setComparePreviewB(null);
+    }
   };
 
-  // clean the previous image object url when the user change the uploaded image
-  useEffect(() => {
-    return () => {
-      if (preview) {
-        URL.revokeObjectURL(preview);
-      }
-    };
-  }, [preview]);
+  const handleReset = () => {
+    setStage("upload");
+    setProgress(0);
+    if (webPreview) {
+      URL.revokeObjectURL(webPreview);
+      setWebPreview(null);
+    }
+    if (comparePreviewA) {
+      URL.revokeObjectURL(comparePreviewA);
+      setComparePreviewA(null);
+    }
+    if (comparePreviewB) {
+      URL.revokeObjectURL(comparePreviewB);
+      setComparePreviewB(null);
+    }
+  };
+
+  const handleModeChange = (m: Mode) => {
+    handleReset();
+    setMode(m);
+  };
 
   return (
-    <main className="mt-4">
-      <div className="bg-background/95 border-border border-b p-2 backdrop-blur">
-        <h1 className="text-foreground text-3xl">
-          Plagarism Detection Analysis
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Compare digital asset using perceptual hashing technology
-        </p>
+    <main className="bg-background min-h-screen">
+      {/* ── Header ── */}
+      <div className="border-border bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <div>
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-muted-foreground text-xs">Dashboard</span>
+              <span className="text-muted-foreground/40 text-xs">›</span>
+              <span className="text-primary text-xs font-medium">
+                Plagiarism Analysis
+              </span>
+            </div>
+            <h1 className="text-foreground text-2xl font-bold tracking-tight">
+              Plagiarism Detection Analysis
+            </h1>
+            <p className="text-muted-foreground mt-0.5 text-sm">
+              Perceptual hash comparison using pHash algorithm v4.2
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              className="gap-1.5"
+            >
+              <RotateCcw size={13} /> New Analysis
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Download size={13} /> Export PDF
+            </Button>
+            {stage === "result" && (
+              <Button variant="destructive" size="sm" className="gap-1.5">
+                <AlertTriangle size={13} /> Flag for Review
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="bg-card border-border m-4 flex flex-col items-center justify-center gap-4 rounded-sm border-3 border-dotted px-4 py-32">
-        <ImageUp size={48} color="white" />
-        <h1 className="text-foreground text-2xl">Artwork To Verify</h1>
-        <p className="text-muted-foreground text-center text-sm">
-          Upload your digital artwork and our system will fingerprint the image
-          and cross-reference it to check for plagarism.
-        </p>
-        <div>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-          <Button
-            variant={"secondary"}
-            size={"lg"}
-            className="rounded-sm"
-            onClick={handleUploadButtonClick}
-          >
-            <CloudUpload size={32} /> Upload Artwork
-          </Button>
+      {/* ── Body ── */}
+      <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
+        {/* Mode toggle */}
+        <div className="flex items-center justify-between">
+          <ModeToggle mode={mode} onChange={handleModeChange} />
+          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+            {mode === "web" ? (
+              <>
+                <Globe size={12} /> Scans millions of web records
+              </>
+            ) : (
+              <>
+                <ArrowLeftRight size={12} /> Direct image-to-image comparison
+              </>
+            )}
+          </p>
         </div>
 
-        <p className="text-muted-foreground text-center text-xs">
-          Supports JPG, PNG, WEBP up to 50MB
-        </p>
-      </div>
+        {/* ── Web Search Mode ── */}
+        {mode === "web" && (
+          <>
+            {stage === "upload" && <WebModeUpload onUpload={handleWebUpload} />}
+            {stage === "analyzing" && (
+              <AnalyzingScreen progress={progress} mode="web" />
+            )}
+            {stage === "result" && webPreview && (
+              <WebModeResult preview={webPreview} />
+            )}
+          </>
+        )}
 
-      {preview && (
-        <Image src={preview} alt="Preview Image" width={250} height={250} />
-      )}
+        {/* ── Compare Two Images Mode ── */}
+        {mode === "compare" && (
+          <>
+            {stage === "upload" && (
+              <CompareModeUpload
+                previewA={comparePreviewA}
+                previewB={comparePreviewB}
+                onUploadA={handleCompareUploadA}
+                onUploadB={handleCompareUploadB}
+                onClearA={handleClearA}
+                onClearB={handleClearB}
+                onCompare={runAnalysis}
+              />
+            )}
+            {stage === "analyzing" && (
+              <AnalyzingScreen progress={progress} mode="compare" />
+            )}
+            {stage === "result" && comparePreviewA && comparePreviewB && (
+              <CompareModeResult
+                previewA={comparePreviewA}
+                previewB={comparePreviewB}
+              />
+            )}
+          </>
+        )}
+      </div>
     </main>
   );
 }
-
-export default PlagarismCheckerPage;
