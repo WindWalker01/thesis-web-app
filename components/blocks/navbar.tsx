@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Fan } from "lucide-react";
 import { isAuthenticated } from "@/lib/server-utils";
 import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
-import UserMenu from "./UserMenu";
+import UserDropdownMenu from "./user-dropdown-menu";
 
 async function NavBar() {
   const authed = await isAuthenticated();
@@ -31,12 +31,12 @@ async function NavBar() {
           <>
             <Link
               href="/login"
-              className="text-sm rounded-3xl cursor-pointer bg-blue-600 px-4 py-2 hover:bg-blue-700 text-white"
+              className="btn-accent text-sm px-4 py-2 rounded-3xl"
             >
               Log In
             </Link>
 
-            <UserMenu loginHref="/login" registerHref="/register" />
+            <UserDropdownMenu loginHref="/login" registerHref="/register" />
           </>
         )}
       </div>

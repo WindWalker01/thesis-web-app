@@ -1,9 +1,9 @@
 "use client";
 
 import { Settings2 } from "lucide-react";
-import { ArtPost } from "./ArtPost";
-import { LoginRequiredModal } from "./LoginRequiredModal";
-import { ReportModal } from "../../report-infringement/components/ReportModal";
+import { ArtPost } from "./artpost";
+import { LoginRequiredModal } from "./login-required-modal";
+import { ReportArtworkModal } from "../../report-infringement/components/report-artwork-modal";
 import { Post } from "../types";
 import { useGalleryPage } from "../hooks/useGalleryPage";
 
@@ -81,7 +81,7 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
   const { state, actions } = useGalleryPage(authed);
 
   return (
-    <div className="w-full min-h-screen bg-white dark:bg-[#0e1113]">
+    <div className="w-full min-h-screen bg-background">
       <div className="w-full max-w-170 mx-auto px-4 py-6">
         {/* Top-right settings button (placeholder for future settings / filters) */}
         <div className="flex justify-end items-center mb-4 mx-2">
@@ -133,7 +133,7 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
       />
 
       {/* ===================== Report Modal ===================== */}
-      <ReportModal
+      <ReportArtworkModal
         open={state.reportOpen}
         onOpenChange={actions.setReportOpen}
         postId={state.selectedPost?.id}
