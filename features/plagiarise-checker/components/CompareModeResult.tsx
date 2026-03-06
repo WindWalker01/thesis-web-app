@@ -3,14 +3,18 @@ import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { ScoreCard } from "./ScoreCard";
 
+import { ImageComparisonResponse } from "./../types";
+
 interface CompareModeResultProps {
   previewA: string;
   previewB: string;
+  results: ImageComparisonResponse | null;
 }
 
 export function CompareModeResult({
   previewA,
   previewB,
+  results,
 }: CompareModeResultProps) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
@@ -65,7 +69,7 @@ export function CompareModeResult({
 
       {/* Score */}
       <ScoreCard
-        value={83}
+        value={results?.result.distance.similarity_percentage ?? -1}
         label="High Similarity"
         description="Direct hash distance of 12 bits — highly similar"
       />

@@ -3,11 +3,14 @@ import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { ScoreCard } from "./ScoreCard";
 
+import { ReverseSearchResponse } from "./../types";
+
 interface WebModeResultProps {
   preview: string;
+  results: ReverseSearchResponse | null;
 }
 
-export function WebModeResult({ preview }: WebModeResultProps) {
+export function WebModeResult({ preview, results }: WebModeResultProps) {
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
       {/* Original Artwork */}
@@ -65,7 +68,7 @@ export function WebModeResult({ preview }: WebModeResultProps) {
 
       {/* Score */}
       <ScoreCard
-        value={85}
+        value={results?.progress ?? -1}
         label="High Probability"
         description="Structural similarity index exceeds threshold of 75%"
       />
@@ -115,9 +118,12 @@ export function WebModeResult({ preview }: WebModeResultProps) {
               <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest">
                 SOURCE
               </p>
-              <p className="text-destructive font-mono text-xs">
-                nft-marketplace-clone.com
-              </p>
+              <a
+                href={Object.keys(results?.result.distances ?? {})[0]}
+                className="text-destructive font-mono text-xs"
+              >
+                {Object.keys(results?.result.distances ?? {})[0]}
+              </a>
             </div>
             <div>
               <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest">
