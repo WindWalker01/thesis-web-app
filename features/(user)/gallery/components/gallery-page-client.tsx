@@ -1,7 +1,7 @@
 "use client";
 
 import { Settings2 } from "lucide-react";
-import { ArtPost } from "./artpost";
+import { ArtPost } from "./art-post";
 import { LoginRequiredModal } from "./login-required-modal";
 import { ReportArtworkModal } from "../../report-infringement/components/report-artwork-modal";
 import { Post } from "../types";
