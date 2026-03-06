@@ -15,7 +15,7 @@ export default function LoginPage() {
     <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
 
       {/* Top gradient accent bar — matches landing page style */}
-      <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-orange-400" />
+      <div className="h-1 w-full bg-linear-to-r from-blue-600 via-blue-400 to-orange-400" />
 
       <div className="min-h-[calc(100vh-4px)] flex flex-col lg:flex-row">
 
