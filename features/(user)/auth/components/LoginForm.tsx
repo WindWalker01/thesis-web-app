@@ -1,4 +1,6 @@
-import { cn } from "@/lib/utils";
+"use client";
+
+import { cn } from "@/lib/client-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,21 +12,35 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
+import { signIn } from "../services/auth.service";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export function RegisterForm({
+export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
+
+  async function handleSignIn(formData: FormData) {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    // login
+    const { error } = await signIn(email, password);
+    if (!error) router.push("/dashboard");
+  }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form className="p-6 md:p-8" action={handleSignIn}>
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Create your account</h1>
-                <p className="text-muted-foreground text-sm text-balance">
-                  Enter your email below to create your account
+                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <p className="text-muted-foreground text-balance">
+                  Login to your Acme Inc account
                 </p>
               </div>
               <Field>
@@ -32,33 +48,25 @@ export function RegisterForm({
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="m@example.com"
                   required
                 />
-                <FieldDescription>
-                  We&apos;ll use this to contact you. We will not share your
-                  email with anyone else.
-                </FieldDescription>
               </Field>
               <Field>
-                <Field className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input id="password" type="password" required />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="confirm-password">
-                      Confirm Password
-                    </FieldLabel>
-                    <Input id="confirm-password" type="password" required />
-                  </Field>
-                </Field>
-                <FieldDescription>
-                  Must be at least 8 characters long.
-                </FieldDescription>
+                <div className="flex items-center">
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <a
+                    href="#"
+                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                  >
+                    Forgot your password?
+                  </a>
+                </div>
+                <Input id="password" type="password" name="password" required />
               </Field>
               <Field>
-                <Button type="submit">Create Account</Button>
+                <Button type="submit">Login</Button>
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
@@ -71,7 +79,7 @@ export function RegisterForm({
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Sign up with Apple</span>
+                  <span className="sr-only">Login with Apple</span>
                 </Button>
                 <Button variant="outline" type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -80,7 +88,7 @@ export function RegisterForm({
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Sign up with Google</span>
+                  <span className="sr-only">Login with Google</span>
                 </Button>
                 <Button variant="outline" type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -89,11 +97,12 @@ export function RegisterForm({
                       fill="currentColor"
                     />
                   </svg>
-                  <span className="sr-only">Sign up with Meta</span>
+                  <span className="sr-only">Login with Meta</span>
                 </Button>
               </Field>
               <FieldDescription className="text-center">
-                Already have an account? <a href="#">Sign in</a>
+                Don&apos;t have an account?{" "}
+                <Link href="/register">Sign up</Link>
               </FieldDescription>
             </FieldGroup>
           </form>
