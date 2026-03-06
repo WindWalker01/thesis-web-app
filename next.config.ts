@@ -1,14 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+   /* config options here */
+  reactStrictMode: true,
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'styles.redditmedia.com',
-        port: '',
-        pathname: '/**', // Allows any path or image from this domain
-      },
+    domains: [
+      "images.unsplash.com",
+      "lh3.googleusercontent.com",
     ],
   },
 };
