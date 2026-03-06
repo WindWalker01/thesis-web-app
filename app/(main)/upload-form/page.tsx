@@ -411,7 +411,7 @@ export default function UploadFormPage() {
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe your artwork — style, inspiration, medium, and the story behind the piece..."
+                    placeholder="Describe your artwork style, inspiration, medium, and the story behind the piece..."
                     rows={7}
                     maxLength={500}
                     className="w-full px-5 py-4 rounded-xl text-base resize-none
