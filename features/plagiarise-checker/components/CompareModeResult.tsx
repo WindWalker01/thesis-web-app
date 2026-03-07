@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ScoreCard } from "./ScoreCard";
 
 import { ImageComparisonResponse } from "./../types";
+import { shortenHash, truncateText } from "..";
 
 interface CompareModeResultProps {
   previewA: string;
@@ -56,13 +57,17 @@ export function CompareModeResult({
             <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest">
               FILE
             </p>
-            <p className="text-foreground text-sm font-medium">image-a.jpg</p>
+            <p className="text-foreground text-sm font-medium">
+              {truncateText(results?.result.filename1 ?? "Unknown", 14)}
+            </p>
           </div>
           <div>
             <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest">
               pHASH
             </p>
-            <p className="text-primary font-mono text-xs">a3f8...91cd</p>
+            <p className="text-primary font-mono text-xs">
+              {shortenHash(results?.result.hash1[0].phash ?? "?????????")}
+            </p>
           </div>
         </div>
       </div>
@@ -106,10 +111,6 @@ export function CompareModeResult({
             height={220}
             className="h-52 w-full object-cover"
           />
-          <div className="bg-destructive/15 border-destructive/30 text-destructive absolute top-2 right-2 flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] backdrop-blur-sm">
-            <div className="bg-destructive h-1.5 w-1.5 animate-pulse rounded-full" />
-            Highlight Overlap
-          </div>
         </div>
 
         <div className="space-y-4 p-5">
@@ -118,29 +119,17 @@ export function CompareModeResult({
               <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest">
                 FILE
               </p>
-              <p className="text-foreground text-xs font-medium">image-b.jpg</p>
+              <p className="text-foreground text-xs font-medium">
+                {truncateText(results?.result.filename2 ?? "Unknown", 14)}
+              </p>
             </div>
             <div>
               <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest">
                 pHASH
               </p>
-              <p className="text-destructive font-mono text-xs">a3f2...88c1</p>
-            </div>
-          </div>
-          <div>
-            <p className="text-muted-foreground mb-2 text-[10px] font-bold tracking-widest">
-              MODIFICATIONS DETECTED
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {["Cropped", "Color Shift", "Resized"].map((m) => (
-                <Badge
-                  key={m}
-                  variant="outline"
-                  className="border-amber-500/30 bg-amber-500/10 text-[11px] text-amber-400"
-                >
-                  {m}
-                </Badge>
-              ))}
+              <p className="text-destructive font-mono text-xs">
+                {shortenHash(results?.result.hash2[0].phash ?? "?????????")}
+              </p>
             </div>
           </div>
         </div>

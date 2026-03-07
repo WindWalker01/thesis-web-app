@@ -6,7 +6,7 @@ export function CircleProgress({ value }: CircleProgressProps) {
   const r = 52;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
-  const color = value >= 80 ? "#ef4444" : value >= 60 ? "#f59e0b" : "#22c55e";
+  const color = value >= 80 ? "#ef4444" : value >= 75 ? "#f59e0b" : "#22c55e";
 
   return (
     <svg width="140" height="140" viewBox="0 0 140 140">
@@ -32,10 +32,10 @@ export function CircleProgress({ value }: CircleProgressProps) {
       />
       <text
         x="70"
-        y="64"
+        y="76"
         textAnchor="middle"
         fill="hsl(var(--foreground))"
-        fontSize="28"
+        fontSize="24"
         fontWeight="700"
         fontFamily="inherit"
       >
@@ -43,10 +43,10 @@ export function CircleProgress({ value }: CircleProgressProps) {
       </text>
       <text
         x="70"
-        y="82"
+        y="98"
         textAnchor="middle"
         fill="hsl(var(--muted-foreground))"
-        fontSize="11"
+        fontSize="8"
         fontFamily="inherit"
       >
         MATCH

@@ -36,6 +36,9 @@ export default function PlagiarismCheckerPage() {
   const [comparePreviewA, setComparePreviewA] = useState<string | null>(null);
   const [comparePreviewB, setComparePreviewB] = useState<string | null>(null);
 
+  const [imageA, setImageA] = useState<File | null>(null);
+  const [imageB, setImageB] = useState<File | null>(null);
+
   const [comparisonResult, setComparisonResult] =
     useState<ImageComparisonResponse | null>(null);
 
@@ -89,8 +92,8 @@ export default function PlagiarismCheckerPage() {
         JSON.stringify({
           file1: base64A,
           file2: base64B,
-          filename1: file1.name,
-          filename2: file2.name,
+          filename1: imageA?.name ?? "imageA",
+          filename2: imageB?.name ?? "imageB",
         }),
       );
     };
@@ -162,11 +165,13 @@ export default function PlagiarismCheckerPage() {
   const handleCompareUploadA = (file: File) => {
     if (comparePreviewA) URL.revokeObjectURL(comparePreviewA);
     setComparePreviewA(URL.createObjectURL(file));
+    setImageA(file);
   };
 
   const handleCompareUploadB = (file: File) => {
     if (comparePreviewB) URL.revokeObjectURL(comparePreviewB);
     setComparePreviewB(URL.createObjectURL(file));
+    setImageB(file);
   };
 
   const handleClearA = () => {
@@ -222,7 +227,7 @@ export default function PlagiarismCheckerPage() {
               Plagiarism Detection Analysis
             </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Perceptual hash comparison using pHash algorithm v4.2
+              Perceptual hash comparison using pHash algorithm
             </p>
           </div>
 
@@ -235,14 +240,6 @@ export default function PlagiarismCheckerPage() {
             >
               <RotateCcw size={13} /> New Analysis
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Download size={13} /> Export PDF
-            </Button>
-            {stage === "result" && (
-              <Button variant="destructive" size="sm" className="gap-1.5">
-                <AlertTriangle size={13} /> Flag for Review
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -273,7 +270,15 @@ export default function PlagiarismCheckerPage() {
               <AnalyzingScreen progress={progress} mode="web" />
             )}
             {stage === "result" && webPreview && (
-              <WebModeResult preview={webPreview} results={webResult} />
+              <WebModeResult
+                preview={webPreview}
+                results={webResult}
+                timeFound={new Date().toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              />
             )}
           </>
         )}

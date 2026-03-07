@@ -22,3 +22,18 @@ export async function fileToBase64(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+export function shortenHash(hash: string) {
+  if (!hash) return "";
+  const start = hash.slice(0, 3);
+  const end = hash.slice(-3);
+  return `${start}......${end}`;
+}
+
+export const truncateText = (str: string, limit: number) => {
+  if (str.length > limit) {
+    // Slice the string and add "..."
+    return str.slice(0, limit) + "...";
+  }
+  return str;
+};

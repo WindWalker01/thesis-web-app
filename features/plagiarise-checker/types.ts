@@ -10,13 +10,15 @@ export interface ReverseSearchResponse {
 export interface ReverseSearchResult {
   filename: string;
   hashes: ImageTransformHashes;
-  // Record<string, ...> handles the dynamic URL keys
+  // Now reflects the "0", "1", etc. keys seen in your JSON
   distances: Record<string, CombinedDistanceMetrics>;
-  serp_hashes: Record<string, ImageTransformHashes>;
   success: boolean;
 }
 
 export interface CombinedDistanceMetrics {
+  source: string;
+  link: string;
+  url: string;
   min_combined_distance: number;
   average_combined_distance: number;
   max_combined_distance: number;
