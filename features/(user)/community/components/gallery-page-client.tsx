@@ -82,7 +82,7 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
 
   return (
     <div className="w-full min-h-screen bg-background">
-      <div className="w-full max-w-170 mx-auto px-4 py-6">
+      <div className="w-full max-w-170 mx-auto px-4 relative pt-24">
         {/* Top-right settings button (placeholder for future settings / filters) */}
         <div className="flex justify-end items-center mb-4 mx-2">
           <button

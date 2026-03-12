@@ -23,30 +23,30 @@ interface Notification {
 
 /* ── Dummy notifications (replace with real API later) ── */
 const DUMMY_NOTIFICATIONS: Notification[] = [
-  { id: 1, icon: FileCheck,     color: "text-green-400",  bg: "bg-green-400/10",  text: "Your artwork 'Sunset Concept Art' has been successfully registered.", time: "2m ago",  read: false },
-  { id: 2, icon: ScanSearch,    color: "text-orange-400", bg: "bg-orange-400/10", text: "Plagiarism scan detected 2 similar artworks to 'Digital Bloom'.",       time: "15m ago", read: false },
-  { id: 3, icon: ShieldCheck,   color: "text-blue-400",   bg: "bg-blue-400/10",   text: "Your perceptual hash verification is complete.",                        time: "1h ago",  read: true  },
-  { id: 4, icon: MessageCircle, color: "text-purple-400", bg: "bg-purple-400/10", text: "New comment on your artwork 'Cyber Samurai'.",                           time: "3h ago",  read: true  },
-  { id: 5, icon: Award,         color: "text-yellow-400", bg: "bg-yellow-400/10", text: "Ownership certificate generated for 'Digital Bloom'.",                  time: "1d ago",  read: true  },
+  { id: 1, icon: FileCheck, color: "text-green-400", bg: "bg-green-400/10", text: "Your artwork 'Sunset Concept Art' has been successfully registered.", time: "2m ago", read: false },
+  { id: 2, icon: ScanSearch, color: "text-orange-400", bg: "bg-orange-400/10", text: "Plagiarism scan detected 2 similar artworks to 'Digital Bloom'.", time: "15m ago", read: false },
+  { id: 3, icon: ShieldCheck, color: "text-blue-400", bg: "bg-blue-400/10", text: "Your perceptual hash verification is complete.", time: "1h ago", read: true },
+  { id: 4, icon: MessageCircle, color: "text-purple-400", bg: "bg-purple-400/10", text: "New comment on your artwork 'Cyber Samurai'.", time: "3h ago", read: true },
+  { id: 5, icon: Award, color: "text-yellow-400", bg: "bg-yellow-400/10", text: "Ownership certificate generated for 'Digital Bloom'.", time: "1d ago", read: true },
 ];
 
 const NAV_LINKS = [
-  { label: "Home",       href: "/"                  },
-  { label: "Dashboard",  href: "/dashboard"          },
-  { label: "Community",  href: "/gallery"            },
+  { label: "Home", href: "/" },
+  { label: "Dashboard", href: "/dashboard" },
+  { label: "Community", href: "/community" },
   { label: "Plagiarism", href: "/plagiarism-checker" },
-  { label: "About",      href: "/about"              },
+  { label: "About", href: "/about" },
 ];
 
 const MORE_LINKS = [
-  { label: "FAQ",            href: "/#faq-section"   },
-  { label: "Terms of Use",   href: "/terms-of-use"   },
+  { label: "FAQ", href: "/#faq-section" },
+  { label: "Terms of Use", href: "/terms-of-use" },
   { label: "Privacy Policy", href: "/privacy-policy" },
 ];
 
 function NavBar() {
-  const [moreOpen,   setMoreOpen]   = useState(false);
-  const [notifOpen,  setNotifOpen]  = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const unreadCount = DUMMY_NOTIFICATIONS.filter((n) => !n.read).length;
 
@@ -93,8 +93,8 @@ function NavBar() {
                 {moreOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0,  scale: 1    }}
-                    exit={{    opacity: 0, y: -6, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
                     transition={{ duration: 0.18, ease: "easeOut" }}
                     className="absolute top-10 left-1/2 -translate-x-1/2 w-44 bg-background border border-border rounded-xl shadow-xl overflow-hidden z-50"
                   >
@@ -139,8 +139,8 @@ function NavBar() {
                 {notifOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0,  scale: 1    }}
-                    exit={{    opacity: 0, y: -8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     className="absolute top-12 right-0 w-[min(320px,calc(100vw-2rem))] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
                   >
@@ -215,8 +215,8 @@ function NavBar() {
               className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center hover:bg-muted transition-all ml-0.5">
               <AnimatePresence mode="wait">
                 {mobileOpen
-                  ? <motion.span key="x"    initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X    className="w-5 h-5" /></motion.span>
-                  : <motion.span key="menu" initial={{ rotate:  90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate:-90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu className="w-5 h-5" /></motion.span>
+                  ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X className="w-5 h-5" /></motion.span>
+                  : <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Menu className="w-5 h-5" /></motion.span>
                 }
               </AnimatePresence>
             </button>
@@ -290,9 +290,9 @@ function NavBar() {
                 <div className="px-3 py-3">
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">Account</p>
                   {[
-                    { icon: Upload,   label: "Upload Artwork", href: "/upload-form",     color: "text-orange-500" },
-                    { icon: Settings, label: "Settings",       href: "/settings-button", color: "text-blue-500"   },
-                    { icon: User,     label: "Profile",        href: "/profile",         color: "text-blue-500"   },
+                    { icon: Upload, label: "Upload Artwork", href: "/upload-form", color: "text-orange-500" },
+                    { icon: Settings, label: "Settings", href: "/settings-button", color: "text-blue-500" },
+                    { icon: User, label: "Profile", href: "/profile", color: "text-blue-500" },
                   ].map(({ icon: Icon, label, href, color }) => (
                     <Link key={href} href={href} onClick={closeMobile}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
