@@ -28,13 +28,6 @@ export function ScoreCard({
         {description}
       </p>
 
-      <div className="w-full space-y-2">
-        <p className="text-muted-foreground text-[10px] font-bold tracking-widest">
-          HASH COLLISION MAP
-        </p>
-        <HashCollisionMap />
-      </div>
-
       <Button
         variant="destructive"
         size="sm"

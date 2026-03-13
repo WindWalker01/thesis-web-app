@@ -19,7 +19,13 @@ import {
   WebModeResult,
   CompareModeUpload,
   CompareModeResult,
+  fileToBase64,
 } from "@/features/plagiarise-checker";
+
+import {
+  ImageComparisonResponse,
+  ReverseSearchResponse,
+} from "@/features/plagiarise-checker/types";
 
 export default function PlagiarismCheckerPage() {
   const [mode, setMode] = useState<Mode>("web");
@@ -29,6 +35,16 @@ export default function PlagiarismCheckerPage() {
   const [webPreview, setWebPreview] = useState<string | null>(null);
   const [comparePreviewA, setComparePreviewA] = useState<string | null>(null);
   const [comparePreviewB, setComparePreviewB] = useState<string | null>(null);
+
+  const [imageA, setImageA] = useState<File | null>(null);
+  const [imageB, setImageB] = useState<File | null>(null);
+
+  const [comparisonResult, setComparisonResult] =
+    useState<ImageComparisonResponse | null>(null);
+
+  const [webResult, setWebResult] = useState<ReverseSearchResponse | null>(
+    null,
+  );
 
   // Cleanup all object URLs on unmount
   useEffect(() => {
@@ -44,7 +60,7 @@ export default function PlagiarismCheckerPage() {
     setProgress(0);
     let p = 0;
     const interval = setInterval(() => {
-      p += Math.random() * 12 + 4;
+      p += 1;
       if (p >= 100) {
         p = 100;
         clearInterval(interval);
@@ -54,20 +70,108 @@ export default function PlagiarismCheckerPage() {
     }, 180);
   };
 
+  const runCompareAnalysis = () => {
+    if (!comparePreviewA || !comparePreviewB) return;
+
+    setStage("analyzing");
+    setProgress(0);
+
+    const ws = new WebSocket("ws://127.0.0.1:8000/plagiarism/check");
+
+    ws.onopen = async () => {
+      const fileA = await fetch(comparePreviewA).then((r) => r.blob());
+      const fileB = await fetch(comparePreviewB).then((r) => r.blob());
+
+      const file1 = new File([fileA], "fileA");
+      const file2 = new File([fileB], "fileB");
+
+      const base64A = await fileToBase64(file1);
+      const base64B = await fileToBase64(file2);
+
+      ws.send(
+        JSON.stringify({
+          file1: base64A,
+          file2: base64B,
+          filename1: imageA?.name ?? "imageA",
+          filename2: imageB?.name ?? "imageB",
+        }),
+      );
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.progress !== undefined) {
+        setProgress(data.progress);
+      }
+
+      if (data.result) {
+        setTimeout(() => setStage("result"), 400);
+        setComparisonResult(data);
+        ws.close();
+      }
+
+      if (data.error) {
+        console.error(data.error);
+        ws.close();
+      }
+    };
+  };
+
   const handleWebUpload = (file: File) => {
     if (webPreview) URL.revokeObjectURL(webPreview);
     setWebPreview(URL.createObjectURL(file));
-    runAnalysis();
+
+    setStage("analyzing");
+    setProgress(0);
+
+    const ws = new WebSocket("ws://127.0.0.1:8000/plagiarism/check/web");
+
+    ws.onopen = async () => {
+      const base64 = await fileToBase64(file);
+
+      ws.send(
+        JSON.stringify({
+          filename: file.name,
+          file: base64,
+        }),
+      );
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.progress !== undefined) {
+        setProgress(data.progress);
+      }
+
+      if (data.result) {
+        setTimeout(() => setStage("result"), 400);
+        setWebResult(data);
+        ws.close();
+      }
+
+      if (data.error) {
+        console.error(data.error);
+        ws.close();
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error", err);
+    };
   };
 
   const handleCompareUploadA = (file: File) => {
     if (comparePreviewA) URL.revokeObjectURL(comparePreviewA);
     setComparePreviewA(URL.createObjectURL(file));
+    setImageA(file);
   };
 
   const handleCompareUploadB = (file: File) => {
     if (comparePreviewB) URL.revokeObjectURL(comparePreviewB);
     setComparePreviewB(URL.createObjectURL(file));
+    setImageB(file);
   };
 
   const handleClearA = () => {
@@ -123,7 +227,7 @@ export default function PlagiarismCheckerPage() {
               Plagiarism Detection Analysis
             </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Perceptual hash comparison using pHash algorithm v4.2
+              Perceptual hash comparison using pHash algorithm
             </p>
           </div>
 
@@ -136,14 +240,6 @@ export default function PlagiarismCheckerPage() {
             >
               <RotateCcw size={13} /> New Analysis
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Download size={13} /> Export PDF
-            </Button>
-            {stage === "result" && (
-              <Button variant="destructive" size="sm" className="gap-1.5">
-                <AlertTriangle size={13} /> Flag for Review
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -174,7 +270,15 @@ export default function PlagiarismCheckerPage() {
               <AnalyzingScreen progress={progress} mode="web" />
             )}
             {stage === "result" && webPreview && (
-              <WebModeResult preview={webPreview} />
+              <WebModeResult
+                preview={webPreview}
+                results={webResult}
+                timeFound={new Date().toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              />
             )}
           </>
         )}
@@ -190,7 +294,7 @@ export default function PlagiarismCheckerPage() {
                 onUploadB={handleCompareUploadB}
                 onClearA={handleClearA}
                 onClearB={handleClearB}
-                onCompare={runAnalysis}
+                onCompare={runCompareAnalysis}
               />
             )}
             {stage === "analyzing" && (
@@ -200,6 +304,7 @@ export default function PlagiarismCheckerPage() {
               <CompareModeResult
                 previewA={comparePreviewA}
                 previewB={comparePreviewB}
+                results={comparisonResult}
               />
             )}
           </>
