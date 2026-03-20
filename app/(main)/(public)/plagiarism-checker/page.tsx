@@ -213,7 +213,7 @@ export default function PlagiarismCheckerPage() {
   return (
     <main className="bg-background min-h-screen">
       {/* ── Header ── */}
-      <div className="border-border bg-background/95 sticky top-0 z-10 border-b backdrop-blur">
+      <div className="border-border bg-background/95 sticky top-0 z-10 border-b backdrop-blur pt-16">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div>
             <div className="mb-1 flex items-center gap-2">
