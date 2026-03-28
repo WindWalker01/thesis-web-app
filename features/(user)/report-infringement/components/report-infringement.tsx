@@ -91,7 +91,7 @@ export default function ReportInfringementPageShadcn() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             {/* Page container */}
-            <div className="mx-auto w-full max-w-6xl px-4 md:px-10 py-8">
+            <div className="mx-auto w-full max-w-6xl px-4 md:px-10 pb-8 relative pt-24">
                 {/* Header */}
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
                     <div className="space-y-1">

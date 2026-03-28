@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { ReactQueryClientProvider } from "@/providers/react-query-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,9 +25,9 @@ export const metadata: Metadata = {
     "perceptual hashing", "copyright", "Philippines",
   ],
   icons: {
-    icon:       "/landing-page-elements/AFL_logoWeb.png",
-    shortcut:   "/landing-page-elements/AFL_logoWeb.png",
-    apple:      "/landing-page-elements/AFL_logoWeb.png",
+    icon: "/landing-page-elements/AFL_logoWeb.png",
+    shortcut: "/landing-page-elements/AFL_logoWeb.png",
+    apple: "/landing-page-elements/AFL_logoWeb.png",
   },
 };
 
@@ -56,7 +58,10 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          {children}
+          <ReactQueryClientProvider>
+            {children}
+            <Toaster position="top-center" />
+          </ReactQueryClientProvider>
         </ThemeProvider>
       </body>
     </html>

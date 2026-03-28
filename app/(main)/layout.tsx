@@ -1,7 +1,12 @@
+import NavBar from "@/components/blocks/navbar";
+
 export default function MainLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  return <>
+    <NavBar />
+    {children}
+  </>;
 }
