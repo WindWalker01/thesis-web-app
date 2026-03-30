@@ -1,255 +1,355 @@
 "use client";
 
-import Link from "next/link";
-import { BrainCircuitIcon, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { useState } from "react";
-import { motion } from "framer-motion";
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import {
+  Loader2,
+  UserPlus,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
+import GoogleIcon from "@/components/google-icon";
 
-// RegisterForm component — authentication logic will be wired here later
-// For now this is UI-only: inputs are controlled but no submit action is connected
+import { getStrength } from "@/features/auth/register";
+
 export default function RegisterPage() {
-  const [showPassword, setShowPassword]         = useState(false);
-  const [showConfirmPassword, setShowConfirm]   = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+    setSuccess(true);
+    setLoading(false);
+  };
+
+  const handleGoogleSignUp = async () => {
+    setError(null);
+    setOauthLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      setError(error.message);
+      setOauthLoading(false);
+    }
+  };
+
+  const strength = getStrength(password);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
+      </div>
 
-      {/* Top gradient accent bar — matches landing page style */}
-      <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-orange-400" />
-
-      <div className="min-h-[calc(100vh-4px)] flex flex-col lg:flex-row">
-
-        {/* ── LEFT PANEL — branding hero (hidden on mobile) ── */}
-        <div
-          className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white relative"
-          style={{
-            background:
-              "linear-gradient(rgba(16, 34, 22, 0.75), rgba(16, 34, 22, 0.92)), url('/landing-page-elements/landing-page-bg.avif')",
-            backgroundSize: "cover",
-            backgroundPosition: "center top",
-          }}
-        >
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
-            <Image
-                src="/landing-page-elements/AFL_logoWeb.png"
-                alt="Logo"
-                width={60}
-                height={70}
-                className="shrink-0"
-              />
-            <span className="text-lg font-bold tracking-tight">
-              <span className="text-blue-400">Art</span>
-              <span className="text-orange-500">Forge</span>
-              <span className="text-white">Lab</span>
-            </span>
-          </Link>
-
-          {/* Center copy */}
-          <div className="space-y-6">
-            <p className="text-xs font-semibold uppercase tracking-widest text-orange-400 border-l-2 border-orange-500 pl-3">
-              ArtForgeLab · Join the Registry
-            </p>
-            <h1 className="text-4xl xl:text-5xl font-black leading-tight">
-              Protect Your <br />
-              <span className="text-orange-400">Digital</span> Legacy.
-            </h1>
-            <p className="text-slate-400 text-base max-w-sm leading-relaxed">
-              Create your account to start registering artworks on the blockchain,
-              run plagiarism checks, and secure your intellectual property with
-              cryptographic proof of authorship.
-            </p>
-
-            {/* Numbered steps */}
-            <div className="space-y-3 pt-2">
-              {[
-                { step: "01", text: "Create your account" },
-                { step: "02", text: "Upload & register your artwork" },
-                { step: "03", text: "Get blockchain-backed proof" },
-              ].map((s) => (
-                <div key={s.step} className="flex items-center gap-3">
-                  <span className="text-xs font-black text-orange-400 w-6">{s.step}</span>
-                  <span className="text-sm text-slate-300">{s.text}</span>
-                </div>
-              ))}
-            </div>
+      <div className="relative w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-500/30">
+            <UserPlus className="h-7 w-7 text-white" />
           </div>
-
-          {/* Bottom research badge */}
-          <p className="text-xs text-slate-500">
-            Undergraduate Thesis Research · Philippines 2026
+          <h1 className="text-2xl font-bold tracking-tight text-white">
+            Create an account
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Get started for free today
           </p>
         </div>
 
-        {/* ── RIGHT PANEL — registration form ── */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:px-6">
+        <Card className="border-slate-700/50 bg-slate-800/50 shadow-2xl backdrop-blur-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl text-white">Register</CardTitle>
+            <CardDescription className="text-slate-400">
+              Fill in your details to get started
+            </CardDescription>
+          </CardHeader>
 
-          {/* Mobile-only logo */}
-          <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden hover:opacity-80 transition-opacity">
-            <Image
-                src="/landing-page-elements/AFL_logoWeb.png"
-                alt="Logo"
-                width={60}
-                height={70}
-                className="shrink-0"
-              />
-            <span className="text-lg font-bold tracking-tight">
-              <span className="text-blue-500">Art</span>
-              <span className="text-orange-600">Forge</span>
-              <span className="text-primary">Lab</span>
-            </span>
-          </Link>
-
-          {/* Form card */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-
-              {/* Card header */}
-              <div className="px-8 pt-8 pb-6 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white">Create Account</h2>
-                <p className="text-sm text-slate-500 mt-1">
-                  Already have an account?{" "}
-                  {/* Link back to login page */}
-                  <Link href="/login" className="text-blue-500 font-semibold hover:underline">
-                    Sign in here
-                  </Link>
-                </p>
+          <CardContent>
+            {success ? (
+              <div className="space-y-4 py-6 text-center">
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10">
+                  <CheckCircle2 className="h-8 w-8 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">
+                    Check your email
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-400">
+                    We sent a confirmation link to{" "}
+                    <span className="text-blue-400">{email}</span>.<br />
+                    Click the link to activate your account.
+                  </p>
+                </div>
+                <Link href="/login">
+                  <Button
+                    variant="outline"
+                    className="mt-2 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  >
+                    Back to Sign In
+                  </Button>
+                </Link>
               </div>
+            ) : (
+              <div className="space-y-4">
+                {error && (
+                  <Alert
+                    variant="destructive"
+                    className="border-red-500/30 bg-red-500/10 text-red-400"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {/* Form fields — TODO: connect to registration/authentication logic */}
-              <div className="px-8 py-6 space-y-5">
-
-                {/* Full name field */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Nathaniel El Gwapo"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 
-                               dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-                    />
-                  </div>
-                </div>
-
-                {/* Email field */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="email"
-                      placeholder="nathanielpogi@email.com"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 
-                               dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-                    />
-                  </div>
-                </div>
-
-                {/* Password field */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 
-                               dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-                    />
-                    {/* Toggle password visibility */}
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm password field */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 
-                               dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
-                    />
-                    {/* Toggle confirm password visibility */}
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Submit button — TODO: connect onClick to register handler */}
-                <button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-orange-400 to-amber-500 hover:from-orange-500 hover:to-amber-600
-                           text-white font-bold py-3 rounded-xl transition-all hover:scale-[1.02] cursor-pointer"
-                >
-                  Create Account
-                </button>
-
-                {/* Divider */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                  <span className="text-xs text-slate-400">or continue with</span>
-                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-                </div>
-
-                {/* Google OAuth placeholder — TODO: connect to OAuth provider */}
-                <button
+                <Button
                   type="button"
-                  className="w-full flex items-center justify-center gap-3 border border-slate-200 dark:border-slate-700 py-3 rounded-xl 
-                             text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                  variant="outline"
+                  onClick={handleGoogleSignUp}
+                  disabled={oauthLoading || loading}
+                  className="h-11 w-full border-slate-600/60 bg-slate-900/40 text-slate-200 transition-all duration-200 hover:bg-slate-700 hover:text-white"
                 >
-                  <img
-                    className="w-4 h-4"
-                    src="/landing-page-elements/google.png"
-                    alt="Google"
-                  />
-                  Continue with Google
-                </button>
-              </div>
-            </div>
+                  {oauthLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <GoogleIcon />
+                  )}
+                  <span className="ml-2">Sign up with Google</span>
+                </Button>
 
-            {/* Legal disclaimer — matches landing page amber box style */}
-            <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-              <p className="text-xs text-slate-400 text-center leading-relaxed">
-                By creating an account you agree to our{" "}
-                <Link href="/terms-of-use" className="text-amber-400 hover:underline">Terms of Use</Link>
-                {" "}and{" "}
-                <Link href="/privacy-policy" className="text-amber-400 hover:underline">Privacy Policy</Link>.
-                Governed by <span className="text-slate-300 font-medium">R.A. 8293</span> and <span className="text-slate-300 font-medium">IPOPHL</span>.
+                <div className="flex items-center gap-3">
+                  <Separator className="flex-1 bg-slate-700/60" />
+                  <span className="text-xs whitespace-nowrap text-slate-500">
+                    or register with email
+                  </span>
+                  <Separator className="flex-1 bg-slate-700/60" />
+                </div>
+
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="fullName"
+                      className="text-sm font-medium text-slate-300"
+                    >
+                      Full name
+                    </Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      placeholder="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      className="h-11 border-slate-600/60 bg-slate-900/60 text-white placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium text-slate-300"
+                    >
+                      Email address
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-11 border-slate-600/60 bg-slate-900/60 text-white placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="password"
+                      className="text-sm font-medium text-slate-300"
+                    >
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Min. 6 characters"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="h-11 border-slate-600/60 bg-slate-900/60 pr-10 text-white placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-200"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    {password.length > 0 && (
+                      <div className="space-y-1.5">
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4].map((i) => (
+                            <div
+                              key={i}
+                              className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength.level ? strength.color : "bg-slate-700"}`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          Strength:{" "}
+                          <span
+                            className={
+                              strength.level === 4
+                                ? "text-green-400"
+                                : strength.level === 3
+                                  ? "text-yellow-400"
+                                  : strength.level === 2
+                                    ? "text-orange-400"
+                                    : "text-red-400"
+                            }
+                          >
+                            {strength.label}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="confirmPassword"
+                      className="text-sm font-medium text-slate-300"
+                    >
+                      Confirm password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="h-11 border-slate-600/60 bg-slate-900/60 text-white placeholder:text-slate-500 focus-visible:border-indigo-500 focus-visible:ring-indigo-500"
+                    />
+                    {confirmPassword.length > 0 &&
+                      password !== confirmPassword && (
+                        <p className="text-xs text-red-400">
+                          Passwords don&apos;t match
+                        </p>
+                      )}
+                    {confirmPassword.length > 0 &&
+                      password === confirmPassword && (
+                        <p className="flex items-center gap-1 text-xs text-green-400">
+                          <CheckCircle2 className="h-3 w-3" /> Passwords match
+                        </p>
+                      )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={loading || oauthLoading}
+                    className="h-11 w-full bg-indigo-600 font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all duration-200 hover:bg-indigo-500"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
+                  </Button>
+
+                  <p className="pt-1 text-center text-xs text-slate-500">
+                    By registering, you agree to our{" "}
+                    <Link
+                      href="/terms"
+                      className="text-slate-400 underline underline-offset-2 hover:text-white"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      href="/privacy"
+                      className="text-slate-400 underline underline-offset-2 hover:text-white"
+                    >
+                      Privacy Policy
+                    </Link>
+                  </p>
+                </form>
+              </div>
+            )}
+          </CardContent>
+
+          {!success && (
+            <CardFooter className="justify-center border-t border-slate-700/50 pt-6">
+              <p className="text-sm text-slate-400">
+                Already have an account?{" "}
+                <Link
+                  href="/login"
+                  className="font-medium text-blue-400 transition-colors hover:text-blue-300"
+                >
+                  Sign in
+                </Link>
               </p>
-            </div>
-          </motion.div>
-        </div>
+            </CardFooter>
+          )}
+        </Card>
       </div>
-    </main>
+    </div>
   );
 }

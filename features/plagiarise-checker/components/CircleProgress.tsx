@@ -15,8 +15,9 @@ export function CircleProgress({ value }: CircleProgressProps) {
         cy="70"
         r={r}
         fill="none"
-        stroke="hsl(var(--muted))"
+        // stroke="hsl(var(--muted))"
         strokeWidth="10"
+        className="stroke-muted"
       />
       <circle
         cx="70"
@@ -34,10 +35,11 @@ export function CircleProgress({ value }: CircleProgressProps) {
         x="70"
         y="76"
         textAnchor="middle"
-        fill="hsl(var(--foreground))"
+        // fill="hsl(var(--foreground))"
         fontSize="24"
         fontWeight="700"
         fontFamily="inherit"
+        className="fill-foreground"
       >
         {value}%
       </text>
@@ -45,9 +47,10 @@ export function CircleProgress({ value }: CircleProgressProps) {
         x="70"
         y="98"
         textAnchor="middle"
-        fill="hsl(var(--muted-foreground))"
+        // fill="hsl(var(--muted-foreground))"
         fontSize="8"
         fontFamily="inherit"
+        className="fill-muted-foreground"
       >
         MATCH
       </text>
