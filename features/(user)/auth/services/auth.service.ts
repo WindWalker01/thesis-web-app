@@ -16,5 +16,5 @@ export const signUp = async (email: string, password: string) => {
 };
 
 export const signOut = async () => {
-  return supabase.auth.signOut();
+  await supabase.auth.signOut();
 };

@@ -23,5 +23,5 @@ export const useAuth = () => {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  return { user, loading, isAuthenticated: !!false };
+  return { user, loading, isAuthenticated: !!user };
 };

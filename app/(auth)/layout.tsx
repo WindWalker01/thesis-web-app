@@ -1,5 +1,5 @@
 import "@/app/globals.css";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isAuthenticated } from "@/lib/server-utils";
 import { redirect } from "next/navigation";
 
 export default async function AuthLayout({
@@ -7,11 +7,7 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServerClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await isAuthenticated();
 
   if (user) {
     redirect("/dashboard");

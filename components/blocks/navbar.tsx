@@ -1,14 +1,17 @@
 "use client";
 
+import { type User } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  ChevronDown, Upload, Bell, Settings, User, Menu, X,
+  ChevronDown, Upload, Bell, Settings, User as UserIcon, Menu, X,
   ShieldCheck, ScanSearch, FileCheck, MessageCircle, Award,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
 
 /* ── Types ── */
 interface Notification {
@@ -49,6 +52,7 @@ function NavBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const unreadCount = DUMMY_NOTIFICATIONS.filter((n) => !n.read).length;
+  const { user, loading } = useAuth();
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -118,7 +122,7 @@ function NavBar() {
           <div className="flex items-center gap-1 shrink-0">
 
             {/* Upload — sm+ */}
-            <Link href="/upload-form" aria-label="Upload artwork"
+            <Link href="/upload-artwork" aria-label="Upload artwork"
               className="hidden sm:flex w-9 h-9 rounded-lg border border-orange-400 text-orange-400 items-center justify-center hover:bg-orange-400 hover:text-white transition-all">
               <Upload className="w-4 h-4" />
             </Link>
@@ -195,19 +199,25 @@ function NavBar() {
             {/* Profile — sm+ */}
             <Link href="/profile" aria-label="Profile"
               className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center hover:bg-orange-500/10 text-foreground hover:text-orange-500 transition-all">
-              <User className="w-4 h-4" />
+              <UserIcon className="w-4 h-4" />
             </Link>
 
             {/* Login / Register — sm+ */}
             <div className="hidden sm:flex items-center gap-1">
               <div className="w-px h-5 bg-border mx-1" />
-              <Link href="/login" className="text-sm font-medium hover:text-blue-500 transition-colors px-1 whitespace-nowrap">
-                Login
-              </Link>
-              <Link href="/register"
-                className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition whitespace-nowrap">
-                Register
-              </Link>
+              {user ? (
+                <LogoutButton />
+              ) : (
+                <>
+                  <Link href="/login" className="text-sm font-medium hover:text-blue-500 transition-colors px-1 whitespace-nowrap">
+                    Login
+                  </Link>
+                  <Link href="/register"
+                    className="bg-primary text-primary-foreground px-3 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition whitespace-nowrap">
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* ── Hamburger — below lg ── */}
@@ -292,7 +302,7 @@ function NavBar() {
                   {[
                     { icon: Upload, label: "Upload Artwork", href: "/upload-form", color: "text-orange-500" },
                     { icon: Settings, label: "Settings", href: "/settings-button", color: "text-blue-500" },
-                    { icon: User, label: "Profile", href: "/profile", color: "text-blue-500" },
+                    { icon: UserIcon, label: "Profile", href: "/profile", color: "text-blue-500" },
                   ].map(({ icon: Icon, label, href, color }) => (
                     <Link key={href} href={href} onClick={closeMobile}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
@@ -304,17 +314,24 @@ function NavBar() {
               </div>
 
               {/* Auth buttons — pinned bottom */}
+              {/* Auth buttons — pinned bottom */}
               <div className="px-4 py-5 border-t border-border space-y-2 shrink-0">
-                <Link href="/login" onClick={closeMobile}>
-                  <button className="w-full py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">
-                    Login
-                  </button>
-                </Link>
-                <Link href="/register" onClick={closeMobile}>
-                  <button className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition">
-                    Register
-                  </button>
-                </Link>
+                {user ? (
+                  <LogoutButton />
+                ) : (
+                  <>
+                    <Link href="/login" onClick={closeMobile}>
+                      <button className="w-full py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">
+                        Login
+                      </button>
+                    </Link>
+                    <Link href="/register" onClick={closeMobile}>
+                      <button className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition">
+                        Register
+                      </button>
+                    </Link>
+                  </>
+                )}
               </div>
             </motion.div>
           </>

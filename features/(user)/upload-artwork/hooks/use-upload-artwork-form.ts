@@ -12,8 +12,8 @@ import {
   formSchema,
   type UploadArtworkFormValues,
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server-actions/upload-artwork";
-import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server-actions/record-artwork-blockchain";
+import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
+import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
 import type {
   UploadArtworkStep,
   UploadStepStatus,
@@ -176,7 +176,7 @@ export function useUploadArtworkForm() {
       setProcessingMessage("Protecting your artwork and finalizing registration...");
 
       /* Uncomment this once you are done with the Plagiarism check and Automatic Classification */
-      
+
       /*       const blockchainResult = await recordArtworkOnBlockchain({
               artworkId: dbResult.artworkId,
               authorIdHash: dbResult.authorIdHash,

@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server-actions/upload-image";
+import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
 
 type RecordArtworkInDatabaseResult =
   | {
@@ -105,6 +105,7 @@ export async function recordArtworkInDatabase(
       naiisip ko if kasama sa nirereturn nung api na /check/web yung perceptual hash, dun na lang natin kunin para isang call na lang sa api, pero depende pa rin sa diskarte mo pre kung ano yung best
     */
     /*     const perceptualHash = await generatePerceptualHashBytes32(fileBuffer); */
+    const perceptualHash = "0xc98912jkjkfsdf7u8723";
 
     const evidence = {
       v: 1,

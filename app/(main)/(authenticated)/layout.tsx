@@ -1,20 +1,16 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isAuthenticated } from "@/lib/server-utils";
 
 export default async function AuthenticatedLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createSupabaseServerClient();
+  const user = await isAuthenticated();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  /* 
-    if (!user) {
-      redirect("/login");
-    } */
+  if (!user) {
+    redirect("/login");
+  }
 
   return <>{children}</>;
 }
