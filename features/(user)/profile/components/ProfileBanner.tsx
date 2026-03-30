@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Calendar, CheckCircle, Edit, ShieldCheck, Upload } from "lucide-react";
 
-import type { UserProfile } from "../server-actions/profile";
+import type { UserProfile } from "../server/profile";
 
 interface Props {
     profile: UserProfile;

@@ -16,7 +16,7 @@ import {
     fetchUserProfileById,
     fetchUserProfileByUsername,
     type UserProfile,
-} from "../server-actions/profile";
+} from "../server/profile";
 
 // ── Query key factory ─────────────────────────────────────────────────────────
 

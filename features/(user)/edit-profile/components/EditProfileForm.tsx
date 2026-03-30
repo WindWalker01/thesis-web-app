@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 
-import type { UserProfile } from "@/features/(user)/profile/server-actions/profile";
+import type { UserProfile } from "@/features/(user)/profile/server/profile";
 import { useEditProfileForm } from "../hooks/useEditProfileForm";
 
 import Link from "next/link";

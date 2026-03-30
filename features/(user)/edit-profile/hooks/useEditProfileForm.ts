@@ -13,9 +13,9 @@ import {
 import {
     updateUserProfile,
     updateUserAvatar,
-} from "../server-actions/edit-profile";
+} from "../server/edit-profile";
 import { profileKeys } from "@/features/(user)/profile/hooks/useFetchProfile";
-import type { UserProfile } from "@/features/(user)/profile/server-actions/profile";
+import type { UserProfile } from "@/features/(user)/profile/server/profile";
 
 type UseEditProfileFormProps = {
     profile: UserProfile;

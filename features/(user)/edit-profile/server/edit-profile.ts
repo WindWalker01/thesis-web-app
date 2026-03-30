@@ -2,7 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { editProfileSchema } from "../schemas/edit-profile-schema";
-import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server-actions/upload-image";
+import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
 
 type UpdateProfileResult =
     | { success: true; message: string }
