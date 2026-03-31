@@ -74,7 +74,6 @@ export default function NotificationsPage() {
 
   return (
     <main className="min-h-screen bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-      <NavBar />
       <div className="h-1 w-full bg-linear-to-r from-blue-600 via-blue-400 to-orange-400" />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">

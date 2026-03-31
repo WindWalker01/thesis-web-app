@@ -69,7 +69,6 @@ const TEAM_MEMBERS = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-      <NavBar />
       <div className="h-1 w-full bg-linear-to-r from-blue-600 via-blue-400 to-orange-400" />
 
       {/* ── Hero ── */}

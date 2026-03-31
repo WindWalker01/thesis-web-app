@@ -72,7 +72,6 @@ const COMMITMENT_CARDS = [
 export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-      <NavBar />
       <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-blue-400 to-orange-400" />
 
       {/* ── Hero ── */}

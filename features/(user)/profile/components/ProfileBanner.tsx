@@ -81,7 +81,7 @@ export function ProfileBanner({ profile, children }: Props) {
                                 Edit Profile
                             </button>
                         </Link>
-                        <Link href="/upload-form">
+                        <Link href="/upload-artwork">
                             <button className="flex items-center gap-2 border border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
                                 <Upload className="w-3.5 h-3.5" />
                                 Upload

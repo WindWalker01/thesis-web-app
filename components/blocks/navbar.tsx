@@ -122,85 +122,102 @@ function NavBar() {
           <div className="flex items-center gap-1 shrink-0">
 
             {/* Upload — sm+ */}
-            <Link href="/upload-artwork" aria-label="Upload artwork"
-              className="hidden sm:flex w-9 h-9 rounded-lg border border-orange-400 text-orange-400 items-center justify-center hover:bg-orange-400 hover:text-white transition-all">
-              <Upload className="w-4 h-4" />
-            </Link>
+            {user ? (
+              <Link href="/upload-artwork" aria-label="Upload artwork"
+                className="hidden sm:flex w-9 h-9 rounded-lg border border-orange-400 text-orange-400 items-center justify-center hover:bg-orange-400 hover:text-white transition-all">
+                <Upload className="w-4 h-4" />
+              </Link>
+            ) : (
+              <></>
+            )}
+
 
             {/* ── Notification Bell ── */}
-            <div className="relative" onBlur={() => setTimeout(() => setNotifOpen(false), 150)}>
-              <button onClick={() => setNotifOpen(!notifOpen)} aria-label="Notifications"
-                className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-blue-500/10 text-foreground hover:text-blue-500 transition-all">
-                <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-black flex items-center justify-center leading-none">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
+            {user ? (
+              <div className="relative" onBlur={() => setTimeout(() => setNotifOpen(false), 150)}>
+                <button onClick={() => setNotifOpen(!notifOpen)} aria-label="Notifications"
+                  className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-blue-500/10 text-foreground hover:text-blue-500 transition-all">
+                  <Bell className="w-4 h-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-black flex items-center justify-center leading-none">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
 
-              <AnimatePresence>
-                {notifOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute top-12 right-0 w-[min(320px,calc(100vw-2rem))] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
-                  >
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                      <span className="text-sm font-bold">Notifications</span>
-                      {unreadCount > 0 && (
-                        <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
-                          {unreadCount} new
-                        </span>
-                      )}
-                    </div>
-                    <div className="divide-y divide-border max-h-72 overflow-y-auto">
-                      {DUMMY_NOTIFICATIONS.map((n, idx) => {
-                        const Icon = n.icon;
-                        return (
-                          <motion.div key={n.id}
-                            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.045, duration: 0.15 }}
-                            className={`flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer ${!n.read ? "bg-blue-500/5" : ""}`}>
-                            <div className={`w-8 h-8 rounded-lg ${n.bg} flex items-center justify-center shrink-0 mt-0.5`}>
-                              <Icon className={`w-4 h-4 ${n.color}`} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs leading-relaxed text-foreground/80 line-clamp-2">{n.text}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">{n.time}</p>
-                            </div>
-                            {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                    <div className="px-4 py-3 border-t border-border">
-                      <Link href="/settings-button/notifications" onClick={() => setNotifOpen(false)}
-                        className="block text-center text-xs font-semibold text-blue-500 hover:text-blue-400 transition-colors py-0.5">
-                        View All Notifications →
-                      </Link>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                <AnimatePresence>
+                  {notifOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="absolute top-12 right-0 w-[min(320px,calc(100vw-2rem))] bg-background border border-border rounded-2xl shadow-2xl overflow-hidden z-50"
+                    >
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                        <span className="text-sm font-bold">Notifications</span>
+                        {unreadCount > 0 && (
+                          <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                            {unreadCount} new
+                          </span>
+                        )}
+                      </div>
+                      <div className="divide-y divide-border max-h-72 overflow-y-auto">
+                        {DUMMY_NOTIFICATIONS.map((n, idx) => {
+                          const Icon = n.icon;
+                          return (
+                            <motion.div key={n.id}
+                              initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.045, duration: 0.15 }}
+                              className={`flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer ${!n.read ? "bg-blue-500/5" : ""}`}>
+                              <div className={`w-8 h-8 rounded-lg ${n.bg} flex items-center justify-center shrink-0 mt-0.5`}>
+                                <Icon className={`w-4 h-4 ${n.color}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs leading-relaxed text-foreground/80 line-clamp-2">{n.text}</p>
+                                <p className="text-[10px] text-muted-foreground mt-1">{n.time}</p>
+                              </div>
+                              {!n.read && <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                      <div className="px-4 py-3 border-t border-border">
+                        <Link href="/settings-button/notifications" onClick={() => setNotifOpen(false)}
+                          className="block text-center text-xs font-semibold text-blue-500 hover:text-blue-400 transition-colors py-0.5">
+                          View All Notifications →
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <></>
+            )}
+
 
             {/* ── Theme Toggle — sm+ ── */}
             <ThemeToggle className="hidden sm:flex" />
 
-            {/* Settings — sm+ */}
-            <Link href="/settings-button" aria-label="Settings"
-              className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center hover:bg-blue-500/10 text-foreground hover:text-blue-500 transition-all">
-              <Settings className="w-4 h-4" />
-            </Link>
+            {user ? (
+              <>
+                <Link href="/settings-button" aria-label="Settings"
+                  className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center hover:bg-blue-500/10 text-foreground hover:text-blue-500 transition-all">
+                  <Settings className="w-4 h-4" />
+                </Link>
 
-            {/* Profile — sm+ */}
-            <Link href="/profile" aria-label="Profile"
-              className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center hover:bg-orange-500/10 text-foreground hover:text-orange-500 transition-all">
-              <UserIcon className="w-4 h-4" />
-            </Link>
+                {/* Profile — sm+ */}
+                <Link href="/profile" aria-label="Profile"
+                  className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center hover:bg-orange-500/10 text-foreground hover:text-orange-500 transition-all">
+                  <UserIcon className="w-4 h-4" />
+                </Link>
+              </>
+            ) : (
+              <></>
+            )}
+            {/* Settings — sm+ */}
+
 
             {/* Login / Register — sm+ */}
             <div className="hidden sm:flex items-center gap-1">
@@ -232,111 +249,118 @@ function NavBar() {
             </button>
           </div>
         </div>
-      </nav>
+      </nav >
 
       {/* ── Mobile drawer ── */}
       <AnimatePresence>
-        {mobileOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.22 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-              onClick={closeMobile}
-            />
+        {
+          mobileOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+                onClick={closeMobile}
+              />
 
-            {/* Slide-in panel */}
-            <motion.div
-              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 340, damping: 34 }}
-              className="fixed top-0 right-0 h-full w-72 bg-background border-l border-border z-50 lg:hidden flex flex-col"
-            >
-              {/* Panel header */}
-              <div className="flex items-center justify-between px-5 h-16 border-b border-border shrink-0">
-                <span className="text-sm font-bold text-blue-500">
-                  Art<span className="text-orange-600">Forge<span className="text-primary">Lab</span></span>
-                </span>
-                <div className="flex items-center gap-1">
-                  {/* Theme toggle inside mobile drawer too */}
-                  <ThemeToggle />
-                  <button onClick={closeMobile}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted transition-all">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto py-3">
-
-                {/* Nav links */}
-                <div className="px-3 pb-3">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">Navigation</p>
-                  {NAV_LINKS.map((link) => (
-                    <Link key={link.href} href={link.href} onClick={closeMobile}
-                      className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-500/10 hover:text-blue-500 transition-colors">
-                      {link.label}
-                    </Link>
-                  ))}
+              {/* Slide-in panel */}
+              <motion.div
+                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+                transition={{ type: "spring", stiffness: 340, damping: 34 }}
+                className="fixed top-0 right-0 h-full w-72 bg-background border-l border-border z-50 lg:hidden flex flex-col"
+              >
+                {/* Panel header */}
+                <div className="flex items-center justify-between px-5 h-16 border-b border-border shrink-0">
+                  <span className="text-sm font-bold text-blue-500">
+                    Art<span className="text-orange-600">Forge<span className="text-primary">Lab</span></span>
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {/* Theme toggle inside mobile drawer too */}
+                    <ThemeToggle />
+                    <button onClick={closeMobile}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted transition-all">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="h-px bg-border mx-4 my-1" />
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto py-3">
 
-                {/* More links */}
-                <div className="px-3 py-3">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">More</p>
-                  {MORE_LINKS.map((link) => (
-                    <Link key={link.href} href={link.href} onClick={closeMobile}
-                      className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-500/10 hover:text-blue-500 transition-colors">
-                      {link.label}
-                    </Link>
-                  ))}
+                  {/* Nav links */}
+                  <div className="px-3 pb-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">Navigation</p>
+                    {NAV_LINKS.map((link) => (
+                      <Link key={link.href} href={link.href} onClick={closeMobile}
+                        className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-500/10 hover:text-blue-500 transition-colors">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="h-px bg-border mx-4 my-1" />
+
+                  {/* More links */}
+                  <div className="px-3 py-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">More</p>
+                    {MORE_LINKS.map((link) => (
+                      <Link key={link.href} href={link.href} onClick={closeMobile}
+                        className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-500/10 hover:text-blue-500 transition-colors">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+
+                  {user ? (
+                    <>
+                      <div className="h-px bg-border mx-4 my-1" />
+
+                      {/* Account shortcuts */}
+                      <div className="px-3 py-3">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">Account</p>
+                        {[
+                          { icon: Upload, label: "Upload Artwork", href: "/upload-artwork", color: "text-orange-500" },
+                          { icon: Settings, label: "Settings", href: "/settings-button", color: "text-blue-500" },
+                          { icon: UserIcon, label: "Profile", href: "/profile", color: "text-blue-500" },
+                        ].map(({ icon: Icon, label, href, color }) => (
+                          <Link key={href} href={href} onClick={closeMobile}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
+                            <Icon className={`w-4 h-4 ${color}`} />
+                            <span>{label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <></>
+                  )}
+
                 </div>
 
-                <div className="h-px bg-border mx-4 my-1" />
-
-                {/* Account shortcuts */}
-                <div className="px-3 py-3">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-3 pb-2">Account</p>
-                  {[
-                    { icon: Upload, label: "Upload Artwork", href: "/upload-form", color: "text-orange-500" },
-                    { icon: Settings, label: "Settings", href: "/settings-button", color: "text-blue-500" },
-                    { icon: UserIcon, label: "Profile", href: "/profile", color: "text-blue-500" },
-                  ].map(({ icon: Icon, label, href, color }) => (
-                    <Link key={href} href={href} onClick={closeMobile}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
-                      <Icon className={`w-4 h-4 ${color}`} />
-                      <span>{label}</span>
-                    </Link>
-                  ))}
+                <div className="px-4 py-5 border-t border-border shrink-0 flex flex-col gap-2">
+                  {user ? (
+                    <LogoutButton />
+                  ) : (
+                    <>
+                      <Link href="/login" onClick={closeMobile}>
+                        <button className="w-full py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors cursor-pointer">
+                          Login
+                        </button>
+                      </Link>
+                      <Link href="/register" onClick={closeMobile}>
+                        <button className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition cursor-pointer">
+                          Register
+                        </button>
+                      </Link>
+                    </>
+                  )}
                 </div>
-              </div>
-
-              {/* Auth buttons — pinned bottom */}
-              {/* Auth buttons — pinned bottom */}
-              <div className="px-4 py-5 border-t border-border space-y-2 shrink-0">
-                {user ? (
-                  <LogoutButton />
-                ) : (
-                  <>
-                    <Link href="/login" onClick={closeMobile}>
-                      <button className="w-full py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors">
-                        Login
-                      </button>
-                    </Link>
-                    <Link href="/register" onClick={closeMobile}>
-                      <button className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition">
-                        Register
-                      </button>
-                    </Link>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </>
+          )
+        }
+      </AnimatePresence >
     </>
   );
 }

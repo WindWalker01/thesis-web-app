@@ -1,20 +1,43 @@
-// ✅ Option B — handle redirect in the LogoutButton component
 "use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "../services/auth.service";
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { signOut } from "../server/auth";
 
 export default function LogoutButton() {
-  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
+  const handleLogout = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoggingOut(true);
+
+    try {
+      await signOut();
+      setIsLoggingOut(false);
+    } catch (err) {
+      console.error("Failed to log out", err);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
-    <Button variant="outline" onClick={handleSignOut}>
-      Logout
-    </Button>
+    <form onSubmit={handleLogout}>
+      <Button
+        type="submit"
+        variant="outline"
+        disabled={isLoggingOut}
+        className="flex items-center justify-center gap-2 transition-all duration-200"
+      >
+        {isLoggingOut ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Logging out…
+          </>
+        ) : (
+          "Logout"
+        )}
+      </Button>
+    </form>
   );
 }

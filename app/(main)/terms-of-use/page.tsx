@@ -66,7 +66,6 @@ const SECTIONS = [
 export default function TermsOfUsePage() {
   return (
     <main className="min-h-screen bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 overflow-x-hidden">
-      <NavBar />
       <div className="h-1 w-full bg-linear-to-r from-blue-600 via-blue-400 to-orange-400" />
 
       {/* ── Hero ── */}

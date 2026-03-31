@@ -4,6 +4,8 @@ import "@/app/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryClientProvider } from "@/providers/react-query-provider";
+import NavBar from "@/components/blocks/navbar";
+import Footer from "@/components/blocks/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,7 +61,9 @@ export default function RootLayout({
           enableSystem
         >
           <ReactQueryClientProvider>
+            
             {children}
+            
             <Toaster position="top-center" />
           </ReactQueryClientProvider>
         </ThemeProvider>
