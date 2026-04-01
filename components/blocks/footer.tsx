@@ -8,8 +8,9 @@ import {
 export default function Footer() {
     return (
         <footer className="bg-background text-white mt-10">
-            <hr className="bg-white/5" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16 pb-10">
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+                <hr className="bg-white/5 mb-10" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 mb-12 md:mb-14">
                     <div className="sm:col-span-2 lg:col-span-1 space-y-5">
                         <div className="flex items-center gap-2">

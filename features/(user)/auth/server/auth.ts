@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   signInSchema,
   signUpSchema,
+  forgotPasswordSchema,
   type SignInInput,
   type SignUpInput,
 } from "../schemas/auth-schema";
@@ -55,4 +56,36 @@ export async function signOut() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function forgotPassword(email: string) {
+  const parsed = forgotPasswordSchema.safeParse({ email });
+
+  if (!parsed.success) {
+    return { error: { message: parsed.error.issues[0].message } };
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email);
+
+  if (error) {
+    return { error: { message: error.message } };
+  }
+
+  return { error: null };
+}
+
+export async function updatePassword(newPassword: string) {
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) {
+    return { error: { message: error.message } };
+  }
+
+  return { error: null };
 }
