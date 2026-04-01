@@ -1,4 +1,4 @@
-// middleware.ts
+// proxy.ts
 //
 // Next.js middleware runs in the Edge Runtime (not Node.js), so we cannot use
 // `createSupabaseServerClient` from @/lib/supabase/server.ts here — that helper
@@ -13,7 +13,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     // We must create a new response and pass it through so Supabase can
     // refresh the session cookie if it has expired (via Set-Cookie header).
     const response = NextResponse.next();

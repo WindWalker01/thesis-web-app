@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -16,11 +16,15 @@ import {
     type ForgotPasswordInput,
 } from "@/features/(user)/auth/schemas/auth-schema";
 import { forgotPassword } from "@/features/(user)/auth/server/auth";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 
 export default function ForgotPasswordPage() {
     const router = useRouter();
     const [serverError, setServerError] = useState<string | null>(null);
     const [emailSent, setEmailSent] = useState<string | null>(null);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+    const turnstileRef = useRef<TurnstileInstance | null>(null);
 
     const {
         register,
@@ -32,7 +36,16 @@ export default function ForgotPasswordPage() {
 
     const onSubmit = async (data: ForgotPasswordInput) => {
         setServerError(null);
-        const { error } = await forgotPassword(data.email);
+
+        if (!captchaToken) {
+            setServerError("Please complete the CAPTCHA verification.");
+            return;
+        }
+
+        const { error } = await forgotPassword(data.email, captchaToken);
+
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
 
         if (error) {
             setServerError(error.message);
@@ -67,7 +80,12 @@ export default function ForgotPasswordPage() {
                         <p className="text-xs text-slate-500">
                             Didn&apos;t receive it? Check your spam folder or{" "}
                             <button
-                                onClick={() => setEmailSent(null)}
+                                type="button"
+                                onClick={() => {
+                                    setEmailSent(null);
+                                    setCaptchaToken(null);
+                                    turnstileRef.current?.reset();
+                                }}
                                 className="text-blue-400 hover:text-blue-300 underline"
                             >
                                 try again
@@ -114,10 +132,27 @@ export default function ForgotPasswordPage() {
                         )}
                     </div>
 
+                    <div className="flex justify-start">
+                        <Turnstile
+                            ref={turnstileRef}
+                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                            onSuccess={(token) => setCaptchaToken(token)}
+                            onExpire={() => {
+                                setCaptchaToken(null);
+                                turnstileRef.current?.reset();
+                            }}
+                            onError={() => {
+                                setCaptchaToken(null);
+                                turnstileRef.current?.reset();
+                            }}
+                            options={{ theme: "auto" }}
+                        />
+                    </div>
+
                     <Button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="h-11 w-full bg-blue-600 font-semibold text-white hover:bg-blue-500 transition-all duration-200 cursor-pointer"
+                        disabled={isSubmitting || !captchaToken}
+                        className="h-11 w-full bg-blue-600 font-semibold text-white hover:bg-blue-500 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isSubmitting ? (
                             <>

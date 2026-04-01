@@ -10,19 +10,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import GoogleIcon from "@/components/google-icon";
 import { useLoginForm } from "../hooks/useLoginForm";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import { useRef } from "react";
 
 export function LoginForm() {
   const {
-    showPassword, setShowPassword,
-    register, handleSubmit, onSubmit,
-    handleGoogleLogin, errors, isSubmitting,
-    serverError, oauthLoading,
+    showPassword,
+    setShowPassword,
+    register,
+    handleSubmit,
+    onSubmit,
+    handleGoogleLogin,
+    errors,
+    isSubmitting,
+    serverError,
+    oauthLoading,
+    captchaToken,
+    setCaptchaToken
   } = useLoginForm();
+
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
+
+  const handleLoginSubmit = handleSubmit(async (data) => {
+    await onSubmit(data);
+
+    setCaptchaToken(null);
+    turnstileRef.current?.reset();
+  });
+
 
   return (
     <Card className="overflow-hidden p-0 border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-2xl dark:shadow-none backdrop-blur-sm">
       <CardContent className="grid p-0">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-5">
+        <form onSubmit={handleLoginSubmit} className="p-6 md:p-8 space-y-5">
 
           <div className="flex flex-col items-center gap-1 text-center pb-1">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -91,10 +111,27 @@ export function LoginForm() {
             )}
           </div>
 
+          <div className="flex justify-start">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onExpire={() => {
+                setCaptchaToken(null);
+                turnstileRef.current?.reset();
+              }}
+              onError={() => {
+                setCaptchaToken(null);
+                turnstileRef.current?.reset();
+              }}
+              options={{ theme: "auto" }}
+            />
+          </div>
+
           {/* Submit */}
           <Button
             type="submit"
-            disabled={isSubmitting || oauthLoading}
+            disabled={isSubmitting || oauthLoading || !captchaToken}
             className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer"
           >
             {isSubmitting

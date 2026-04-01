@@ -15,6 +15,7 @@ export function useLoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const [oauthLoading, setOauthLoading] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const {
         register,
@@ -26,7 +27,13 @@ export function useLoginForm() {
 
     const onSubmit = async (data: SignInInput) => {
         setServerError(null);
-        const { error } = await signIn(data);
+
+        if (!captchaToken) {
+            setServerError("Please complete the CAPTCHA verification.");
+            return;
+        }
+
+        const { error } = await signIn(data, captchaToken);
         if (error) {
             setServerError(error.message);
             return;
@@ -34,6 +41,7 @@ export function useLoginForm() {
         queryClient.clear();
         router.refresh();
         router.push("/dashboard");
+        return;
     };
 
     const handleGoogleLogin = async () => {
@@ -59,6 +67,8 @@ export function useLoginForm() {
         serverError,
         setServerError,
         oauthLoading,
-        setOauthLoading
+        setOauthLoading,
+        captchaToken,
+        setCaptchaToken
     };
 }

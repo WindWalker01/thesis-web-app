@@ -10,15 +10,29 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import GoogleIcon from "@/components/google-icon";
 import { useRegisterForm } from "../hooks/useRegisterForm";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import { useRef } from "react";
 
 export function RegisterForm() {
   const {
-    serverError, oauthLoading, pendingEmail,
+    serverError,
+    oauthLoading,
+    pendingEmail,
     showPassword, setShowPassword,
     showConfirm, setShowConfirm,
     register, handleSubmit, errors,
     isSubmitting, onSubmit, handleGoogleLogin,
+    captchaToken, setCaptchaToken,
   } = useRegisterForm();
+
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
+
+  const handleRegisterSubmit = handleSubmit(async (data) => {
+    await onSubmit(data);
+
+    setCaptchaToken(null);
+    turnstileRef.current?.reset();
+  });
 
   if (pendingEmail) {
     return (
@@ -38,7 +52,7 @@ export function RegisterForm() {
   return (
     <Card className="overflow-hidden p-0 border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-2xl dark:shadow-none backdrop-blur-sm">
       <CardContent className="p-0">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-5">
+        <form onSubmit={handleRegisterSubmit} className="p-6 md:p-8 space-y-5">
 
           <div className="flex flex-col items-center text-center">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create Account</h1>
@@ -91,11 +105,8 @@ export function RegisterForm() {
                 {...register("password")}
                 className="h-11 pr-10 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
@@ -114,11 +125,8 @@ export function RegisterForm() {
                 {...register("confirmPassword")}
                 className="h-11 pr-10 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-              >
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
@@ -127,11 +135,28 @@ export function RegisterForm() {
             )}
           </div>
 
+          <div className="flex justify-start">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onExpire={() => {
+                setCaptchaToken(null);
+                turnstileRef.current?.reset();
+              }}
+              onError={() => {
+                setCaptchaToken(null);
+                turnstileRef.current?.reset();
+              }}
+              options={{ theme: "auto" }}
+            />
+          </div>
+
           {/* Submit */}
           <Button
             type="submit"
-            disabled={isSubmitting || oauthLoading}
-            className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer"
+            disabled={isSubmitting || oauthLoading || !captchaToken}
+            className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting
               ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</>

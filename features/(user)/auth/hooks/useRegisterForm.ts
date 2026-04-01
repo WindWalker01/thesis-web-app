@@ -1,5 +1,4 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,9 +11,9 @@ export function useRegisterForm() {
     const [serverError, setServerError] = useState<string | null>(null);
     const [oauthLoading, setOauthLoading] = useState(false);
     const [pendingEmail, setPendingEmail] = useState<string | null>(null);
-
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null); 
 
     const {
         register,
@@ -27,7 +26,12 @@ export function useRegisterForm() {
     const onSubmit = async (data: SignUpInput) => {
         setServerError(null);
 
-        const { error } = await signUp(data);
+        if (!captchaToken) {
+            setServerError("Please complete the CAPTCHA verification.");
+            return;
+        }
+
+        const { error } = await signUp(data, captchaToken);
 
         if (error) {
             setServerError(error.message);
@@ -35,6 +39,7 @@ export function useRegisterForm() {
         }
 
         setPendingEmail(data.email);
+        return;
     };
 
     const handleGoogleLogin = async () => {
@@ -64,6 +69,8 @@ export function useRegisterForm() {
         errors,
         isSubmitting,
         onSubmit,
-        handleGoogleLogin
-    }
+        handleGoogleLogin,
+        captchaToken,
+        setCaptchaToken,
+    };
 }
