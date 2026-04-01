@@ -1,9 +1,11 @@
+// features/(user)/auth/components/LogoutButton.tsx
 "use client";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { signOut } from "../server/auth";
+import { clearQueryCache } from "@/providers/react-query-provider";
 
 export default function LogoutButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -13,8 +15,8 @@ export default function LogoutButton() {
     setIsLoggingOut(true);
 
     try {
+      await clearQueryCache();
       await signOut();
-      setIsLoggingOut(false);
     } catch (err) {
       console.error("Failed to log out", err);
       setIsLoggingOut(false);
@@ -30,10 +32,7 @@ export default function LogoutButton() {
         className="flex items-center justify-center gap-2 transition-all duration-200"
       >
         {isLoggingOut ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Logging out…
-          </>
+          <><Loader2 className="h-4 w-4 animate-spin" />Logging out…</>
         ) : (
           "Logout"
         )}

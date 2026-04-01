@@ -6,9 +6,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { signInSchema, type SignInInput } from "@/features/(user)/auth/schemas/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function useLoginForm() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { signIn, signInWithGoogle } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
@@ -29,6 +31,7 @@ export function useLoginForm() {
             setServerError(error.message);
             return;
         }
+        queryClient.clear();
         router.refresh();
         router.push("/dashboard");
     };

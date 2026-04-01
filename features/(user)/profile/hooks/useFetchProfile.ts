@@ -57,9 +57,10 @@ export const profileKeys = {
  *   Only retry once on failure (avoids spam requests)
  */
 const PROFILE_QUERY_OPTIONS = {
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    retry: 1,
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  retry: 1,
+  meta: { persist: false }, 
 } as const;
 
 // ── Return type ───────────────────────────────────────────────────────────────
