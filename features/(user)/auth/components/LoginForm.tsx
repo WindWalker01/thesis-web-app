@@ -12,36 +12,29 @@ import GoogleIcon from "@/components/google-icon";
 import { useLoginForm } from "../hooks/useLoginForm";
 
 export function LoginForm() {
-  const { showPassword,
-    setShowPassword,
-    register,
-    handleSubmit,
-    onSubmit,
-    handleGoogleLogin,
-    errors,
-    isSubmitting,
-    serverError,
-    setServerError,
-    oauthLoading,
-    setOauthLoading 
+  const {
+    showPassword, setShowPassword,
+    register, handleSubmit, onSubmit,
+    handleGoogleLogin, errors, isSubmitting,
+    serverError, oauthLoading,
   } = useLoginForm();
 
   return (
-    <Card className="overflow-hidden p-0 border-slate-700/50 bg-slate-800/50 shadow-2xl backdrop-blur-sm">
-      <CardContent className="grid p-0" >
-
-        {/* ── Form side ── */}
+    <Card className="overflow-hidden p-0 border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-2xl dark:shadow-none backdrop-blur-sm">
+      <CardContent className="grid p-0">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-5">
 
           <div className="flex flex-col items-center gap-1 text-center pb-1">
-            <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Welcome back
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Sign in to your ArtForgeLab account
             </p>
           </div>
 
           {serverError && (
-            <Alert variant="destructive" className="border-red-500/30 bg-red-500/10 text-red-400">
+            <Alert variant="destructive" className="border-red-300 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="ml-2">{serverError}</AlertDescription>
             </Alert>
@@ -49,7 +42,7 @@ export function LoginForm() {
 
           {/* Email */}
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-sm font-medium text-slate-300">
+            <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
               Email address
             </Label>
             <Input
@@ -58,20 +51,20 @@ export function LoginForm() {
               placeholder="you@example.com"
               autoComplete="email"
               {...register("email")}
-              className="h-11 border-slate-600/60 bg-slate-900/60 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500"
+              className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
             />
             {errors.email && (
-              <p className="text-xs text-red-400">{errors.email.message}</p>
+              <p className="text-xs text-red-500 dark:text-red-400">{errors.email.message}</p>
             )}
           </div>
 
           {/* Password */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-300">
+              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Password
               </Label>
-              <Link href="/forgot-password" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+              <Link href="/forgot-password" className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -82,19 +75,19 @@ export function LoginForm() {
                 placeholder="••••••••"
                 autoComplete="current-password"
                 {...register("password")}
-                className="h-11 border-slate-600/60 bg-slate-900/60 pr-10 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500"
+                className="h-11 border-slate-300 bg-slate-50 pr-10 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
               >
-                {showPassword ? <EyeOff /> : <Eye />}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-red-400">{errors.password.message}</p>
+              <p className="text-xs text-red-500 dark:text-red-400">{errors.password.message}</p>
             )}
           </div>
 
@@ -104,17 +97,16 @@ export function LoginForm() {
             disabled={isSubmitting || oauthLoading}
             className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer"
           >
-            {isSubmitting ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in…</>
-            ) : (
-              "Sign In"
-            )}
+            {isSubmitting
+              ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in…</>
+              : "Sign In"
+            }
           </Button>
 
           <div className="flex items-center gap-3">
-            <Separator className="flex-1 bg-slate-700/60" />
-            <span className="text-xs whitespace-nowrap text-slate-500">or</span>
-            <Separator className="flex-1 bg-slate-700/60" />
+            <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
+            <span className="text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">or</span>
+            <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
           </div>
 
           {/* Google */}
@@ -123,20 +115,19 @@ export function LoginForm() {
             variant="outline"
             onClick={handleGoogleLogin}
             disabled={oauthLoading || isSubmitting}
-            className="h-11 w-full border-slate-600/60 bg-slate-900/40 text-slate-200 hover:bg-slate-700 hover:text-white transition-all duration-200 cursor-pointer"
+            className="h-11 w-full border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-600/60 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white transition-all duration-200 cursor-pointer"
           >
             {oauthLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
             <span className="ml-2">Continue with Google</span>
           </Button>
 
-          <p className="text-center text-sm text-slate-400">
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+            <Link href="/register" className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
               Sign up
             </Link>
           </p>
         </form>
-
       </CardContent>
     </Card>
   );
