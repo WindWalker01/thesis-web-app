@@ -35,7 +35,6 @@ export default function ProfilePage() {
 
     return (
         <main className="min-h-screen bg-background font-display text-foreground overflow-x-hidden">
-            <NavBar />
             <div className="h-1 w-full bg-linear-to-r from-blue-600 via-primary to-orange-400" />
 
             {/* ── Full page skeleton while loading ── */}

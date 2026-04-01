@@ -21,7 +21,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-      <NavBar />
 
       {/* ═══════════════════════════════════════════
           HERO
@@ -175,10 +174,10 @@ export default function Home() {
               </p>
               <ul className="space-y-3">
                 {[
-                  { title: "Immutable Ownership Records",      desc: "Once recorded on the blockchain, ownership data cannot be altered or deleted, ensuring permanent proof of authenticity." },
-                  { title: "Verified Creator Identities",      desc: "Creators undergo identity verification to prevent impersonation and protect original works." },
-                  { title: "Automated Licensing Contracts",    desc: "Smart contracts automate licensing agreements, reducing disputes and manual paperwork." },
-                  { title: "No Wallet Required for Blockchain",desc: "Users can secure assets without needing complex crypto wallets or blockchain knowledge." },
+                  { title: "Immutable Ownership Records", desc: "Once recorded on the blockchain, ownership data cannot be altered or deleted, ensuring permanent proof of authenticity." },
+                  { title: "Verified Creator Identities", desc: "Creators undergo identity verification to prevent impersonation and protect original works." },
+                  { title: "Automated Licensing Contracts", desc: "Smart contracts automate licensing agreements, reducing disputes and manual paperwork." },
+                  { title: "No Wallet Required for Blockchain", desc: "Users can secure assets without needing complex crypto wallets or blockchain knowledge." },
                 ].map((item, index) => (
                   <motion.li
                     key={item.title}
@@ -242,12 +241,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
-              { label: "Digital Paintings", img: "/landing-page-elements/starry-night.png",     desc: "High-resolution artwork protection for digital masterworks." },
-              { label: "Photography",       img: "/landing-page-elements/photography.png",       desc: "Metadata preservation and license tracking for professional photographers." },
-              { label: "Illustrations",     img: "/landing-page-elements/digital-art.png",       desc: "Comprehensive IP verification for vectors and character designs." },
-              { label: "NFTs",              img: "/landing-page-elements/art.png",               desc: "On-chain identity confirmation for crypto-native creative assets." },
-              { label: "Graphic Designs",   img: "/landing-page-elements/graphic-design.png",    desc: "Branding and typography asset protection for commercial designers." },
-              { label: "AI Art",            img: "/landing-page-elements/ai-image.png",           desc: "Emerging IP framework for AI-assisted creative workflows." },
+              { label: "Digital Paintings", img: "/landing-page-elements/starry-night.png", desc: "High-resolution artwork protection for digital masterworks." },
+              { label: "Photography", img: "/landing-page-elements/photography.png", desc: "Metadata preservation and license tracking for professional photographers." },
+              { label: "Illustrations", img: "/landing-page-elements/digital-art.png", desc: "Comprehensive IP verification for vectors and character designs." },
+              { label: "NFTs", img: "/landing-page-elements/art.png", desc: "On-chain identity confirmation for crypto-native creative assets." },
+              { label: "Graphic Designs", img: "/landing-page-elements/graphic-design.png", desc: "Branding and typography asset protection for commercial designers." },
+              { label: "AI Art", img: "/landing-page-elements/ai-image.png", desc: "Emerging IP framework for AI-assisted creative workflows." },
             ].map((item, index) => (
               <motion.div
                 key={item.label}
@@ -305,8 +304,8 @@ export default function Home() {
               </motion.p>
               <div className="flex flex-col sm:flex-row gap-4">
                 {[
-                  { stat: "67.67%",        label: "Verification Accuracy" },
-                  { stat: "Transparency",  label: "Immutable Records"     },
+                  { stat: "67.67%", label: "Verification Accuracy" },
+                  { stat: "Transparency", label: "Immutable Records" },
                 ].map((item, index) => (
                   <motion.div
                     key={item.label}
@@ -389,7 +388,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               {
-                icon: ShieldUser,    title: "Secure Hashing",
+                icon: ShieldUser, title: "Secure Hashing",
                 desc: "Advanced cryptographic algorithms to fingerprint every digital asset.",
                 glow: "rgba(59,130,246,0.35)", border: "rgba(59,130,246,0.4)",
                 iconBg: "bg-blue-500/15", iconColor: "text-blue-300",
@@ -401,13 +400,13 @@ export default function Home() {
                 iconBg: "bg-indigo-500/15", iconColor: "text-indigo-300",
               },
               {
-                icon: Scale,         title: "Legal Ready",
+                icon: Scale, title: "Legal Ready",
                 desc: "Exports court-admissible certificates of authenticity for IP disputes.",
                 glow: "rgba(251,146,60,0.3)", border: "rgba(251,146,60,0.4)",
                 iconBg: "bg-orange-500/15", iconColor: "text-orange-300",
               },
               {
-                icon: Zap,           title: "Instant Proof",
+                icon: Zap, title: "Instant Proof",
                 desc: "Generate proof of existence and ownership in under 60 seconds.",
                 glow: "rgba(234,179,8,0.3)", border: "rgba(234,179,8,0.35)",
                 iconBg: "bg-yellow-500/15", iconColor: "text-yellow-300",
@@ -482,9 +481,9 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12 cursor-pointer">
             {[
-              { name: "Ruzzel",    role: "Lead Developer",         img: "/team-image/ruzzel.jpg" },
-              { name: "Tenshin",   role: "Front/Backend Engineer", img: "/team-image/tenshin.jpg" },
-              { name: "Nathaniel", role: "UI/UX Designer",         img: "/team-image/nathanielSD.jpg" },
+              { name: "Ruzzel", role: "Lead Developer", img: "/team-image/ruzzel.jpg" },
+              { name: "Tenshin", role: "Front/Backend Engineer", img: "/team-image/tenshin.jpg" },
+              { name: "Nathaniel", role: "UI/UX Designer", img: "/team-image/nathanielSD.jpg" },
             ].map((member) => (
               <div key={member.name} className="text-center group relative">
                 <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto mb-6 p-1 rounded-full border-4 border-dotted border-orange-500
@@ -582,11 +581,10 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: i * 0.06 }}
                   viewport={{ once: false, amount: 0.2 }}
-                  className={`rounded-2xl border overflow-hidden transition-all duration-300 ${
-                    isOpen
-                      ? "border-orange-400/50 bg-white dark:bg-slate-900 shadow-[0_4px_24px_rgba(251,146,60,0.1)]"
-                      : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-300/60 dark:hover:border-orange-500/30"
-                  }`}
+                  className={`rounded-2xl border overflow-hidden transition-all duration-300 ${isOpen
+                    ? "border-orange-400/50 bg-white dark:bg-slate-900 shadow-[0_4px_24px_rgba(251,146,60,0.1)]"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-300/60 dark:hover:border-orange-500/30"
+                    }`}
                 >
                   <button
                     className="w-full flex items-center justify-between p-5 md:p-6 cursor-pointer text-left group"
@@ -595,9 +593,8 @@ export default function Home() {
                     <span className={`text-sm md:text-base font-semibold pr-4 transition-colors ${isOpen ? "text-orange-500" : "group-hover:text-orange-500"}`}>
                       {faq.q}
                     </span>
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 ${
-                      isOpen ? "bg-orange-500 rotate-45" : "bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30"
-                    }`}>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 ${isOpen ? "bg-orange-500 rotate-45" : "bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30"
+                      }`}>
                       <Plus className={`w-4 h-4 transition-colors ${isOpen ? "text-white" : "text-slate-500 group-hover:text-orange-500"}`} />
                     </div>
                   </button>
@@ -609,14 +606,14 @@ export default function Home() {
                         animate={{
                           height: "auto", opacity: 1,
                           transition: {
-                            height:  { duration: 0.28, ease: [0.04, 0.62, 0.23, 0.98] },
+                            height: { duration: 0.28, ease: [0.04, 0.62, 0.23, 0.98] },
                             opacity: { duration: 0.22, delay: 0.08 },
                           },
                         }}
                         exit={{
                           height: 0, opacity: 0,
                           transition: {
-                            height:  { duration: 0.26, ease: [0.04, 0.62, 0.23, 0.98] },
+                            height: { duration: 0.26, ease: [0.04, 0.62, 0.23, 0.98] },
                             opacity: { duration: 0.18 },
                           },
                         }}
@@ -674,133 +671,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════
-          FOOTER
-      ═══════════════════════════════════════════ */}
-      <footer className="bg-slate-900 text-white">
-        <div className="h-1 w-full bg-linear-to-r from-blue-600 via-blue-400 to-orange-400" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-16 pb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 mb-12 md:mb-14">
-            <div className="sm:col-span-2 lg:col-span-1 space-y-5">
-              <div className="flex items-center gap-2">
-                <Image src="/landing-page-elements/AFL_logoWeb.png" alt="Logo" width={60} height={70} className="shrink-0" />
-                <span className="text-lg font-bold tracking-tight">
-                  <span className="text-blue-400">Art</span>
-                  <span className="text-orange-500">Forge</span>
-                  <span className="text-white">Lab</span>
-                </span>
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 border-l-2 border-blue-500 pl-3">Advancing Digital IP Protection</p>
-              <p className="text-sm text-slate-400 leading-relaxed text-justify">
-                ArtForgeLab is an academic research initiative developing a Web-based Intellectual Property Rights Management System for Digital Artists. The system integrates{" "}
-                <span className="text-slate-200 font-medium">Perceptual Hashing</span> algorithms and{" "}
-                <span className="text-slate-200 font-medium">Blockchain Technology</span>{" "}
-                to provide secure proof of authorship, plagiarism detection, and transparent ownership verification.
-              </p>
-              <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2">
-                <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
-                <span className="text-xs text-blue-300 font-medium">Undergraduate Thesis Research · 2026</span>
-              </div>
-            </div>
-
-            <div className="space-y-5">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">Platform</h4>
-              <ul className="space-y-3 text-sm text-slate-400">
-                {[
-                  { icon: FileText,      label: "Artwork Registration" },
-                  { icon: ShieldCheck,   label: "Proof of Authorship" },
-                  { icon: Blocks,        label: "Plagiarism Detection" },
-                  { icon: Scale,         label: "Ownership Verification" },
-                  { icon: Users,         label: "Community Gallery" },
-                  { icon: FileClockIcon, label: "Dispute & Complaint Management" },
-                ].map(({ icon: Icon, label }) => (
-                  <li key={label}>
-                    <a href="#" className="flex items-center gap-2 hover:text-blue-400 transition-colors group">
-                      <Icon className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 shrink-0" />
-                      <span>{label}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-5">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">Resources</h4>
-              <ul className="space-y-3 text-sm text-slate-400">
-                {[
-                  { icon: BookOpen,     label: "Intellectual Property Guide" },
-                  { icon: BrainCircuit, label: "How Perceptual Hashing Works" },
-                  { icon: Scale,        label: "Research Documentation" },
-                ].map(({ icon: Icon, label }) => (
-                  <li key={label}>
-                    <a href="#" className="flex items-center gap-2 hover:text-blue-400 transition-colors group">
-                      <Icon className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 shrink-0" />
-                      <span>{label}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-5">
-              <h4 className="text-sm font-bold uppercase tracking-widest text-slate-200 border-b border-slate-700 pb-3">Research Team</h4>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                This system was developed as partial fulfillment of an undergraduate thesis requirement. For academic inquiries or collaboration proposals, please reach out below.
-              </p>
-              <ul className="space-y-3 text-sm text-slate-400">
-                <li className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                  <span className="break-all">artforgelab@thesis.edu.ph</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                  <span>Philippines, 2026</span>
-                </li>
-              </ul>
-              <div className="flex gap-3 pt-1">
-                {[{ icon: Globe, label: "Website" }, { icon: Share2Icon, label: "Share" }, { icon: Mail, label: "Email" }].map(({ icon: Icon, label }) => (
-                  <a key={label} href="#" aria-label={label}
-                    className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/40 transition-all">
-                    <Icon className="w-4 h-4 text-blue-400" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 md:p-5 mb-8 md:mb-10">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">Legal Disclaimer</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  ArtForgeLab provides cryptographic proof-of-existence and similarity detection as{" "}
-                  <span className="text-slate-300 font-medium">evidentiary support</span> for intellectual property claims.
-                  All similarity results are <span className="text-slate-300 font-medium">indicative only</span> and do not
-                  constitute a legal determination. This system is intended to complement, not replace, formal copyright
-                  registration governed by the{" "}
-                  <span className="text-slate-300 font-medium">Intellectual Property Code of the Philippines (R.A. 8293)</span>{" "}
-                  and administered by <span className="text-slate-300 font-medium">IPOPHL</span>.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-            <p className="text-center md:text-left leading-relaxed">
-              © 2026 ArtForgeLab &mdash; A Thesis Project on{" "}
-              <span className="text-slate-400">Intellectual Property Rights Management for Digital Artists</span>{" "}
-              Using Perceptual Hashing &amp; Blockchain Technology.
-            </p>
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-              {["Privacy Policy", "Terms of Use"].map((link) => (
-                <a key={link} href="#" className="hover:text-white transition-colors whitespace-nowrap">{link}</a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
 
       {/* ── Floating Upload Button ── */}
       <Link

@@ -1,15 +1,11 @@
 import { createSupabaseServerClient } from "./supabase/server";
 
-export async function isAuthenticated(): Promise<boolean> {
+export async function getAuthUser() {
   const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user; 
+}
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return false;
-  } else {
-    return true;
-  }
+export async function isAuthenticated(): Promise<boolean> {
+  return !!(await getAuthUser());
 }

@@ -71,3 +71,7 @@ export function ReactQueryClientProvider({
         </PersistQueryClientProvider>
     );
 }
+
+export async function clearQueryCache() {
+    await del(CACHE_KEY, idbStore);
+}
