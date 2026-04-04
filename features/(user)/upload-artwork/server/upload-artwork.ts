@@ -6,21 +6,22 @@ import { ethers } from "ethers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
+import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 
 type RecordArtworkInDatabaseResult =
   | {
-    success: true;
-    artworkId: string;
-    fileHash: `0x${string}`;
-    perceptualHash: `0x${string}`;
-    authorIdHash: `0x${string}`;
-    evidenceHash: `0x${string}`;
-    imageUrl: string | null;
-  }
+      success: true;
+      artworkId: string;
+      fileHash: `0x${string}`;
+      perceptualHash: `0x${string}`;
+      authorIdHash: `0x${string}`;
+      evidenceHash: `0x${string}`;
+      imageUrl: string | null;
+    }
   | {
-    success: false;
-    message: string;
-  };
+      success: false;
+      message: string;
+    };
 
 function sha256Hex(buf: Buffer): string {
   return crypto.createHash("sha256").update(buf).digest("hex");
@@ -44,7 +45,7 @@ function stableStringify(obj: unknown): string {
 }
 
 export async function recordArtworkInDatabase(
-  formData: FormData
+  formData: FormData,
 ): Promise<RecordArtworkInDatabaseResult> {
   try {
     const supabase = await createSupabaseServerClient();
@@ -84,7 +85,7 @@ export async function recordArtworkInDatabase(
 
     // Compute hashes ONCE here
     const authorIdHash = ethers.keccak256(
-      ethers.toUtf8Bytes(user.id)
+      ethers.toUtf8Bytes(user.id),
     ) as `0x${string}`;
 
     const fileHash = ethers.keccak256(fileBuffer) as `0x${string}`;
@@ -101,11 +102,45 @@ export async function recordArtworkInDatabase(
      *
      */
 
+    const result = await checkPlagiarismWeb(validFile);
+
+    if (!result.success) {
+      return { success: false, message: "Unexpected Server Error" };
+    }
+
+    const similarity = result.best_search.similarity_percentage;
+
+    // Strong match (almost identical)
+    if (similarity >= 93) {
+      return {
+        success: false,
+        message: `Duplicate artwork detected (very high similarity). ${Object.values(result.hashes)[0][0]}`,
+      };
+    }
+
+    // Possible plagiarism
+    if (similarity >= 87.5) {
+      return {
+        success: false,
+        message: "Artwork is highly similar to an existing image.",
+      };
+    }
+
+    // Optional review range
+    // TODO: When the moderation module got implemented this needs to revisited
+    if (similarity >= 75) {
+      // return {
+      //   success: false,
+      //   message: `Moderate similarity detected: ${similarity}%. Contact us to review your submission.`,
+      // };
+    }
+
     /* 
       naiisip ko if kasama sa nirereturn nung api na /check/web yung perceptual hash, dun na lang natin kunin para isang call na lang sa api, pero depende pa rin sa diskarte mo pre kung ano yung best
     */
     /*     const perceptualHash = await generatePerceptualHashBytes32(fileBuffer); */
-    const perceptualHash = "0xc98912jkjkfsdf7u8723";
+
+    const perceptualHash = `${"0x"}result.original_hash`;
 
     const evidence = {
       v: 1,
@@ -120,9 +155,8 @@ export async function recordArtworkInDatabase(
     };
 
     const evidenceHash = ethers.keccak256(
-      ethers.toUtf8Bytes(stableStringify(evidence))
+      ethers.toUtf8Bytes(stableStringify(evidence)),
     ) as `0x${string}`;
-
 
     const { data: existingArtwork, error: existingError } = await supabase
       .from("registered_arts")
@@ -178,6 +212,7 @@ export async function recordArtworkInDatabase(
         block_number: null,
         work_id: null,
         status: "pending_blockchain",
+        plagiarism_hashes: result.hashes,
       })
       .select("id")
       .single();

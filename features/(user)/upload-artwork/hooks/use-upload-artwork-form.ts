@@ -64,7 +64,8 @@ export function useUploadArtworkForm() {
   const [dragOver, setDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [processingState, setProcessingState] = useState<ProcessingState>("idle");
+  const [processingState, setProcessingState] =
+    useState<ProcessingState>("idle");
   const [processingMessage, setProcessingMessage] = useState("");
   const [steps, setSteps] = useState<UploadArtworkStep[]>(createInitialSteps());
 
@@ -93,9 +94,7 @@ export function useUploadArtworkForm() {
 
   function setStepStatus(key: string, status: UploadStepStatus) {
     setSteps((current) =>
-      current.map((step) =>
-        step.key === key ? { ...step, status } : step
-      )
+      current.map((step) => (step.key === key ? { ...step, status } : step)),
     );
   }
 
@@ -108,7 +107,9 @@ export function useUploadArtworkForm() {
   function handleFileSelect(file?: File) {
     if (!file) return;
 
-    if (!ACCEPTED_TYPES.includes(file.type as (typeof ACCEPTED_TYPES)[number])) {
+    if (
+      !ACCEPTED_TYPES.includes(file.type as (typeof ACCEPTED_TYPES)[number])
+    ) {
       form.setError("file", { message: "Unsupported file format." });
       return;
     }
@@ -161,6 +162,8 @@ export function useUploadArtworkForm() {
       setStepStatus(STEP_KEYS.review, "active");
       setProcessingMessage("Checking originality and preparing protection...");
 
+      console.log(process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL);
+
       const dbResult = await recordArtworkInDatabase(formData);
 
       if (!dbResult.success) {
@@ -173,7 +176,9 @@ export function useUploadArtworkForm() {
 
       setStepStatus(STEP_KEYS.review, "done");
       setStepStatus(STEP_KEYS.protect, "active");
-      setProcessingMessage("Protecting your artwork and finalizing registration...");
+      setProcessingMessage(
+        "Protecting your artwork and finalizing registration...",
+      );
 
       /* Uncomment this once you are done with the Plagiarism check and Automatic Classification */
 

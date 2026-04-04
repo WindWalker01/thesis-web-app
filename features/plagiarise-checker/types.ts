@@ -1,6 +1,37 @@
 export type Stage = "upload" | "analyzing" | "result";
 export type Mode = "web" | "compare";
 
+// types/plagiarism.ts
+
+export interface PlagiarismWebResult {
+  filename: string;
+  original_hash: string;
+  hashes: Record<string, string>;
+  best_search: WebResultBestSearch;
+  success: boolean;
+}
+
+export interface WebResultBestSearch {
+  source: string;
+  link: string;
+  url: string;
+  min_combined_distance: number;
+  average_combined_distance: number;
+  max_combined_distance: number;
+  best_match_pair: string;
+  similarity_percentage: number;
+}
+
+export interface PlagiarismCheckResult {
+  filename1: string;
+  filename2: string;
+  distance: number;
+  hash1: Record<string, string>;
+  hash2: Record<string, string>;
+}
+
+// ------------------NOTE: REWORK BELOW these are outdated anymore
+
 export interface ReverseSearchResponse {
   progress: number;
   stage: string;
