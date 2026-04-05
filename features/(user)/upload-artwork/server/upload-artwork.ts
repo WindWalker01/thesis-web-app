@@ -90,6 +90,24 @@ export async function recordArtworkInDatabase(
 
     const fileHash = ethers.keccak256(fileBuffer) as `0x${string}`;
 
+    const { data: existingArtwork, error: existingError } = await supabase
+      .from("registered_arts")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("file_hash", fileHash)
+      .maybeSingle();
+
+    if (existingError) {
+      return { success: false, message: existingError.message };
+    }
+
+    if (existingArtwork) {
+      return {
+        success: false,
+        message: "This artwork has already been registered by your account.",
+      };
+    }
+
     /**
      * TEAMMATE INTEGRATION POINT: duplicate / plagiarism checking
      *
@@ -157,24 +175,6 @@ export async function recordArtworkInDatabase(
     const evidenceHash = ethers.keccak256(
       ethers.toUtf8Bytes(stableStringify(evidence)),
     ) as `0x${string}`;
-
-    const { data: existingArtwork, error: existingError } = await supabase
-      .from("registered_arts")
-      .select("id")
-      .eq("owner_id", user.id)
-      .eq("file_hash", fileHash)
-      .maybeSingle();
-
-    if (existingError) {
-      return { success: false, message: existingError.message };
-    }
-
-    if (existingArtwork) {
-      return {
-        success: false,
-        message: "This artwork has already been registered by your account.",
-      };
-    }
 
     /**
      * TEAMMATE INTEGRATION POINT: artwork genre classification
