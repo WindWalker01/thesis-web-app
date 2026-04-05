@@ -176,18 +176,6 @@ export async function recordArtworkInDatabase(
       ethers.toUtf8Bytes(stableStringify(evidence)),
     ) as `0x${string}`;
 
-    /**
-     * TEAMMATE INTEGRATION POINT: artwork genre classification
-     *
-     * Call the genre classification module/API here after duplicate check passes
-     * and before saving the final DB record.
-     *
-     */
-
-    /* 
-      We still don't have a method for storing the genre of an artwork to the centralized database.
-    */
-
     const uploadedImage = await uploadArtworkImageToCloudinary({
       fileBuffer,
       fileName: validFile.name,
@@ -221,6 +209,20 @@ export async function recordArtworkInDatabase(
       return { success: false, message: error.message };
     }
 
+    /**
+     * TEAMMATE INTEGRATION POINT: artwork genre classification
+     *
+     * Call the genre classification module/API here after duplicate check passes
+     * and before saving the final DB record.
+     *
+     */
+
+    const genres = await getArtworkGenres(validFile, data.id);
+
+    console.log(genres);
+
+    await supabase.from("art_genres").insert(genres);
+
     return {
       success: true,
       artworkId: data.id,
@@ -237,4 +239,60 @@ export async function recordArtworkInDatabase(
         error instanceof Error ? error.message : "Failed to save artwork.",
     };
   }
+}
+
+async function getArtworkGenres(file: File, art_id: number) {
+  const genres = await fetchGenreClassification(file);
+
+  if (!genres.success) {
+    return [{}];
+  }
+
+  let filtered_genres = genres.results.filter(
+    (genre) => genre.score * 100 >= 1,
+  );
+
+  if (filtered_genres.length < 1) {
+    filtered_genres = genres.results.slice(0, 3);
+  }
+
+  const genre_to_insert = filtered_genres.map((genre) => ({
+    art_id: art_id,
+    genre_id: genre.index,
+  }));
+
+  return genre_to_insert;
+}
+
+async function fetchGenreClassification(
+  file: File,
+): Promise<GenreClassificationResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL}/classify/`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail ?? "Failed to Classify Art Genre");
+  }
+
+  return response.json();
+}
+
+interface GenreScoreLabel {
+  score: number;
+  label: string;
+  index: number;
+}
+
+interface GenreClassificationResult {
+  success: boolean;
+  results: Array<GenreScoreLabel>;
 }
