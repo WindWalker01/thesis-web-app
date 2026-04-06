@@ -55,28 +55,15 @@ export default function PlagiarismCheckerPage() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const runAnalysis = () => {
-    setStage("analyzing");
-    setProgress(0);
-    let p = 0;
-    const interval = setInterval(() => {
-      p += 1;
-      if (p >= 100) {
-        p = 100;
-        clearInterval(interval);
-        setTimeout(() => setStage("result"), 400);
-      }
-      setProgress(Math.min(Math.floor(p), 100));
-    }, 180);
-  };
-
   const runCompareAnalysis = () => {
     if (!comparePreviewA || !comparePreviewB) return;
 
     setStage("analyzing");
     setProgress(0);
 
-    const ws = new WebSocket("ws://127.0.0.1:8000/plagiarism/check");
+    const ws = new WebSocket(
+      `${process.env.DIGITAL_ART_API_URL}/plagiarism/check`,
+    );
 
     ws.onopen = async () => {
       const fileA = await fetch(comparePreviewA).then((r) => r.blob());
@@ -213,7 +200,7 @@ export default function PlagiarismCheckerPage() {
   return (
     <main className="bg-background min-h-screen">
       {/* ── Header ── */}
-      <div className="border-border bg-background/95 sticky top-0 z-10 border-b backdrop-blur pt-16">
+      <div className="border-border bg-background/95 sticky top-0 z-10 border-b pt-16 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div>
             <div className="mb-1 flex items-center gap-2">

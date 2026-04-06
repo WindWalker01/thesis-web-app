@@ -7,8 +7,13 @@ const nextConfig: NextConfig = {
     domains: [
       "images.unsplash.com",
       "lh3.googleusercontent.com",
-      "styles.redditmedia.com"
+      "styles.redditmedia.com",
     ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
   },
 };
 
