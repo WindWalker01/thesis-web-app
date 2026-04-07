@@ -10,18 +10,18 @@ import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 
 type RecordArtworkInDatabaseResult =
   | {
-      success: true;
-      artworkId: string;
-      fileHash: `0x${string}`;
-      perceptualHash: `0x${string}`;
-      authorIdHash: `0x${string}`;
-      evidenceHash: `0x${string}`;
-      imageUrl: string | null;
-    }
+    success: true;
+    artworkId: string;
+    fileHash: `0x${string}`;
+    perceptualHash: `0x${string}`;
+    authorIdHash: `0x${string}`;
+    evidenceHash: `0x${string}`;
+    imageUrl: string | null;
+  }
   | {
-      success: false;
-      message: string;
-    };
+    success: false;
+    message: string;
+  };
 
 function sha256Hex(buf: Buffer): string {
   return crypto.createHash("sha256").update(buf).digest("hex");
@@ -158,7 +158,7 @@ export async function recordArtworkInDatabase(
     */
     /*     const perceptualHash = await generatePerceptualHashBytes32(fileBuffer); */
 
-    const perceptualHash = `${"0x"}result.original_hash`;
+    const perceptualHash = result.original_hash as `0x${string}`;
 
     const evidence = {
       v: 1,
@@ -167,7 +167,7 @@ export async function recordArtworkInDatabase(
       mime: validFile.type,
       size: fileBuffer.length,
       sha256: "0x" + sha256Hex(fileBuffer),
-      phashAlgo: "sharp-phash",
+      phashAlgo: "phash",
       phash: perceptualHash,
       uploadedAt: new Date().toISOString(),
     };

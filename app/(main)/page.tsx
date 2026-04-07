@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import NavBar from "@/components/blocks/navbar";
 import {
-  ChevronDown, Upload, ShieldUser, FileClockIcon, Scale, Zap,
-  Mail, Share2Icon, Globe, InfoIcon, BookOpen, ShieldCheck,
-  FileText, Users, Blocks, AlertTriangle, MapPin, BrainCircuit, Plus,
+  ShieldUser, FileClockIcon, Scale, Zap,
+  InfoIcon, ShieldCheck,
+  Users, Blocks, AlertTriangle, Plus, Upload
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
