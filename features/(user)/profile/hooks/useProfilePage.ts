@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import { Artwork, ViewMode, OwnershipStatus, HashStatus } from "../types";
 

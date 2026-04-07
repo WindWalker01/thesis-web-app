@@ -71,3 +71,11 @@ export type ArtworkDetail = {
         profileImage: string | null;
     } | null;
 };
+
+export const SORT_OPTIONS = [
+    "Recently Added",
+    "Oldest First",
+    "Name A–Z",
+    "Name Z–A",
+    "Verified First",
+] as const;

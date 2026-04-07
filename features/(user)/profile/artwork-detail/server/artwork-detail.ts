@@ -2,7 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ArtworkDetail } from "../../types";
-import { mapHashStatus, formatUploadDate, mapOwnershipStatus } from "../../server/artworks";
+import { formatUploadDate, mapHashStatus, mapOwnershipStatus } from "../..";
 
 type FetchArtworkDetailResult =
     | { success: true; artwork: ArtworkDetail }

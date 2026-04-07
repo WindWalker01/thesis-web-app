@@ -1,8 +1,6 @@
 "use client";
 
-import NavBar from "@/components/blocks/navbar";
-
-import { SORT_OPTIONS } from "../data";
+import { SORT_OPTIONS } from "../types";
 import { useProfilePage } from "../hooks/useProfilePage";
 import { useCurrentUserProfile } from "../hooks/useFetchProfile";
 import { useCurrentUserArtworks } from "../hooks/useFetchProfileArtworks";
@@ -24,7 +22,7 @@ export default function ProfilePage() {
 
     const categories = Array.from(
         new Map(
-            artworks
+            artworks 
                 .filter((a) => a.img)
                 .map((a) => [
                     a.category,

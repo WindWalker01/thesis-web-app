@@ -1,7 +1,8 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Artwork, OwnershipStatus, HashStatus } from "../types";
+import type { Artwork } from "../types";
+import { formatUploadDate, mapHashStatus, mapOwnershipStatus } from "..";
 
 type FetchArtworksResult =
     | { success: true; artworks: Artwork[] }
@@ -118,27 +119,4 @@ export async function fetchCurrentUserArtworks(): Promise<FetchArtworksResult> {
             message: err instanceof Error ? err.message : "Failed to fetch artworks.",
         };
     }
-}
-
-export function mapOwnershipStatus(
-    status: string,
-    txHash: string | null
-): OwnershipStatus {
-    if (status === "registered" || status === "protected" || txHash) {
-        return "verified";
-    }
-
-    return "pending";
-}
-
-export function mapHashStatus(perceptualHash: string | null): HashStatus {
-    return perceptualHash ? "complete" : "processing";
-}
-
-export function formatUploadDate(isoString: string): string {
-    return new Date(isoString).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
 }
