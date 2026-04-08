@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   CloudUpload,
+  ExternalLink,
   FileImage,
   ImageIcon,
   Loader2,
@@ -31,15 +32,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Form,
-  FormControl,
+  Form, 
+  FormControl, 
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { ACCEPT_ATTR } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { useUploadArtworkForm } from "@/features/(user)/upload-artwork/hooks/use-upload-artwork-form";
 import { useArtworkFilePreview } from "@/features/(user)/upload-artwork/hooks/use-artwork-file-preview";
@@ -59,6 +59,7 @@ export default function UploadArtworkPage() {
     processingState,
     processingMessage,
     steps,
+    similarityReport,
     resetProgressState,
     handleFileSelect,
     handleDrop,
@@ -423,27 +424,105 @@ export default function UploadArtworkPage() {
                   currentMessage={processingMessage}
                 />
 
-                {(processingState === "success" ||
-                  processingState === "error") && (
+                {processingState === "success" && similarityReport ? (
                   <Card>
-                    <CardContent className="flex flex-col gap-3 p-6 sm:flex-row">
-                      {processingState === "success" ? (
-                        <Button asChild className="w-full sm:w-auto">
-                          <Link href="/dashboard">Go to dashboard</Link>
-                        </Button>
-                      ) : null}
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        Similarity report
+                      </CardTitle>
+                      <CardDescription>
+                        Your upload was recorded. The similarity result below may
+                        help explain why your artwork was flagged or placed under
+                        review.
+                      </CardDescription>
+                    </CardHeader>
 
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full sm:w-auto"
-                        onClick={resetProgressState}
-                      >
-                        Register another artwork
-                      </Button>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-lg border p-3">
+                          <p className="text-muted-foreground text-xs">
+                            Similarity
+                          </p>
+                          <p className="text-lg font-semibold">
+                            {similarityReport.similarityPercentage ?? "N/A"}%
+                          </p>
+                        </div>
+
+                        <div className="rounded-lg border p-3">
+                          <p className="text-muted-foreground text-xs">Source</p>
+                          <p className="text-lg font-semibold">
+                            {similarityReport.source ?? "Unknown"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 rounded-lg border p-4">
+                        <div>
+                          <p className="text-muted-foreground text-xs">
+                            Match link
+                          </p>
+                          {similarityReport.link ? (
+                            <Link
+                              href={similarityReport.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
+                            >
+                              {similarityReport.link}
+                              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                            </Link>
+                          ) : (
+                            <p className="text-sm">No link available.</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="text-muted-foreground text-xs">
+                            Matched image URL
+                          </p>
+                          {similarityReport.url ? (
+                            <Link
+                              href={similarityReport.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
+                            >
+                              {similarityReport.url}
+                              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                            </Link>
+                          ) : (
+                            <p className="text-sm">
+                              No matched image URL available.
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                )}
+                ) : null}
+
+                {(processingState === "success" ||
+                  processingState === "error") && (
+                    <Card>
+                      <CardContent className="flex flex-col gap-3 p-6 sm:flex-row">
+                        {processingState === "success" ? (
+                          <Button asChild className="w-full sm:w-auto">
+                            <Link href="/dashboard">Go to dashboard</Link>
+                          </Button>
+                        ) : null}
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full sm:w-auto"
+                          onClick={resetProgressState}
+                        >
+                          Register another artwork
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
               </div>
             )}
           </motion.div>

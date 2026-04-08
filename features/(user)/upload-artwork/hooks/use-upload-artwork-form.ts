@@ -13,11 +13,11 @@ import {
   type UploadArtworkFormValues,
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
-import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
 import type {
   UploadArtworkStep,
   UploadStepStatus,
 } from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
+import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 
 type ProcessingState = "idle" | "processing" | "success" | "error";
 
@@ -63,6 +63,8 @@ export function useUploadArtworkForm() {
 
   const [dragOver, setDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [similarityReport, setSimilarityReport] =
+    useState<SimilarityReport | null>(null);
 
   const [processingState, setProcessingState] =
     useState<ProcessingState>("idle");
@@ -98,10 +100,19 @@ export function useUploadArtworkForm() {
     );
   }
 
+  function updateStepText(key: string, title: string, description: string) {
+    setSteps((current) =>
+      current.map((step) =>
+        step.key === key ? { ...step, title, description } : step,
+      ),
+    );
+  }
+
   function resetProgressState() {
     setSteps(createInitialSteps());
     setProcessingMessage("");
     setProcessingState("idle");
+    setSimilarityReport(null);
   }
 
   function handleFileSelect(file?: File) {
@@ -128,6 +139,8 @@ export function useUploadArtworkForm() {
 
   function handleRemoveFile() {
     form.setValue("file", undefined as never, { shouldValidate: true });
+    setSimilarityReport(null);
+
     if (inputRef.current) {
       inputRef.current.value = "";
     }
@@ -144,6 +157,7 @@ export function useUploadArtworkForm() {
   async function onSubmit(values: UploadArtworkFormValues) {
     setIsSubmitting(true);
     form.clearErrors("root");
+    setSimilarityReport(null);
 
     setProcessingState("processing");
     setSteps(createInitialSteps());
@@ -162,8 +176,6 @@ export function useUploadArtworkForm() {
       setStepStatus(STEP_KEYS.review, "active");
       setProcessingMessage("Checking originality and preparing protection...");
 
-      console.log(process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL);
-
       const dbResult = await recordArtworkInDatabase(formData);
 
       if (!dbResult.success) {
@@ -174,33 +186,77 @@ export function useUploadArtworkForm() {
         return;
       }
 
-      setStepStatus(STEP_KEYS.review, "done");
-      setStepStatus(STEP_KEYS.protect, "active");
-      setProcessingMessage(
-        "Protecting your artwork and finalizing registration...",
-      );
+      setSimilarityReport(dbResult.similarityReport ?? null);
 
-      /* Uncomment this once you are done with the Plagiarism check and Automatic Classification */
+      if (dbResult.artworkStatus === "flagged") {
+        updateStepText(
+          STEP_KEYS.review,
+          "Similarity check detected high-risk match",
+          "A high similarity result was detected, so the artwork was flagged for admin review.",
+        );
+        updateStepText(
+          STEP_KEYS.protect,
+          "Protection flow paused for moderation",
+          "Further protection should wait until the flagged artwork is reviewed.",
+        );
+        updateStepText(
+          STEP_KEYS.complete,
+          "Submission recorded with admin review required",
+          "The upload was saved, but the artwork is not treated as fully cleared.",
+        );
 
-      /*       const blockchainResult = await recordArtworkOnBlockchain({
-              artworkId: dbResult.artworkId,
-              authorIdHash: dbResult.authorIdHash,
-              fileHash: dbResult.fileHash,
-              perceptualHash: dbResult.perceptualHash,
-              evidenceHash: dbResult.evidenceHash,
-            });
-      
-            if (!blockchainResult.success) {
-              setStepStatus(STEP_KEYS.protect, "error");
-              setProcessingState("error");
-              setProcessingMessage(blockchainResult.message);
-              form.setError("root", { message: blockchainResult.message });
-              return;
-            } */
+        setStepStatus(STEP_KEYS.review, "warning");
+        setStepStatus(STEP_KEYS.protect, "warning");
+        setStepStatus(STEP_KEYS.complete, "warning");
+        setProcessingMessage(
+          "High similarity detected. Your artwork was saved and flagged for admin review.",
+        );
+      } else if (dbResult.artworkStatus === "under_review") {
+        updateStepText(
+          STEP_KEYS.review,
+          "Similarity check detected moderate match",
+          "A moderate similarity result was detected, so the artwork was placed under review.",
+        );
+        updateStepText(
+          STEP_KEYS.protect,
+          "Protection flow waiting for review result",
+          "Further protection should wait until the review decision is completed.",
+        );
+        updateStepText(
+          STEP_KEYS.complete,
+          "Submission recorded with pending review",
+          "The upload was saved, but the artwork still needs moderation review.",
+        );
 
-      setStepStatus(STEP_KEYS.protect, "done");
-      setStepStatus(STEP_KEYS.complete, "done");
-      setProcessingMessage("Your artwork has been successfully protected.");
+        setStepStatus(STEP_KEYS.review, "warning");
+        setStepStatus(STEP_KEYS.protect, "warning");
+        setStepStatus(STEP_KEYS.complete, "warning");
+        setProcessingMessage(
+          "Moderate similarity detected. Your artwork was saved and placed under review.",
+        );
+      } else {
+        updateStepText(
+          STEP_KEYS.review,
+          "Originality check completed",
+          "No review threshold was triggered.",
+        );
+        updateStepText(
+          STEP_KEYS.protect,
+          "Protection preparation completed",
+          "Your artwork is ready for the next protection stage.",
+        );
+        updateStepText(
+          STEP_KEYS.complete,
+          "Completed",
+          "Your artwork registration has finished successfully.",
+        );
+
+        setStepStatus(STEP_KEYS.review, "done");
+        setStepStatus(STEP_KEYS.protect, "done");
+        setStepStatus(STEP_KEYS.complete, "done");
+        setProcessingMessage(dbResult.message);
+      }
+
       setProcessingState("success");
 
       form.reset({
@@ -239,6 +295,7 @@ export function useUploadArtworkForm() {
     processingState,
     processingMessage,
     steps,
+    similarityReport,
     resetProgressState,
     handleFileSelect,
     handleDrop,

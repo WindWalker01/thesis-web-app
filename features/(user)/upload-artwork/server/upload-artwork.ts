@@ -1,69 +1,100 @@
 "use server";
 
-import crypto from "node:crypto";
 import { ethers } from "ethers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
 import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
+import {
+  buildSimilarityReport,
+  buildSimilarityScanInsert,
+} from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 
-type RecordArtworkInDatabaseResult =
-  | {
-    success: true;
-    artworkId: string;
-    fileHash: `0x${string}`;
-    perceptualHash: `0x${string}`;
-    authorIdHash: `0x${string}`;
-    evidenceHash: `0x${string}`;
-    imageUrl: string | null;
-  }
-  | {
-    success: false;
-    message: string;
-  };
+import { RecordArtworkInDatabaseResult } from "../types";
+import {
+  sha256Hex,
+  normalizePerceptualHashToBytes32,
+  stableStringify,
+  getArtworkStatusFromSimilarity
+} from "..";
+import { getArtworkGenres } from "./fetch-genre";
 
-function sha256Hex(buf: Buffer): string {
-  return crypto.createHash("sha256").update(buf).digest("hex");
+/**
+ * Compensating rollback for partial-write failure.
+ *
+ * This is not a true database transaction, but it restores consistency when
+ * the parent artwork row was inserted successfully and a later dependent step
+ * (similarity scan or genre mapping) fails.
+ *
+ * Because dependent rows reference registered_arts, removing the parent record
+ * prevents the system from keeping a half-finished registration in the database.
+ */
+async function rollbackArtworkInsert(params: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  artworkId: string;
+}) {
+  const { supabase, artworkId } = params;
+
+  await supabase.from("registered_arts").delete().eq("id", artworkId);
 }
 
-function stableStringify(obj: unknown): string {
-  if (obj === null || typeof obj !== "object") {
-    return JSON.stringify(obj);
-  }
-
-  if (Array.isArray(obj)) {
-    return `[${obj.map(stableStringify).join(",")}]`;
-  }
-
-  const record = obj as Record<string, unknown>;
-  const keys = Object.keys(record).sort();
-
-  return `{${keys
-    .map((key) => JSON.stringify(key) + ":" + stableStringify(record[key]))
-    .join(",")}}`;
-}
-
+/**
+ * Main server action responsible for:
+ * - validating the upload request
+ * - generating file/authorship/evidence hashes
+ * - calling plagiarism detection
+ * - assigning moderation status
+ * - uploading the source image
+ * - storing the artwork record and related scan data
+ * - optionally classifying the artwork when moderation permits
+ *
+ * The function is intentionally linear so the workflow is easy to follow and debug.
+ */
 export async function recordArtworkInDatabase(
   formData: FormData,
 ): Promise<RecordArtworkInDatabaseResult> {
   try {
+    /**
+     * Create a server-side Supabase client bound to the current user session.
+     * This is used for both authentication and protected row inserts.
+     */
     const supabase = await createSupabaseServerClient();
 
+    /**
+     * Authentication guard:
+     * artwork registration must always belong to an authenticated user.
+     */
     const {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return { success: false, message: "You must be logged in." };
+      return {
+        success: false,
+        message: "You must be logged in.",
+        similarityReport: null,
+      };
     }
 
+    /**
+     * Extract raw form fields from FormData.
+     *
+     * We read everything as untrusted input first, then validate through zod
+     * before any processing happens.
+     */
     const title = formData.get("title");
     const description = formData.get("description");
     const rightsConfirmed = formData.get("rightsConfirmed") === "true";
     const file = formData.get("file");
 
+    /**
+     * Validate and coerce request data using the upload schema.
+     *
+     * This blocks unsupported files, missing ownership confirmation,
+     * and invalid title/description payloads before any expensive work begins.
+     */
     const parsed = formSchema.safeParse({
       title,
       description,
@@ -73,23 +104,40 @@ export async function recordArtworkInDatabase(
 
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
+
       return {
         success: false,
         message: firstIssue?.message ?? "Invalid form submission.",
+        similarityReport: null,
       };
     }
 
+    /**
+     * Read the uploaded file into memory once so all downstream hashing and upload
+     * operations work from the same byte source.
+     */
     const validFile = parsed.data.file;
     const arrayBuffer = await validFile.arrayBuffer();
     const fileBuffer = Buffer.from(arrayBuffer);
 
-    // Compute hashes ONCE here
+    /**
+     * authorIdHash is the blockchain-safe representation of the internal user id.
+     * fileHash is the keccak256 digest of the actual uploaded file bytes.
+     *
+     * These values are used both for deduplication and for the later on-chain record.
+     */
     const authorIdHash = ethers.keccak256(
       ethers.toUtf8Bytes(user.id),
     ) as `0x${string}`;
 
     const fileHash = ethers.keccak256(fileBuffer) as `0x${string}`;
 
+    /**
+     * Pre-insert duplicate guard.
+     *
+     * We prevent the same user from registering the exact same file twice
+     * based on the unique owner_id + file_hash combination.
+     */
     const { data: existingArtwork, error: existingError } = await supabase
       .from("registered_arts")
       .select("id")
@@ -98,68 +146,90 @@ export async function recordArtworkInDatabase(
       .maybeSingle();
 
     if (existingError) {
-      return { success: false, message: existingError.message };
+      return {
+        success: false,
+        message: existingError.message,
+        similarityReport: null,
+      };
     }
 
     if (existingArtwork) {
       return {
         success: false,
         message: "This artwork has already been registered by your account.",
+        similarityReport: null,
       };
     }
 
     /**
-     * TEAMMATE INTEGRATION POINT: duplicate / plagiarism checking
+     * Call the plagiarism service before persisting the artwork.
      *
-     * This is where the external duplicate-check module should run:
-     * 1. Compare pHash against database records using Hamming distance threshold
-     * 2. Check internet / external plagiarism source
-     * 3. If duplicate exists, return:
-     *    { success: false, message: "Copyrighted/Duplicate detected." }
-     * 4. If unique, continue to registration flow
-     *
+     * This gives us:
+     * - the similarity score
+     * - the source/match details for UI reporting
+     * - the raw perceptual hash family used for plagiarism evidence
      */
-
     const result = await checkPlagiarismWeb(validFile);
 
     if (!result.success) {
-      return { success: false, message: "Unexpected Server Error" };
-    }
-
-    const similarity = result.best_search.similarity_percentage;
-
-    // Strong match (almost identical)
-    if (similarity >= 93) {
       return {
         success: false,
-        message: `Duplicate artwork detected (very high similarity). ${Object.values(result.hashes)[0][0]}`,
+        message: "Unexpected server error during similarity checking.",
+        similarityReport: null,
       };
     }
 
-    // Possible plagiarism
-    if (similarity >= 87.5) {
+    /**
+     * Convert the plagiarism service response into a stable UI/database shape
+     * and compute the moderation decision from the best similarity score.
+     */
+    const similarityReport = buildSimilarityReport(result);
+    const similarity = similarityReport?.similarityPercentage ?? 0;
+
+    const { artworkStatus, moderationMessage, shouldClassify } =
+      getArtworkStatusFromSimilarity(similarity);
+
+    /**
+     * The blockchain flow requires a valid perceptual hash.
+     * We fail early if the service did not return one.
+     */
+    if (
+      typeof result.original_hash !== "string" ||
+      result.original_hash.trim().length === 0
+    ) {
       return {
         success: false,
-        message: "Artwork is highly similar to an existing image.",
+        message: "Missing perceptual hash from similarity checking service.",
+        similarityReport,
       };
     }
 
-    // Optional review range
-    // TODO: When the moderation module got implemented this needs to revisited
-    if (similarity >= 75) {
-      // return {
-      //   success: false,
-      //   message: `Moderate similarity detected: ${similarity}%. Contact us to review your submission.`,
-      // };
+    /**
+     * Normalize the compact pHash into bytes32 format so the value can be:
+     * - stored consistently in the database
+     * - reused directly for blockchain registration/retry
+     */
+    let perceptualHash: `0x${string}`;
+
+    try {
+      perceptualHash = normalizePerceptualHashToBytes32(result.original_hash);
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Invalid perceptual hash format.",
+        similarityReport,
+      };
     }
 
-    /* 
-      naiisip ko if kasama sa nirereturn nung api na /check/web yung perceptual hash, dun na lang natin kunin para isang call na lang sa api, pero depende pa rin sa diskarte mo pre kung ano yung best
-    */
-    /*     const perceptualHash = await generatePerceptualHashBytes32(fileBuffer); */
-
-    const perceptualHash = result.original_hash as `0x${string}`;
-
+    /**
+     * Evidence object is the canonical proof package for this registration.
+     *
+     * It captures the important file characteristics and the normalized pHash,
+     * then gets hashed into evidenceHash for later blockchain attestation.
+     */
     const evidence = {
       v: 1,
       internalUserIdHash: authorIdHash,
@@ -172,16 +242,31 @@ export async function recordArtworkInDatabase(
       uploadedAt: new Date().toISOString(),
     };
 
+    /**
+     * Deterministic evidence digest used as the immutable proof payload reference.
+     */
     const evidenceHash = ethers.keccak256(
       ethers.toUtf8Bytes(stableStringify(evidence)),
     ) as `0x${string}`;
 
+    /**
+     * Upload the original artwork image asset before database insertion.
+     *
+     * This gives us the permanent hosted asset identifiers stored with the artwork row.
+     * Note: if a later DB step fails, Cloudinary cleanup is still a separate concern.
+     */
     const uploadedImage = await uploadArtworkImageToCloudinary({
       fileBuffer,
       fileName: validFile.name,
       folder: "registered-arts",
     });
 
+    /**
+     * Persist the main artwork record.
+     *
+     * This is the parent row for all related upload artifacts and the source of truth
+     * for ownership, hashes, moderation status, and future blockchain state.
+     */
     const { data, error } = await supabase
       .from("registered_arts")
       .insert({
@@ -199,100 +284,131 @@ export async function recordArtworkInDatabase(
         tx_hash: null,
         block_number: null,
         work_id: null,
-        status: "pending_blockchain",
+        status: artworkStatus,
         plagiarism_hashes: result.hashes,
       })
       .select("id")
       .single();
 
+    /**
+     * Defensive duplicate handling:
+     * even if the pre-check passed, concurrent requests can still race here.
+     * We normalize unique constraint failures into a friendly duplicate message.
+     */
     if (error) {
-      return { success: false, message: error.message };
+      const isDuplicate =
+        error.code === "23505" ||
+        error.message.toLowerCase().includes("duplicate") ||
+        error.message.toLowerCase().includes("unique");
+
+      return {
+        success: false,
+        message: isDuplicate
+          ? "This artwork has already been registered by your account."
+          : error.message,
+        similarityReport,
+      };
+    }
+
+    const insertedArtworkId = data.id;
+
+    /**
+     * Persist the similarity scan record linked to the newly created artwork.
+     *
+     * This keeps the raw scan result and summarized match details available
+     * for audit, admin review, and UI explanation.
+     */
+    const similarityScanRow = buildSimilarityScanInsert({
+      artId: insertedArtworkId,
+      ownerId: user.id,
+      result,
+      status: "completed",
+    });
+
+    const { error: scanInsertError } = await supabase
+      .from("art_similarity_scans")
+      .insert(similarityScanRow);
+
+    /**
+     * If scan persistence fails, roll back the parent artwork record so we do not
+     * leave a partially registered upload behind.
+     */
+    if (scanInsertError) {
+      await rollbackArtworkInsert({
+        supabase,
+        artworkId: insertedArtworkId,
+      });
+
+      return {
+        success: false,
+        message: scanInsertError.message,
+        similarityReport,
+      };
     }
 
     /**
-     * TEAMMATE INTEGRATION POINT: artwork genre classification
+     * Genre classification is intentionally skipped for suspicious uploads.
      *
-     * Call the genre classification module/API here after duplicate check passes
-     * and before saving the final DB record.
-     *
+     * The goal is to avoid spending extra work on artwork that is already routed
+     * into moderation review.
      */
+    if (shouldClassify) {
+      const genres = await getArtworkGenres(validFile, insertedArtworkId);
 
-    const genres = await getArtworkGenres(validFile, data.id);
+      if (genres.length > 0) {
+        const { error: genresError } = await supabase
+          .from("art_genres")
+          .insert(genres);
 
-    console.log(genres);
+        /**
+         * If genre persistence fails after the parent row was created,
+         * roll back the artwork to keep the registration consistent.
+         */
+        if (genresError) {
+          await rollbackArtworkInsert({
+            supabase,
+            artworkId: insertedArtworkId,
+          });
 
-    await supabase.from("art_genres").insert(genres);
+          return {
+            success: false,
+            message: genresError.message,
+            similarityReport,
+          };
+        }
+      }
+    }
 
+    /**
+     * Final success response returned to the client.
+     *
+     * The caller uses this to continue the upload progress UI and eventually
+     * trigger the blockchain step for safe uploads.
+     */
     return {
       success: true,
-      artworkId: data.id,
+      artworkId: insertedArtworkId,
       fileHash,
       perceptualHash,
       authorIdHash,
       evidenceHash,
       imageUrl: uploadedImage.secureUrl,
+      message: moderationMessage,
+      similarityReport,
+      artworkStatus,
     };
   } catch (error) {
+    /**
+     * Last-resort catch for unexpected runtime failures.
+     *
+     * We keep the response user-safe while still surfacing the actual message
+     * when the thrown value is a standard Error instance.
+     */
     return {
       success: false,
       message:
         error instanceof Error ? error.message : "Failed to save artwork.",
+      similarityReport: null,
     };
   }
-}
-
-async function getArtworkGenres(file: File, art_id: number) {
-  const genres = await fetchGenreClassification(file);
-
-  if (!genres.success) {
-    return [{}];
-  }
-
-  let filtered_genres = genres.results.filter(
-    (genre) => genre.score * 100 >= 1,
-  );
-
-  if (filtered_genres.length < 1) {
-    filtered_genres = genres.results.slice(0, 3);
-  }
-
-  const genre_to_insert = filtered_genres.map((genre) => ({
-    art_id: art_id,
-    genre_id: genre.index,
-  }));
-
-  return genre_to_insert;
-}
-
-async function fetchGenreClassification(
-  file: File,
-): Promise<GenreClassificationResult> {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL}/classify/`,
-    {
-      method: "POST",
-      body: formData,
-    },
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail ?? "Failed to Classify Art Genre");
-  }
-
-  return response.json();
-}
-
-interface GenreScoreLabel {
-  score: number;
-  label: string;
-  index: number;
-}
-
-interface GenreClassificationResult {
-  success: boolean;
-  results: Array<GenreScoreLabel>;
 }

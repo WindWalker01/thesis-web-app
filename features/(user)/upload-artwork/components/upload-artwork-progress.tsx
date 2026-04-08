@@ -1,9 +1,21 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, Loader2, ShieldAlert, Sparkles } from "lucide-react";
+import {
+    CheckCircle2,
+    CircleDashed,
+    Loader2,
+    ShieldAlert,
+    Sparkles,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { StatusProgress } from "@/features/(user)/upload-artwork/components/status-progress";
 
 export type UploadStepStatus =
@@ -11,6 +23,7 @@ export type UploadStepStatus =
     | "active"
     | "done"
     | "error"
+    | "warning"
     | "pending-integration";
 
 export type UploadArtworkStep = {
@@ -38,6 +51,10 @@ function StepIcon({ status }: { status: UploadStepStatus }) {
         return <ShieldAlert className="h-5 w-5 text-destructive" />;
     }
 
+    if (status === "warning") {
+        return <ShieldAlert className="h-5 w-5 text-amber-500" />;
+    }
+
     if (status === "pending-integration") {
         return <Sparkles className="h-5 w-5 text-amber-500" />;
     }
@@ -58,6 +75,14 @@ function StepBadge({ status }: { status: UploadStepStatus }) {
         return <Badge variant="destructive">Failed</Badge>;
     }
 
+    if (status === "warning") {
+        return (
+            <Badge className="bg-amber-500 hover:bg-amber-500 text-white">
+                Needs review
+            </Badge>
+        );
+    }
+
     if (status === "pending-integration") {
         return <Badge variant="secondary">Pending integration</Badge>;
     }
@@ -69,7 +94,10 @@ export function UploadArtworkProgress({
     steps,
     currentMessage,
 }: UploadArtworkProgressProps) {
-    const doneCount = steps.filter((step) => step.status === "done").length;
+    const completeLikeStatuses: UploadStepStatus[] = ["done", "warning"];
+    const doneCount = steps.filter((step) =>
+        completeLikeStatuses.includes(step.status),
+    ).length;
     const progressValue = Math.round((doneCount / steps.length) * 100);
 
     return (
@@ -77,8 +105,7 @@ export function UploadArtworkProgress({
             <CardHeader className="border-b bg-muted/30">
                 <CardTitle>Artwork registration progress</CardTitle>
                 <CardDescription>
-                    This page reflects the full pipeline. Only database and blockchain recording
-                    are actively implemented in this module.
+                    This page reflects the upload, similarity review, and protection flow.
                 </CardDescription>
             </CardHeader>
 
@@ -97,10 +124,7 @@ export function UploadArtworkProgress({
 
                 <div className="space-y-4">
                     {steps.map((step, index) => (
-                        <div
-                            key={step.key}
-                            className="rounded-xl border p-4"
-                        >
+                        <div key={step.key} className="rounded-xl border p-4">
                             <div className="flex items-start gap-3">
                                 <div className="mt-0.5">
                                     <StepIcon status={step.status} />

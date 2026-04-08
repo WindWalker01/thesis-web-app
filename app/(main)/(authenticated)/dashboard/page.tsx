@@ -1,10 +1,7 @@
-import NavBar from "@/components/blocks/navbar"
-
-
 export default function DashboardPage() {
   return (
-    <main>
-        <h1>Dashboard Page!</h1>
+    <main className="min-h-screen flex justify-center items-center">
+      <h1>Dashboard Page!</h1>
     </main>
   );
 }
