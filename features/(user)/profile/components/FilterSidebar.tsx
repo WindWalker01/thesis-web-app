@@ -2,27 +2,38 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Filter } from "lucide-react";
 
-import type { Artwork, Category, HashStatus, OwnershipStatus } from "../types";
+import type { Artwork, Category, HashStatus, ArtworkStatus } from "../types";
 import { Dropdown } from "./Dropdown";
+import { formatArtworkStatusLabel } from "..";
 
 type Props = {
     open: boolean;
     artworks: Artwork[];
     categories: Category[];
     selectedCategory: string | null;
-    selectedStatus: OwnershipStatus | null;
+    selectedStatus: ArtworkStatus | null;
     selectedHash: HashStatus | null;
     activeFiltersCount: number;
     catOpen: boolean;
     statusOpen: boolean;
     hashOpen: boolean;
     onCategoryChange: (value: string | null) => void;
-    onStatusChange: (value: OwnershipStatus | null) => void;
+    onStatusChange: (value: ArtworkStatus | null) => void;
     onHashChange: (value: HashStatus | null) => void;
     onToggleCat: () => void;
     onToggleStatus: () => void;
     onToggleHash: () => void;
     onClearAll: () => void;
+};
+
+const statusDots: Record<ArtworkStatus, string> = {
+    active: "bg-green-500",
+    under_review: "bg-amber-500",
+    pending_blockchain: "bg-blue-500",
+    flagged: "bg-red-500",
+    removed: "bg-slate-400",
+    blockchain_failed: "bg-orange-500",
+    revoked: "bg-purple-500",
 };
 
 export function FilterSidebar({
@@ -44,6 +55,8 @@ export function FilterSidebar({
     onToggleHash,
     onClearAll,
 }: Props) {
+    const availableStatuses = Array.from(new Set(artworks.map((a) => a.status)));
+
     return (
         <AnimatePresence initial={false}>
             {open && (
@@ -55,8 +68,6 @@ export function FilterSidebar({
                     className="shrink-0 sticky top-20 overflow-hidden"
                 >
                     <div className="w-55 bg-card border border-border rounded-2xl overflow-hidden">
-
-                        {/* Header */}
                         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                             <div className="flex items-center gap-2">
                                 <Filter className="w-3.5 h-3.5 text-primary" />
@@ -72,7 +83,6 @@ export function FilterSidebar({
                             )}
                         </div>
 
-                        {/* Category */}
                         <Dropdown label="Category" open={catOpen} onToggle={onToggleCat}>
                             <div className="space-y-0.5 pt-1">
                                 <FilterButton
@@ -85,7 +95,9 @@ export function FilterSidebar({
                                     <FilterButton
                                         key={cat.label}
                                         active={selectedCategory === cat.label}
-                                        onClick={() => onCategoryChange(selectedCategory === cat.label ? null : cat.label)}
+                                        onClick={() =>
+                                            onCategoryChange(selectedCategory === cat.label ? null : cat.label)
+                                        }
                                         icon={
                                             <div className="w-5 h-5 rounded overflow-hidden shrink-0 relative">
                                                 <Image src={cat.img} alt={cat.label} fill className="object-cover" />
@@ -98,31 +110,33 @@ export function FilterSidebar({
                             </div>
                         </Dropdown>
 
-                        {/* Ownership Status */}
-                        <Dropdown label="Ownership" open={statusOpen} onToggle={onToggleStatus}>
+                        <Dropdown label="Status" open={statusOpen} onToggle={onToggleStatus}>
                             <div className="space-y-0.5 pt-1">
-                                {[
-                                    { value: null, label: "All", dot: "bg-slate-400" },
-                                    { value: "verified", label: "Verified", dot: "bg-green-500" },
-                                    { value: "pending", label: "Pending", dot: "bg-orange-400" },
-                                ].map((opt) => (
+                                <FilterButton
+                                    active={!selectedStatus}
+                                    onClick={() => onStatusChange(null)}
+                                    icon={<div className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />}
+                                    label="All"
+                                    count={artworks.length}
+                                />
+
+                                {availableStatuses.map((status) => (
                                     <FilterButton
-                                        key={opt.label}
-                                        active={selectedStatus === opt.value}
-                                        onClick={() => onStatusChange(opt.value as OwnershipStatus | null)}
-                                        icon={<div className={`w-2 h-2 rounded-full ${opt.dot} shrink-0`} />}
-                                        label={opt.label}
-                                        count={
-                                            opt.value === null
-                                                ? artworks.length
-                                                : artworks.filter((a) => a.ownershipStatus === opt.value).length
+                                        key={status}
+                                        active={selectedStatus === status}
+                                        onClick={() =>
+                                            onStatusChange(selectedStatus === status ? null : status)
                                         }
+                                        icon={
+                                            <div className={`w-2 h-2 rounded-full ${statusDots[status]} shrink-0`} />
+                                        }
+                                        label={formatArtworkStatusLabel(status)}
+                                        count={artworks.filter((a) => a.status === status).length}
                                     />
                                 ))}
                             </div>
                         </Dropdown>
 
-                        {/* Hash Status */}
                         <Dropdown label="Hash Status" open={hashOpen} onToggle={onToggleHash}>
                             <div className="space-y-0.5 pt-1">
                                 {[
@@ -136,11 +150,15 @@ export function FilterSidebar({
                                         onClick={() => onHashChange(opt.value as HashStatus | null)}
                                         icon={<div className={`w-2 h-2 rounded-full ${opt.dot} shrink-0`} />}
                                         label={opt.label}
+                                        count={
+                                            opt.value === null
+                                                ? artworks.length
+                                                : artworks.filter((a) => a.hashStatus === opt.value).length
+                                        }
                                     />
                                 ))}
                             </div>
                         </Dropdown>
-
                     </div>
                 </motion.aside>
             )}
@@ -148,7 +166,6 @@ export function FilterSidebar({
     );
 }
 
-/* ── Shared filter row button ── */
 type FilterButtonProps = {
     active: boolean;
     onClick: () => void;
@@ -161,16 +178,13 @@ function FilterButton({ active, onClick, icon, label, count }: FilterButtonProps
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-xs font-medium transition-colors
-        ${active
-                    ? "bg-primary/10 text-primary"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${active ? "bg-primary/10 text-primary" : "hover:bg-muted"
                 }`}
         >
             {icon}
-            <span className="truncate">{label}</span>
-            {count !== undefined && (
-                <span className="ml-auto text-[10px] text-muted-foreground tabular-nums">{count}</span>
+            <span className="flex-1 truncate">{label}</span>
+            {typeof count === "number" && (
+                <span className="text-[10px] text-muted-foreground">{count}</span>
             )}
         </button>
     );

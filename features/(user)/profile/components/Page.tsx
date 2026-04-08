@@ -1,6 +1,8 @@
 "use client";
 
-import { SORT_OPTIONS } from "../types";
+import Link from "next/link";
+
+import { SORT_OPTIONS, ProfileScope } from "../types";
 import { useProfilePage } from "../hooks/useProfilePage";
 import { useCurrentUserProfile } from "../hooks/useFetchProfile";
 import { useCurrentUserArtworks } from "../hooks/useFetchProfileArtworks";
@@ -12,17 +14,21 @@ import { ActiveFilterChips } from "../components/ActiveFilterChips";
 import { FilterSidebar } from "../components/FilterSidebar";
 import { ArtworkGrid } from "../components/ArtworkGrid";
 
-export default function ProfilePage() {
+type Props = {
+    scope?: ProfileScope;
+};
+
+export default function ProfilePage({ scope = "gallery" }: Props) {
     const { profile, isLoading, error } = useCurrentUserProfile();
     const {
         artworks,
         isLoading: artworksLoading,
         error: artworksError,
-    } = useCurrentUserArtworks();
+    } = useCurrentUserArtworks(scope);
 
     const categories = Array.from(
         new Map(
-            artworks 
+            artworks
                 .filter((a) => a.img)
                 .map((a) => [
                     a.category,
@@ -65,6 +71,12 @@ export default function ProfilePage() {
     const pageLoading = isLoading || artworksLoading;
     const pageError = error || artworksError;
 
+    const pageTitle = scope === "issues" ? "Review & Issues" : "My Collection";
+    const pageDescription =
+        scope === "issues"
+            ? "Flagged, removed, revoked, and blockchain-failed artworks."
+            : "Your visible artworks, including active, under review, and pending blockchain records.";
+
     return (
         <main className="min-h-screen bg-background font-display text-foreground overflow-x-hidden">
             <div className="h-1 w-full bg-linear-to-r from-blue-600 via-primary to-orange-400" />
@@ -97,6 +109,34 @@ export default function ProfilePage() {
                     </ProfileBanner>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="text-xl font-black">{pageTitle}</h2>
+                                <p className="text-sm text-muted-foreground">{pageDescription}</p>
+                            </div>
+
+                            <div className="inline-flex rounded-xl border border-border p-1 bg-card">
+                                <Link
+                                    href="/profile"
+                                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${scope === "gallery"
+                                            ? "bg-primary text-primary-foreground"
+                                            : "text-muted-foreground hover:text-foreground"
+                                        }`}
+                                >
+                                    My Collection
+                                </Link>
+                                <Link
+                                    href="/profile/issues"
+                                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${scope === "issues"
+                                            ? "bg-primary text-primary-foreground"
+                                            : "text-muted-foreground hover:text-foreground"
+                                        }`}
+                                >
+                                    Review & Issues
+                                </Link>
+                            </div>
+                        </div>
+
                         <ArtworkTopBar
                             searchQuery={searchQuery}
                             sortBy={sortBy}

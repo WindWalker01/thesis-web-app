@@ -5,6 +5,7 @@ import { ExternalLink, Hash } from "lucide-react";
 
 import type { Artwork } from "../types";
 import { OwnershipBadge } from "./OwnershipBadge";
+import { ArtworkStatusBadge } from "./ArtworkStatusBadge";
 
 type Props = {
     art: Artwork;
@@ -42,7 +43,8 @@ export function ArtworkCardList({ art, index }: Props) {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                        <ArtworkStatusBadge status={art.status} />
                         <OwnershipBadge status={art.ownershipStatus} />
                         <span
                             className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-full ${art.hashStatus === "complete"
