@@ -3,14 +3,15 @@ export type HashStatus = "complete" | "processing";
 export type ViewMode = "grid" | "list";
 
 export type Artwork = {
-    id: number;
+    id: string;
     title: string;
+    img: string | null;
     category: string;
     uploadDate: string;
     ownershipStatus: OwnershipStatus;
     hashStatus: HashStatus;
     color: string;
-    img?: string;
+    createdAt: string;
 };
 
 export type Profile = {
@@ -36,3 +37,45 @@ export type FilterState = {
     selectedHash: HashStatus | null;
     sortBy: string;
 };
+
+export type ArtworkDetail = {
+    id: string;
+    ownerId: string;
+    title: string;
+    description: string | null;
+    img: string | null;
+    category: string;
+    uploadDate: string;
+    createdAt: string;
+    ownershipStatus: OwnershipStatus;
+    hashStatus: HashStatus;
+
+    fileHash: string;
+    perceptualHash: string;
+    authorIdHash: string | null;
+    evidenceHash: string | null;
+    evidence: unknown | null;
+
+    chain: string | null;
+    txHash: string | null;
+    blockNumber: number | null;
+    workId: string | null;
+    status: string;
+
+    plagiarismHashes: unknown | null;
+
+    creator: {
+        id: string;
+        fullName: string;
+        username: string;
+        profileImage: string | null;
+    } | null;
+};
+
+export const SORT_OPTIONS = [
+    "Recently Added",
+    "Oldest First",
+    "Name A–Z",
+    "Name Z–A",
+    "Verified First",
+] as const;

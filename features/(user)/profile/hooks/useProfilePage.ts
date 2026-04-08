@@ -1,6 +1,7 @@
+"use client";
+
 import { useState, useMemo } from "react";
-import { Artwork, ViewMode } from "../types";
-import { OwnershipStatus, HashStatus } from "../types";
+import { Artwork, ViewMode, OwnershipStatus, HashStatus } from "../types";
 
 export function useProfilePage(artworks: Artwork[], sortOptions: readonly string[]) {
     const [searchQuery, setSearchQuery] = useState("");
@@ -22,43 +23,65 @@ export function useProfilePage(artworks: Artwork[], sortOptions: readonly string
         let list = [...artworks];
 
         if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
             list = list.filter(
                 (a) =>
-                    a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    a.category.toLowerCase().includes(searchQuery.toLowerCase())
+                    a.title.toLowerCase().includes(q) ||
+                    a.category.toLowerCase().includes(q)
             );
         }
 
-        if (selectedCategory)
+        if (selectedCategory) {
             list = list.filter((a) => a.category === selectedCategory);
+        }
 
-        if (selectedStatus)
+        if (selectedStatus) {
             list = list.filter((a) => a.ownershipStatus === selectedStatus);
+        }
 
-        if (selectedHash)
+        if (selectedHash) {
             list = list.filter((a) => a.hashStatus === selectedHash);
+        }
 
         switch (sortBy) {
             case "Oldest First":
-                list.sort((a, b) => a.id - b.id);
+                list.sort(
+                    (a, b) =>
+                        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                );
                 break;
+
             case "Name A–Z":
                 list.sort((a, b) => a.title.localeCompare(b.title));
                 break;
+
             case "Name Z–A":
                 list.sort((a, b) => b.title.localeCompare(a.title));
                 break;
+
             case "Verified First":
-                list.sort((a, b) =>
-                    a.ownershipStatus === "verified" ? -1 : 1
-                );
+                list.sort((a, b) => {
+                    if (a.ownershipStatus === b.ownershipStatus) return 0;
+                    return a.ownershipStatus === "verified" ? -1 : 1;
+                });
                 break;
+
             default:
-                list.sort((a, b) => b.id - a.id);
+                list.sort(
+                    (a, b) =>
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
         }
 
         return list;
-    }, [artworks, searchQuery, selectedCategory, selectedStatus, selectedHash, sortBy]);
+    }, [
+        artworks,
+        searchQuery,
+        selectedCategory,
+        selectedStatus,
+        selectedHash,
+        sortBy,
+    ]);
 
     const activeFiltersCount =
         (selectedCategory ? 1 : 0) +
@@ -74,40 +97,28 @@ export function useProfilePage(artworks: Artwork[], sortOptions: readonly string
 
     return {
         filtered,
-
         searchQuery,
         setSearchQuery,
-
         selectedCategory,
         setSelectedCategory,
-
         selectedStatus,
         setSelectedStatus,
-
         selectedHash,
         setSelectedHash,
-
         sortBy,
         setSortBy,
-
         viewMode,
         setViewMode,
-
         sidebarOpen,
         setSidebarOpen,
-
         sortOpen,
         setSortOpen,
-
         catOpen,
         setCatOpen,
-
         statusOpen,
         setStatusOpen,
-
         hashOpen,
         setHashOpen,
-
         activeFiltersCount,
         clearAll,
     };

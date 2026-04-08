@@ -37,6 +37,8 @@ export function ProfileBanner({ profile, children }: Props) {
                                     src={profile.profileImage}
                                     alt={profile.fullName}
                                     fill
+                                    sizes="(max-width: 768px) 96px, 112px"
+                                    loading="eager"
                                     className="object-cover"
                                     unoptimized
                                 />
