@@ -13,6 +13,7 @@ import {
   type UploadArtworkFormValues,
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
+import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
 import type {
   UploadArtworkStep,
   UploadStepStatus,
@@ -197,7 +198,7 @@ export function useUploadArtworkForm() {
         updateStepText(
           STEP_KEYS.protect,
           "Protection flow paused for moderation",
-          "Further protection should wait until the flagged artwork is reviewed.",
+          "Blockchain protection is blocked until the flagged artwork is reviewed.",
         );
         updateStepText(
           STEP_KEYS.complete,
@@ -211,6 +212,7 @@ export function useUploadArtworkForm() {
         setProcessingMessage(
           "High similarity detected. Your artwork was saved and flagged for admin review.",
         );
+        setProcessingState("success");
       } else if (dbResult.artworkStatus === "under_review") {
         updateStepText(
           STEP_KEYS.review,
@@ -220,7 +222,7 @@ export function useUploadArtworkForm() {
         updateStepText(
           STEP_KEYS.protect,
           "Protection flow waiting for review result",
-          "Further protection should wait until the review decision is completed.",
+          "Blockchain protection will continue after moderation review is completed.",
         );
         updateStepText(
           STEP_KEYS.complete,
@@ -234,7 +236,11 @@ export function useUploadArtworkForm() {
         setProcessingMessage(
           "Moderate similarity detected. Your artwork was saved and placed under review.",
         );
+        setProcessingState("success");
       } else {
+        setStepStatus(STEP_KEYS.review, "done");
+        setStepStatus(STEP_KEYS.protect, "active");
+
         updateStepText(
           STEP_KEYS.review,
           "Originality check completed",
@@ -242,22 +248,46 @@ export function useUploadArtworkForm() {
         );
         updateStepText(
           STEP_KEYS.protect,
-          "Protection preparation completed",
-          "Your artwork is ready for the next protection stage.",
+          "Recording artwork on blockchain...",
+          "Your artwork is now being written to the blockchain registry.",
+        );
+
+        setProcessingMessage(
+          "Recording your artwork on blockchain and finalizing protection...",
+        );
+
+        const blockchainResult = await recordArtworkOnBlockchain({
+          artworkId: dbResult.artworkId,
+          authorIdHash: dbResult.authorIdHash,
+          fileHash: dbResult.fileHash,
+          perceptualHash: dbResult.perceptualHash,
+          evidenceHash: dbResult.evidenceHash,
+        });
+
+        if (!blockchainResult.success) {
+          setStepStatus(STEP_KEYS.protect, "error");
+          setProcessingState("error");
+          setProcessingMessage(blockchainResult.message);
+          form.setError("root", { message: blockchainResult.message });
+          return;
+        }
+
+        updateStepText(
+          STEP_KEYS.protect,
+          "Blockchain protection completed",
+          "Your artwork was successfully recorded on-chain.",
         );
         updateStepText(
           STEP_KEYS.complete,
           "Completed",
-          "Your artwork registration has finished successfully.",
+          "Your artwork registration and blockchain protection have finished successfully.",
         );
 
-        setStepStatus(STEP_KEYS.review, "done");
         setStepStatus(STEP_KEYS.protect, "done");
         setStepStatus(STEP_KEYS.complete, "done");
-        setProcessingMessage(dbResult.message);
+        setProcessingMessage("Your artwork has been successfully protected.");
+        setProcessingState("success");
       }
-
-      setProcessingState("success");
 
       form.reset({
         title: "",
