@@ -3,18 +3,22 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ExternalLink, Hash, ImageIcon } from "lucide-react";
 
-import type { Artwork } from "../types";
+import type { Artwork, ProfileScope } from "../types";
 import { OwnershipBadge } from "./OwnershipBadge";
 import { ArtworkStatusBadge } from "./ArtworkStatusBadge";
 
 type Props = {
   art: Artwork;
   index: number;
+  scope?: ProfileScope;
 };
 
-export function ArtworkCardGrid({ art, index }: Props) {
+export function ArtworkCardGrid({ art, index, scope = "gallery" }: Props) {
+  const href =
+    scope === "issues" ? `/profile/issues/${art.id}` : `/profile/artworks/${art.id}`;
+
   return (
-    <Link href={`/profile/artworks/${art.id}`}>
+    <Link href={href}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -31,7 +35,9 @@ export function ArtworkCardGrid({ art, index }: Props) {
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className={`w-full h-full bg-linear-to-br ${art.color} flex items-center justify-center`}>
+            <div
+              className={`w-full h-full bg-linear-to-br ${art.color} flex items-center justify-center`}
+            >
               <ImageIcon className="w-10 h-10 text-white/40" />
             </div>
           )}

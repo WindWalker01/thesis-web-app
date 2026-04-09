@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 
-import type { ArtworkDetail } from "../../types";
+import type { ArtworkDetail } from "../../../types";
 import { generateArtworkCertificatePdf } from "@/features/certificate-generator";
 import type { CertificateArtwork } from "@/features/certificate-generator/types";
 

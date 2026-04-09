@@ -3,18 +3,22 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ExternalLink, Hash } from "lucide-react";
 
-import type { Artwork } from "../types";
+import type { Artwork, ProfileScope } from "../types";
 import { OwnershipBadge } from "./OwnershipBadge";
 import { ArtworkStatusBadge } from "./ArtworkStatusBadge";
 
 type Props = {
     art: Artwork;
     index: number;
+    scope?: ProfileScope;
 };
 
-export function ArtworkCardList({ art, index }: Props) {
+export function ArtworkCardList({ art, index, scope = "gallery" }: Props) {
+    const href =
+        scope === "issues" ? `/profile/issues/${art.id}` : `/profile/artworks/${art.id}`;
+
     return (
-        <Link href={`/profile/artworks/${art.id}`}>
+        <Link href={href}>
             <motion.div
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}

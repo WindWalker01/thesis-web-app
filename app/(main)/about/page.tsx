@@ -231,29 +231,6 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* ── Legal disclaimer ── */}
-        <Reveal className="pt-4">
-          <div className="relative rounded-2xl border border-amber-500/25 bg-linear-to-br from-amber-500/8 to-orange-400/5 p-7 overflow-hidden">
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-amber-400/8 rounded-full blur-2xl pointer-events-none" />
-            <div className="flex items-start gap-4 relative">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Legal Disclaimer</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                  ArtForgeLab is an{" "}
-                  <span className="text-slate-700 dark:text-slate-200 font-semibold">academic thesis project</span>{" "}
-                  and does not constitute a registered legal service. All features are provided for research and evaluation purposes only under{" "}
-                  <span className="text-slate-700 dark:text-slate-200 font-semibold">R.A. 8293</span>{" "}
-                  and administered by{" "}
-                  <span className="text-slate-700 dark:text-slate-200 font-semibold">IPOPHL</span>.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Reveal>
-
         {/* ── Back link ── */}
         <Reveal className="pt-4 text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors group">

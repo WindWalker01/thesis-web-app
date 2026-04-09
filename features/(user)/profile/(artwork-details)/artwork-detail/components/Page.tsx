@@ -8,8 +8,6 @@ import {
     CheckCircle,
     ShieldCheck,
     FileText,
-    ExternalLink,
-    Download,
     UserRound,
     ScanSearch,
     Shield,
@@ -19,9 +17,11 @@ import {
     ScrollText,
 } from "lucide-react";
 
-import { CopyButton } from "@/features/(user)/profile/artwork-detail/components/CopyButton";
-import { TechnicalDetailsToggle } from "@/features/(user)/profile/artwork-detail/components/TechnicalDetailsToggle";
-import { useArtworkDetailPage } from "@/features/(user)/profile/artwork-detail/hooks/useArtworkDetailPage";
+import { HashInfoRow } from "./HashInfoRow";
+import { SimpleInfoRow } from "./SimpleInfoRow";
+import { SectionHeader } from "./SectionHeader";
+import { TechnicalDetailsToggle } from "@/features/(user)/profile/(artwork-details)/artwork-detail/components/TechnicalDetailsToggle";
+import { useArtworkDetailPage } from "@/features/(user)/profile/(artwork-details)/artwork-detail/hooks/useArtworkDetailPage";
 import ArtworkDetailPageSkeleton from "./PageSkeleton";
 import { DownloadCertificateButton } from "./DownloadCertificateButton";
 
@@ -383,59 +383,5 @@ export default function ArtworkDetailPage({ id }: Props) {
                 </div>
             </div>
         </main>
-    );
-}
-
-export function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
-    return (
-        <div className="flex items-center gap-2 border-b border-border bg-background/60 px-5 py-3.5">
-            <span className="text-primary">{icon}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {title}
-            </span>
-        </div>
-    );
-}
-
-function SimpleInfoRow({
-    label,
-    value,
-    mono = false,
-}: {
-    label: string;
-    value: string;
-    mono?: boolean;
-}) {
-    return (
-        <div className="rounded-xl border border-border bg-background/70 px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-                {label}
-            </p>
-            <p
-                className={
-                    mono
-                        ? "font-mono text-xs leading-5 break-all text-foreground"
-                        : "text-sm font-medium text-foreground break-words"
-                }
-            >
-                {value}
-            </p>
-        </div>
-    );
-}
-
-function HashInfoRow({ label, value }: { label: string; value: string }) {
-    const canCopy = value !== "N/A";
-
-    return (
-        <div className="rounded-xl border border-border bg-background/70 px-4 py-3">
-            <div className="flex items-center justify-between gap-3 mb-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {label}
-                </p>
-                {canCopy && <CopyButton value={value} label="Copy" />}
-            </div>
-            <p className="font-mono text-xs leading-5 break-all text-foreground">{value}</p>
-        </div>
     );
 }

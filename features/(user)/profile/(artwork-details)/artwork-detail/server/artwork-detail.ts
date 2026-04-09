@@ -1,8 +1,8 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ArtworkDetail } from "../../types";
-import { formatUploadDate, mapHashStatus, mapOwnershipStatus } from "../..";
+import { ArtworkDetail } from "../../../types";
+import { formatUploadDate, mapHashStatus, mapOwnershipStatus } from "../../..";
 
 type FetchArtworkDetailResult =
     | { success: true; artwork: ArtworkDetail }

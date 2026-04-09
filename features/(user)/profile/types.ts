@@ -84,6 +84,78 @@ export type ArtworkDetail = {
   } | null;
 };
 
+export type IssueReport = {
+  id: string;
+  reportType: string;
+  title: string;
+  description: string;
+  status: string;
+  createdAt: string;
+  resolvedAt: string | null;
+};
+
+export type IssueSimilarityScan = {
+  id: string;
+  status: string;
+  success: boolean;
+  filename: string | null;
+  originalHash: string | null;
+  totalMatches: number;
+  bestSource: string | null;
+  bestLink: string | null;
+  bestUrl: string | null;
+  bestMatchPair: string | null;
+  bestSimilarityPercentage: number | null;
+  bestMinCombinedDistance: number | null;
+  bestAverageCombinedDistance: number | null;
+  bestMaxCombinedDistance: number | null;
+  matches: unknown[];
+  hashes: unknown | null;
+  rawResponse: unknown | null;
+  errorMessage: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IssueDetail = {
+  id: string;
+  ownerId: string;
+  title: string;
+  description: string | null;
+  img: string | null;
+  category: string;
+  uploadDate: string;
+  createdAt: string;
+  ownershipStatus: OwnershipStatus;
+  hashStatus: HashStatus;
+  status: ArtworkStatus;
+
+  fileHash: string;
+  perceptualHash: string;
+  authorIdHash: string | null;
+  evidenceHash: string | null;
+  evidence: unknown | null;
+
+  chain: string | null;
+  txHash: string | null;
+  blockNumber: number | null;
+  workId: string | null;
+
+  plagiarismHashes: unknown | null;
+
+  creator: {
+    id: string;
+    fullName: string;
+    username: string;
+    profileImage: string | null;
+  } | null;
+
+  similarityScan: IssueSimilarityScan | null;
+  reports: IssueReport[];
+};
+
 export const SORT_OPTIONS = [
   "Recently Added",
   "Oldest First",
