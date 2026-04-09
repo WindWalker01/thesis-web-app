@@ -32,8 +32,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Form, 
-  FormControl, 
+  Form,
+  FormControl,
   FormDescription,
   FormField,
   FormItem,
@@ -45,6 +45,7 @@ import { useUploadArtworkForm } from "@/features/(user)/upload-artwork/hooks/use
 import { useArtworkFilePreview } from "@/features/(user)/upload-artwork/hooks/use-artwork-file-preview";
 import { StatusProgress } from "@/features/(user)/upload-artwork/components/status-progress";
 import { UploadArtworkProgress } from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
+import { ConfirmUploadModal } from "./confirm-upload-modal";
 
 export default function UploadArtworkPage() {
   const {
@@ -64,7 +65,11 @@ export default function UploadArtworkPage() {
     handleFileSelect,
     handleDrop,
     handleRemoveFile,
-    onSubmit,
+    openConfirmation,
+    closeConfirmation,
+    confirmUpload,
+    pendingValues,
+    confirmOpen,
   } = useUploadArtworkForm();
 
   const previewUrl = useArtworkFilePreview(watchedFile);
@@ -297,7 +302,7 @@ export default function UploadArtworkPage() {
                 </CardHeader>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <form onSubmit={form.handleSubmit(openConfirmation)}>
                     <CardContent className="space-y-6 p-6">
                       {form.formState.errors.root?.message && (
                         <Alert variant="destructive">
@@ -528,6 +533,17 @@ export default function UploadArtworkPage() {
           </motion.div>
         </div>
       </section>
+
+      <ConfirmUploadModal
+        open={confirmOpen}
+        onOpenChange={(open) => {
+          if (!open) closeConfirmation();
+        }}
+        values={pendingValues}
+        previewUrl={previewUrl}
+        isSubmitting={isSubmitting}
+        onConfirm={confirmUpload}
+      />
     </main>
   );
 }

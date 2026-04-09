@@ -72,6 +72,10 @@ export function useUploadArtworkForm() {
   const [processingMessage, setProcessingMessage] = useState("");
   const [steps, setSteps] = useState<UploadArtworkStep[]>(createInitialSteps());
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingValues, setPendingValues] =
+    useState<UploadArtworkFormValues | null>(null);
+
   const form = useForm<UploadArtworkFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -155,7 +159,19 @@ export function useUploadArtworkForm() {
     handleFileSelect(file);
   }
 
-  async function onSubmit(values: UploadArtworkFormValues) {
+  function openConfirmation(values: UploadArtworkFormValues) {
+    form.clearErrors("root");
+    setPendingValues(values);
+    setConfirmOpen(true);
+  }
+
+  function closeConfirmation() {
+    if (isSubmitting) return;
+    setConfirmOpen(false);
+    setPendingValues(null);
+  }
+
+  async function submitArtwork(values: UploadArtworkFormValues) {
     setIsSubmitting(true);
     form.clearErrors("root");
     setSimilarityReport(null);
@@ -256,21 +272,21 @@ export function useUploadArtworkForm() {
           "Recording your artwork on blockchain and finalizing protection...",
         );
 
-        /*         const blockchainResult = await recordArtworkOnBlockchain({
-                  artworkId: dbResult.artworkId,
-                  authorIdHash: dbResult.authorIdHash,
-                  fileHash: dbResult.fileHash,
-                  perceptualHash: dbResult.perceptualHash,
-                  evidenceHash: dbResult.evidenceHash,
-                });
-        
-                if (!blockchainResult.success) {
-                  setStepStatus(STEP_KEYS.protect, "error");
-                  setProcessingState("error");
-                  setProcessingMessage(blockchainResult.message);
-                  form.setError("root", { message: blockchainResult.message });
-                  return;
-                } */
+        /* const blockchainResult = await recordArtworkOnBlockchain({
+          artworkId: dbResult.artworkId,
+          authorIdHash: dbResult.authorIdHash,
+          fileHash: dbResult.fileHash,
+          perceptualHash: dbResult.perceptualHash,
+          evidenceHash: dbResult.evidenceHash,
+        });
+
+        if (!blockchainResult.success) {
+          setStepStatus(STEP_KEYS.protect, "error");
+          setProcessingState("error");
+          setProcessingMessage(blockchainResult.message);
+          form.setError("root", { message: blockchainResult.message });
+          return;
+        } */
 
         updateStepText(
           STEP_KEYS.protect,
@@ -295,6 +311,8 @@ export function useUploadArtworkForm() {
         rightsConfirmed: false,
       });
 
+      setPendingValues(null);
+
       if (inputRef.current) {
         inputRef.current.value = "";
       }
@@ -309,6 +327,16 @@ export function useUploadArtworkForm() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function confirmUpload() {
+    if (!pendingValues) return;
+
+    const values = pendingValues;
+    setConfirmOpen(false);
+    setPendingValues(null);
+
+    await submitArtwork(values);
   }
 
   return {
@@ -326,10 +354,14 @@ export function useUploadArtworkForm() {
     processingMessage,
     steps,
     similarityReport,
+    confirmOpen,
+    pendingValues,
     resetProgressState,
     handleFileSelect,
     handleDrop,
     handleRemoveFile,
-    onSubmit,
+    openConfirmation,
+    closeConfirmation,
+    confirmUpload,
   };
 }
