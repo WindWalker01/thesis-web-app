@@ -1,4 +1,4 @@
-import IssueDetailPage from "@/features/(user)/profile/(artwork-details)/issue-detail/components/Page";
+import IssueDetailPage from "@/features/(user)/profile/subfeatures/issue-detail/components/Page";
 
 type Props = {
     params: Promise<{ id: string }>;

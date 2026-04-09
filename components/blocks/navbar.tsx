@@ -23,6 +23,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
 import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
 
+import { useNotifications } from "@/features/(user)/notifications-navbar/hooks/useNotification";
+import { getNotificationUI } from "@/features/(user)/notifications-navbar/lib/notification-ui";
+import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
+
 /* ── Types ── */
 interface Notification {
   id: number;
@@ -39,55 +43,6 @@ type NavLink = {
   href: string;
   requiresAuth?: boolean;
 };
-
-/* ── Dummy notifications (replace with real API later) ── */
-const DUMMY_NOTIFICATIONS: Notification[] = [
-  {
-    id: 1,
-    icon: FileCheck,
-    color: "text-green-400",
-    bg: "bg-green-400/10",
-    text: "Your artwork 'Sunset Concept Art' has been successfully registered.",
-    time: "2m ago",
-    read: false,
-  },
-  {
-    id: 2,
-    icon: ScanSearch,
-    color: "text-orange-400",
-    bg: "bg-orange-400/10",
-    text: "Plagiarism scan detected 2 similar artworks to 'Digital Bloom'.",
-    time: "15m ago",
-    read: false,
-  },
-  {
-    id: 3,
-    icon: ShieldCheck,
-    color: "text-blue-400",
-    bg: "bg-blue-400/10",
-    text: "Your perceptual hash verification is complete.",
-    time: "1h ago",
-    read: true,
-  },
-  {
-    id: 4,
-    icon: MessageCircle,
-    color: "text-purple-400",
-    bg: "bg-purple-400/10",
-    text: "New comment on your artwork 'Cyber Samurai'.",
-    time: "3h ago",
-    read: true,
-  },
-  {
-    id: 5,
-    icon: Award,
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-    text: "Ownership certificate generated for 'Digital Bloom'.",
-    time: "1d ago",
-    read: true,
-  },
-];
 
 const NAV_LINKS: NavLink[] = [
   { label: "Home", href: "/" },
@@ -110,7 +65,13 @@ export default function NavBar() {
 
   const { user } = useAuth();
 
-  const unreadCount = DUMMY_NOTIFICATIONS.filter((n) => !n.read).length;
+  const {
+    notifications,
+    unreadCount,
+    isLoading: notificationsLoading,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications(user?.id);
 
   const visibleNavLinks = useMemo(() => {
     return NAV_LINKS.filter((link) => {
@@ -245,54 +206,91 @@ export default function NavBar() {
                       transition={{ duration: 0.2, ease: "easeOut" }}
                       className="absolute right-0 top-12 z-50 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
                     >
-                      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                        <span className="text-sm font-bold">Notifications</span>
-                        {unreadCount > 0 && (
-                          <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-bold text-orange-500">
-                            {unreadCount} new
-                          </span>
-                        )}
-                      </div>
-
                       <div className="max-h-72 divide-y divide-border overflow-y-auto">
-                        {DUMMY_NOTIFICATIONS.map((n, idx) => {
-                          const Icon = n.icon;
+                        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                          <span className="text-sm font-bold">Notifications</span>
 
-                          return (
-                            <motion.div
-                              key={n.id}
-                              initial={{ opacity: 0, x: -8 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.045, duration: 0.15 }}
-                              className={`flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50 ${!n.read ? "bg-blue-500/5" : ""
-                                }`}
-                            >
-                              <div
-                                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${n.bg}`}
-                              >
-                                <Icon className={`h-4 w-4 ${n.color}`} />
-                              </div>
+                          <div className="flex items-center gap-2">
+                            {unreadCount > 0 && (
+                              <>
+                                <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-bold text-orange-500">
+                                  {unreadCount} new
+                                </span>
 
-                              <div className="min-w-0 flex-1">
-                                <p className="line-clamp-2 text-xs leading-relaxed text-foreground/80">
-                                  {n.text}
-                                </p>
-                                <p className="mt-1 text-[10px] text-muted-foreground">
-                                  {n.time}
-                                </p>
-                              </div>
+                                <button
+                                  onClick={() => void markAllAsRead()}
+                                  className="text-[10px] font-semibold text-blue-500 transition-colors hover:text-blue-400"
+                                >
+                                  Mark all read
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-                              {!n.read && (
-                                <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                              )}
-                            </motion.div>
-                          );
-                        })}
+                        <div className="max-h-72 divide-y divide-border overflow-y-auto">
+                          {notificationsLoading ? (
+                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                              Loading notifications...
+                            </div>
+                          ) : notifications.length === 0 ? (
+                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                              No notifications yet.
+                            </div>
+                          ) : (
+                            notifications.map((n, idx) => {
+                              const { icon: Icon, color, bg } = getNotificationUI(n.type);
+
+                              return (
+                                <motion.button
+                                  type="button"
+                                  key={n.id}
+                                  initial={{ opacity: 0, x: -8 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.045, duration: 0.15 }}
+                                  onClick={async () => {
+                                    if (!n.is_read) {
+                                      await markAsRead(n.id);
+                                    }
+
+                                    if (n.action_url) {
+                                      window.location.href = n.action_url;
+                                    }
+                                  }}
+                                  className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 ${!n.is_read ? "bg-blue-500/5" : ""
+                                    }`}
+                                >
+                                  <div
+                                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${bg}`}
+                                  >
+                                    <Icon className={`h-4 w-4 ${color}`} />
+                                  </div>
+
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-semibold text-foreground">
+                                      {n.title}
+                                    </p>
+                                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-foreground/80">
+                                      {n.message}
+                                    </p>
+                                    <p className="mt-1 text-[10px] text-muted-foreground">
+                                      {formatNotificationTime(n.created_at)}
+                                    </p>
+                                  </div>
+
+                                  {!n.is_read && (
+                                    <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                                  )}
+                                </motion.button>
+                              );
+                            })
+                          )}
+                        </div>
                       </div>
 
                       <div className="border-t border-border px-4 py-3">
                         <Link
-                          href="/settings-button/notifications"
+                          href="/settings/notifications"
                           onClick={() => setNotifOpen(false)}
                           className="block py-0.5 text-center text-xs font-semibold text-blue-500 transition-colors hover:text-blue-400"
                         >
@@ -311,7 +309,7 @@ export default function NavBar() {
             {user && (
               <>
                 <Link
-                  href="/settings-button"
+                  href="/settings"
                   aria-label="Settings"
                   className="hidden h-9 w-9 items-center justify-center rounded-lg text-foreground transition-all hover:bg-blue-500/10 hover:text-blue-500 sm:flex"
                 >
@@ -484,7 +482,7 @@ export default function NavBar() {
                         {
                           icon: Settings,
                           label: "Settings",
-                          href: "/settings-button",
+                          href: "/settings",
                           color: "text-blue-500",
                         },
                         {
