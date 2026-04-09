@@ -8,8 +8,6 @@ import {
     CheckCircle,
     ShieldCheck,
     FileText,
-    ExternalLink,
-    Download,
     UserRound,
     ScanSearch,
     Shield,
@@ -19,10 +17,13 @@ import {
     ScrollText,
 } from "lucide-react";
 
-import { CopyButton } from "@/features/(user)/profile/artwork-detail/components/CopyButton";
-import { TechnicalDetailsToggle } from "@/features/(user)/profile/artwork-detail/components/TechnicalDetailsToggle";
-import { useArtworkDetailPage } from "@/features/(user)/profile/artwork-detail/hooks/useArtworkDetailPage";
+import { HashInfoRow } from "./HashInfoRow";
+import { SimpleInfoRow } from "./SimpleInfoRow";
+import { SectionHeader } from "./SectionHeader";
+import { TechnicalDetailsToggle } from "@/features/(user)/profile/(artwork-details)/artwork-detail/components/TechnicalDetailsToggle";
+import { useArtworkDetailPage } from "@/features/(user)/profile/(artwork-details)/artwork-detail/hooks/useArtworkDetailPage";
 import ArtworkDetailPageSkeleton from "./PageSkeleton";
+import { DownloadCertificateButton } from "./DownloadCertificateButton";
 
 type Props = {
     id: string;
@@ -187,18 +188,12 @@ export default function ArtworkDetailPage({ id }: Props) {
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-500 hover:bg-blue-500/15 transition-colors"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-link-icon lucide-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                                     View on chain
                                 </a>
                             )}
 
-                            <Link
-                                href={`/profile/artworks/${art.id}/certificate`}
-                                className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
-                            >
-                                <Download className="w-4 h-4" />
-                                Download certificate
-                            </Link>
+                            <DownloadCertificateButton artwork={art} />
                         </div>
                     </div>
                 </section>
@@ -388,59 +383,5 @@ export default function ArtworkDetailPage({ id }: Props) {
                 </div>
             </div>
         </main>
-    );
-}
-
-export function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
-    return (
-        <div className="flex items-center gap-2 border-b border-border bg-background/60 px-5 py-3.5">
-            <span className="text-primary">{icon}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {title}
-            </span>
-        </div>
-    );
-}
-
-function SimpleInfoRow({
-    label,
-    value,
-    mono = false,
-}: {
-    label: string;
-    value: string;
-    mono?: boolean;
-}) {
-    return (
-        <div className="rounded-xl border border-border bg-background/70 px-4 py-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
-                {label}
-            </p>
-            <p
-                className={
-                    mono
-                        ? "font-mono text-xs leading-5 break-all text-foreground"
-                        : "text-sm font-medium text-foreground break-words"
-                }
-            >
-                {value}
-            </p>
-        </div>
-    );
-}
-
-function HashInfoRow({ label, value }: { label: string; value: string }) {
-    const canCopy = value !== "N/A";
-
-    return (
-        <div className="rounded-xl border border-border bg-background/70 px-4 py-3">
-            <div className="flex items-center justify-between gap-3 mb-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {label}
-                </p>
-                {canCopy && <CopyButton value={value} label="Copy" />}
-            </div>
-            <p className="font-mono text-xs leading-5 break-all text-foreground">{value}</p>
-        </div>
     );
 }

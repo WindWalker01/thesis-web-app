@@ -60,7 +60,7 @@ const SECTIONS = [
   { icon: ThumbsUp, num: "07", title: "Community Upvoting System", body: "ArtForgeLab features a community upvoting system that allows registered users to upvote digital artworks they find valuable or exceptional. Artworks with higher upvote counts may receive increased visibility and exposure within the platform gallery. Upvotes are intended to reflect community appreciation and may indicate the perceived artistic value of a work. However, upvote counts do not constitute a formal appraisal, monetary valuation, or legal endorsement of any artwork. ArtForgeLab is not responsible for any decisions made based on an artwork's upvote standing." },
   { icon: Flag, num: "08", title: "Upvoting Conduct", body: "Users must not manipulate upvote counts through automated means, multiple accounts, or any form of coordinated inauthentic behavior. Abuse of the upvoting system may result in account suspension. ArtForgeLab reserves the right to remove fraudulent upvotes and adjust visibility rankings accordingly." },
   { icon: RefreshCw, num: "09", title: "Modifications", body: "We reserve the right to update these Terms of Use at any time. Continued use of the platform after changes are posted constitutes your acceptance of the revised terms." },
-  { icon: Globe, num: "10", title: "Governing Law", body: "These terms are governed by the laws of the Republic of the Philippines, including the Intellectual Property Code (R.A. 8293), and administered under the jurisdiction of the Intellectual Property Office of the Philippines (IPOPHL)." },
+  { icon: Globe, num: "10", title: "Governing Law", body: "These terms are governed by the laws of the Republic of the Philippines, and administered under the jurisdiction of the Intellectual Property Office of the Philippines (IPOPHL)." },
 ];
 
 export default function TermsOfUsePage() {
@@ -116,7 +116,6 @@ export default function TermsOfUsePage() {
         <div className="max-w-5xl mx-auto px-6 py-3.5 flex flex-wrap items-center justify-center gap-6 md:gap-10">
           {[
             { label: "Total Clauses", value: "10" },
-            { label: "Governing Law", value: "R.A. 8293" },
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jan 2026" },
           ].map((item, i) => (
@@ -175,28 +174,6 @@ export default function TermsOfUsePage() {
             </Reveal>
           );
         })}
-
-        {/* ── Legal disclaimer ── */}
-        <Reveal className="pt-4">
-          <div className="relative rounded-2xl border border-amber-500/25 bg-linear-to-br from-amber-500/8 to-orange-400/5 p-7 overflow-hidden">
-            <div className="absolute -top-6 -right-6 w-32 h-32 bg-amber-400/8 rounded-full blur-2xl pointer-events-none" />
-            <div className="flex items-start gap-4 relative">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Legal Disclaimer</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                  ArtForgeLab is an{" "}
-                  <span className="text-slate-700 dark:text-slate-200 font-semibold">academic thesis project</span>{" "}
-                  and does not constitute a registered legal service. All features are provided for research and
-                  evaluation purposes only under{" "}
-                  <span className="text-slate-700 dark:text-slate-200 font-semibold">R.A. 8293</span>.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Reveal>
 
         {/* ── Back link ── */}
         <Reveal className="pt-6 text-center">

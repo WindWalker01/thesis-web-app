@@ -6,7 +6,7 @@ import {
     ScanSearch,
     UserRound,
 } from "lucide-react";
-import { SectionHeader } from "./Page";
+import { SectionHeader } from "./SectionHeader";
 
 export default function ArtworkDetailPageSkeleton() {
     return (

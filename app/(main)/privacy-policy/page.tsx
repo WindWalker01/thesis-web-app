@@ -59,14 +59,13 @@ const SECTIONS = [
   { icon: RefreshCw, num: "06", title: "Community Features and Upvotes", body: "When you upvote an artwork or submit a copyright infringement report, your user identifier may be associated with that action within the system for moderation and abuse prevention purposes. Upvote counts are publicly visible as part of the community gallery. Infringement reports are handled confidentially and are only accessible to system administrators." },
   { icon: Eye, num: "07", title: "Cookies and Analytics", body: "ArtForgeLab may use session cookies to maintain your authenticated state while using the platform. We do not use third-party advertising cookies or behavioral tracking. Basic analytics may be collected to monitor system performance and improve user experience. These analytics are anonymized and not linked to individual identities." },
   { icon: RefreshCw, num: "08", title: "Changes to This Policy", body: "We reserve the right to update this Privacy Policy at any time to reflect changes in the system, applicable laws, or our practices. Any significant changes will be communicated through the platform. Continued use of ArtForgeLab after changes are posted constitutes your acceptance of the updated policy." },
-  { icon: Globe, num: "09", title: "Governing Law", body: "This Privacy Policy is governed by the laws of the Republic of the Philippines, including the Data Privacy Act of 2012 (R.A. 10173), the Intellectual Property Code (R.A. 8293), and other applicable regulations administered by the National Privacy Commission (NPC) and the Intellectual Property Office of the Philippines (IPOPHL)." },
+  { icon: Globe, num: "09", title: "Governing Law", body: "This Privacy Policy is governed by the laws of the Republic of the Philippines, including the Data Privacy Act of 2012 (R.A. 10173), and other applicable regulations administered by the National Privacy Commission (NPC) and the Intellectual Property Office of the Philippines (IPOPHL)." },
 ];
 
 const COMMITMENT_CARDS = [
   { icon: Database, title: "Supabase / PostgreSQL", desc: "Industry-standard cloud storage with role-based access control." },
   { icon: Lock, title: "Encrypted & Hashed", desc: "All passwords hashed, connections secured with HTTPS at all times." },
   { icon: Eye, title: "Your Data, Your Control", desc: "Exercise your R.A. 10173 rights: access, correct, or erase your data." },
-  { icon: UserCheck, title: "R.A. 10173 · NPC", desc: "Fully compliant with the Philippine Data Privacy Act and NPC guidelines." },
 ];
 
 export default function PrivacyPolicyPage() {
@@ -106,11 +105,6 @@ export default function PrivacyPolicyPage() {
               </span>
             </h1>
           </Reveal>
-          <Reveal delay={160}>
-            <p className="text-slate-300 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-              How ArtForgeLab collects, uses, and protects your personal data under the Data Privacy Act of 2012 (R.A. 10173).
-            </p>
-          </Reveal>
           <Reveal delay={220}>
             <div className="flex items-center justify-center gap-3 mt-5 text-xs text-slate-500">
               <span>Last updated: January 2026</span>
@@ -125,7 +119,6 @@ export default function PrivacyPolicyPage() {
       <div className="bg-blue-600">
         <div className="max-w-5xl mx-auto px-6 py-3.5 flex flex-wrap items-center justify-center gap-6 md:gap-10">
           {[
-            { label: "Governing Law", value: "R.A. 10173" },
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jan 2026" },
           ].map((item) => (
@@ -154,7 +147,7 @@ export default function PrivacyPolicyPage() {
             <p className="text-sm text-orange-200/55">Core principles that govern how your data is handled.</p>
           </Reveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="flex gap-5 items-center">
             {COMMITMENT_CARDS.map((item, i) => {
               const Icon = item.icon;
               return (
@@ -238,30 +231,6 @@ export default function PrivacyPolicyPage() {
               );
             })}
           </div>
-
-          {/* ── Legal disclaimer ── */}
-          <Reveal className="mt-10">
-            <div className="relative rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/8 to-orange-400/5 p-7 overflow-hidden">
-              <div className="absolute -top-6 -right-6 w-32 h-32 bg-amber-400/8 rounded-full blur-2xl pointer-events-none" />
-              <div className="flex items-start gap-4 relative">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-2">Legal Disclaimer</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                    ArtForgeLab is an{" "}
-                    <span className="text-slate-700 dark:text-slate-200 font-semibold">academic thesis project</span>{" "}
-                    and does not constitute a registered commercial service. All data handling is conducted in accordance with{" "}
-                    <span className="text-slate-700 dark:text-slate-200 font-semibold">R.A. 10173</span>{" "}
-                    and{" "}
-                    <span className="text-slate-700 dark:text-slate-200 font-semibold">R.A. 8293</span>{" "}
-                    for research and evaluation purposes only.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Reveal>
 
           {/* ── Back link ── */}
           <Reveal className="mt-10 text-center">
