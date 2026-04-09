@@ -23,9 +23,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
 import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
 
-import { useNotifications } from "@/features/(user)/notifications/hooks/useNotification";
-import { getNotificationUI } from "@/features/(user)/notifications/lib/notification-ui";
-import { formatNotificationTime } from "@/features/(user)/notifications/lib/format-time";
+import { useNotifications } from "@/features/(user)/notifications-navbar/hooks/useNotification";
+import { getNotificationUI } from "@/features/(user)/notifications-navbar/lib/notification-ui";
+import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
 
 /* ── Types ── */
 interface Notification {
