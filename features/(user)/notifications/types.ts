@@ -1,0 +1,25 @@
+export type NotificationType =
+    | "artwork_registered"
+    | "scan_completed"
+    | "scan_flagged"
+    | "scan_failed"
+    | "report_submitted"
+    | "report_resolved"
+    | "blockchain_recorded"
+    | "system_announcement";
+
+export type AppNotification = {
+    id: string;
+    user_id: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    related_art_id: string | null;
+    related_report_id: string | null;
+    related_scan_id: string | null;
+    action_url: string | null;
+    metadata: Record<string, unknown> | null;
+    is_read: boolean;
+    read_at: string | null;
+    created_at: string;
+};

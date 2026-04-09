@@ -1,4 +1,4 @@
-import ArtworkDetailPage from "@/features/(user)/profile/(artwork-details)/artwork-detail/components/Page";
+import ArtworkDetailPage from "@/features/(user)/profile/subfeatures/artwork-detail/components/Page";
 
 type Props = {
     params: Promise<{ id: string }>;
