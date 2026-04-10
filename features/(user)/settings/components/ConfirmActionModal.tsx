@@ -17,7 +17,7 @@ type ConfirmActionModalProps = {
     confirmButtonClassName?: string;
 };
 
-export default function LogoutConfirmModal({
+export default function ConfirmActionModal({
     open,
     title,
     description,

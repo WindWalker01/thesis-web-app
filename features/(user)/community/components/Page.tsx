@@ -1,12 +1,8 @@
-import { isAuthenticated } from "@/lib/server-utils";
-import GalleryPageClient from "./gallery-page-client";
+import CommunityPageClient from "@/features/(user)/community/components/CommunityPageClient";
+import { getCommunityFeedData } from "../server/community-feed";
 
-export default async function GalleryPage() {
-    const authed = true;
+export default async function CommunityPage() {
+  const data = await getCommunityFeedData();
 
-    return (
-        <GalleryPageClient
-            authed={authed}
-        />
-    );
+  return <CommunityPageClient {...data} />;
 }

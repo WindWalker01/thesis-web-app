@@ -1,7 +1,7 @@
-import GalleryPage from "@/features/(user)/community/components/Page";
+import CommunityPage from "@/features/(user)/community/components/Page";
 
-export default function Gallery() {
+export default function Page() {
   return (
-    <GalleryPage />
+    <CommunityPage />
   );
 }

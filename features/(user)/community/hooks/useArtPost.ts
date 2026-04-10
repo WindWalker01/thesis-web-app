@@ -1,67 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState, useId } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-/**
- * useArtPost is responsible for dropdown menu behavior.
- * We isolate this logic so the UI component (ArtPost) stays clean and readable.
- */
-export function useArtPost() {
-  // Unique ID for aria-controls relationship (good for accessibility)
-  const menuId = useId();
+import { deletePost } from "../subfeatures/community-post-crud/server/delete-post";
 
-  // Whether the "More" dropdown menu is open
-  const [isOpen, setIsOpen] = useState(false);
+type UseArtPostParams = {
+  postId: string;
+  onDeleted?: (postId: string) => void;
+};
 
-  // References to elements so we can detect clicks outside the menu
-  const btnRef = useRef<HTMLButtonElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+export function useArtPost({ postId, onDeleted }: UseArtPostParams) {
+  const router = useRouter();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    /**
-     * Close menu when user clicks outside:
-     * - if click is inside the button OR inside the menu, do nothing
-     * - otherwise, close the menu
-     */
-    function handleClickOutside(e: MouseEvent) {
-      if (!isOpen) return;
+  async function handleDeletePost() {
+    if (isDeleting) return;
 
-      const target = e.target as Node;
+    setIsDeleting(true);
 
-      // Clicked the toggle button -> ignore (ArtPost handles toggle logic)
-      if (btnRef.current?.contains(target)) return;
+    try {
+      const result = await deletePost({ postId });
 
-      // Clicked inside the menu -> ignore (menu items handle their own clicks)
-      if (menuRef.current?.contains(target)) return;
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
 
-      // Clicked anywhere else -> close menu
-      setIsOpen(false);
+      toast.success(result.message);
+      setDeleteModalOpen(false);
+      onDeleted?.(postId);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while deleting the post.";
+
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
     }
+  }
 
-    /**
-     * Close menu when Escape key is pressed (expected behavior for menus/modals).
-     */
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setIsOpen(false);
-    }
+  function openDeleteModal() {
+    if (isDeleting) return;
+    setDeleteModalOpen(true);
+  }
 
-    // Attach global listeners while component is mounted
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
+  function closeDeleteModal() {
+    if (isDeleting) return;
+    setDeleteModalOpen(false);
+  }
 
-    // Cleanup listeners to prevent memory leaks / duplicate listeners
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]); // Re-run effect when open state changes (ensures logic uses latest isOpen)
-
-  // Expose everything the component needs
   return {
-    isOpen,
-    setIsOpen,
-    btnRef,
-    menuRef,
-    menuId,
+    deleteModalOpen,
+    setDeleteModalOpen,
+    isDeleting,
+    handleDeletePost,
+    openDeleteModal,
+    closeDeleteModal,
   };
 }
