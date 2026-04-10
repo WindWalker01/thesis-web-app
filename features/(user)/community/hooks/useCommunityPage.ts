@@ -1,108 +1,206 @@
 "use client";
 
-import { useState } from "react";
-import { Post } from "../types";
-import { ReportPayload } from "../../report-infringement/types";
+import { useMutation } from "@tanstack/react-query";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { CommunityPageData, Post, VoteType } from "../types";
+import type { ReportPayload } from "../../report-infringement/types";
+import { voteOnPost } from "../server/vote-on-post";
 
-/**
- * useGalleryPage
- * Centralizes gallery-page interaction logic:
- * - which post is selected
- * - which modal is open (login vs report)
- * - what message to show the user
- *
- * This prevents UI components from becoming too "logic-heavy".
- */
-export function useGalleryPage(authed: boolean) {
-  // Modal states
-  const [reportOpen, setReportOpen] = useState<boolean>(false);
-  const [loginOpen, setLoginOpen] = useState<boolean>(false);
+type UseCommunityPageParams = Pick<CommunityPageData, "authed" | "posts">;
 
-  // Message shown in LoginRequiredModal (depends on action)
-  const [message, setMessage] = useState<string>("");
+type VoteMutationInput = {
+  postId: string;
+  voteType: Exclude<VoteType, null>;
+};
 
-  // Tracks which post the user is currently interacting with (report/vote)
+function applyOptimisticVote(
+  post: Post,
+  voteType: Exclude<VoteType, null>
+): Post {
+  const currentVote = post.currentUserVote;
+
+  if (currentVote === voteType) {
+    if (voteType === "upvote") {
+      return {
+        ...post,
+        currentUserVote: null,
+        upvoteCount: Math.max(0, post.upvoteCount - 1),
+        score: post.score - 1,
+      };
+    }
+
+    return {
+      ...post,
+      currentUserVote: null,
+      downvoteCount: Math.max(0, post.downvoteCount - 1),
+      score: post.score + 1,
+    };
+  }
+
+  if (currentVote === null) {
+    if (voteType === "upvote") {
+      return {
+        ...post,
+        currentUserVote: "upvote",
+        upvoteCount: post.upvoteCount + 1,
+        score: post.score + 1,
+      };
+    }
+
+    return {
+      ...post,
+      currentUserVote: "downvote",
+      downvoteCount: post.downvoteCount + 1,
+      score: post.score - 1,
+    };
+  }
+
+  if (currentVote === "downvote" && voteType === "upvote") {
+    return {
+      ...post,
+      currentUserVote: "upvote",
+      upvoteCount: post.upvoteCount + 1,
+      downvoteCount: Math.max(0, post.downvoteCount - 1),
+      score: post.score + 2,
+    };
+  }
+
+  return {
+    ...post,
+    currentUserVote: "downvote",
+    upvoteCount: Math.max(0, post.upvoteCount - 1),
+    downvoteCount: post.downvoteCount + 1,
+    score: post.score - 2,
+  };
+}
+
+export function useCommunityPage({
+  authed,
+  posts: initialPosts,
+}: UseCommunityPageParams) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [message, setMessage] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [pendingPostId, setPendingPostId] = useState<string | null>(null);
 
-  /**
-   * openReport
-   * Called when user clicks "Report Artwork".
-   * Behavior:
-   * - Always set the selectedPost (so modal has the right context)
-   * - If user is not authenticated, open login modal instead
-   * - Otherwise open the report modal
-   */
-  const openReport = (post: Post) => {
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
+
+  const requireAuth = (nextMessage: string, post: Post) => {
     setSelectedPost(post);
 
     if (!authed) {
+      setMessage(nextMessage);
       setLoginOpen(true);
-      setMessage("You must be logged in to report an artwork.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const voteMutation = useMutation({
+    mutationFn: async ({ postId, voteType }: VoteMutationInput) => {
+      return voteOnPost({ postId, voteType });
+    },
+
+    onMutate: async ({ postId, voteType }) => {
+      setPendingPostId(postId);
+
+      let previousPostsSnapshot: Post[] = [];
+
+      setPosts((current) => {
+        previousPostsSnapshot = current;
+
+        return current.map((item) =>
+          item.postId === postId ? applyOptimisticVote(item, voteType) : item
+        );
+      });
+
+      return { previousPosts: previousPostsSnapshot, postId };
+    },
+
+    onError: (_error, _variables, context) => {
+      if (context?.previousPosts) {
+        setPosts(context.previousPosts);
+      }
+
+      setMessage("Unable to submit vote.");
+      setLoginOpen(true);
+    },
+
+    onSuccess: (result, _variables, context) => {
+      if (!result.success) {
+        if (context?.previousPosts) {
+          setPosts(context.previousPosts);
+        }
+
+        setMessage(result.message ?? "Unable to submit vote.");
+        setLoginOpen(true);
+        return;
+      }
+
+      startTransition(() => {
+        router.refresh();
+      });
+    },
+
+    onSettled: () => {
+      setPendingPostId(null);
+    },
+  });
+
+  const openReport = (post: Post) => {
+    if (!requireAuth("You must be logged in to report an artwork.", post)) {
       return;
     }
 
     setReportOpen(true);
   };
 
-  /**
-   * upVote
-   * Auth-guarded action:
-   * - if not logged in -> show login modal
-   * - else -> do the action (currently just console.log; later replace with API call)
-   */
-  const upVote = (post: Post) => {
-    setSelectedPost(post);
-
-    if (!authed) {
-      setLoginOpen(true);
-      setMessage("You must be logged in to upvote an artwork.");
+  const submitVote = (post: Post, voteType: Exclude<VoteType, null>) => {
+    if (!requireAuth(`You must be logged in to ${voteType} an artwork.`, post)) {
       return;
     }
 
-    console.log("Upvoted: ", post);
-  };
+    // always use latest local state, not the stale rendered `post`
+    const latestPost = posts.find((item) => item.postId === post.postId) ?? post;
 
-  /**
-   * downVote
-   * Same logic as upVote but for downvoting.
-   */
-  const downVote = (post: Post) => {
-    setSelectedPost(post);
-
-    if (!authed) {
-      setLoginOpen(true);
-      setMessage("You must be logged in to downvote an artwork.");
-      return;
-    }
-
-    console.log("Downvoted: ", post);
-  };
-
-  /**
-   * handleSubmitReport
-   * Called after user submits the ReportModal form.
-   * For now, it logs the payload.
-   * In production, you would usually:
-   * - POST payload to an API route
-   * - show a success toast/message
-   * - close the modal on success
-   */
-  const handleSubmitReport = (payload: ReportPayload) => {
-    console.log("REPORT SUBMITTED:", {
-      ...payload,
-      postTitle: selectedPost?.title,
-      reportedUser: selectedPost?.username,
+    voteMutation.mutate({
+      postId: latestPost.postId,
+      voteType,
     });
+  };
 
-    // Close modal after submission
+  const upVote = (post: Post) => {
+    submitVote(post, "upvote");
+  };
+
+  const downVote = (post: Post) => {
+    submitVote(post, "downvote");
+  };
+
+  const handleSubmitReport = async (_payload: ReportPayload) => {
+    if (!selectedPost) return;
     setReportOpen(false);
   };
 
   return {
-    // Group state so it’s easy to pass around
-    state: { reportOpen, loginOpen, message, selectedPost },
-
-    // Group actions so the component can call them clearly
+    state: {
+      posts,
+      reportOpen,
+      loginOpen,
+      message,
+      selectedPost,
+      isPending: voteMutation.isPending,
+      pendingPostId,
+    },
     actions: {
       setReportOpen,
       setLoginOpen,

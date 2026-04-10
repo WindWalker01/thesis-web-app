@@ -2,6 +2,8 @@ export type ArtistBadge = "Verified" | "Emerging" | "Featured";
 
 export type PostVisibility = "public" | "private";
 
+export type VoteType = "upvote" | "downvote" | null;
+
 export type Post = {
     id: string;
     postId: string;
@@ -22,7 +24,11 @@ export type Post = {
     imageSrc: string;
     imageAlt?: string;
 
-    score?: string | number;
+    score: number;
+    upvoteCount: number;
+    downvoteCount: number;
+    currentUserVote: VoteType;
+
     category?: string;
     excerpt?: string;
     artistBadge?: ArtistBadge;

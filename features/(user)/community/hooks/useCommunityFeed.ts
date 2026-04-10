@@ -8,18 +8,6 @@ import type {
     VisibilityFilter,
 } from "../types";
 
-/**
- * useCommunityFeed
- * Centralizes community page feed logic:
- * - search
- * - category filter chips
- * - feed scope (community / mine)
- * - visibility filter
- * - sort option
- * - filters dropdown open/close behavior
- *
- * This keeps the page component focused on layout/rendering.
- */
 type UseCommunityFeedParams = Pick<
     CommunityPageData,
     "authed" | "currentUserId" | "posts"
@@ -42,10 +30,6 @@ export function useCommunityFeed({
     const filtersButtonRef = useRef<HTMLButtonElement | null>(null);
     const filtersMenuRef = useRef<HTMLDivElement | null>(null);
 
-    /**
-     * Close filters dropdown when clicking outside,
-     * similar to your useArtPost hook behavior.
-     */
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (!filtersOpen) return;
@@ -73,10 +57,6 @@ export function useCommunityFeed({
         };
     }, [filtersOpen]);
 
-    /**
-     * Build available chip filters dynamically from fetched posts
-     * instead of hardcoding Fantasy / Concept Art / etc.
-     */
     const availableFilters = useMemo(() => {
         const values = new Set<string>();
 
@@ -93,13 +73,9 @@ export function useCommunityFeed({
         return ["All", ...Array.from(values)];
     }, [posts]);
 
-    /**
-     * Main filtered list for the page.
-     */
     const filteredPosts = useMemo(() => {
         let result = [...posts];
 
-        // Feed scope
         if (feedScope === "community") {
             result = result.filter(
                 (post) => post.visibility === "public" && !post.isArchived
@@ -116,12 +92,10 @@ export function useCommunityFeed({
             }
         }
 
-        // Visibility filter
         if (visibilityFilter !== "all") {
             result = result.filter((post) => post.visibility === visibilityFilter);
         }
 
-        // Search
         const keyword = search.trim().toLowerCase();
         if (keyword) {
             result = result.filter((post) => {
@@ -129,12 +103,12 @@ export function useCommunityFeed({
                     post.title.toLowerCase().includes(keyword) ||
                     post.username.toLowerCase().includes(keyword) ||
                     post.category?.toLowerCase().includes(keyword) ||
+                    post.excerpt?.toLowerCase().includes(keyword) ||
                     post.tags?.some((tag) => tag.toLowerCase().includes(keyword))
                 );
             });
         }
 
-        // Category/tag chip filter
         if (activeFilter !== "All") {
             const needle = activeFilter.toLowerCase();
 
@@ -146,7 +120,6 @@ export function useCommunityFeed({
             });
         }
 
-        // Sort
         result.sort((a, b) => {
             const aTime = new Date(a.createdAt).getTime();
             const bTime = new Date(b.createdAt).getTime();
@@ -166,10 +139,8 @@ export function useCommunityFeed({
         sortBy,
     ]);
 
-    /**
-     * Reset only feed-related filters.
-     */
     const resetFilters = () => {
+        setSearch("");
         setFeedScope("community");
         setVisibilityFilter("all");
         setSortBy("newest");

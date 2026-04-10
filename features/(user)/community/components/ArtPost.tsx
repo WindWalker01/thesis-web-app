@@ -5,15 +5,25 @@ import {
   ArrowUp,
   BadgeCheck,
   Flag,
+  Loader2,
   MoreHorizontal,
+  Pencil,
   Share2,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-import { useArtPost } from "../hooks/useArtPost";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { VoteType } from "../types";
 
 export type ArtPostProps = {
+  postId: string;
+
   subredditName: string;
   subredditHref?: string;
   subredditIconSrc: string;
@@ -26,17 +36,25 @@ export type ArtPostProps = {
   imageSrc: string;
   imageAlt?: string;
 
-  score?: string | number;
+  score: number;
+  upvoteCount: number;
+  downvoteCount: number;
+  currentUserVote: VoteType;
+
   category?: string;
   excerpt?: string;
   artistBadge?: "Verified" | "Emerging" | "Featured";
   tags?: string[];
+
+  isOwner?: boolean;
+  editHref?: string;
 
   onUpvote?: () => void;
   onDownvote?: () => void;
   onShare?: () => void;
   onReport?: () => void;
 
+  isVoting?: boolean;
   className?: string;
 };
 
@@ -50,6 +68,7 @@ const badgeStyles: Record<NonNullable<ArtPostProps["artistBadge"]>, string> = {
 };
 
 export function ArtPost({
+  postId,
   subredditName,
   subredditHref = "/community",
   subredditIconSrc,
@@ -59,18 +78,25 @@ export function ArtPost({
   title,
   imageSrc,
   imageAlt = "artwork preview",
-  score = "—",
+  score,
+  upvoteCount,
+  downvoteCount,
+  currentUserVote,
   category,
   excerpt,
   artistBadge,
   tags = [],
+  isOwner = false,
+  editHref,
   onUpvote,
   onDownvote,
   onShare,
   onReport,
+  isVoting = false,
   className = "",
 }: ArtPostProps) {
-  const { isOpen: open, setIsOpen: setOpen, btnRef, menuRef, menuId } = useArtPost();
+  const upvoteActive = currentUserVote === "upvote";
+  const downvoteActive = currentUserVote === "downvote";
 
   return (
     <article
@@ -79,7 +105,6 @@ export function ArtPost({
         className,
       ].join(" ")}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 p-4 sm:p-5">
         <div className="flex min-w-0 items-center gap-3">
           <Image
@@ -125,49 +150,41 @@ export function ArtPost({
           </div>
         </div>
 
-        <div className="relative shrink-0">
-          <button
-            ref={btnRef}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen((v) => !v);
-            }}
-            className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-            aria-label="More options"
-            aria-haspopup="menu"
-            aria-expanded={open}
-            aria-controls={menuId}
-          >
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-
-          {open && (
-            <div
-              ref={menuRef}
-              id={menuId}
-              role="menu"
-              className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-border bg-popover shadow-xl"
-              onClick={(e) => e.stopPropagation()}
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="shrink-0 rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              aria-label="More options"
             >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onReport?.();
-                }}
-                className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-foreground transition hover:bg-muted"
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-52 rounded-2xl">
+            {isOwner ? (
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link
+                  href={editHref ?? `/community/edit-post/${postId}`}
+                  className="flex items-center gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit post
+                </Link>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                onClick={onReport}
+                className="flex cursor-pointer items-center gap-2"
               >
                 <Flag className="h-4 w-4" />
                 Report artwork
-              </button>
-            </div>
-          )}
-        </div>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Text content */}
       <div className="px-4 pb-3 sm:px-5">
         {category && (
           <div className="mb-3 inline-flex rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
@@ -199,7 +216,6 @@ export function ArtPost({
         )}
       </div>
 
-      {/* Media */}
       <div className="border-y border-border/70 bg-muted/30">
         <div className="relative aspect-[4/3] w-full sm:aspect-[16/10] md:aspect-[16/9]">
           <Image
@@ -212,38 +228,56 @@ export function ArtPost({
         </div>
       </div>
 
-      {/* Footer meta */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground sm:px-5">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-primary/10 px-2 font-semibold text-primary">
             {score}
           </div>
-          <span>community score</span>
+          <span>
+            {upvoteCount} upvotes • {downvoteCount} downvotes
+          </span>
         </div>
 
         <span>Protected artwork post</span>
       </div>
 
-      {/* Actions */}
       <div className="border-t border-border/70 px-3 py-2 sm:px-4">
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={onUpvote}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400"
+            className={[
+              "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+              upvoteActive
+                ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                : "text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
+            ].join(" ")}
             aria-label="Upvote"
           >
-            <ArrowUp className="h-4 w-4" />
+            {isVoting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowUp className="h-4 w-4" />
+            )}
             Upvote
           </button>
 
           <button
             type="button"
             onClick={onDownvote}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
+            className={[
+              "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+              downvoteActive
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400",
+            ].join(" ")}
             aria-label="Downvote"
           >
-            <ArrowDown className="h-4 w-4" />
+            {isVoting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ArrowDown className="h-4 w-4" />
+            )}
             Downvote
           </button>
 

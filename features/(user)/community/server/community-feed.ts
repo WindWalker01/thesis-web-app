@@ -1,12 +1,18 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CommunityPageData, Post } from "../types";
+import { formatTimeAgo } from "@/lib/client-utils";
+import type { CommunityPageData, Post, VoteType } from "../types";
 
 const COMMUNITY_NAME = "ArtForgeLab";
 const COMMUNITY_HREF = "/community";
 const COMMUNITY_ICON =
     "https://styles.redditmedia.com/t5_2qk7x/styles/communityIcon_gw3ypy6d357e1.png?width=48&height=48&frame=1&auto=webp&crop=48%3A48%2Csmart&s=82b75539c0b754d2498ab3c553d8857e6215fcc5";
+
+type ArtReactionRow = {
+    user_id: string;
+    reaction_type: "upvote" | "downvote";
+};
 
 type ArtPostRow = {
     id: string;
@@ -14,7 +20,9 @@ type ArtPostRow = {
     user_id: string;
     visibility: "public" | "private";
     is_archived: boolean;
-    reaction_count: number;
+    upvote_count: number;
+    downvote_count: number;
+    score: number;
     created_at: string;
     registered_arts:
     | {
@@ -44,6 +52,7 @@ type ArtPostRow = {
         full_name: string | null;
     }[]
     | null;
+    art_reactions?: ArtReactionRow[] | null;
 };
 
 type ArtGenreRow = {
@@ -56,37 +65,27 @@ function toSingleObject<T>(value: T | T[] | null): T | null {
     return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
-function formatTimeAgo(isoDate: string) {
-    const created = new Date(isoDate).getTime();
-    const now = Date.now();
-    const diffMs = Math.max(now - created, 0);
-
-    const minutes = Math.floor(diffMs / (1000 * 60));
-    if (minutes < 60) return `${Math.max(minutes, 1)} minute${minutes === 1 ? "" : "s"} ago`;
-
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-
-    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
-
-    const weeks = Math.floor(days / 7);
-    if (weeks < 5) return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
-
-    const months = Math.floor(days / 30);
-    if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
-
-    const years = Math.floor(days / 365);
-    return `${years} year${years === 1 ? "" : "s"} ago`;
-}
-
 function mapBadge(score: number): Post["artistBadge"] {
     if (score >= 20) return "Featured";
     if (score >= 5) return "Verified";
     return "Emerging";
 }
 
-function mapPosts(rows: ArtPostRow[], genresMap: Map<string, string[]>): Post[] {
+function getCurrentUserVote(
+    reactions: ArtReactionRow[] | null | undefined,
+    currentUserId: string | null
+): VoteType {
+    if (!currentUserId || !reactions?.length) return null;
+
+    const match = reactions.find((reaction) => reaction.user_id === currentUserId);
+    return match?.reaction_type ?? null;
+}
+
+function mapPosts(
+    rows: ArtPostRow[],
+    genresMap: Map<string, string[]>,
+    currentUserId: string | null
+): Post[] {
     const posts: Post[] = [];
 
     for (const row of rows) {
@@ -97,6 +96,7 @@ function mapPosts(rows: ArtPostRow[], genresMap: Map<string, string[]>): Post[] 
 
         const tags = genresMap.get(row.art_id) ?? [];
         const category = tags[0] ?? "Digital Artwork";
+        const currentUserVote = getCurrentUserVote(row.art_reactions, currentUserId);
 
         posts.push({
             id: row.id,
@@ -118,10 +118,14 @@ function mapPosts(rows: ArtPostRow[], genresMap: Map<string, string[]>): Post[] 
             imageSrc: artwork.c_secure_url || COMMUNITY_ICON,
             imageAlt: artwork.title,
 
-            score: row.reaction_count,
+            score: row.score,
+            upvoteCount: row.upvote_count,
+            downvoteCount: row.downvote_count,
+            currentUserVote,
+
             category,
             excerpt: artwork.description ?? undefined,
-            artistBadge: mapBadge(row.reaction_count),
+            artistBadge: mapBadge(row.score),
             tags,
 
             visibility: row.visibility,
@@ -132,6 +136,34 @@ function mapPosts(rows: ArtPostRow[], genresMap: Map<string, string[]>): Post[] 
     return posts;
 }
 
+const ART_POST_SELECT = `
+  id,
+  art_id,
+  user_id,
+  visibility,
+  is_archived,
+  upvote_count,
+  downvote_count,
+  score,
+  created_at,
+  registered_arts!art_posts_art_id_fkey (
+    id,
+    title,
+    description,
+    c_secure_url,
+    status
+  ),
+  users!art_posts_user_id_fkey (
+    id,
+    username,
+    full_name
+  ),
+  art_reactions (
+    user_id,
+    reaction_type
+  )
+`;
+
 export async function getCommunityFeedData(): Promise<CommunityPageData> {
     const supabase = await createSupabaseServerClient();
 
@@ -139,31 +171,11 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
         data: { user },
     } = await supabase.auth.getUser();
 
-    const authed = !!user;
+    const authed = Boolean(user);
 
     const { data: publicRows, error: publicError } = await supabase
         .from("art_posts")
-        .select(`
-      id,
-      art_id,
-      user_id,
-      visibility,
-      is_archived,
-      reaction_count,
-      created_at,
-      registered_arts!art_posts_art_id_fkey (
-        id,
-        title,
-        description,
-        c_secure_url,
-        status
-      ),
-      users!art_posts_user_id_fkey (
-        id,
-        username,
-        full_name
-      )
-    `)
+        .select(ART_POST_SELECT)
         .eq("visibility", "public")
         .eq("is_archived", false)
         .eq("registered_arts.status", "active")
@@ -178,27 +190,7 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
     if (user) {
         const { data, error } = await supabase
             .from("art_posts")
-            .select(`
-        id,
-        art_id,
-        user_id,
-        visibility,
-        is_archived,
-        reaction_count,
-        created_at,
-        registered_arts!art_posts_art_id_fkey (
-          id,
-          title,
-          description,
-          c_secure_url,
-          status
-        ),
-        users!art_posts_user_id_fkey (
-          id,
-          username,
-          full_name
-        )
-      `)
+            .select(ART_POST_SELECT)
             .eq("user_id", user.id)
             .eq("is_archived", false)
             .eq("registered_arts.status", "active")
@@ -222,9 +214,7 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
     }
 
     const mergedRows = Array.from(mergedMap.values());
-
     const artIds = Array.from(new Set(mergedRows.map((row) => row.art_id)));
-
     const genresMap = new Map<string, string[]>();
 
     if (artIds.length > 0) {
@@ -260,11 +250,13 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
         }
     }
 
-    const posts = mapPosts(mergedRows, genresMap);
+    const posts = mapPosts(mergedRows, genresMap, user?.id ?? null);
 
-    const uniqueArtists = new Set(
-        posts.filter((post) => post.visibility === "public").map((post) => post.userId)
+    const publicPosts = posts.filter(
+        (post) => post.visibility === "public" && !post.isArchived
     );
+
+    const uniqueArtists = new Set(publicPosts.map((post) => post.userId));
 
     return {
         authed,
@@ -273,9 +265,9 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
             posts.find((post) => post.userId === user?.id)?.username ?? null,
         posts,
         stats: {
-            publishedWorks: `${posts.filter((post) => post.visibility === "public").length}+`,
+            publishedWorks: `${publicPosts.length}+`,
             activeArtists: `${uniqueArtists.size}+`,
-            protectedPosts: "Verified",
+            protectedPosts: `${posts.length}+`,
         },
     };
 }

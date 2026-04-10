@@ -12,10 +12,10 @@ import {
   Users,
 } from "lucide-react";
 
-import { ArtPost } from "./art-post";
-import { LoginRequiredModal } from "./login-required-modal";
+import { ArtPost } from "./ArtPost";
+import { LoginRequiredModal } from "./LoginRequiredModal";
 import { ReportArtworkModal } from "../../report-infringement/components/report-artwork-modal";
-import { useGalleryPage } from "../hooks/useCommunityPage";
+import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
 import { InfoRow } from "./InfoRow";
 import { StatCard } from "./StatCard";
@@ -29,7 +29,10 @@ export default function CommunityPageClient({
   posts,
   stats,
 }: CommunityPageData) {
-  const { state, actions } = useGalleryPage(authed);
+  const { state, actions } = useCommunityPage({
+    authed,
+    posts,
+  });
 
   const {
     state: feedState,
@@ -37,7 +40,7 @@ export default function CommunityPageClient({
   } = useCommunityFeed({
     authed,
     currentUserId,
-    posts,
+    posts: state.posts,
   });
 
   return (
@@ -132,6 +135,8 @@ export default function CommunityPageClient({
                       <button
                         ref={feedState.filtersButtonRef}
                         type="button"
+                        aria-haspopup="menu"
+                        aria-expanded={feedState.filtersOpen}
                         onClick={() => feedActions.setFiltersOpen(!feedState.filtersOpen)}
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
                       >
@@ -259,9 +264,13 @@ export default function CommunityPageClient({
             <div className="space-y-4">
               {feedState.filteredPosts.length === 0 ? (
                 <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-sm">
-                  <h3 className="text-lg font-bold">No artworks found</h3>
+                  <h3 className="text-lg font-bold">
+                    {feedState.feedScope === "mine" ? "No posts yet" : "No artworks found"}
+                  </h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Try another search term or change the selected filters.
+                    {feedState.feedScope === "mine"
+                      ? "You have not shared any eligible artworks in the community yet."
+                      : "Try another search term or change the selected filters."}
                   </p>
                 </div>
               ) : (
@@ -269,6 +278,9 @@ export default function CommunityPageClient({
                   <ArtPost
                     key={post.id}
                     {...post}
+                    isOwner={post.userId === currentUserId}
+                    editHref={`/community/edit-post/${post.postId}`}
+                    isVoting={state.pendingPostId === post.postId}
                     onReport={() => actions.openReport(post)}
                     onUpvote={() => actions.upVote(post)}
                     onDownvote={() => actions.downVote(post)}
