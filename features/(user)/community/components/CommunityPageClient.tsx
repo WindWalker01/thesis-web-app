@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Brush,
+  ChevronDown,
   Filter,
   Plus,
   Search,
@@ -15,111 +15,32 @@ import {
 import { ArtPost } from "./art-post";
 import { LoginRequiredModal } from "./login-required-modal";
 import { ReportArtworkModal } from "../../report-infringement/components/report-artwork-modal";
-import { Post } from "../types";
-import { useGalleryPage } from "../hooks/useGalleryPage";
+import { useGalleryPage } from "../hooks/useCommunityPage";
+import { useCommunityFeed } from "../hooks/useCommunityFeed";
+import { InfoRow } from "./InfoRow";
+import { StatCard } from "./StatCard";
+import { FilterChip } from "./FilterChip";
+import type { CommunityPageData } from "../types";
 
-const icon =
-  "https://styles.redditmedia.com/t5_2qk7x/styles/communityIcon_gw3ypy6d357e1.png?width=48&height=48&frame=1&auto=webp&crop=48%3A48%2Csmart&s=82b75539c0b754d2498ab3c553d8857e6215fcc5";
-
-const POSTS: Post[] = [
-  {
-    id: "p1",
-    subredditName: "ArtForgeLab",
-    subredditHref: "/community",
-    subredditIconSrc: icon,
-    username: "Tenshin",
-    userHref: "/profile/Tenshin",
-    timeAgo: "2 hours ago",
-    title: "Moonlit Forest Guardian",
-    imageSrc: icon,
-    score: "1.2k",
-    category: "Fantasy Illustration",
-    excerpt:
-      "A concept artwork exploring mythical creatures with a dark-blue cinematic atmosphere.",
-    artistBadge: "Verified",
-    tags: ["Fantasy", "Illustration", "Digital Painting"],
-  },
-  {
-    id: "p2",
-    subredditName: "ArtForgeLab",
-    subredditHref: "/community",
-    subredditIconSrc: icon,
-    username: "Nathaniel",
-    userHref: "/profile/Nathaniel",
-    timeAgo: "5 hours ago",
-    title: "Silent Streets of Manila",
-    imageSrc: icon,
-    score: "824",
-    category: "Concept Art",
-    excerpt:
-      "Environment artwork focused on mood lighting, perspective, and layered urban detail.",
-    artistBadge: "Emerging",
-    tags: ["Concept Art", "Environment", "Cityscape"],
-  },
-  {
-    id: "p3",
-    subredditName: "ArtForgeLab",
-    subredditHref: "/community",
-    subredditIconSrc: icon,
-    username: "Rovick",
-    userHref: "/profile/Rovick",
-    timeAgo: "1 day ago",
-    title: "Crimson Echo",
-    imageSrc: icon,
-    score: "2.4k",
-    category: "Character Design",
-    excerpt:
-      "A stylized character sheet with emphasis on silhouette readability and costume identity.",
-    artistBadge: "Featured",
-    tags: ["Character", "Stylized", "Design"],
-  },
-  {
-    id: "p4",
-    subredditName: "ArtForgeLab",
-    subredditHref: "/community",
-    subredditIconSrc: icon,
-    username: "Ruzzel",
-    userHref: "/profile/Ruzzel",
-    timeAgo: "2 days ago",
-    title: "Fragments of Dawn",
-    imageSrc: icon,
-    score: "640",
-    category: "Digital Painting",
-    excerpt:
-      "Warm sunrise composition with painterly texture and soft atmospheric layering.",
-    artistBadge: "Verified",
-    tags: ["Painting", "Atmosphere", "Warm Tone"],
-  },
-];
-
-const FILTERS = ["All", "Fantasy", "Concept Art", "Character", "Environment", "Painting"];
-
-export default function GalleryPageClient({ authed }: { authed: boolean }) {
+export default function CommunityPageClient({
+  authed,
+  currentUserId,
+  currentUsername,
+  posts,
+  stats,
+}: CommunityPageData) {
   const { state, actions } = useGalleryPage(authed);
 
-  const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
-
-  const filteredPosts = useMemo(() => {
-    return POSTS.filter((post) => {
-      const matchesSearch =
-        !search.trim() ||
-        post.title.toLowerCase().includes(search.toLowerCase()) ||
-        post.username.toLowerCase().includes(search.toLowerCase()) ||
-        post.category?.toLowerCase().includes(search.toLowerCase()) ||
-        post.tags?.some((tag) => tag.toLowerCase().includes(search.toLowerCase()));
-
-      const matchesFilter =
-        activeFilter === "All" ||
-        post.category?.toLowerCase().includes(activeFilter.toLowerCase()) ||
-        post.tags?.some((tag) => tag.toLowerCase().includes(activeFilter.toLowerCase()));
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [search, activeFilter]);
+  const {
+    state: feedState,
+    actions: feedActions,
+  } = useCommunityFeed({
+    authed,
+    currentUserId,
+    posts,
+  });
 
   return (
-    // ✅ overflow-x-hidden removed from here — move it to globals.css on body instead
     <main className="min-h-screen bg-background font-display text-foreground">
       <div className="h-1 w-full bg-linear-to-r from-blue-600 via-primary to-orange-400" />
 
@@ -166,17 +87,17 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
               <StatCard
                 icon={<Brush className="h-4 w-4" />}
                 label="Published works"
-                value="120+"
+                value={stats.publishedWorks}
               />
               <StatCard
                 icon={<Sparkles className="h-4 w-4" />}
                 label="Active artists"
-                value="35+"
+                value={stats.activeArtists}
               />
               <StatCard
                 icon={<ShieldCheck className="h-4 w-4" />}
                 label="Protected posts"
-                value="Verified"
+                value={stats.protectedPosts}
               />
             </div>
           </div>
@@ -185,12 +106,8 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-
-          {/* ── Left column ── */}
           <div className="space-y-5">
-
-            {/* ✅ Sticky bar lives OUTSIDE the card, directly in the column */}
-            <div className="sticky top-16 z-10 bg-background pb-1 pt-1">
+            <div className="z-10 bg-background pb-1 pt-1">
               <div className="rounded-3xl border border-border bg-card px-4 py-3 shadow-sm sm:px-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
@@ -204,31 +121,126 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
                     <div className="relative w-full sm:min-w-[280px] lg:w-[320px]">
                       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        value={feedState.search}
+                        onChange={(e) => feedActions.setSearch(e.target.value)}
                         placeholder="Search title, artist, category..."
                         className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm outline-none ring-0 placeholder:text-muted-foreground focus:border-primary"
                       />
                     </div>
 
-                    <button
-                      type="button"
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
-                    >
-                      <Filter className="h-4 w-4" />
-                      Filters
-                    </button>
+                    <div className="relative">
+                      <button
+                        ref={feedState.filtersButtonRef}
+                        type="button"
+                        onClick={() => feedActions.setFiltersOpen(!feedState.filtersOpen)}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
+                      >
+                        <Filter className="h-4 w-4" />
+                        Filters
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+
+                      {feedState.filtersOpen ? (
+                        <div
+                          ref={feedState.filtersMenuRef}
+                          className="absolute right-0 z-30 mt-2 w-[320px] rounded-2xl border border-border bg-card p-4 shadow-xl"
+                        >
+                          <div className="space-y-4">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Feed scope
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <FilterChip
+                                  active={feedState.feedScope === "community"}
+                                  onClick={() => feedActions.setFeedScope("community")}
+                                  label="Community"
+                                />
+                                {authed ? (
+                                  <FilterChip
+                                    active={feedState.feedScope === "mine"}
+                                    onClick={() => feedActions.setFeedScope("mine")}
+                                    label="My posts"
+                                  />
+                                ) : null}
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Visibility
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <FilterChip
+                                  active={feedState.visibilityFilter === "all"}
+                                  onClick={() => feedActions.setVisibilityFilter("all")}
+                                  label="All"
+                                />
+                                <FilterChip
+                                  active={feedState.visibilityFilter === "public"}
+                                  onClick={() => feedActions.setVisibilityFilter("public")}
+                                  label="Public"
+                                />
+                                {authed && feedState.feedScope === "mine" ? (
+                                  <FilterChip
+                                    active={feedState.visibilityFilter === "private"}
+                                    onClick={() => feedActions.setVisibilityFilter("private")}
+                                    label="Private"
+                                  />
+                                ) : null}
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Sort by
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <FilterChip
+                                  active={feedState.sortBy === "newest"}
+                                  onClick={() => feedActions.setSortBy("newest")}
+                                  label="Newest"
+                                />
+                                <FilterChip
+                                  active={feedState.sortBy === "oldest"}
+                                  onClick={() => feedActions.setSortBy("oldest")}
+                                  label="Oldest"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between border-t border-border pt-3">
+                              <button
+                                type="button"
+                                onClick={feedActions.resetFilters}
+                                className="text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                              >
+                                Reset filters
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => feedActions.setFiltersOpen(false)}
+                                className="text-xs font-semibold text-primary transition hover:opacity-80"
+                              >
+                                Done
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {FILTERS.map((filter) => {
-                    const active = activeFilter === filter;
+                  {feedState.availableFilters.map((filter) => {
+                    const active = feedState.activeFilter === filter;
                     return (
                       <button
                         key={filter}
                         type="button"
-                        onClick={() => setActiveFilter(filter)}
+                        onClick={() => feedActions.setActiveFilter(filter)}
                         className={[
                           "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
                           active
@@ -244,17 +256,16 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
               </div>
             </div>
 
-            {/* Posts list */}
             <div className="space-y-4">
-              {filteredPosts.length === 0 ? (
+              {feedState.filteredPosts.length === 0 ? (
                 <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-sm">
                   <h3 className="text-lg font-bold">No artworks found</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Try another search term or change the selected category filter.
+                    Try another search term or change the selected filters.
                   </p>
                 </div>
               ) : (
-                filteredPosts.map((post) => (
+                feedState.filteredPosts.map((post) => (
                   <ArtPost
                     key={post.id}
                     {...post}
@@ -267,9 +278,7 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
             </div>
           </div>
 
-          {/* ── Right column / Aside ── */}
-          {/* ✅ self-start prevents grid stretch so sticky can fire */}
-          <aside className="space-y-4 sticky top-20 self-start">
+          <aside className="sticky top-20 self-start space-y-4">
             <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
               <h3 className="text-base font-black">Community principles</h3>
               <div className="mt-4 space-y-3 text-sm text-muted-foreground">
@@ -310,46 +319,11 @@ export default function GalleryPageClient({ authed }: { authed: boolean }) {
       <ReportArtworkModal
         open={state.reportOpen}
         onOpenChange={actions.setReportOpen}
-        postId={state.selectedPost?.id}
+        postId={state.selectedPost?.postId}
         title={state.selectedPost?.title}
         username={state.selectedPost?.username}
         onSubmit={actions.handleSubmitReport}
       />
     </main>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-      <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
-        {icon}
-      </div>
-      <p className="text-xs uppercase tracking-wide text-slate-300">{label}</p>
-      <p className="mt-1 text-lg font-black text-white">{value}</p>
-    </div>
-  );
-}
-
-function InfoRow({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-background p-3">
-      <p className="font-semibold text-foreground">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
-    </div>
   );
 }

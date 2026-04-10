@@ -1,4 +1,4 @@
-import PostEditorForm from "@/features/(user)/community-post/components/post-editor-form";
+import PostEditorForm from "@/features/(user)/community/subfeatures/create-post/components/PostForm";
 
 type EditPageProps = {
     params: Promise<{

@@ -91,7 +91,7 @@ export function getArtworkStatusFromSimilarity(similarity: number): {
             artworkStatus: "under_review",
             moderationMessage:
                 "Moderate similarity detected. Your artwork was submitted for review.",
-            shouldClassify: false,
+            shouldClassify: true,
         };
     }
 
