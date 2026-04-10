@@ -673,7 +673,7 @@ export default function Home() {
 
       {/* ── Floating Upload Button ── */}
       <Link
-        href="/upload-form"
+        href="/upload-artwork"
         aria-label="Upload artwork"
         className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-orange-500 text-white shadow-[0_4px_24px_rgba(249,115,22,0.45)] flex items-center justify-center hover:bg-orange-600 hover:scale-110 hover:shadow-[0_8px_32px_rgba(249,115,22,0.6)] transition-all duration-300"
       >
