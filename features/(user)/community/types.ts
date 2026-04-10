@@ -9,4 +9,8 @@ export type Post = {
     title: string;
     imageSrc: string;
     score: string;
+    category?: string;
+    excerpt?: string;
+    artistBadge?: "Verified" | "Emerging" | "Featured";
+    tags?: string[];
 };
