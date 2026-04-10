@@ -1,11 +1,13 @@
 "use client";
 
+import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { CommunityPageData, Post, VoteType } from "../types";
-import type { ReportPayload } from "../../report-infringement/types";
+import type { ReportPayload } from "../subfeatures/report-artwork/types";
 import { voteOnPost } from "../server/vote-on-post";
+import { submitArtworkReport } from "../subfeatures/report-artwork/server/report-artwork";
 
 type UseCommunityPageParams = Pick<CommunityPageData, "authed" | "posts">;
 
@@ -191,10 +193,11 @@ export function useCommunityPage({
     submitVote(post, "downvote");
   };
 
-  const handleSubmitReport = async (_payload: ReportPayload) => {
-    if (!selectedPost) return;
-    setReportOpen(false);
-  };
+  const handleSubmitReport = useCallback(async (payload: ReportPayload) => {
+    const result = await submitArtworkReport(payload);
+    toast.success(result.message);
+    return result;
+  }, []);
 
   const selectedLivePost =
     selectedPost

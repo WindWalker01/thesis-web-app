@@ -14,7 +14,7 @@ import {
 
 import { ArtPost } from "./ArtPost";
 import { LoginRequiredModal } from "./LoginRequiredModal";
-import { ReportArtworkModal } from "../../report-infringement/components/report-artwork-modal";
+import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
 import { PostViewerModal } from "./PostViewerModal";
 import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
@@ -30,7 +30,7 @@ export default function CommunityPageClient({
   posts,
   stats,
 }: CommunityPageData) {
-  
+
   const { state, actions } = useCommunityPage({
     authed,
     posts,
@@ -238,15 +238,21 @@ export default function CommunityPageClient({
                 </div>
 
                 {feedState.availableFilters.length > 0 ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {feedState.availableFilters.map((filter) => (
-                      <FilterChip
-                        key={filter}
-                        active={feedState.activeFilter === filter}
-                        onClick={() => feedActions.setActiveFilter(filter)}
-                        label={filter}
-                      />
-                    ))}
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Browse by genre
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {feedState.availableFilters.map((filter) => (
+                        <FilterChip
+                          key={filter}
+                          active={feedState.activeFilter === filter}
+                          onClick={() => feedActions.setActiveFilter(filter)}
+                          label={filter}
+                        />
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -302,11 +308,11 @@ export default function CommunityPageClient({
             </div>
 
             <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
-              <h3 className="text-base font-black">Why this page matters</h3>
+              <h3 className="text-base font-black">Visibility with protection</h3>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                This community module supports your thesis goal of building a
-                community-driven reputation system while still keeping ownership,
-                authenticity, and infringement reporting visible in the user experience.
+                This community space encourages artists to share their work with confidence
+                by combining public engagement with visible ownership, authenticity, and
+                reporting safeguards.
               </p>
             </div>
           </aside>

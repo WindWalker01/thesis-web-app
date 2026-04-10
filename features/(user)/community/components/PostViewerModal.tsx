@@ -136,12 +136,11 @@ export function PostViewerModal({
 
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                <Link
-                                                    href={post.userHref ?? "/profile"}
+                                                <p
                                                     className="truncate text-sm font-semibold text-foreground transition hover:text-primary"
                                                 >
                                                     @{post.username}
-                                                </Link>
+                                                </p>
                                             </div>
 
                                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

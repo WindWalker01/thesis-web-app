@@ -13,6 +13,32 @@ type UseCommunityFeedParams = Pick<
     "authed" | "currentUserId" | "posts"
 >;
 
+const GENRE_ORDER = [
+    "Anime",
+    "Manga",
+    "Cartoon",
+    "Semi-Realism",
+    "Realism",
+    "Hyperrealism",
+    "Abstract",
+    "Minimalist",
+    "Impressionism",
+    "Surrealism",
+    "Pop Art",
+    "Pixel Art",
+    "Low Poly",
+    "Vector Art",
+    "Line Art",
+    "Sketch Art",
+    "Flat Design",
+    "3D Render",
+    "Isometric",
+] as const;
+
+const GENRE_ORDER_MAP = new Map(
+    GENRE_ORDER.map((genre, index) => [genre.toLowerCase(), index])
+);
+
 export function useCommunityFeed({
     authed,
     currentUserId,
@@ -64,15 +90,25 @@ export function useCommunityFeed({
             if (post.category?.trim()) {
                 values.add(post.category.trim());
             }
-
-            post.tags?.forEach((tag) => {
-                if (tag.trim()) values.add(tag.trim());
-            });
         });
 
-        return ["All", ...Array.from(values)];
-    }, [posts]);
+        const sorted = Array.from(values).sort((a, b) => {
+            const aIndex = GENRE_ORDER_MAP.get(a.toLowerCase());
+            const bIndex = GENRE_ORDER_MAP.get(b.toLowerCase());
 
+            const aKnown = aIndex !== undefined;
+            const bKnown = bIndex !== undefined;
+
+            if (aKnown && bKnown) return aIndex - bIndex;
+            if (aKnown) return -1;
+            if (bKnown) return 1;
+
+            return a.localeCompare(b);
+        });
+
+        return ["All", ...sorted];
+    }, [posts]);
+    
     const filteredPosts = useMemo(() => {
         let result = [...posts];
 

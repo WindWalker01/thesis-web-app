@@ -73,7 +73,6 @@ export function ArtPost({
   profileImage,
   username,
   fullName,
-  userHref = "/profile",
   timeAgo = "",
   title,
   imageSrc,
@@ -92,7 +91,6 @@ export function ArtPost({
   onOpen,
   onUpvote,
   onDownvote,
-  onShare,
   onReport,
   isVoting = false,
   className = "",
@@ -141,12 +139,11 @@ export function ArtPost({
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Link
-                  href={userHref}
+                <p
                   className="truncate text-sm font-semibold text-foreground transition hover:text-primary"
                 >
                   @{username}
-                </Link>
+                </p>
               </div>
 
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -215,7 +212,7 @@ export function ArtPost({
         <button
           type="button"
           onClick={onOpen}
-          className="block w-full text-left"
+          className="block w-full text-left cursor-pointer"
         >
           <div className="px-4 pb-3 sm:px-5">
             {category && (
