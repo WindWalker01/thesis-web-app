@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useId, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import {
   reportArtworkSchema,
@@ -21,12 +21,12 @@ export function useReportArtworkModal({
   onSubmit,
   postId,
 }: UseReportModalArgs) {
-  const formId = React.useId();
+  const formId = useId();
 
-  const [reason, setReason] = React.useState<ReportReason>("copyright");
-  const [details, setDetails] = React.useState("");
-  const [context, setContext] = React.useState("");
-  const [error, setError] = React.useState<string | null>(null);
+  const [reason, setReason] = useState<ReportReason>("copyright");
+  const [details, setDetails] = useState("");
+  const [context, setContext] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const needsContext = reason === "copyright" || reason === "other";
 
@@ -40,7 +40,7 @@ export function useReportArtworkModal({
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       setReason("copyright");
       setDetails("");
@@ -50,7 +50,7 @@ export function useReportArtworkModal({
     }
   }, [open, reset]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) setError(null);
   }, [reason, details, context]);
 
