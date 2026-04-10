@@ -12,10 +12,11 @@ export type Post = {
 
     subredditName: string;
     subredditHref?: string;
-    subredditIconSrc: string;
 
     username: string;
     userHref?: string;
+    fullName?: string;
+    profileImage?: string | null;
 
     createdAt: string;
     timeAgo: string;
@@ -37,7 +38,6 @@ export type Post = {
     visibility: PostVisibility;
     isArchived: boolean;
 };
-
 export type FeedScope = "community" | "mine";
 export type VisibilityFilter = "all" | "public" | "private";
 export type SortOption = "newest" | "oldest";

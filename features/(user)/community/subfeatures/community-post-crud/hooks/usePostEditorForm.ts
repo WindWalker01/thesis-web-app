@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,7 +26,7 @@ export function usePostEditorForm({
     initialData,
 }: UsePostEditorFormParams) {
     const router = useRouter();
-    const [isPending, startTransition] = useTransition();
+    const [isPending, setIsPending] = useState(false);
     const [serverMessage, setServerMessage] = useState<string | null>(null);
 
     const existingPost = initialData.existingPost;
@@ -43,7 +43,8 @@ export function usePostEditorForm({
 
     const selectedArtwork = useMemo<UserArtworkOption | null>(() => {
         return (
-            initialData.artworks.find((artwork) => artwork.id === selectedArtworkId) ?? null
+            initialData.artworks.find((artwork) => artwork.id === selectedArtworkId) ??
+            null
         );
     }, [initialData.artworks, selectedArtworkId]);
 
@@ -61,50 +62,52 @@ export function usePostEditorForm({
         }));
     }, [existingPost?.artId, initialData.artworks, mode]);
 
-    function onSubmit(values: PostFormValues) {
+    async function handleValidSubmit(values: PostFormValues) {
         setServerMessage(null);
         form.clearErrors();
+        setIsPending(true);
 
-        startTransition(async () => {
-            try {
-                const result = await upsertPost({
-                    postId,
-                    artId: values.artId,
-                    visibility: values.visibility,
-                });
+        try {
+            const result = await upsertPost({
+                postId,
+                artId: values.artId,
+                visibility: values.visibility,
+            });
 
-                if (!result.success) {
-                    setServerMessage(result.message);
+            if (!result.success) {
+                setServerMessage(result.message);
 
-                    if (result.fieldErrors) {
-                        for (const [field, messages] of Object.entries(result.fieldErrors)) {
-                            const message = messages?.[0];
-                            if (!message) continue;
+                if (result.fieldErrors) {
+                    for (const [field, messages] of Object.entries(result.fieldErrors)) {
+                        const message = messages?.[0];
+                        if (!message) continue;
 
-                            form.setError(field as keyof PostFormValues, {
-                                type: "server",
-                                message,
-                            });
-                        }
+                        form.setError(field as keyof PostFormValues, {
+                            type: "server",
+                            message,
+                        });
                     }
-
-                    toast.error(result.message);
-                    return;
                 }
 
-                toast.success(result.message);
-
-                router.replace("/community/create-post")
-            } catch (error) {
-                const message =
-                    error instanceof Error
-                        ? error.message
-                        : "Something went wrong while saving your post.";
-
-                setServerMessage(message);
-                toast.error(message);
+                toast.error(result.message);
+                return;
             }
-        });
+
+            toast.success(result.message);
+
+            router.refresh();
+            router.push("/community");
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Something went wrong while saving your post.";
+
+            setServerMessage(message);
+            toast.error(message);
+        } finally {
+            setIsPending(false);
+        }
     }
 
     return {
@@ -114,6 +117,6 @@ export function usePostEditorForm({
         serverMessage,
         selectedArtwork,
         selectableArtworks,
-        onSubmit: form.handleSubmit(onSubmit),
+        onSubmit: form.handleSubmit(handleValidSubmit),
     };
 }

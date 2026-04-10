@@ -45,11 +45,13 @@ type ArtPostRow = {
         id: string;
         username: string;
         full_name: string | null;
+        c_profile_image: string | null;
     }
     | {
         id: string;
         username: string;
         full_name: string | null;
+        c_profile_image: string | null;
     }[]
     | null;
     art_reactions?: ArtReactionRow[] | null;
@@ -106,10 +108,11 @@ function mapPosts(
 
             subredditName: COMMUNITY_NAME,
             subredditHref: COMMUNITY_HREF,
-            subredditIconSrc: COMMUNITY_ICON,
 
             username: author.username,
             userHref: `/profile/${author.username}`,
+            fullName: author.full_name ?? author.username,
+            profileImage: author.c_profile_image,
 
             createdAt: row.created_at,
             timeAgo: formatTimeAgo(row.created_at),
@@ -153,11 +156,12 @@ const ART_POST_SELECT = `
     c_secure_url,
     status
   ),
-  users!art_posts_user_id_fkey (
+    users!art_posts_user_id_fkey (
     id,
     username,
-    full_name
-  ),
+    full_name,
+    c_profile_image
+    ),
   art_reactions (
     user_id,
     reaction_type

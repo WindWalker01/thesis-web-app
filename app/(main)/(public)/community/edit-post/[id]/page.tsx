@@ -1,14 +1,23 @@
-import PostEditorForm from "@/features/(user)/community/subfeatures/create-post/components/PostForm";
-import { getPostEditorData } from "../server/create-post";
+import { notFound } from "next/navigation";
 
-type CreatePostPageProps = {
-    postId?: string;
+import PostEditorForm from "@/features/(user)/community/subfeatures/community-post-crud/components/PostForm";
+import { getPostEditorData } from "@/features/(user)/community/subfeatures/community-post-crud/server/create-post";
+
+type EditPageProps = {
+    params: Promise<{
+        id: string;
+    }>;
 };
 
-export default async function CreatePostPage({
-    postId,
-}: CreatePostPageProps) {
-    const initialData = await getPostEditorData({ postId });
+export default async function EditCommunityPostPage({
+    params,
+}: EditPageProps) {
+    const { id } = await params;
+    const initialData = await getPostEditorData({ postId: id });
+
+    if (!initialData.existingPost) {
+        notFound();
+    }
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-background-light font-display text-slate-900 dark:bg-background-dark dark:text-slate-100">
@@ -19,19 +28,18 @@ export default async function CreatePostPage({
                     </span>
 
                     <h1 className="mt-4 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-                        Create a post from your registered artwork
+                        Edit your community post
                     </h1>
 
                     <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-                        Share your protected artwork with the community without duplicating the
-                        title and description. Just select the artwork, add an optional caption,
-                        and choose who can view it.
+                        Update the artwork selection or visibility of your post while keeping your
+                        community sharing details accurate and up to date.
                     </p>
                 </div>
 
                 <PostEditorForm
-                    mode={postId ? "edit" : "create"}
-                    postId={postId}
+                    mode="edit"
+                    postId={id}
                     initialData={initialData}
                 />
             </div>

@@ -58,6 +58,51 @@ export async function upsertPost(input: UpsertPostInput): Promise<UpsertPostResu
         }
 
         if (input.postId) {
+            const { data: existingPost, error: existingPostError } = await supabase
+                .from("art_posts")
+                .select("id, art_id, user_id")
+                .eq("id", input.postId)
+                .eq("user_id", user.id)
+                .maybeSingle();
+
+            if (existingPostError) {
+                return {
+                    success: false,
+                    message: existingPostError.message,
+                };
+            }
+
+            if (!existingPost) {
+                return {
+                    success: false,
+                    message: "Post not found or you do not have permission to edit it.",
+                };
+            }
+
+            const { data: conflictingPost, error: conflictingPostError } = await supabase
+                .from("art_posts")
+                .select("id")
+                .eq("art_id", artId)
+                .neq("id", input.postId)
+                .maybeSingle();
+
+            if (conflictingPostError) {
+                return {
+                    success: false,
+                    message: conflictingPostError.message,
+                };
+            }
+
+            if (conflictingPost) {
+                return {
+                    success: false,
+                    message: "This artwork already has a community post.",
+                    fieldErrors: {
+                        artId: ["This artwork already has a community post."],
+                    },
+                };
+            }
+
             const { data: updatedPost, error: updateError } = await supabase
                 .from("art_posts")
                 .update({

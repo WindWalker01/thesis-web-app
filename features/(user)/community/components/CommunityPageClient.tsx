@@ -15,6 +15,7 @@ import {
 import { ArtPost } from "./ArtPost";
 import { LoginRequiredModal } from "./LoginRequiredModal";
 import { ReportArtworkModal } from "../../report-infringement/components/report-artwork-modal";
+import { PostViewerModal } from "./PostViewerModal";
 import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
 import { InfoRow } from "./InfoRow";
@@ -29,6 +30,7 @@ export default function CommunityPageClient({
   posts,
   stats,
 }: CommunityPageData) {
+  
   const { state, actions } = useCommunityPage({
     authed,
     posts,
@@ -215,20 +217,17 @@ export default function CommunityPageClient({
                             </div>
 
                             <div className="flex items-center justify-between border-t border-border pt-3">
-                              <button
-                                type="button"
-                                onClick={feedActions.resetFilters}
-                                className="text-xs font-semibold text-muted-foreground transition hover:text-foreground"
-                              >
-                                Reset filters
-                              </button>
+                              <p className="text-xs text-muted-foreground">
+                                {feedState.filteredPosts.length} post
+                                {feedState.filteredPosts.length === 1 ? "" : "s"} found
+                              </p>
 
                               <button
                                 type="button"
-                                onClick={() => feedActions.setFiltersOpen(false)}
+                                onClick={feedActions.resetFilters}
                                 className="text-xs font-semibold text-primary transition hover:opacity-80"
                               >
-                                Done
+                                Reset filters
                               </button>
                             </div>
                           </div>
@@ -238,26 +237,18 @@ export default function CommunityPageClient({
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {feedState.availableFilters.map((filter) => {
-                    const active = feedState.activeFilter === filter;
-                    return (
-                      <button
+                {feedState.availableFilters.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {feedState.availableFilters.map((filter) => (
+                      <FilterChip
                         key={filter}
-                        type="button"
+                        active={feedState.activeFilter === filter}
                         onClick={() => feedActions.setActiveFilter(filter)}
-                        className={[
-                          "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-                          active
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/60",
-                        ].join(" ")}
-                      >
-                        {filter}
-                      </button>
-                    );
-                  })}
-                </div>
+                        label={filter}
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -281,6 +272,7 @@ export default function CommunityPageClient({
                     isOwner={post.userId === currentUserId}
                     editHref={`/community/edit-post/${post.postId}`}
                     isVoting={state.pendingPostId === post.postId}
+                    onOpen={() => actions.openPostViewer(post)}
                     onReport={() => actions.openReport(post)}
                     onUpvote={() => actions.upVote(post)}
                     onDownvote={() => actions.downVote(post)}
@@ -335,6 +327,29 @@ export default function CommunityPageClient({
         title={state.selectedPost?.title}
         username={state.selectedPost?.username}
         onSubmit={actions.handleSubmitReport}
+      />
+
+      <PostViewerModal
+        open={state.viewerOpen}
+        onOpenChange={actions.setViewerOpen}
+        post={state.selectedPost}
+        isOwner={state.selectedPost?.userId === currentUserId}
+        editHref={
+          state.selectedPost ? `/community/edit-post/${state.selectedPost.postId}` : undefined
+        }
+        onDeleted={() => {
+          actions.setViewerOpen(false);
+        }}
+        isVoting={state.pendingPostId === state.selectedPost?.postId}
+        onReport={
+          state.selectedPost ? () => actions.openReport(state.selectedPost!) : undefined
+        }
+        onUpvote={
+          state.selectedPost ? () => actions.upVote(state.selectedPost!) : undefined
+        }
+        onDownvote={
+          state.selectedPost ? () => actions.downVote(state.selectedPost!) : undefined
+        }
       />
     </main>
   );

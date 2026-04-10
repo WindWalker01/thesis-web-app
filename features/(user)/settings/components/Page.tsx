@@ -22,7 +22,7 @@ import ArtworkOwnershipSection from "../subfeatures/artwork-ownership/components
 import ProfileSection from "./ProfileSection";
 import ThemeSection from "./ThemeSection";
 import ChangePasswordSection from "./ChangePasswordSection";
-import LogoutConfirmModal from "./LogouConfirmModal";
+import ConfirmActionModal from "./ConfirmActionModal";
 
 interface SidebarItem {
     id: SettingsTab;
@@ -270,7 +270,7 @@ ${isActive
             </div>
 
             <AnimatePresence>
-                <LogoutConfirmModal
+                <ConfirmActionModal
                     open={showLogout}
                     title="Log out?"
                     description="You&apos;ll need to log in again to access your artworks and ownership records."

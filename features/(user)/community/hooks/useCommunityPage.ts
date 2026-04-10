@@ -85,6 +85,7 @@ export function useCommunityPage({
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [reportOpen, setReportOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [pendingPostId, setPendingPostId] = useState<string | null>(null);
@@ -156,6 +157,11 @@ export function useCommunityPage({
     },
   });
 
+  const openPostViewer = (post: Post) => {
+    setSelectedPost(post);
+    setViewerOpen(true);
+  };
+
   const openReport = (post: Post) => {
     if (!requireAuth("You must be logged in to report an artwork.", post)) {
       return;
@@ -169,7 +175,6 @@ export function useCommunityPage({
       return;
     }
 
-    // always use latest local state, not the stale rendered `post`
     const latestPost = posts.find((item) => item.postId === post.postId) ?? post;
 
     voteMutation.mutate({
@@ -191,19 +196,27 @@ export function useCommunityPage({
     setReportOpen(false);
   };
 
+  const selectedLivePost =
+    selectedPost
+      ? posts.find((item) => item.postId === selectedPost.postId) ?? selectedPost
+      : null;
+
   return {
     state: {
       posts,
       reportOpen,
       loginOpen,
+      viewerOpen,
       message,
-      selectedPost,
+      selectedPost: selectedLivePost,
       isPending: voteMutation.isPending,
       pendingPostId,
     },
     actions: {
       setReportOpen,
       setLoginOpen,
+      setViewerOpen,
+      openPostViewer,
       openReport,
       upVote,
       downVote,

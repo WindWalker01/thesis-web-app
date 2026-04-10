@@ -1,4 +1,4 @@
-import CreatePostPage from "@/features/(user)/community/subfeatures/create-post/components/Page";
+import CreatePostPage from "@/features/(user)/community/subfeatures/community-post-crud/components/Page";
 
 export default function Page() {
     return (

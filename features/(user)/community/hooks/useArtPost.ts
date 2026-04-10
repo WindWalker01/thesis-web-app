@@ -1,47 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState, useId } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-export function useArtPost() {
-  const menuId = useId();
-  const [isOpen, setIsOpen] = useState(false);
+import { deletePost } from "../subfeatures/community-post-crud/server/delete-post";
 
-  const btnRef = useRef<HTMLButtonElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+type UseArtPostParams = {
+  postId: string;
+  onDeleted?: (postId: string) => void;
+};
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (!isOpen) return;
+export function useArtPost({ postId, onDeleted }: UseArtPostParams) {
+  const router = useRouter();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-      const target = e.target as Node;
+  async function handleDeletePost() {
+    if (isDeleting) return;
 
-      if (btnRef.current?.contains(target)) return;
-      if (menuRef.current?.contains(target)) return;
+    setIsDeleting(true);
 
-      setIsOpen(false);
-    }
+    try {
+      const result = await deletePost({ postId });
 
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setIsOpen(false);
-        btnRef.current?.focus();
+      if (!result.success) {
+        toast.error(result.message);
+        return;
       }
+
+      toast.success(result.message);
+      setDeleteModalOpen(false);
+      onDeleted?.(postId);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while deleting the post.";
+
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
     }
+  }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
+  function openDeleteModal() {
+    if (isDeleting) return;
+    setDeleteModalOpen(true);
+  }
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
+  function closeDeleteModal() {
+    if (isDeleting) return;
+    setDeleteModalOpen(false);
+  }
 
   return {
-    isOpen,
-    setIsOpen,
-    btnRef,
-    menuRef,
-    menuId,
+    deleteModalOpen,
+    setDeleteModalOpen,
+    isDeleting,
+    handleDeletePost,
+    openDeleteModal,
+    closeDeleteModal,
   };
 }
