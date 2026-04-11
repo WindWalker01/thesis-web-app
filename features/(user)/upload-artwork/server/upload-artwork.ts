@@ -16,7 +16,7 @@ import {
   sha256Hex,
   normalizePerceptualHashToBytes32,
   stableStringify,
-  getArtworkStatusFromSimilarity
+  getArtworkStatusFromSimilarity,
 } from "..";
 import { getArtworkGenres } from "./fetch-genre";
 

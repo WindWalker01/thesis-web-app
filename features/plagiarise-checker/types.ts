@@ -1,25 +1,20 @@
-export type Stage = "upload" | "analyzing" | "result";
+export type Stage = "upload" | "analyzing" | "result" | "error";
 export type Mode = "web" | "compare";
-
-// types/plagiarism.ts
 
 export interface PlagiarismWebResult {
   filename: string;
   original_hash: string;
   hashes: Record<string, string>;
-  best_search: WebResultBestSearch;
+  best_match: ResultBestSearch;
   success: boolean;
 }
 
-export interface WebResultBestSearch {
+export interface ResultBestSearch {
+  type: string;
   source: string;
-  link: string;
+  link?: string;
   url: string;
-  min_combined_distance: number;
-  average_combined_distance: number;
-  max_combined_distance: number;
-  best_match_pair: string;
-  similarity_percentage: number;
+  similarity: number;
 }
 
 export interface PlagiarismCheckResult {
@@ -30,82 +25,43 @@ export interface PlagiarismCheckResult {
   hash2: Record<string, string>;
 }
 
-// ------------------NOTE: REWORK BELOW these are outdated anymore
+// ─── Compare Two Images ───────────────────────────────────────────────────────
 
-export interface ReverseSearchResponse {
-  progress: number;
-  stage: string;
-  result: ReverseSearchResult;
+export interface CompareResponse {
+  image1: string;
+  image2: string;
+  comparison: {
+    transform_similarity: number;
+    block_similarity: number;
+    final_similarity: number;
+  };
 }
 
-export interface ReverseSearchResult {
-  filename: string;
-  hashes: ImageTransformHashes;
-  // Now reflects the "0", "1", etc. keys seen in your JSON
-  distances: Record<string, CombinedDistanceMetrics>;
-  success: boolean;
-}
+// ─── Web / DB Search ──────────────────────────────────────────────────────────
 
-export interface CombinedDistanceMetrics {
+export interface SearchMatch {
+  type: "database" | "internet";
   source: string;
-  link: string;
   url: string;
-  min_combined_distance: number;
-  average_combined_distance: number;
-  max_combined_distance: number;
-  best_match_pair: string;
-  similarity_percentage: number;
+  link?: string;
+  similarity: number;
 }
 
-export interface ImageTransformHashes {
-  "0": HashValues;
-  "90": HashValues;
-  "180": HashValues;
-  "270": HashValues;
-  mirror: HashValues;
-  flip: HashValues;
-}
-
-export interface HashValues {
+export interface HashSet {
   phash: string;
   dhash: string;
   whash: string;
 }
 
-// ------------------ IMAGE COMPARISON -------------------------------
-export interface ImageComparisonResponse {
-  progress: number;
-  stage: string;
-  result: ComparisonResult;
-}
-
-export interface ComparisonResult {
-  filename1: string;
-  filename2: string;
-  distance: DistanceMetrics;
-  hash1: ImageTransformHashes;
-  hash2: ImageTransformHashes;
-}
-
-export interface DistanceMetrics {
-  min_weighted_distance: number;
-  average_weighted_distance: number;
-  max_weighted_distance: number;
-  best_match_pair: string;
-  similarity_percentage: number;
-}
-
-export interface ImageTransformHashes {
-  "0": HashValues;
-  "90": HashValues;
-  "180": HashValues;
-  "270": HashValues;
-  mirror: HashValues;
-  flip: HashValues;
-}
-
-export interface HashValues {
-  phash: string;
-  dhash: string;
-  whash: string;
+export interface SearchResponse {
+  filename: string;
+  success: boolean;
+  original_hash: string;
+  db: SearchMatch | null;
+  web: SearchMatch | null;
+  best_match: SearchMatch | null;
+  hashes: {
+    transforms: Record<string, HashSet>;
+    blocks: Record<string, HashSet>;
+  };
 }
