@@ -13,7 +13,7 @@ export function useRegisterForm() {
     const [pendingEmail, setPendingEmail] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null); 
+    /* const [captchaToken, setCaptchaToken] = useState<string | null>(null);  */
 
     const {
         register,
@@ -26,12 +26,12 @@ export function useRegisterForm() {
     const onSubmit = async (data: SignUpInput) => {
         setServerError(null);
 
-        if (!captchaToken) {
-            setServerError("Please complete the CAPTCHA verification.");
-            return;
-        }
+        /*         if (!captchaToken) {
+                    setServerError("Please complete the CAPTCHA verification.");
+                    return;
+                } */
 
-        const { error } = await signUp(data, captchaToken);
+        const { error } = await signUp(data/* , captchaToken */);
 
         if (error) {
             setServerError(error.message);
@@ -70,7 +70,7 @@ export function useRegisterForm() {
         isSubmitting,
         onSubmit,
         handleGoogleLogin,
-        captchaToken,
-        setCaptchaToken,
+        /*         captchaToken,
+                setCaptchaToken, */
     };
 }

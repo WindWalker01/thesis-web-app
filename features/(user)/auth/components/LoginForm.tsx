@@ -10,8 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import GoogleIcon from "@/components/google-icon";
 import { useLoginForm } from "../hooks/useLoginForm";
-import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
-import { useRef } from "react";
+/* import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+import { useRef } from "react"; */
 
 export function LoginForm() {
   const {
@@ -25,17 +25,17 @@ export function LoginForm() {
     isSubmitting,
     serverError,
     oauthLoading,
-    captchaToken,
-    setCaptchaToken
+    /*     captchaToken,
+        setCaptchaToken */
   } = useLoginForm();
 
-  const turnstileRef = useRef<TurnstileInstance | null>(null);
+  /* const turnstileRef = useRef<TurnstileInstance | null>(null); */
 
   const handleLoginSubmit = handleSubmit(async (data) => {
     await onSubmit(data);
 
-    setCaptchaToken(null);
-    turnstileRef.current?.reset();
+    /* setCaptchaToken(null);
+    turnstileRef.current?.reset(); */
   });
 
 
@@ -111,7 +111,7 @@ export function LoginForm() {
             )}
           </div>
 
-          <div className="flex justify-start">
+          {/*           <div className="flex justify-start">
             <Turnstile
               ref={turnstileRef}
               siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
@@ -126,12 +126,12 @@ export function LoginForm() {
               }}
               options={{ theme: "auto" }}
             />
-          </div>
+          </div> */}
 
           {/* Submit */}
           <Button
             type="submit"
-            disabled={isSubmitting || oauthLoading || !captchaToken}
+            disabled={isSubmitting || oauthLoading /* || !captchaToken */}
             className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer"
           >
             {isSubmitting
