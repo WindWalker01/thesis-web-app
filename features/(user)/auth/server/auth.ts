@@ -10,20 +10,20 @@ import {
   type SignUpInput,
 } from "../schemas/auth-schema";
 
-export async function signIn(input: SignInInput, captchaToken?: string | null) {
+export async function signIn(input: SignInInput, /* captchaToken?: string | null */) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
   }
 
-  if (!captchaToken) {
-    return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
-  }
+  /*   if (!captchaToken) {
+      return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
+    } */
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     ...parsed.data,
-    options: { captchaToken },
+    /* options: { captchaToken }, */
   });
 
   if (error) {
@@ -39,9 +39,9 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
   }
 
-  if (!captchaToken) {
-    return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
-  }
+  /*   if (!captchaToken) {
+      return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
+    } */
 
   const { email, password, fullName } = parsed.data;
   const supabase = await createSupabaseServerClient();
@@ -52,7 +52,7 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?email=${encodeURIComponent(email)}`,
       data: { full_name: fullName },
-      captchaToken,
+      /* captchaToken, */
     },
   });
 
@@ -75,15 +75,15 @@ export async function forgotPassword(email: string, captchaToken?: string | null
   if (!parsed.success) {
     return { error: { message: parsed.error.issues[0].message } };
   }
-
-  if (!captchaToken) {
-    return { error: { message: "Please complete the CAPTCHA verification." } };
-  }
+  /* 
+    if (!captchaToken) {
+      return { error: { message: "Please complete the CAPTCHA verification." } };
+    } */
 
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    captchaToken,
+    /* captchaToken, */
   });
 
   if (error) {
