@@ -1,12 +1,31 @@
 export type Stage = "upload" | "analyzing" | "result" | "error";
 export type Mode = "web" | "compare";
 
+export interface HashSet {
+  phash: string;
+  dhash: string;
+  whash: string;
+}
+
+export interface SearchMatch {
+  type: "database" | "internet" | string;
+  source: string;
+  url: string;
+  link?: string;
+  similarity: number;
+}
+
 export interface PlagiarismWebResult {
   filename: string;
-  original_hash: string;
-  hashes: Record<string, string>;
-  best_match: ResultBestSearch;
   success: boolean;
+  original_hash: string;
+  db?: SearchMatch | null;
+  web?: SearchMatch | null;
+  best_match?: SearchMatch | null;
+  hashes: {
+    transforms: Record<string, HashSet>;
+    blocks: Record<string, HashSet>;
+  };
 }
 
 export interface ResultBestSearch {
@@ -38,20 +57,6 @@ export interface CompareResponse {
 }
 
 // ─── Web / DB Search ──────────────────────────────────────────────────────────
-
-export interface SearchMatch {
-  type: "database" | "internet";
-  source: string;
-  url: string;
-  link?: string;
-  similarity: number;
-}
-
-export interface HashSet {
-  phash: string;
-  dhash: string;
-  whash: string;
-}
 
 export interface SearchResponse {
   filename: string;

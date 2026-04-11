@@ -195,6 +195,8 @@ export function useUploadArtworkForm() {
 
       const dbResult = await recordArtworkInDatabase(formData);
 
+      setSimilarityReport(dbResult.similarityReport ?? null);
+
       if (!dbResult.success) {
         setStepStatus(STEP_KEYS.review, "error");
         setProcessingState("error");
@@ -202,8 +204,6 @@ export function useUploadArtworkForm() {
         form.setError("root", { message: dbResult.message });
         return;
       }
-
-      setSimilarityReport(dbResult.similarityReport ?? null);
 
       if (dbResult.artworkStatus === "flagged") {
         updateStepText(
