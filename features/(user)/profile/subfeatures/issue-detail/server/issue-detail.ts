@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
     formatUploadDate,
     mapHashStatus,
@@ -12,7 +13,12 @@ import type {
     IssueDetail,
     IssueReport,
     IssueSimilarityScan,
+    SimilarityReport,
 } from "../../../types";
+import {
+    buildSimilarityReport,
+    enrichDatabaseMatchInReport,
+} from "../../../server/similarity-report";
 
 type FetchIssueDetailResult =
     | { success: true; issue: IssueDetail }
@@ -55,6 +61,11 @@ type RawUserRow = {
     c_profile_image: string | null;
 };
 
+type RawArtPostRow = {
+    id: string;
+    art_id: string;
+};
+
 type RawSimilarityScanRow = {
     id: string;
     status: string;
@@ -90,6 +101,12 @@ type RawReportRow = {
     resolved_at: string | null;
 };
 
+type RawMatchedArtworkPreview = {
+    id: string;
+    title: string;
+    c_secure_url: string | null;
+};
+
 export async function fetchIssueDetailByArtworkId(
     artId: string
 ): Promise<FetchIssueDetailResult> {
@@ -108,24 +125,24 @@ export async function fetchIssueDetailByArtworkId(
         const { data: art, error: artError } = await supabase
             .from("registered_arts")
             .select(`
-        id,
-        owner_id,
-        title,
-        description,
-        c_secure_url,
-        file_hash,
-        perceptual_hash,
-        author_id_hash,
-        evidence_hash,
-        evidence,
-        chain,
-        tx_hash,
-        block_number,
-        work_id,
-        status,
-        created_at,
-        plagiarism_hashes
-      `)
+                id,
+                owner_id,
+                title,
+                description,
+                c_secure_url,
+                file_hash,
+                perceptual_hash,
+                author_id_hash,
+                evidence_hash,
+                evidence,
+                chain,
+                tx_hash,
+                block_number,
+                work_id,
+                status,
+                created_at,
+                plagiarism_hashes
+            `)
             .eq("id", artId)
             .eq("owner_id", user.id)
             .single();
@@ -183,29 +200,29 @@ export async function fetchIssueDetailByArtworkId(
         const { data: similarityScan, error: similarityError } = await supabase
             .from("art_similarity_scans")
             .select(`
-        id,
-        status,
-        success,
-        filename,
-        original_hash,
-        total_matches,
-        best_source,
-        best_link,
-        best_url,
-        best_match_pair,
-        best_similarity_percentage,
-        best_min_combined_distance,
-        best_average_combined_distance,
-        best_max_combined_distance,
-        matches,
-        hashes,
-        raw_response,
-        error_message,
-        started_at,
-        completed_at,
-        created_at,
-        updated_at
-      `)
+                id,
+                status,
+                success,
+                filename,
+                original_hash,
+                total_matches,
+                best_source,
+                best_link,
+                best_url,
+                best_match_pair,
+                best_similarity_percentage,
+                best_min_combined_distance,
+                best_average_combined_distance,
+                best_max_combined_distance,
+                matches,
+                hashes,
+                raw_response,
+                error_message,
+                started_at,
+                completed_at,
+                created_at,
+                updated_at
+            `)
             .eq("art_id", artId)
             .maybeSingle();
 
@@ -213,27 +230,71 @@ export async function fetchIssueDetailByArtworkId(
             return { success: false, message: similarityError.message };
         }
 
-        const { data: reports, error: reportsError } = await supabase
-            .from("reports")
-            .select(`
-        id,
-        report_type,
-        title,
-        description,
-        status,
-        created_at,
-        resolved_at
-      `)
-            .eq("reported_art_id", artId)
-            .order("created_at", { ascending: false });
+        const { data: artPost, error: artPostError } = await supabase
+            .from("art_posts")
+            .select("id, art_id")
+            .eq("art_id", artId)
+            .maybeSingle();
 
-        if (reportsError) {
-            return { success: false, message: reportsError.message };
+        if (artPostError) {
+            return { success: false, message: artPostError.message };
+        }
+
+        let reportRows: RawReportRow[] = [];
+
+        if (artPost) {
+            const { data: reports, error: reportsError } = await supabase
+                .from("reports")
+                .select(`
+                    id,
+                    report_type,
+                    title,
+                    description,
+                    status,
+                    created_at,
+                    resolved_at
+                `)
+                .eq("reported_art_post_id", (artPost as RawArtPostRow).id)
+                .order("created_at", { ascending: false });
+
+            if (reportsError) {
+                return { success: false, message: reportsError.message };
+            }
+
+            reportRows = (reports ?? []) as RawReportRow[];
         }
 
         const creatorRow = creator as RawUserRow | null;
         const similarityRow = similarityScan as RawSimilarityScanRow | null;
-        const reportRows = (reports ?? []) as RawReportRow[];
+
+        const mappedScan = similarityRow ? mapSimilarityScan(similarityRow) : null;
+
+        let similarityReport = mappedScan
+            ? buildSimilarityReport(mappedScan.rawResponse, {
+                  success: mappedScan.success,
+                  filename: mappedScan.filename,
+                  originalHash: mappedScan.originalHash,
+              })
+            : null;
+
+        const dbArtworkId = similarityReport?.dbMatch?.url ?? null;
+
+        if (dbArtworkId) {
+            const adminSupabase = createSupabaseAdminClient();
+
+            const { data: matchedArt, error: matchedArtError } = await adminSupabase
+                .from("registered_arts")
+                .select("id, title, c_secure_url")
+                .eq("id", dbArtworkId)
+                .maybeSingle();
+
+            if (!matchedArtError && matchedArt) {
+                similarityReport = enrichDatabaseMatchInReport(
+                    similarityReport,
+                    matchedArt as RawMatchedArtworkPreview
+                );
+            }
+        }
 
         return {
             success: true,
@@ -241,7 +302,8 @@ export async function fetchIssueDetailByArtworkId(
                 artwork,
                 category,
                 creatorRow,
-                similarityRow,
+                mappedScan,
+                similarityReport,
                 reportRows
             ),
         };
@@ -257,7 +319,8 @@ function mapToIssueDetail(
     raw: RawIssueArtworkRow,
     category: string,
     creator: RawUserRow | null,
-    similarityScan: RawSimilarityScanRow | null,
+    similarityScan: IssueSimilarityScan | null,
+    similarityReport: SimilarityReport | null,
     reports: RawReportRow[]
 ): IssueDetail {
     return {
@@ -288,17 +351,15 @@ function mapToIssueDetail(
 
         creator: creator
             ? {
-                id: creator.id,
-                fullName: creator.full_name,
-                username: `@${creator.username}`,
-                profileImage: creator.c_profile_image,
-            }
+                  id: creator.id,
+                  fullName: creator.full_name,
+                  username: `@${creator.username}`,
+                  profileImage: creator.c_profile_image,
+              }
             : null,
 
-        similarityScan: similarityScan
-            ? mapSimilarityScan(similarityScan)
-            : null,
-
+        similarityScan,
+        similarityReport,
         reports: reports.map(mapReport),
     };
 }
