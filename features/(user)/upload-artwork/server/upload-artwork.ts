@@ -126,7 +126,7 @@ export async function recordArtworkInDatabase(
       return { success: false, message: "Unexpected Server Error" };
     }
 
-    const similarity = result.best_search.similarity_percentage;
+    const similarity = result.best_match.similarity;
 
     // Strong match (almost identical)
     if (similarity >= 93) {
@@ -158,7 +158,7 @@ export async function recordArtworkInDatabase(
     */
     /*     const perceptualHash = await generatePerceptualHashBytes32(fileBuffer); */
 
-    const perceptualHash = `${"0x"}result.original_hash`;
+    const perceptualHash = "0x".concat(result.original_hash) as `0x${string}`;
 
     const evidence = {
       v: 1,
@@ -218,8 +218,6 @@ export async function recordArtworkInDatabase(
      */
 
     const genres = await getArtworkGenres(validFile, data.id);
-
-    console.log(genres);
 
     await supabase.from("art_genres").insert(genres);
 

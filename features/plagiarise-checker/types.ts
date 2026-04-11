@@ -7,19 +7,32 @@ export interface PlagiarismWebResult {
   filename: string;
   original_hash: string;
   hashes: Record<string, string>;
-  best_search: WebResultBestSearch;
+  best_match: WebResultBestSearch;
+  internet_match: WebResultBestSearch;
+  database_match: DBResultBestSearch;
   success: boolean;
+}
+
+export interface ResultBestSearch {
+  type: string;
+  source: string;
+  link: string;
+  url: string;
+  similarity: number;
 }
 
 export interface WebResultBestSearch {
   source: string;
   link: string;
   url: string;
-  min_combined_distance: number;
-  average_combined_distance: number;
-  max_combined_distance: number;
-  best_match_pair: string;
-  similarity_percentage: number;
+  similarity: number;
+}
+
+export interface DBResultBestSearch {
+  source: string;
+  link: string;
+  url: string;
+  similarity: number;
 }
 
 export interface PlagiarismCheckResult {
