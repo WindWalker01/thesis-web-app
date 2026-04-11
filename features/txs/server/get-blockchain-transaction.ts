@@ -389,7 +389,7 @@ async function resolveTransactions(
                 };
             }
         } catch {
-            // fall back to RPC logs
+            // fallback to rpc logs
         }
     }
 

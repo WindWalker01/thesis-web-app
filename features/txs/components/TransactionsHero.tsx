@@ -1,4 +1,4 @@
-import { Blocks, DatabaseZap, Link2 } from "lucide-react";
+import { Blocks } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { truncateHash } from "@/lib/client-utils";
@@ -52,9 +52,8 @@ export function TransactionsHero({
                                 Public contract activity
                             </h1>
                             <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
-                                Browse your artwork registry contract activity in a clean
-                                explorer-style layout while keeping the public view focused on
-                                transaction metadata only.
+                                Browse contract activity in an explorer-style layout while
+                                keeping the public view limited to safe transaction metadata.
                             </p>
                         </div>
                     </div>

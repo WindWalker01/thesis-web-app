@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 export function TransactionsPagination({
     page,
     hasNextPage,
-    isLoading,
+    isFetching,
     onPrevious,
     onNext,
     onRefresh,
 }: {
     page: number;
     hasNextPage: boolean;
-    isLoading: boolean;
+    isFetching: boolean;
     onPrevious: () => void;
     onNext: () => void;
     onRefresh: () => void;
@@ -28,7 +28,7 @@ export function TransactionsPagination({
                     type="button"
                     variant="outline"
                     onClick={onRefresh}
-                    disabled={isLoading}
+                    disabled={isFetching}
                     className="rounded-xl"
                 >
                     <RefreshCcw className="mr-2 h-4 w-4" />
@@ -39,7 +39,7 @@ export function TransactionsPagination({
                     type="button"
                     variant="outline"
                     onClick={onPrevious}
-                    disabled={page <= 1 || isLoading}
+                    disabled={page <= 1 || isFetching}
                     className="rounded-xl"
                 >
                     <ChevronLeft className="mr-2 h-4 w-4" />
@@ -49,7 +49,7 @@ export function TransactionsPagination({
                 <Button
                     type="button"
                     onClick={onNext}
-                    disabled={!hasNextPage || isLoading}
+                    disabled={!hasNextPage || isFetching}
                     className="rounded-xl bg-blue-500 text-white hover:bg-blue-600"
                 >
                     Next

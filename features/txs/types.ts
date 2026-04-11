@@ -19,6 +19,10 @@ export type BlockchainTransactionItem = {
     source: BlockchainTxSource;
 };
 
+export type BlockchainMethodFilter = "all" | "register" | "revoke";
+
+export type BlockchainStatusFilter = "all" | "success" | "failed" | "pending";
+
 export type GetBlockchainTransactionsInput = {
     page?: number;
     pageSize?: number;

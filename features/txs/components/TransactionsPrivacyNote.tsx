@@ -27,8 +27,8 @@ export function TransactionsPrivacyNote() {
 
                     <div>
                         <p className="text-sm text-muted-foreground">
-                            Internal user identity, raw artwork details, and private system
-                            context are intentionally not displayed here.
+                            Internal user identity, raw artwork details, and private
+                            evidence data are intentionally not displayed here.
                         </p>
                     </div>
                 </div>
