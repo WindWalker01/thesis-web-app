@@ -34,7 +34,10 @@ export async function getVerifiableArtworks(): Promise<GetVerifiableArtworksResu
         } = await supabase.auth.getUser();
 
         if (authError || !user) {
-            return { success: false, message: "You must be signed in to verify artworks." };
+            return {
+                success: false,
+                message: "You must be signed in to verify artworks.",
+            };
         }
 
         const { data, error } = await supabase
@@ -56,14 +59,27 @@ export async function getVerifiableArtworks(): Promise<GetVerifiableArtworksResu
                 evidence_hash
             `)
             .eq("owner_id", user.id)
+            .eq("status", "active")
+            .not("chain", "is", null)
+            .not("tx_hash", "is", null)
+            .not("block_number", "is", null)
+            .not("work_id", "is", null)
             .order("created_at", { ascending: false });
 
         if (error) {
             return { success: false, message: error.message };
         }
 
-        const items: VerifiableArtworkItem[] = ((data ?? []) as RawArtworkRow[]).map(
-            (artwork) => ({
+        const items: VerifiableArtworkItem[] = ((data ?? []) as RawArtworkRow[])
+            .filter(
+                (artwork) =>
+                    artwork.status === "active" &&
+                    !!artwork.chain?.trim() &&
+                    !!artwork.tx_hash?.trim() &&
+                    artwork.block_number !== null &&
+                    !!artwork.work_id?.trim()
+            )
+            .map((artwork) => ({
                 id: artwork.id,
                 title: artwork.title,
                 description: artwork.description,
@@ -78,8 +94,7 @@ export async function getVerifiableArtworks(): Promise<GetVerifiableArtworksResu
                 perceptualHash: artwork.perceptual_hash,
                 authorIdHash: artwork.author_id_hash,
                 evidenceHash: artwork.evidence_hash,
-            })
-        );
+            }));
 
         return { success: true, items };
     } catch (error) {

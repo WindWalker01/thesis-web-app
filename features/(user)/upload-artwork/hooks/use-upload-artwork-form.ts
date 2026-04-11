@@ -272,7 +272,7 @@ export function useUploadArtworkForm() {
           "Recording your artwork on blockchain and finalizing protection...",
         );
 
-        /* const blockchainResult = await recordArtworkOnBlockchain({
+        const blockchainResult = await recordArtworkOnBlockchain({
           artworkId: dbResult.artworkId,
           authorIdHash: dbResult.authorIdHash,
           fileHash: dbResult.fileHash,
@@ -286,7 +286,7 @@ export function useUploadArtworkForm() {
           setProcessingMessage(blockchainResult.message);
           form.setError("root", { message: blockchainResult.message });
           return;
-        } */
+        }
 
         updateStepText(
           STEP_KEYS.protect,

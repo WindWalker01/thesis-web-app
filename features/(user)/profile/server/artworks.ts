@@ -91,7 +91,8 @@ export async function fetchCurrentUserArtworks(
     const { data: artGenres, error: artGenresError } = await supabase
       .from("art_genres")
       .select("art_id, genre_id")
-      .in("art_id", artIds);
+      .in("art_id", artIds)
+      .order("genre_id", { ascending: true });
 
     if (artGenresError) {
       return { success: false, message: artGenresError.message };

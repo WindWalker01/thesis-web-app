@@ -237,7 +237,9 @@ export default function ArtworkDetailPage({ id }: Props) {
                                 </a>
                             ) : null}
 
-                            <DownloadCertificateButton artwork={art} />
+                            {txUrl ? (
+                                <DownloadCertificateButton artwork={art} />
+                            ) : null}
                         </div>
                     </div>
                 </section>
