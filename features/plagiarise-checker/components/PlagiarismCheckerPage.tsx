@@ -72,7 +72,7 @@ export default function PlagiarismCheckerPage() {
       // Backend param name: file
       form.append("file", file);
 
-      const res = await fetch(`${API_BASE}/check/web`, {
+      const res = await fetch(`${API_BASE}/plagiarism/check/web`, {
         method: "POST",
         body: form,
       });
@@ -281,35 +281,30 @@ export default function PlagiarismCheckerPage() {
         {/* ── Compare Two Images Mode ── */}
         {mode === "compare" && stage !== "error" && (
           <>
-            {(stage === "upload" || stage === "result") && (
-              <>
-                <CompareModeUpload
-                  fileA={fileA}
-                  fileB={fileB}
-                  previewA={previewA}
-                  previewB={previewB}
-                  onUploadA={handleCompareUploadA}
-                  onUploadB={handleCompareUploadB}
-                  onClearA={handleClearA}
-                  onClearB={handleClearB}
-                  onCompare={handleCompare}
-                />
-                {stage === "result" &&
-                  compareResult &&
-                  previewA &&
-                  previewB && (
-                    <CompareModeResult
-                      previewA={previewA}
-                      filenameA={fileA?.name ?? compareResult.image1}
-                      previewB={previewB}
-                      filenameB={fileB?.name ?? compareResult.image2}
-                      result={compareResult}
-                    />
-                  )}
-              </>
+            {stage === "upload" && (
+              <CompareModeUpload
+                fileA={fileA}
+                fileB={fileB}
+                previewA={previewA}
+                previewB={previewB}
+                onUploadA={handleCompareUploadA}
+                onUploadB={handleCompareUploadB}
+                onClearA={handleClearA}
+                onClearB={handleClearB}
+                onCompare={handleCompare}
+              />
             )}
             {stage === "analyzing" && (
               <AnalyzingScreen progress={0} mode="compare" indeterminate />
+            )}
+            {stage === "result" && compareResult && previewA && previewB && (
+              <CompareModeResult
+                previewA={previewA}
+                filenameA={fileA?.name ?? compareResult.image1}
+                previewB={previewB}
+                filenameB={fileB?.name ?? compareResult.image2}
+                result={compareResult}
+              />
             )}
           </>
         )}

@@ -2,5 +2,9 @@
 import PlagiarismCheckerPage from "@/features/plagiarise-checker/components/PlagiarismCheckerPage";
 
 export default function PlagiarismCheckPage() {
-  return <PlagiarismCheckerPage />;
+  return (
+    <div className="mt-16">
+      <PlagiarismCheckerPage />
+    </div>
+  );
 }
