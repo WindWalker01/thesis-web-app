@@ -1,20 +1,25 @@
-import {
-  PlagiarismCheckResult as PlagiarismCheckComapareResult,
-  PlagiarismWebResult,
-} from "./types";
-
 export { AnalyzingScreen } from "./components/AnalyzingScreen";
-export { CircleProgress } from "./components/CircleProgress";
 export { CompareModeResult } from "./components/CompareModeResult";
 export { CompareModeUpload } from "./components/CompareModeUpload";
-export { HashCollisionMap } from "./components/HashCollisionMap";
+export { HashTable } from "./components/HashTable";
+export { MatchCard } from "./components/MatchCard";
 export { ModeToggle } from "./components/ModeToggle";
-export { ScoreCard } from "./components/ScoreCard";
-export { StepBadge } from "./components/StepBadge";
+export { SimilarityBar } from "./components/SimilarityBar";
+export { SimilarityRing } from "./components/SimilarityRing";
 export { UploadZone } from "./components/UploadZone";
 export { WebModeResult } from "./components/WebModeResult";
 export { WebModeUpload } from "./components/WebModeUpload";
-export type { Stage, Mode } from "./types";
+
+export type {
+  Stage,
+  Mode,
+  CompareResponse,
+  SearchResponse,
+  SearchMatch,
+  HashSet,
+} from "./types";
+
+import { PlagiarismWebResult } from "./types";
 
 export async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -56,27 +61,6 @@ export async function checkPlagiarismWeb(
       body: formData,
     },
   );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail ?? "Failed to check plagiarism");
-  }
-
-  return response.json();
-}
-
-export async function checkPlagiarismCompare(
-  file1: File,
-  file2: File,
-): Promise<PlagiarismCheckComapareResult> {
-  const formData = new FormData();
-  formData.append("file1", file1);
-  formData.append("file2", file2);
-
-  const response = await fetch(`${process.env.DIGITAL_ART_API_URL}/check`, {
-    method: "POST",
-    body: formData,
-  });
 
   if (!response.ok) {
     const error = await response.json();

@@ -1,5 +1,5 @@
 import { Globe, Images } from "lucide-react";
-import { Mode } from "./../types";
+import { Mode } from "./types";
 
 interface ModeToggleProps {
   mode: Mode;
@@ -7,20 +7,20 @@ interface ModeToggleProps {
 }
 
 const MODES = [
-  { key: "web", icon: Globe, label: "Search Web" },
+  { key: "web", icon: Globe, label: "Search Web & Database" },
   { key: "compare", icon: Images, label: "Compare Two Images" },
 ] as const;
 
 export function ModeToggle({ mode, onChange }: ModeToggleProps) {
   return (
-    <div className="bg-muted flex items-center gap-1 rounded-xl p-1">
+    <div className="flex items-center gap-1 bg-muted p-1 rounded-xl">
       {MODES.map(({ key, icon: Icon, label }) => (
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
             mode === key
-              ? "bg-background text-foreground border-border border shadow-sm"
+              ? "bg-background text-foreground shadow-sm border border-border"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
