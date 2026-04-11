@@ -49,10 +49,11 @@ const NAV_LINKS: NavLink[] = [
   { label: "Dashboard", href: "/dashboard", requiresAuth: true },
   { label: "Community", href: "/community" },
   { label: "Plagiarism", href: "/plagiarism-checker" },
-  { label: "About", href: "/about" },
+  { label: "Classify", href: "/classify" },
 ];
 
 const MORE_LINKS = [
+  { label: "About", href: "/about" },
   { label: "FAQ", href: "/#faq-section" },
   { label: "Terms of Use", href: "/terms-of-use" },
   { label: "Privacy Policy", href: "/privacy-policy" },

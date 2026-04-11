@@ -5,6 +5,8 @@ import {
   Brush,
   ChevronDown,
   Filter,
+  Lock,
+  LogIn,
   Plus,
   Search,
   ShieldCheck,
@@ -30,7 +32,6 @@ export default function CommunityPageClient({
   posts,
   stats,
 }: CommunityPageData) {
-
   const { state, actions } = useCommunityPage({
     authed,
     posts,
@@ -46,7 +47,12 @@ export default function CommunityPageClient({
   });
 
   return (
-    <main className="min-h-screen bg-background font-display text-foreground">
+    <main
+      className={[
+        "relative min-h-screen bg-background font-display text-foreground",
+        !authed ? "h-screen overflow-hidden" : "",
+      ].join(" ")}
+    >
       <div className="h-1 w-full bg-linear-to-r from-blue-600 via-primary to-orange-400" />
 
       <section className="border-b border-border bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-24 text-white">
@@ -70,21 +76,45 @@ export default function CommunityPageClient({
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/community/create-post"
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create post
-                </Link>
+                {authed ? (
+                  <>
+                    <Link
+                      href="/community/create-post"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create post
+                    </Link>
 
-                <Link
-                  href="/upload-artwork"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  Upload protected artwork
-                </Link>
+                    <Link
+                      href="/upload-artwork"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      Upload protected artwork
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => actions.setLoginOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create post
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => actions.setLoginOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      Upload protected artwork
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -120,6 +150,13 @@ export default function CommunityPageClient({
                     <p className="text-sm text-muted-foreground">
                       Browse registered artworks shared by artists in the platform.
                     </p>
+
+                    {!authed ? (
+                      <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                        <Lock className="h-3.5 w-3.5" />
+                        Viewing as guest
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
@@ -128,8 +165,13 @@ export default function CommunityPageClient({
                       <input
                         value={feedState.search}
                         onChange={(e) => feedActions.setSearch(e.target.value)}
-                        placeholder="Search title, artist, category..."
-                        className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm outline-none ring-0 placeholder:text-muted-foreground focus:border-primary"
+                        placeholder={
+                          authed
+                            ? "Search title, artist, category..."
+                            : "Log in to search the community"
+                        }
+                        disabled={!authed}
+                        className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm outline-none ring-0 placeholder:text-muted-foreground focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </div>
 
@@ -139,15 +181,23 @@ export default function CommunityPageClient({
                         type="button"
                         aria-haspopup="menu"
                         aria-expanded={feedState.filtersOpen}
-                        onClick={() => feedActions.setFiltersOpen(!feedState.filtersOpen)}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/60"
+                        onClick={() => {
+                          if (!authed) {
+                            actions.setLoginOpen(true);
+                            return;
+                          }
+
+                          feedActions.setFiltersOpen(!feedState.filtersOpen);
+                        }}
+                        disabled={!authed}
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Filter className="h-4 w-4" />
                         Filters
                         <ChevronDown className="h-4 w-4" />
                       </button>
 
-                      {feedState.filtersOpen ? (
+                      {authed && feedState.filtersOpen ? (
                         <div
                           ref={feedState.filtersMenuRef}
                           className="absolute right-0 z-30 mt-2 w-[320px] rounded-2xl border border-border bg-card p-4 shadow-xl"
@@ -163,13 +213,11 @@ export default function CommunityPageClient({
                                   onClick={() => feedActions.setFeedScope("community")}
                                   label="Community"
                                 />
-                                {authed ? (
-                                  <FilterChip
-                                    active={feedState.feedScope === "mine"}
-                                    onClick={() => feedActions.setFeedScope("mine")}
-                                    label="My posts"
-                                  />
-                                ) : null}
+                                <FilterChip
+                                  active={feedState.feedScope === "mine"}
+                                  onClick={() => feedActions.setFeedScope("mine")}
+                                  label="My posts"
+                                />
                               </div>
                             </div>
 
@@ -188,7 +236,7 @@ export default function CommunityPageClient({
                                   onClick={() => feedActions.setVisibilityFilter("public")}
                                   label="Public"
                                 />
-                                {authed && feedState.feedScope === "mine" ? (
+                                {feedState.feedScope === "mine" ? (
                                   <FilterChip
                                     active={feedState.visibilityFilter === "private"}
                                     onClick={() => feedActions.setVisibilityFilter("private")}
@@ -237,7 +285,7 @@ export default function CommunityPageClient({
                   </div>
                 </div>
 
-                {feedState.availableFilters.length > 0 ? (
+                {authed && feedState.availableFilters.length > 0 ? (
                   <div className="mt-4 space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Browse by genre
@@ -258,33 +306,37 @@ export default function CommunityPageClient({
               </div>
             </div>
 
-            <div className="space-y-4">
-              {feedState.filteredPosts.length === 0 ? (
-                <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-sm">
-                  <h3 className="text-lg font-bold">
-                    {feedState.feedScope === "mine" ? "No posts yet" : "No artworks found"}
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {feedState.feedScope === "mine"
-                      ? "You have not shared any eligible artworks in the community yet."
-                      : "Try another search term or change the selected filters."}
-                  </p>
-                </div>
-              ) : (
-                feedState.filteredPosts.map((post) => (
-                  <ArtPost
-                    key={post.id}
-                    {...post}
-                    isOwner={post.userId === currentUserId}
-                    editHref={`/community/edit-post/${post.postId}`}
-                    isVoting={state.pendingPostId === post.postId}
-                    onOpen={() => actions.openPostViewer(post)}
-                    onReport={() => actions.openReport(post)}
-                    onUpvote={() => actions.upVote(post)}
-                    onDownvote={() => actions.downVote(post)}
-                  />
-                ))
-              )}
+            <div className={!authed ? "pointer-events-none select-none" : undefined}>
+              <div className="space-y-4">
+                {feedState.filteredPosts.length === 0 ? (
+                  <div className="rounded-3xl border border-border bg-card p-10 text-center shadow-sm">
+                    <h3 className="text-lg font-bold">
+                      {feedState.feedScope === "mine"
+                        ? "No posts yet"
+                        : "No artworks found"}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {feedState.feedScope === "mine"
+                        ? "You have not shared any eligible artworks in the community yet."
+                        : "Try another search term or change the selected filters."}
+                    </p>
+                  </div>
+                ) : (
+                  feedState.filteredPosts.map((post) => (
+                    <ArtPost
+                      key={post.id}
+                      {...post}
+                      isOwner={post.userId === currentUserId}
+                      editHref={`/community/edit-post/${post.postId}`}
+                      isVoting={state.pendingPostId === post.postId}
+                      onOpen={() => actions.openPostViewer(post)}
+                      onReport={() => actions.openReport(post)}
+                      onUpvote={() => actions.upVote(post)}
+                      onDownvote={() => actions.downVote(post)}
+                    />
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
@@ -319,11 +371,60 @@ export default function CommunityPageClient({
         </div>
       </section>
 
+      {!authed ? (
+        <div className="pointer-events-auto absolute inset-x-0 bottom-0 top-65 z-30">
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-900 via-blue-800/85 to-transparent" />
+
+          <div className="absolute inset-x-0 bottom-0 flex min-h-[55vh] items-end justify-center px-4 pb-8 sm:px-6 sm:pb-10 lg:px-8">
+            <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-950/78 p-5 text-white shadow-2xl backdrop-blur-xl sm:p-6">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-2xl bg-white/10 p-2">
+                  <Lock className="h-5 w-5" />
+                </div>
+
+                <div className="flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100/80">
+                    Guest mode
+                  </p>
+
+                  <h3 className="mt-2 text-xl font-black sm:text-2xl">
+                    Log in to continue exploring the community
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-blue-50/85 sm:text-base">
+                    You can preview the community feed, but scrolling deeper, posting,
+                    voting, reporting, and artist-only interactions are available only to
+                    signed-in users.
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+                    >
+                      <LogIn className="h-4 w-4" />
+                      Log in
+                    </Link>
+
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                    >
+                      Create account
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <LoginRequiredModal
         open={state.loginOpen}
         onOpenChange={actions.setLoginOpen}
         loginHref="/login"
-        message={state.message}
+        message={state.message || "You must be logged in to interact with the community."}
       />
 
       <ReportArtworkModal
