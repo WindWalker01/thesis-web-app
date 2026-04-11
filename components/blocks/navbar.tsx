@@ -57,7 +57,7 @@ const MORE_LINKS = [
   { label: "FAQ", href: "/#faq-section" },
   { label: "Terms of Use", href: "/terms-of-use" },
   { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Verify Artwork", href: "/verify-artwork" },
+  { label: "Verify Artwork", href: "/verify-artwork", requiresAuth: true },
   { label: "Blockchain Transactions", href: "/txs" },
 ];
 
@@ -78,6 +78,13 @@ export default function NavBar() {
 
   const visibleNavLinks = useMemo(() => {
     return NAV_LINKS.filter((link) => {
+      if (link.requiresAuth && !user) return false;
+      return true;
+    });
+  }, [user]);
+
+  const visibleMoreLinks = useMemo(() => {
+    return MORE_LINKS.filter((link) => {
       if (link.requiresAuth && !user) return false;
       return true;
     });
@@ -146,7 +153,7 @@ export default function NavBar() {
                     transition={{ duration: 0.18, ease: "easeOut" }}
                     className="absolute left-1/2 top-10 z-50 w-44 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-xl"
                   >
-                    {MORE_LINKS.map((item, idx) => (
+                    {visibleMoreLinks.map((item, idx) => (
                       <motion.div
                         key={item.href}
                         initial={{ opacity: 0, x: -6 }}
@@ -454,7 +461,7 @@ export default function NavBar() {
                     More
                   </p>
 
-                  {MORE_LINKS.map((link) => (
+                  {visibleMoreLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
