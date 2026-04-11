@@ -26,6 +26,7 @@ import { useArtworkDetailPage } from "@/features/(user)/profile/subfeatures/artw
 import ArtworkDetailPageSkeleton from "./PageSkeleton";
 import { DownloadCertificateButton } from "./DownloadCertificateButton";
 import { SimilarityReportSection } from "@/features/(user)/profile/components/SimilarityReportSection";
+import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 
 type Props = {
     id: string;
@@ -136,9 +137,22 @@ export default function ArtworkDetailPage({ id }: Props) {
                         <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                             Artwork Registration Record
                         </span>
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                            #{id.slice(0, 8).toUpperCase()}
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-mono text-muted-foreground">
+                                #{id.slice(0, 8).toUpperCase()}
+                            </span>
+                            <ArtworkActionsMenu
+                                artId={art.id}
+                                title={art.title}
+                                description={art.description ?? null}
+                                status={art.status}
+                                txHash={art.txHash}
+                                chain={art.chain}
+                                workId={art.workId}
+                                blockNumber={art.blockNumber}
+                                redirectOnDelete="/profile"
+                            />
+                        </div>
                     </div>
 
                     <div className="p-6 md:p-8">

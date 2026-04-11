@@ -37,6 +37,7 @@ import {
 } from "../utils";
 import { MetricCard } from "./MetricCard";
 import { SimilarityReportSection } from "@/features/(user)/profile/components/SimilarityReportSection";
+import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 
 type Props = {
     id: string;
@@ -131,7 +132,7 @@ export default function IssueDetailPage({ id }: Props) {
                     className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-8"
                 >
                     <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-                    Back to issues
+                    Back to profile
                 </Link>
 
                 <div className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]">
@@ -154,16 +155,30 @@ export default function IssueDetailPage({ id }: Props) {
                         </div>
 
                         <div className="p-5 md:p-6">
-                            <div className="mb-4 flex flex-wrap items-center gap-2">
-                                <ArtworkStatusBadge status={issue.status} />
-                                <span className="inline-flex items-center rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                                    {issue.category}
-                                </span>
-                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                                    <Calendar className="w-3 h-3" />
-                                    {issue.uploadDate}
-                                </span>
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <ArtworkStatusBadge status={issue.status} />
+                                    <span className="inline-flex items-center rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                                        {issue.category}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                                        <Calendar className="w-3 h-3" />
+                                        {issue.uploadDate}
+                                    </span>
+                                </div>
+                                <ArtworkActionsMenu
+                                    artId={issue.id}
+                                    title={issue.title}
+                                    description={issue.description ?? null}
+                                    status={issue.status}
+                                    txHash={issue.txHash}
+                                    chain={issue.chain}
+                                    workId={issue.workId}
+                                    blockNumber={issue.blockNumber}
+                                    redirectOnDelete="/profile/issues"
+                                />
                             </div>
+
 
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground mb-2">
                                 {issue.title}
