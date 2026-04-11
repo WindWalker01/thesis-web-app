@@ -7,8 +7,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   CloudUpload,
+  Database,
   ExternalLink,
   FileImage,
+  Globe,
   ImageIcon,
   Loader2,
   ShieldCheck,
@@ -78,6 +80,23 @@ export default function UploadArtworkPage() {
     processingState === "processing" ||
     processingState === "success" ||
     processingState === "error";
+
+  const similarityValue =
+    typeof similarityReport?.similarityPercentage === "number"
+      ? `${similarityReport.similarityPercentage.toFixed(2)}%`
+      : "N/A";
+
+  const matchTypeLabel =
+    similarityReport?.type === "database"
+      ? "Database match"
+      : similarityReport?.type === "internet"
+        ? "Web match"
+        : "Detected match";
+
+  const matchPreviewUrl = similarityReport?.previewImageUrl ?? null;
+
+  console.log("SIMILARITY REPORT UI DEBUG", similarityReport);
+  console.log("MATCH PREVIEW URL UI DEBUG", matchPreviewUrl);
 
   return (
     <main className="bg-background min-h-screen">
@@ -429,7 +448,8 @@ export default function UploadArtworkPage() {
                   currentMessage={processingMessage}
                 />
 
-                {processingState === "success" && similarityReport ? (
+                {(processingState === "success" || processingState === "error") &&
+                  similarityReport ? (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -437,21 +457,36 @@ export default function UploadArtworkPage() {
                         Similarity report
                       </CardTitle>
                       <CardDescription>
-                        Your upload was recorded. The similarity result below may
-                        help explain why your artwork was flagged or placed under
-                        review.
+                        This shows the strongest detected match from either your
+                        internal artwork database or an online source.
                       </CardDescription>
                     </CardHeader>
 
                     <CardContent className="space-y-4">
-                      <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-lg border p-3">
                           <p className="text-muted-foreground text-xs">
                             Similarity
                           </p>
                           <p className="text-lg font-semibold">
-                            {similarityReport.similarityPercentage ?? "N/A"}%
+                            {similarityValue}
                           </p>
+                        </div>
+
+                        <div className="rounded-lg border p-3">
+                          <p className="text-muted-foreground text-xs">
+                            Match type
+                          </p>
+                          <div className="mt-1 flex items-center gap-2">
+                            {similarityReport.type === "database" ? (
+                              <Database className="h-4 w-4" />
+                            ) : (
+                              <Globe className="h-4 w-4" />
+                            )}
+                            <p className="text-lg font-semibold">
+                              {matchTypeLabel}
+                            </p>
+                          </div>
                         </div>
 
                         <div className="rounded-lg border p-3">
@@ -462,47 +497,65 @@ export default function UploadArtworkPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-3 rounded-lg border p-4">
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Match link
-                          </p>
-                          {similarityReport.link ? (
-                            <Link
-                              href={similarityReport.link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
-                            >
-                              {similarityReport.link}
-                              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                            </Link>
-                          ) : (
-                            <p className="text-sm">No link available.</p>
-                          )}
+                      {matchPreviewUrl ? (
+                        <div className="overflow-hidden rounded-xl border">
+                          <div className="relative aspect-[4/3] w-full bg-muted">
+                            <Image
+                              src={matchPreviewUrl}
+                              alt="Matched artwork preview"
+                              fill
+                              unoptimized
+                              className="object-contain"
+                            />
+                          </div>
                         </div>
+                      ) : (
+                        <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                          No matched preview image is available for this result.
+                        </div>
+                      )}
 
-                        <div>
-                          <p className="text-muted-foreground text-xs">
-                            Matched image URL
-                          </p>
-                          {similarityReport.url ? (
-                            <Link
-                              href={similarityReport.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
-                            >
-                              {similarityReport.url}
-                              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                            </Link>
-                          ) : (
-                            <p className="text-sm">
-                              No matched image URL available.
+                      {similarityReport.type === "internet" ? (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-2 rounded-lg border p-4">
+                            <p className="text-muted-foreground text-xs">
+                              Reference link
                             </p>
-                          )}
+                            {similarityReport.link ? (
+                              <Link
+                                href={similarityReport.link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
+                              >
+                                {similarityReport.link}
+                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                              </Link>
+                            ) : (
+                              <p className="text-sm">No link available.</p>
+                            )}
+                          </div>
+
+                          <div className="space-y-2 rounded-lg border p-4">
+                            <p className="text-muted-foreground text-xs">
+                              Image reference
+                            </p>
+                            {similarityReport.url ? (
+                              <Link
+                                href={similarityReport.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
+                              >
+                                {similarityReport.url}
+                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                              </Link>
+                            ) : (
+                              <p className="text-sm">No image URL available.</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      ) : <></>}
                     </CardContent>
                   </Card>
                 ) : null}

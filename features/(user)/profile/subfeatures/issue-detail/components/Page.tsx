@@ -9,8 +9,6 @@ import {
     FileWarning,
     Fingerprint,
     Hash,
-    Link2,
-    ScanSearch,
     ScrollText,
     ShieldAlert,
     ShieldX,
@@ -18,15 +16,14 @@ import {
     XCircle,
     Ban,
     Boxes,
+    ExternalLink,
 } from "lucide-react";
-
 
 import { useIssueDetailPage } from "../hooks/useIssueDetailPage";
 import type { ArtworkStatus } from "../../../types";
 import { formatUploadDate } from "../../..";
 import { SectionHeader } from "../../artwork-detail/components/SectionHeader";
 import { EmptyState } from "./EmptyState";
-import { LinkButton } from "./LinkButton";
 import { HashRow } from "./HashRow";
 import { InfoRow } from "./InfoRow";
 import IssueDetailPageSkeleton from "./PageSkeleton";
@@ -36,13 +33,30 @@ import {
     getIssueExplanation,
     buildChainTxUrl,
     formatPercentage,
-    formatIssueMetric
+    formatIssueMetric,
 } from "../utils";
 import { MetricCard } from "./MetricCard";
+import { SimilarityReportSection } from "@/features/(user)/profile/components/SimilarityReportSection";
+import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 
 type Props = {
     id: string;
 };
+
+function getStatusIcon(status: ArtworkStatus) {
+    switch (status) {
+        case "flagged":
+            return <ShieldAlert className="w-4 h-4" />;
+        case "removed":
+            return <ShieldX className="w-4 h-4" />;
+        case "blockchain_failed":
+            return <XCircle className="w-4 h-4" />;
+        case "revoked":
+            return <Ban className="w-4 h-4" />;
+        default:
+            return <ShieldAlert className="w-4 h-4" />;
+    }
+}
 
 export default function IssueDetailPage({ id }: Props) {
     const { issue, isLoading, error, refetch } = useIssueDetailPage(id);
@@ -60,7 +74,7 @@ export default function IssueDetailPage({ id }: Props) {
                         className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
                     >
                         <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-                        Back to issues
+                        Back to profile
                     </Link>
 
                     <div className="rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-8">
@@ -98,20 +112,9 @@ export default function IssueDetailPage({ id }: Props) {
             ? JSON.stringify(issue.plagiarismHashes, null, 2)
             : null;
 
-    const similarityHashesText =
-        similarity?.hashes !== null && similarity?.hashes !== undefined
-            ? JSON.stringify(similarity.hashes, null, 2)
-            : null;
-
-    const rawScanText =
-        similarity?.rawResponse !== null && similarity?.rawResponse !== undefined
-            ? JSON.stringify(similarity.rawResponse, null, 2)
-            : null;
-
     const explanation = getIssueExplanation({
         status: issue.status,
-        similarityPercentage: similarity?.bestSimilarityPercentage ?? null,
-        totalMatches: similarity?.totalMatches ?? 0,
+        similarityReport: issue.similarityReport,
         latestReport,
         hasTxHash: !!issue.txHash,
     });
@@ -129,7 +132,7 @@ export default function IssueDetailPage({ id }: Props) {
                     className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-8"
                 >
                     <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
-                    Back to issues
+                    Back to profile
                 </Link>
 
                 <div className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]">
@@ -152,16 +155,30 @@ export default function IssueDetailPage({ id }: Props) {
                         </div>
 
                         <div className="p-5 md:p-6">
-                            <div className="mb-4 flex flex-wrap items-center gap-2">
-                                <ArtworkStatusBadge status={issue.status} />
-                                <span className="inline-flex items-center rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                                    {issue.category}
-                                </span>
-                                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                                    <Calendar className="w-3 h-3" />
-                                    {issue.uploadDate}
-                                </span>
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <ArtworkStatusBadge status={issue.status} />
+                                    <span className="inline-flex items-center rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                                        {issue.category}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                                        <Calendar className="w-3 h-3" />
+                                        {issue.uploadDate}
+                                    </span>
+                                </div>
+                                <ArtworkActionsMenu
+                                    artId={issue.id}
+                                    title={issue.title}
+                                    description={issue.description ?? null}
+                                    status={issue.status}
+                                    txHash={issue.txHash}
+                                    chain={issue.chain}
+                                    workId={issue.workId}
+                                    blockNumber={issue.blockNumber}
+                                    redirectOnDelete="/profile/issues"
+                                />
                             </div>
+
 
                             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground mb-2">
                                 {issue.title}
@@ -188,7 +205,7 @@ export default function IssueDetailPage({ id }: Props) {
                                 </div>
                             </div>
 
-                            {issue.creator && (
+                            {issue.creator ? (
                                 <div className="mt-5 rounded-2xl border border-border bg-background/60 p-4">
                                     <div className="flex items-center gap-3">
                                         <div className="rounded-xl border border-border bg-card p-2">
@@ -208,7 +225,7 @@ export default function IssueDetailPage({ id }: Props) {
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                     </section>
 
@@ -225,9 +242,9 @@ export default function IssueDetailPage({ id }: Props) {
                                     icon={getStatusIcon(issue.status)}
                                 />
                                 <MetricCard
-                                    label="Similarity"
-                                    value={formatPercentage(similarity?.bestSimilarityPercentage ?? null)}
-                                    icon={<ScanSearch className="w-4 h-4" />}
+                                    label="Best Similarity"
+                                    value={formatPercentage(issue.similarityReport?.bestMatch?.similarity ?? null)}
+                                    icon={<Boxes className="w-4 h-4" />}
                                 />
                                 <MetricCard
                                     label="Matches Found"
@@ -244,54 +261,42 @@ export default function IssueDetailPage({ id }: Props) {
 
                         <section className="rounded-3xl border border-border/70 bg-card/85 backdrop-blur-xl overflow-hidden">
                             <SectionHeader
-                                icon={<ScanSearch className="w-4 h-4" />}
-                                title="Similarity Scan"
+                                icon={<Hash className="w-4 h-4" />}
+                                title="Stored Record Snapshot"
                             />
-                            <div className="p-4 md:p-5 space-y-3">
-                                <InfoRow label="Scan status" value={similarity?.status ?? "No stored scan"} />
+                            <div className="grid gap-3 p-4 md:p-5">
+                                <InfoRow label="Ownership status" value={issue.ownershipStatus} />
+                                <InfoRow label="Hash status" value={issue.hashStatus} />
+                                <InfoRow label="Artwork status" value={issue.status} />
+                                <InfoRow label="Uploaded" value={issue.uploadDate} />
+                                <InfoRow label="Chain" value={issue.chain ?? "No chain recorded"} />
+                                <InfoRow label="Work ID" value={issue.workId ?? "No work ID"} />
                                 <InfoRow
-                                    label="Scan success"
-                                    value={
-                                        similarity ? (similarity.success ? "Yes" : "No") : "No stored scan"
-                                    }
-                                />
-                                <InfoRow
-                                    label="Best source"
-                                    value={similarity?.bestSource ?? "No source recorded"}
-                                />
-                                <InfoRow
-                                    label="Best matched pair"
-                                    value={similarity?.bestMatchPair ?? "No pair recorded"}
-                                />
-                                <InfoRow
-                                    label="Original hash"
-                                    value={similarity?.originalHash ?? "No original hash"}
+                                    label="Transaction hash"
+                                    value={issue.txHash ?? "No transaction hash"}
                                 />
 
-                                <div className="flex gap-2">
-                                    {similarity?.bestLink && (
-                                        <LinkButton href={similarity.bestLink} label="Open best match link" />
-                                    )}
-
-                                    {similarity?.bestUrl && (
-                                        <LinkButton href={similarity.bestUrl} label="Open best match URL" />
-                                    )}
-                                </div>
-
-
-                                {similarity?.errorMessage && (
-                                    <div className="rounded-xl border border-red-500/20 bg-red-500/8 p-3">
-                                        <p className="text-xs font-semibold uppercase tracking-widest text-red-500 mb-1">
-                                            Scan error
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {similarity.errorMessage}
-                                        </p>
-                                    </div>
-                                )}
+                                {txUrl ? (
+                                    <a
+                                        href={txUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex w-fit items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-2 text-sm font-semibold text-blue-500 hover:bg-blue-500/15 transition-colors"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        View blockchain transaction
+                                    </a>
+                                ) : null}
                             </div>
                         </section>
                     </div>
+                </div>
+
+                <div className="mt-6">
+                    <SimilarityReportSection
+                        scan={issue.similarityScan}
+                        report={issue.similarityReport}
+                    />
                 </div>
 
                 <div className="grid gap-6 mt-6 lg:grid-cols-2">
@@ -308,7 +313,7 @@ export default function IssueDetailPage({ id }: Props) {
                                             key={report.id}
                                             className="rounded-2xl border border-border bg-background/60 p-4"
                                         >
-                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                            <div className="mb-2 flex flex-wrap items-center gap-2">
                                                 <span className="inline-flex rounded-full border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-foreground">
                                                     {report.reportType.replaceAll("_", " ")}
                                                 </span>
@@ -317,18 +322,21 @@ export default function IssueDetailPage({ id }: Props) {
                                                 </span>
                                             </div>
 
-                                            <p className="text-sm font-semibold text-foreground mb-1">
+                                            <p className="mb-1 text-sm font-semibold text-foreground">
                                                 {report.title}
                                             </p>
-                                            <p className="text-sm leading-6 text-muted-foreground">
+                                            <p className="mb-3 text-sm leading-6 text-muted-foreground">
                                                 {report.description}
                                             </p>
 
-                                            <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-                                                <span>Created: {formatUploadDate(report.createdAt)}</span>
-                                                {report.resolvedAt && (
-                                                    <span>Resolved: {formatUploadDate(report.resolvedAt)}</span>
-                                                )}
+                                            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                                                <span>Created {formatUploadDate(report.createdAt)}</span>
+                                                <span>
+                                                    Resolved{" "}
+                                                    {report.resolvedAt
+                                                        ? formatUploadDate(report.resolvedAt)
+                                                        : "Not yet"}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}
@@ -339,115 +347,60 @@ export default function IssueDetailPage({ id }: Props) {
                         </div>
                     </section>
 
-                    <section className="rounded-3xl border border-border/70 bg-card/85 backdrop-blur-xl overflow-hidden">
-                        <SectionHeader
-                            icon={<Hash className="w-4 h-4" />}
-                            title="Hashes & Ownership Evidence"
-                        />
-                        <div className="p-4 md:p-5 space-y-3">
-                            <HashRow label="File Hash" value={issue.fileHash} />
-                            <HashRow label="Perceptual Hash" value={issue.perceptualHash} />
-                            <HashRow label="Author ID Hash" value={issue.authorIdHash} />
-                            <HashRow label="Evidence Hash" value={issue.evidenceHash} />
+                    <TechnicalDetailsToggle
+                        title="Artwork hashes and technical issue details"
+                        description="Review the stored artwork hashes, evidence payload, and saved plagiarism metadata for this issue."
+                    >
+                        <div className="space-y-6">
+                            <div>
+                                <div className="mb-3 flex items-center gap-2">
+                                    <Fingerprint className="w-4 h-4 text-primary" />
+                                    <p className="text-sm font-bold text-foreground">Artwork hashes</p>
+                                </div>
+
+                                <div className="grid gap-3 md:grid-cols-2">
+                                    <HashRow label="File hash" value={issue.fileHash || null} />
+                                    <HashRow label="Perceptual hash" value={issue.perceptualHash || null} />
+                                    <HashRow label="Author ID hash" value={issue.authorIdHash} />
+                                    <HashRow label="Evidence hash" value={issue.evidenceHash} />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="mb-3 flex items-center gap-2">
+                                    <ScrollText className="w-4 h-4 text-primary" />
+                                    <p className="text-sm font-bold text-foreground">Evidence payload</p>
+                                </div>
+
+                                {evidenceText ? (
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                        {evidenceText}
+                                    </pre>
+                                ) : (
+                                    <EmptyState text="No stored evidence payload is available for this issue." />
+                                )}
+                            </div>
+
+                            <div>
+                                <div className="mb-3 flex items-center gap-2">
+                                    <Hash className="w-4 h-4 text-primary" />
+                                    <p className="text-sm font-bold text-foreground">
+                                        Plagiarism hashes payload
+                                    </p>
+                                </div>
+
+                                {plagiarismText ? (
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                        {plagiarismText}
+                                    </pre>
+                                ) : (
+                                    <EmptyState text="No extra plagiarism hashes payload is stored for this issue." />
+                                )}
+                            </div>
                         </div>
-                    </section>
-                </div>
-
-                <div className="grid gap-6 mt-6 lg:grid-cols-2 items-start">
-                    <section className="rounded-3xl border border-border/70 bg-card/85 backdrop-blur-xl overflow-hidden">
-                        <SectionHeader
-                            icon={<Link2 className="w-4 h-4" />}
-                            title="Blockchain Record"
-                        />
-                        <div className="p-4 md:p-5 space-y-3">
-                            <InfoRow label="Chain" value={issue.chain ?? "No chain recorded"} />
-                            <InfoRow label="Transaction Hash" value={issue.txHash ?? "No transaction hash"} />
-                            <InfoRow
-                                label="Block Number"
-                                value={issue.blockNumber !== null ? String(issue.blockNumber) : "No block number"}
-                            />
-                            <InfoRow label="Work ID" value={issue.workId ?? "No work ID"} />
-
-                            {txUrl && <LinkButton href={txUrl} label="View on chain" />}
-                        </div>
-                    </section>
-
-                    <section className="rounded-3xl border border-border/70 bg-card/85 backdrop-blur-xl overflow-hidden">
-                        <SectionHeader
-                            icon={<Fingerprint className="w-4 h-4" />}
-                            title="Stored Technical Payloads"
-                        />
-                        <div className="p-4 md:p-5 space-y-3">
-                            <TechnicalDetailsToggle
-                                title="Evidence JSON"
-                                description="Stored ownership or supporting evidence payload."
-                            >
-                                {evidenceText && (
-                                    <div className="p-2">
-                                        <pre className="rounded-xl border border-border bg-background/70 p-4 text-[11px] text-muted-foreground overflow-auto whitespace-pre-wrap leading-6 max-h-80">
-                                            {evidenceText}
-                                        </pre>
-                                    </div>
-                                )}
-                            </TechnicalDetailsToggle>
-
-                            <TechnicalDetailsToggle
-                                title="Plagiarism Hashes"
-                                description="Saved plagiarism-related payload stored on the artwork record."
-                            >
-                                {plagiarismText && (
-                                    <div className="p-2">
-                                        <pre className="rounded-xl border border-border bg-background/70 p-4 text-[11px] text-muted-foreground overflow-auto whitespace-pre-wrap leading-6 max-h-80">
-                                            {plagiarismText}
-                                        </pre>
-                                    </div>
-                                )}
-                            </TechnicalDetailsToggle>
-
-                            <TechnicalDetailsToggle
-                                title="Similarity Hashes"
-                                description="Hash payload returned by the similarity scan."
-                            >
-                                {similarityHashesText && (
-                                    <div className="p-2">
-                                        <pre className="rounded-xl border border-border bg-background/70 p-4 text-[11px] text-muted-foreground overflow-auto whitespace-pre-wrap leading-6 max-h-80">
-                                            {similarityHashesText}
-                                        </pre>
-                                    </div>
-                                )}
-                            </TechnicalDetailsToggle>
-
-                            <TechnicalDetailsToggle
-                                title="Raw Similarity Response"
-                                description="Raw response of the saved similarity scan."
-                            >
-                                {rawScanText && (
-                                    <div className="p-2">
-                                        <pre className="rounded-xl border border-border bg-background/70 p-4 text-[11px] text-muted-foreground overflow-auto whitespace-pre-wrap leading-6 max-h-80">
-                                            {rawScanText}
-                                        </pre>
-                                    </div>
-                                )}
-                            </TechnicalDetailsToggle>
-                        </div>
-                    </section>
+                    </TechnicalDetailsToggle>
                 </div>
             </div>
         </main>
     );
-}
-
-function getStatusIcon(status: ArtworkStatus) {
-    switch (status) {
-        case "flagged":
-            return <AlertTriangle className="w-4 h-4" />;
-        case "removed":
-            return <ShieldX className="w-4 h-4" />;
-        case "blockchain_failed":
-            return <XCircle className="w-4 h-4" />;
-        case "revoked":
-            return <Ban className="w-4 h-4" />;
-        default:
-            return <ShieldAlert className="w-4 h-4" />;
-    }
 }

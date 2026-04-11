@@ -16,6 +16,7 @@ export type ProfileScope = "gallery" | "issues";
 export type Artwork = {
   id: string;
   title: string;
+  description: string | null;
   img: string | null;
   category: string;
   uploadDate: string;
@@ -24,6 +25,15 @@ export type Artwork = {
   color: string;
   createdAt: string;
   status: ArtworkStatus;
+
+  txHash: string | null;
+  chain: string | null;
+  workId: string | null;
+  blockNumber: number | null;
+
+  hasBlockchainRecord: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 export type Profile = {
@@ -50,6 +60,40 @@ export type FilterState = {
   sortBy: string;
 };
 
+export type SimilaritySourceType = "database" | "internet";
+
+export type SimilarityMatch = {
+  type: SimilaritySourceType;
+  source: string | null;
+  url: string | null;
+  link: string | null;
+  similarity: number | null;
+  imageUrl?: string | null;
+  title?: string | null;
+};
+
+export type SimilarityHashValue = {
+  dhash?: string;
+  phash?: string;
+  whash?: string;
+};
+
+export type SimilarityHashes = {
+  blocks?: Record<string, SimilarityHashValue> | null;
+  transforms?: Record<string, SimilarityHashValue> | null;
+};
+
+export type SimilarityReport = {
+  filename: string | null;
+  originalHash: string | null;
+  success: boolean;
+  dbMatch: SimilarityMatch | null;
+  webMatch: SimilarityMatch | null;
+  bestMatch: SimilarityMatch | null;
+  hashes: SimilarityHashes | null;
+  rawResponse: unknown | null;
+};
+
 export type ArtworkDetail = {
   id: string;
   ownerId: string;
@@ -74,6 +118,10 @@ export type ArtworkDetail = {
   workId: string | null;
   status: string;
 
+  hasBlockchainRecord: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+
   plagiarismHashes: unknown | null;
 
   creator: {
@@ -82,6 +130,9 @@ export type ArtworkDetail = {
     username: string;
     profileImage: string | null;
   } | null;
+
+  similarityScan: IssueSimilarityScan | null;
+  similarityReport: SimilarityReport | null;
 };
 
 export type IssueReport = {
@@ -153,6 +204,7 @@ export type IssueDetail = {
   } | null;
 
   similarityScan: IssueSimilarityScan | null;
+  similarityReport: SimilarityReport | null;
   reports: IssueReport[];
 };
 

@@ -1,28 +1,44 @@
-import type { ArtworkStatus, IssueReport } from "../../types";
+import type { ArtworkStatus, IssueReport, SimilarityReport } from "../../types";
+import { formatSimilarityPercentage } from "../../lib/similarity-report";
 
 export function getIssueExplanation({
     status,
-    similarityPercentage,
-    totalMatches,
+    similarityReport,
     latestReport,
     hasTxHash,
 }: {
     status: ArtworkStatus;
-    similarityPercentage: number | null;
-    totalMatches: number;
+    similarityReport: SimilarityReport | null;
     latestReport: IssueReport | null;
     hasTxHash: boolean;
 }) {
+    const best = similarityReport?.bestMatch ?? null;
+    const db = similarityReport?.dbMatch ?? null;
+    const web = similarityReport?.webMatch ?? null;
+
     if (status === "flagged") {
-        if (similarityPercentage !== null) {
-            return `This artwork was flagged for review because the stored similarity scan detected a notable similarity result of ${Number(
-                similarityPercentage
-            ).toFixed(
-                2
-            )}% and found ${totalMatches} potential match${totalMatches === 1 ? "" : "es"}. This should be treated as a review signal, not as automatic proof of infringement.`;
+        if (best) {
+            const sourceText =
+                best.type === "internet"
+                    ? `an internet source${best.source ? ` (${best.source})` : ""}`
+                    : "a registered artwork in the database";
+
+            let extra = "";
+
+            if (db && web) {
+                extra = ` Both internal and external matches were saved, which is why this case needs manual review.`;
+            } else if (web) {
+                extra = ` The saved scan suggests the strongest signal came from outside the platform.`;
+            } else if (db) {
+                extra = ` The saved scan suggests the strongest signal came from another registered artwork.`;
+            }
+
+            return `This artwork was flagged for review because the saved similarity scan detected its strongest match from ${sourceText} at ${formatSimilarityPercentage(
+                best.similarity
+            )}.${extra} This should be treated as a review signal, not automatic proof of infringement.`;
         }
 
-        return "This artwork was flagged for review because the system recorded an issue-state artwork with a saved similarity scan or review signal. It should be inspected manually before any final moderation conclusion.";
+        return "This artwork was flagged for review because the system recorded a saved similarity scan or moderation signal that needs manual inspection before any final conclusion.";
     }
 
     if (status === "removed") {
@@ -71,7 +87,6 @@ export function buildChainTxUrl(chain: string, txHash: string) {
 
     return `https://amoy.polygonscan.com/tx/${txHash}`;
 }
-
 
 export function formatPercentage(value: number | null): string {
     return value === null ? "N/A" : `${Number(value).toFixed(2)}%`;

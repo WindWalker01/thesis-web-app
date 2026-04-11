@@ -195,6 +195,8 @@ export function useUploadArtworkForm() {
 
       const dbResult = await recordArtworkInDatabase(formData);
 
+      setSimilarityReport(dbResult.similarityReport ?? null);
+
       if (!dbResult.success) {
         setStepStatus(STEP_KEYS.review, "error");
         setProcessingState("error");
@@ -202,8 +204,6 @@ export function useUploadArtworkForm() {
         form.setError("root", { message: dbResult.message });
         return;
       }
-
-      setSimilarityReport(dbResult.similarityReport ?? null);
 
       if (dbResult.artworkStatus === "flagged") {
         updateStepText(
@@ -272,7 +272,7 @@ export function useUploadArtworkForm() {
           "Recording your artwork on blockchain and finalizing protection...",
         );
 
-        /* const blockchainResult = await recordArtworkOnBlockchain({
+        const blockchainResult = await recordArtworkOnBlockchain({
           artworkId: dbResult.artworkId,
           authorIdHash: dbResult.authorIdHash,
           fileHash: dbResult.fileHash,
@@ -286,7 +286,7 @@ export function useUploadArtworkForm() {
           setProcessingMessage(blockchainResult.message);
           form.setError("root", { message: blockchainResult.message });
           return;
-        } */
+        }
 
         updateStepText(
           STEP_KEYS.protect,
