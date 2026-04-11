@@ -16,6 +16,7 @@ export type ProfileScope = "gallery" | "issues";
 export type Artwork = {
   id: string;
   title: string;
+  description: string | null;
   img: string | null;
   category: string;
   uploadDate: string;
@@ -24,6 +25,15 @@ export type Artwork = {
   color: string;
   createdAt: string;
   status: ArtworkStatus;
+
+  txHash: string | null;
+  chain: string | null;
+  workId: string | null;
+  blockNumber: number | null;
+
+  hasBlockchainRecord: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 export type Profile = {
@@ -107,6 +117,10 @@ export type ArtworkDetail = {
   blockNumber: number | null;
   workId: string | null;
   status: string;
+
+  hasBlockchainRecord: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 
   plagiarismHashes: unknown | null;
 

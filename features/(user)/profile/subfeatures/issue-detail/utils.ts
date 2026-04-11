@@ -1,5 +1,5 @@
 import type { ArtworkStatus, IssueReport, SimilarityReport } from "../../types";
-import { formatSimilarityPercentage } from "../../server/similarity-report";
+import { formatSimilarityPercentage } from "../../lib/similarity-report";
 
 export function getIssueExplanation({
     status,

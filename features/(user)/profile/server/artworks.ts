@@ -8,6 +8,11 @@ import {
   mapHashStatus,
   mapOwnershipStatus,
 } from "..";
+import {
+  canDeleteArtwork,
+  canEditArtwork,
+  hasBlockchainRecord,
+} from "../lib/artwork-permissions";
 
 type FetchArtworksResult =
   | { success: true; artworks: Artwork[] }
@@ -16,11 +21,15 @@ type FetchArtworksResult =
 type RawArtworkRow = {
   id: string;
   title: string;
+  description: string | null;
   c_secure_url: string | null;
   status: ArtworkStatus;
   created_at: string;
   tx_hash: string | null;
   perceptual_hash: string | null;
+  chain: string | null;
+  block_number: number | null;
+  work_id: string | null;
 };
 
 type RawArtGenreRow = {
@@ -53,14 +62,18 @@ export async function fetchCurrentUserArtworks(
     const { data: arts, error: artsError } = await supabase
       .from("registered_arts")
       .select(`
-        id,
-        title,
-        c_secure_url,
-        status,
-        created_at,
-        tx_hash,
-        perceptual_hash
-      `)
+                id,
+                title,
+                description,
+                c_secure_url,
+                status,
+                created_at,
+                tx_hash,
+                perceptual_hash,
+                chain,
+                block_number,
+                work_id
+            `)
       .eq("owner_id", user.id)
       .in("status", allowedStatuses)
       .order("created_at", { ascending: false });
@@ -101,27 +114,33 @@ export async function fetchCurrentUserArtworks(
       genres = (data ?? []) as RawGenreRow[];
     }
 
-    const genreNameById = new Map<number, string>(
-      genres.map((g) => [g.id, g.name])
-    );
-
-    const genresByArtId = new Map<string, string[]>();
+    const genreMap = new Map(genres.map((genre) => [genre.id, genre.name]));
+    const genreByArtId = new Map<string, string[]>();
 
     for (const row of (artGenres ?? []) as RawArtGenreRow[]) {
-      const genreName = genreNameById.get(row.genre_id);
-      if (!genreName) continue;
+      const existing = genreByArtId.get(row.art_id) ?? [];
+      const genreName = genreMap.get(row.genre_id);
 
-      const current = genresByArtId.get(row.art_id) ?? [];
-      current.push(genreName);
-      genresByArtId.set(row.art_id, current);
+      if (genreName) {
+        existing.push(genreName);
+      }
+
+      genreByArtId.set(row.art_id, existing);
     }
 
     const artworks: Artwork[] = ((arts ?? []) as RawArtworkRow[]).map((raw) => {
-      const storedGenres = genresByArtId.get(raw.id) ?? [];
+      const storedGenres = genreByArtId.get(raw.id) ?? [];
+      const blockchainRecorded = hasBlockchainRecord({
+        txHash: raw.tx_hash,
+        chain: raw.chain,
+        blockNumber: raw.block_number,
+        workId: raw.work_id,
+      });
 
       return {
         id: raw.id,
         title: raw.title,
+        description: raw.description,
         img: raw.c_secure_url,
         category: storedGenres[0] ?? "Uncategorized",
         uploadDate: formatUploadDate(raw.created_at),
@@ -130,6 +149,27 @@ export async function fetchCurrentUserArtworks(
         hashStatus: mapHashStatus(raw.perceptual_hash),
         color: "from-slate-600 to-slate-800",
         status: raw.status,
+
+        txHash: raw.tx_hash,
+        chain: raw.chain,
+        workId: raw.work_id,
+        blockNumber: raw.block_number,
+
+        hasBlockchainRecord: blockchainRecorded,
+        canEdit: canEditArtwork({
+          status: raw.status,
+          txHash: raw.tx_hash,
+          chain: raw.chain,
+          blockNumber: raw.block_number,
+          workId: raw.work_id,
+        }),
+        canDelete: canDeleteArtwork({
+          status: raw.status,
+          txHash: raw.tx_hash,
+          chain: raw.chain,
+          blockNumber: raw.block_number,
+          workId: raw.work_id,
+        }),
       };
     });
 

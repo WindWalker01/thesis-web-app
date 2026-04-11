@@ -27,7 +27,7 @@ import {
     formatSimilarityPercentage,
     getSimilarityLevel,
     getSimilaritySummary,
-} from "../server/similarity-report";
+} from "../lib/similarity-report";
 import { TechnicalDetailsToggle } from "../subfeatures/artwork-detail/components/TechnicalDetailsToggle";
 
 function SimilarityBadge({

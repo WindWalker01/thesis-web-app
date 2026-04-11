@@ -11,7 +11,12 @@ import { formatUploadDate, mapHashStatus, mapOwnershipStatus } from "../../..";
 import {
     buildSimilarityReport,
     enrichDatabaseMatchInReport,
-} from "../../../server/similarity-report";
+} from "../../../lib/similarity-report";
+import {
+    canDeleteArtwork,
+    canEditArtwork,
+    hasBlockchainRecord
+} from "../../../lib/artwork-permissions";
 
 type FetchArtworkDetailResult =
     | { success: true; artwork: ArtworkDetail }
@@ -255,6 +260,13 @@ function mapToArtworkDetail(
     similarityScan: IssueSimilarityScan | null,
     similarityReport: SimilarityReport | null
 ): ArtworkDetail {
+    const blockchainRecorded = hasBlockchainRecord({
+        txHash: raw.tx_hash,
+        chain: raw.chain,
+        blockNumber: raw.block_number,
+        workId: raw.work_id,
+    });
+
     return {
         id: raw.id,
         ownerId: raw.owner_id,
@@ -278,6 +290,22 @@ function mapToArtworkDetail(
         blockNumber: raw.block_number,
         workId: raw.work_id,
         status: raw.status,
+
+        hasBlockchainRecord: blockchainRecorded,
+        canEdit: canEditArtwork({
+            status: raw.status,
+            txHash: raw.tx_hash,
+            chain: raw.chain,
+            blockNumber: raw.block_number,
+            workId: raw.work_id,
+        }),
+        canDelete: canDeleteArtwork({
+            status: raw.status,
+            txHash: raw.tx_hash,
+            chain: raw.chain,
+            blockNumber: raw.block_number,
+            workId: raw.work_id,
+        }),
 
         plagiarismHashes: raw.plagiarism_hashes,
 

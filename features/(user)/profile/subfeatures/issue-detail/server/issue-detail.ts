@@ -18,7 +18,7 @@ import type {
 import {
     buildSimilarityReport,
     enrichDatabaseMatchInReport,
-} from "../../../server/similarity-report";
+} from "../../../lib/similarity-report";
 
 type FetchIssueDetailResult =
     | { success: true; issue: IssueDetail }
@@ -271,10 +271,10 @@ export async function fetchIssueDetailByArtworkId(
 
         let similarityReport = mappedScan
             ? buildSimilarityReport(mappedScan.rawResponse, {
-                  success: mappedScan.success,
-                  filename: mappedScan.filename,
-                  originalHash: mappedScan.originalHash,
-              })
+                success: mappedScan.success,
+                filename: mappedScan.filename,
+                originalHash: mappedScan.originalHash,
+            })
             : null;
 
         const dbArtworkId = similarityReport?.dbMatch?.url ?? null;
@@ -351,11 +351,11 @@ function mapToIssueDetail(
 
         creator: creator
             ? {
-                  id: creator.id,
-                  fullName: creator.full_name,
-                  username: `@${creator.username}`,
-                  profileImage: creator.c_profile_image,
-              }
+                id: creator.id,
+                fullName: creator.full_name,
+                username: `@${creator.username}`,
+                profileImage: creator.c_profile_image,
+            }
             : null,
 
         similarityScan,
