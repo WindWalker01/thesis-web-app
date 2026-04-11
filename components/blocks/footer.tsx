@@ -1,8 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
     FileClockIcon, Scale,
     Mail, Share2Icon, Globe, BookOpen, ShieldCheck,
-    FileText, Users, Blocks, AlertTriangle, MapPin, BrainCircuit,
+    FileText, Users, Blocks, MapPin, BrainCircuit, Link2,
 } from "lucide-react";
 
 export default function Footer() {
@@ -45,18 +46,22 @@ export default function Footer() {
                         </h4>
                         <ul className="space-y-3 text-sm text-slate-300 dark:text-slate-400">
                             {[
-                                { icon: FileText, label: "Artwork Registration" },
-                                { icon: ShieldCheck, label: "Proof of Authorship" },
-                                { icon: Blocks, label: "Plagiarism Detection" },
-                                { icon: Scale, label: "Ownership Verification" },
-                                { icon: Users, label: "Community Gallery" },
-                                { icon: FileClockIcon, label: "Dispute & Complaint Management" },
-                            ].map(({ icon: Icon, label }) => (
+                                { icon: FileText, label: "Artwork Registration", href: "/upload-artwork" },
+                                { icon: ShieldCheck, label: "Proof of Authorship", href: "/plagiarism-checker" },
+                                { icon: Blocks, label: "Plagiarism Detection", href: "/plagiarism-detection" },
+                                { icon: Scale, label: "Ownership Verification", href: "/ownership-verification" },
+                                { icon: Users, label: "Community Gallery", href: "/community" },
+                                { icon: FileClockIcon, label: "Dispute & Complaint Management", href: "/disputes" },
+                                { icon: Link2, label: "Blockchain Transactions", href: "/txs" },
+                            ].map(({ icon: Icon, label, href }) => (
                                 <li key={label}>
-                                    <a href="#" className="flex items-center gap-2 hover:text-blue-400 transition-colors group">
-                                        <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-blue-400 shrink-0" />
+                                    <Link
+                                        href={href}
+                                        className="flex items-center gap-2 transition-colors group hover:text-blue-400"
+                                    >
+                                        <Icon className="h-3.5 w-3.5 shrink-0 text-slate-400 group-hover:text-blue-400 dark:text-slate-500" />
                                         <span>{label}</span>
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>

@@ -57,6 +57,7 @@ const MORE_LINKS = [
   { label: "FAQ", href: "/#faq-section" },
   { label: "Terms of Use", href: "/terms-of-use" },
   { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Blockchain Transactions", href: "/txs" },
 ];
 
 export default function NavBar() {
