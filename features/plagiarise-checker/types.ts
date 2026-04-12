@@ -13,6 +13,8 @@ export interface SearchMatch {
   url: string;
   link?: string;
   similarity: number;
+  imageUrl?: string | null; // resolved Cloudinary URL (only for DB matches)
+  title?: string | null;    // resolved artwork title (only for DB matches)
 }
 
 export interface PlagiarismWebResult {

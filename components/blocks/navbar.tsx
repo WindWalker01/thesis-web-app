@@ -53,12 +53,12 @@ const NAV_LINKS: NavLink[] = [
 ];
 
 const MORE_LINKS = [
+  { label: "Verify Artwork", href: "/verify-artwork", requiresAuth: true },
+  { label: "Blockchain Transactions", href: "/txs" },
   { label: "About", href: "/about" },
   { label: "FAQ", href: "/#faq-section" },
   { label: "Terms of Use", href: "/terms-of-use" },
   { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Verify Artwork", href: "/verify-artwork", requiresAuth: true },
-  { label: "Blockchain Transactions", href: "/txs" },
 ];
 
 export default function NavBar() {

@@ -26,6 +26,10 @@ import {
   type SearchResponse,
 } from "@/features/plagiarise-checker";
 
+import { resolveDbArtworkById } from "../server/resolve-db-artwork";
+import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import { generatePlagiarismReportPdf } from "@/features/plagiarise-checker/lib/plagiarism-report";
+
 const API_BASE =
   process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL ?? "http://localhost:8000";
 
@@ -33,6 +37,7 @@ export default function PlagiarismCheckerPage() {
   const [mode, setMode] = useState<Mode>("web");
   const [stage, setStage] = useState<Stage>("upload");
   const [error, setError] = useState<string | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   // Web mode state
   const [webFile, setWebFile] = useState<File | null>(null);
@@ -44,9 +49,9 @@ export default function PlagiarismCheckerPage() {
   const [fileB, setFileB] = useState<File | null>(null);
   const [previewA, setPreviewA] = useState<string | null>(null);
   const [previewB, setPreviewB] = useState<string | null>(null);
-  const [compareResult, setCompareResult] = useState<CompareResponse | null>(
-    null,
-  );
+  const [compareResult, setCompareResult] = useState<CompareResponse | null>(null);
+
+  const { isAuthenticated } = useAuth();
 
   // Revoke all object URLs on unmount
   useEffect(() => {
@@ -69,7 +74,6 @@ export default function PlagiarismCheckerPage() {
 
     try {
       const form = new FormData();
-      // Backend param name: file
       form.append("file", file);
 
       const res = await fetch(`${API_BASE}/plagiarism/check/web`, {
@@ -83,13 +87,39 @@ export default function PlagiarismCheckerPage() {
       }
 
       const data: SearchResponse = await res.json();
+
+      // ── Enrich DB match: resolve UUID → Cloudinary imageUrl + title ──
+      if (data.db?.type === "database" && data.db.url) {
+        const resolved = await resolveDbArtworkById(data.db.url);
+        if (resolved) {
+          data.db = { ...data.db, imageUrl: resolved.imageUrl, title: resolved.title };
+          if (data.best_match?.type === "database") {
+            data.best_match = { ...data.best_match, imageUrl: resolved.imageUrl, title: resolved.title };
+          }
+        }
+      }
+
       setWebResult(data);
       setStage("result");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred.",
-      );
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       setStage("error");
+    }
+  };
+
+  // ── Export PDF ─────────────────────────────────────────────────────────────
+
+  const handleExportPdf = async () => {
+    if (!webResult) return;
+    setExportingPdf(true);
+    try {
+      await generatePlagiarismReportPdf({
+        result: webResult,
+        submittedImagePreview: webPreview ?? undefined,
+        checkedAt: new Date(),
+      });
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -127,7 +157,6 @@ export default function PlagiarismCheckerPage() {
 
     try {
       const form = new FormData();
-      // Backend param names: file1, file2
       form.append("file1", fileA);
       form.append("file2", fileB);
 
@@ -145,9 +174,7 @@ export default function PlagiarismCheckerPage() {
       setCompareResult(data);
       setStage("result");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred.",
-      );
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       setStage("error");
     }
   };
@@ -159,21 +186,9 @@ export default function PlagiarismCheckerPage() {
     setError(null);
     setWebResult(null);
     setCompareResult(null);
-    if (webPreview) {
-      URL.revokeObjectURL(webPreview);
-      setWebPreview(null);
-      setWebFile(null);
-    }
-    if (previewA) {
-      URL.revokeObjectURL(previewA);
-      setPreviewA(null);
-      setFileA(null);
-    }
-    if (previewB) {
-      URL.revokeObjectURL(previewB);
-      setPreviewB(null);
-      setFileB(null);
-    }
+    if (webPreview) { URL.revokeObjectURL(webPreview); setWebPreview(null); setWebFile(null); }
+    if (previewA) { URL.revokeObjectURL(previewA); setPreviewA(null); setFileA(null); }
+    if (previewB) { URL.revokeObjectURL(previewB); setPreviewB(null); setFileB(null); }
   };
 
   const handleModeChange = (m: Mode) => {
@@ -192,9 +207,7 @@ export default function PlagiarismCheckerPage() {
             <div className="mb-1 flex items-center gap-2">
               <span className="text-muted-foreground text-xs">Dashboard</span>
               <span className="text-muted-foreground/40 text-xs">›</span>
-              <span className="text-primary text-xs font-medium">
-                Plagiarism Analysis
-              </span>
+              <span className="text-primary text-xs font-medium">Plagiarism Analysis</span>
             </div>
             <h1 className="text-foreground text-2xl font-bold tracking-tight">
               Plagiarism Detection Analysis
@@ -205,22 +218,29 @@ export default function PlagiarismCheckerPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="gap-1.5"
-            >
+            <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5">
               <RotateCcw size={13} /> New Analysis
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Download size={13} /> Export PDF
-            </Button>
-            {stage === "result" && (
+
+            {/* Export PDF — only shown when web mode has results */}
+            {stage === "result" && mode === "web" && webResult && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={handleExportPdf}
+                disabled={exportingPdf}
+              >
+                <Download size={13} />
+                {exportingPdf ? "Generating..." : "Export PDF"}
+              </Button>
+            )}
+
+            {/*             {stage === "result" && isAuthenticated && (
               <Button variant="destructive" size="sm" className="gap-1.5">
                 <AlertTriangle size={13} /> Flag for Review
               </Button>
-            )}
+            )} */}
           </div>
         </div>
       </div>
@@ -232,13 +252,9 @@ export default function PlagiarismCheckerPage() {
           <ModeToggle mode={mode} onChange={handleModeChange} />
           <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
             {mode === "web" ? (
-              <>
-                <Globe size={12} /> Checks registered DB + web sources
-              </>
+              <><Globe size={12} /> Checks registered DB + web sources</>
             ) : (
-              <>
-                <ArrowLeftRight size={12} /> Direct image-to-image comparison
-              </>
+              <><ArrowLeftRight size={12} /> Direct image-to-image comparison</>
             )}
           </p>
         </div>
@@ -246,19 +262,11 @@ export default function PlagiarismCheckerPage() {
         {/* ── Error state ── */}
         {stage === "error" && (
           <div className="bg-destructive/10 border-destructive/30 flex items-start gap-4 rounded-2xl border p-6">
-            <AlertTriangle
-              size={20}
-              className="text-destructive mt-0.5 shrink-0"
-            />
+            <AlertTriangle size={20} className="text-destructive mt-0.5 shrink-0" />
             <div>
               <p className="text-foreground font-semibold">Analysis Failed</p>
               <p className="text-muted-foreground mt-1 text-sm">{error}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4 gap-1.5"
-                onClick={handleReset}
-              >
+              <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={handleReset}>
                 <RotateCcw size={12} /> Try Again
               </Button>
             </div>
@@ -269,9 +277,7 @@ export default function PlagiarismCheckerPage() {
         {mode === "web" && stage !== "error" && (
           <>
             {stage === "upload" && <WebModeUpload onUpload={handleWebUpload} />}
-            {stage === "analyzing" && (
-              <AnalyzingScreen progress={0} mode="web" indeterminate />
-            )}
+            {stage === "analyzing" && <AnalyzingScreen progress={0} mode="web" indeterminate />}
             {stage === "result" && webPreview && webResult && (
               <WebModeResult preview={webPreview} result={webResult} />
             )}
@@ -294,9 +300,7 @@ export default function PlagiarismCheckerPage() {
                 onCompare={handleCompare}
               />
             )}
-            {stage === "analyzing" && (
-              <AnalyzingScreen progress={0} mode="compare" indeterminate />
-            )}
+            {stage === "analyzing" && <AnalyzingScreen progress={0} mode="compare" indeterminate />}
             {stage === "result" && compareResult && previewA && previewB && (
               <CompareModeResult
                 previewA={previewA}
