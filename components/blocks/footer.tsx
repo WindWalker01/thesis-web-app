@@ -48,10 +48,10 @@ export default function Footer() {
                             {[
                                 { icon: FileText, label: "Artwork Registration", href: "/upload-artwork" },
                                 { icon: ShieldCheck, label: "Proof of Authorship", href: "/plagiarism-checker" },
-                                { icon: Blocks, label: "Plagiarism Detection", href: "/plagiarism-detection" },
-                                { icon: Scale, label: "Ownership Verification", href: "/ownership-verification" },
+                                { icon: Blocks, label: "Plagiarism Detection", href: "/plagiarism-checker" },
+                                { icon: Scale, label: "Ownership Verification", href: "/verify-artwork" },
                                 { icon: Users, label: "Community Gallery", href: "/community" },
-                                { icon: FileClockIcon, label: "Dispute & Complaint Management", href: "/disputes" },
+                                { icon: FileClockIcon, label: "Dispute & Complaint Management", href: "#" },
                                 { icon: Link2, label: "Blockchain Transactions", href: "/txs" },
                             ].map(({ icon: Icon, label, href }) => (
                                 <li key={label}>
