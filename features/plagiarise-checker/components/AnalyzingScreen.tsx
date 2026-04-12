@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Globe, ArrowLeftRight } from "lucide-react";
-import { Mode } from "./types";
+import { Mode } from "../types";
 
 interface AnalyzingScreenProps {
   progress?: number;

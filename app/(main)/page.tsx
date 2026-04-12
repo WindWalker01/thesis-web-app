@@ -10,13 +10,44 @@ import {
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+
+const faqs = [
+  {
+    q: "How does the protection process work?",
+    a: "When you upload a file, we generate a unique cryptographic hash that acts as a digital fingerprint. This fingerprint is then timestamped and recorded on our private blockchain network.",
+    open: true,
+  },
+  {
+    q: "Is this legally binding?",
+    a: "ArtForgeLab provides evidentiary documentation that can be used in legal proceedings to prove you had possession of the specific file at a specific time, supporting your copyright claims.",
+  },
+  {
+    q: "What file types do you support?",
+    a: "We support all standard digital media formats including PNG, JPG, TIFF, SVG, AI, and PSD.",
+  },
+  {
+    q: "Do I need a crypto wallet?",
+    a: "No. ArtForgeLab handles all blockchain interactions on your behalf. You simply upload your artwork and we take care of the rest no crypto knowledge required.",
+  },
+  {
+    q: "How long does verification take?",
+    a: "Proof of ownership is generated in under 60 seconds. Blockchain confirmation typically takes a few minutes depending on network conditions.",
+  },
+];
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
+
   const [collectorsRef, collectorsInView] = useInView({
     threshold: 0.3,
-    triggerOnce: false,
+    triggerOnce: true,
     delay: 100,
   });
+
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(
+    faqs.findIndex((faq) => faq.open) >= 0 ? faqs.findIndex((faq) => faq.open) : null
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -93,10 +124,10 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.3 }}
             >
               <Link
-                href="/register"
+                href={isAuthenticated ? "/upload-artwork" : "/register"}
                 className="bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-base hover:bg-blue-600 hover:scale-105 transition-all shadow-[0_0_28px_rgba(59,130,246,0.35)]"
               >
-                Sign Up
+                {isAuthenticated ? "Start Registration" : "Sign Up"}
               </Link>
               <Link
                 href="/about"
@@ -116,7 +147,6 @@ export default function Home() {
               {[
                 { value: "Perceptual Hash", label: "Artwork Similarity Detection" },
                 { value: "< 60s", label: "Proof Generated" },
-                { value: "R.A. 8293", label: "PH Law Compliant" },
               ].map((s) => (
                 <div key={s.label} className="flex flex-col items-center gap-0.5">
                   <span className="text-white font-black text-lg">{s.value}</span>
@@ -142,7 +172,7 @@ export default function Home() {
               initial={{ opacity: 0, x: -80 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.3 }}
             >
               <Image
                 src="/landing-page-elements/blockchain-digital-icon.webp"
@@ -157,7 +187,7 @@ export default function Home() {
               initial={{ opacity: 0, x: 80 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-              viewport={{ once: false, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.3 }}
             >
               <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/20 rounded-full px-4 py-1.5">
                 <ShieldCheck className="w-3 h-3 text-blue-400" />
@@ -184,7 +214,7 @@ export default function Home() {
                     initial={{ opacity: 0, x: 40 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 + index * 0.15 }}
-                    viewport={{ once: false }}
+                    viewport={{ once: true }}
                   >
                     <div className="w-6 h-6 shrink-0">
                       <Image src="/landing-page-elements/shield-fill-check1.svg" alt="Check" width={24} height={24} />
@@ -213,7 +243,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               <Blocks className="w-3 h-3 text-orange-400" />
               <span className="text-[10px] font-bold text-orange-500 uppercase tracking-widest">Protected Categories</span>
@@ -223,7 +253,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               Explore Protected Categories
             </motion.h2>
@@ -232,7 +262,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.85, y: 16 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               Securing every form of digital expression with custom-tailored protection.
             </motion.p>
@@ -252,7 +282,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.07 }}
-                viewport={{ once: false, amount: 0.2 }}
+                viewport={{ once: true, amount: 0.2 }}
                 className="group bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 border border-transparent hover:border-orange-300 dark:hover:border-orange-500/30 cursor-pointer"
               >
                 <div className="w-12 h-12 mb-4 relative">
@@ -327,7 +357,12 @@ export default function Home() {
                 animate={collectorsInView ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               >
-                <Image src="/ip-background-image.jpg" alt="Digital art collector gallery" fill className="object-cover" />
+                <Image
+                  src="/landing-page-elements/ip-background-image.jpg"
+                  alt="Digital art collector gallery"
+                  fill
+                  className="object-cover"
+                />
               </motion.div>
             </div>
           </div>
@@ -358,7 +393,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
               className="inline-flex items-center gap-2 bg-blue-400/10 border border-blue-400/20 rounded-full px-4 py-1.5 mb-4"
             >
               <Zap className="w-3 h-3 text-blue-300" />
@@ -369,7 +404,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.05 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               Why Choose ArtForgeLab?
             </motion.h2>
@@ -378,7 +413,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               The most secure foundation for your digital legacy.
             </motion.p>
@@ -418,7 +453,7 @@ export default function Home() {
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: i * 0.09 }}
-                  viewport={{ once: false, amount: 0.2 }}
+                  viewport={{ once: true, amount: 0.2 }}
                   className="group relative p-6 md:p-7 rounded-2xl bg-white/5 border border-white/10 overflow-hidden cursor-default transition-all duration-300"
                   style={{
                     ["--glow" as string]: item.glow,
@@ -521,7 +556,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
               className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-400/25 rounded-full px-4 py-1.5 mb-4"
             >
               <AlertTriangle className="w-3 h-3 text-orange-400" />
@@ -532,7 +567,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.05 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               Frequently Asked Questions
             </motion.h2>
@@ -541,7 +576,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              viewport={{ once: false, amount: 0.5 }}
+              viewport={{ once: true, amount: 0.5 }}
             >
               Everything you need to know about protecting your digital art.
             </motion.p>
@@ -549,37 +584,16 @@ export default function Home() {
 
           {/* FAQ items */}
           <div className="space-y-3">
-            {[
-              {
-                q: "How does the protection process work?",
-                a: "When you upload a file, we generate a unique cryptographic hash that acts as a digital fingerprint. This fingerprint is then timestamped and recorded on our private blockchain network.",
-                open: true,
-              },
-              {
-                q: "Is this legally binding?",
-                a: "ArtForgeLab provides evidentiary documentation that can be used in legal proceedings to prove you had possession of the specific file at a specific time, supporting your copyright claims.",
-              },
-              {
-                q: "What file types do you support?",
-                a: "We support all standard digital media formats including PNG, JPG, TIFF, SVG, AI, and PSD.",
-              },
-              {
-                q: "Do I need a crypto wallet?",
-                a: "No. ArtForgeLab handles all blockchain interactions on your behalf. You simply upload your artwork and we take care of the rest no crypto knowledge required.",
-              },
-              {
-                q: "How long does verification take?",
-                a: "Proof of ownership is generated in under 60 seconds. Blockchain confirmation typically takes a few minutes depending on network conditions.",
-              },
-            ].map((faq, i) => {
-              const [isOpen, setIsOpen] = useState(faq.open || false);
+            {faqs.map((faq, i) => {
+              const isOpen = openFaqIndex === i;
+
               return (
                 <motion.div
                   key={faq.q}
                   initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: i * 0.06 }}
-                  viewport={{ once: false, amount: 0.2 }}
+                  viewport={{ once: true, amount: 0.2 }}
                   className={`rounded-2xl border overflow-hidden transition-all duration-300 ${isOpen
                     ? "border-orange-400/50 bg-white dark:bg-slate-900 shadow-[0_4px_24px_rgba(251,146,60,0.1)]"
                     : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-300/60 dark:hover:border-orange-500/30"
@@ -587,7 +601,7 @@ export default function Home() {
                 >
                   <button
                     className="w-full flex items-center justify-between p-5 md:p-6 cursor-pointer text-left group"
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => setOpenFaqIndex(isOpen ? null : i)}
                   >
                     <span className={`text-sm md:text-base font-semibold pr-4 transition-colors ${isOpen ? "text-orange-500" : "group-hover:text-orange-500"}`}>
                       {faq.q}
@@ -644,7 +658,7 @@ export default function Home() {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 mb-5">
               <Zap className="w-3 h-3 text-white" />
-              <span className="text-[10px] font-bold text-white uppercase tracking-widest">Get Started Today</span>
+              <span className="text-[10px] font-bold text-white uppercase tracking-widest"><span>{isAuthenticated ? "Start Registration" : "Get Started"}</span> Today</span>
             </div>
             <h2 className="text-2xl md:text-4xl font-black mb-4 md:mb-5">
               Ready to Secure Your Digital Legacy?
@@ -655,10 +669,10 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                href="/register"
+                href={isAuthenticated ? "upload-artwork" : "/register"}
                 className="bg-white text-orange-500 px-8 md:px-10 py-4 rounded-xl font-black text-base hover:scale-105 transition-transform shadow-lg"
               >
-                Get Started
+                {isAuthenticated ? "Start Registration" : "Get Started"}
               </Link>
               <Link
                 href="/about"
