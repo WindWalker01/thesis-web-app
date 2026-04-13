@@ -231,16 +231,11 @@ export function ArtPost({
               </p>
             )}
 
-            {tags.length > 0 && (
+            {tags[0] && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
-                  >
-                    #{tag}
-                  </span>
-                ))}
+                <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  #{tags[0]}
+                </span>
               </div>
             )}
           </div>

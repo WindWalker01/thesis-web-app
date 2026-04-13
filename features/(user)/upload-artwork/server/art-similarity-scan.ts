@@ -17,12 +17,12 @@ type CheckPlagiarismWebResult = {
   filename?: string;
   original_hash?: string;
   hashes?:
-    | {
-        transforms?: Record<string, HashSet>;
-        blocks?: Record<string, HashSet>;
-      }
-    | Record<string, unknown>
-    | null;
+  | {
+    transforms?: Record<string, HashSet>;
+    blocks?: Record<string, HashSet>;
+  }
+  | Record<string, unknown>
+  | null;
   db?: SearchMatch | null;
   web?: SearchMatch | null;
   best_match?: SearchMatch | null;
@@ -51,6 +51,8 @@ export type NormalizedSimilarityMatch = {
   url: string | null;
   similarity: number | null;
 };
+
+const REPORT_DATABASE_RENDER_THRESHOLD = 70;
 
 function toNullableString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
@@ -133,10 +135,46 @@ export function getPrimarySimilarityMatch(
   return getSimilarityMatches(result)[0] ?? null;
 }
 
+/**
+ * Display-only selector for the similarity report shown to the user.
+ *
+ * Rule:
+ * - If the strongest overall match is from the database but is below 75%,
+ *   do not render that database match in the report.
+ * - Fallback to the best internet match instead, when available.
+ *
+ * This does NOT affect moderation/blocking logic. It only affects what
+ * the similarity report card displays after upload.
+ */
+export function getSimilarityReportMatch(
+  result: CheckPlagiarismWebResult,
+): NormalizedSimilarityMatch | null {
+  const matches = getSimilarityMatches(result);
+  const primary = matches[0] ?? null;
+
+  if (!primary) return null;
+
+  const primarySimilarity = primary.similarity ?? 0;
+
+  if (
+    primary.type === "database" &&
+    primarySimilarity < REPORT_DATABASE_RENDER_THRESHOLD
+  ) {
+    const internetFallback =
+      matches.find((match) => match.type === "internet") ?? null;
+
+    if (internetFallback) {
+      return internetFallback;
+    }
+  }
+
+  return primary;
+}
+
 export function buildSimilarityReport(
   result: CheckPlagiarismWebResult,
 ): SimilarityReport | null {
-  const best = getPrimarySimilarityMatch(result);
+  const best = getSimilarityReportMatch(result);
 
   if (!best) return null;
 

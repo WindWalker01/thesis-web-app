@@ -116,21 +116,11 @@ export function getArtworkStatusFromSimilarity(
     }
 
     // Rule 4: moderate similarity from any source — review + genre
-    if (similarity >= 75) {
+    if (similarity >= 70) {
         return {
             artworkStatus: "under_review",
             moderationMessage:
                 "Moderate similarity detected. Your artwork was submitted for review.",
-            shouldClassify: true,
-        };
-    }
-
-    // Rules 5 & 6: low similarity — split on source trustworthiness
-    if (source === "internet") {
-        return {
-            artworkStatus: "under_review",
-            moderationMessage:
-                "Your artwork has been submitted. Because the similarity match came from an internet source, it is pending review before blockchain registration.",
             shouldClassify: true,
         };
     }

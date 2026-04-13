@@ -11,6 +11,7 @@ import {
   buildSimilarityReport,
   buildSimilarityScanInsert,
   getPrimarySimilarityMatch,
+  getSimilarityReportMatch,
 } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 
 import { RecordArtworkInDatabaseResult } from "../types";
@@ -126,13 +127,14 @@ export async function recordArtworkInDatabase(
     }
 
     const primaryMatch = getPrimarySimilarityMatch(result);
+    const reportMatch = getSimilarityReportMatch(result);
     let similarityReport = buildSimilarityReport(result);
     const similarity = similarityReport?.similarityPercentage ?? 0;
 
     if (
       similarityReport &&
-      primaryMatch?.type === "database" &&
-      isUuidLike(primaryMatch.url)
+      reportMatch?.type === "database" &&
+      isUuidLike(reportMatch.url)
     ) {
       const adminSupabase = createSupabaseAdminClient();
 
@@ -140,7 +142,7 @@ export async function recordArtworkInDatabase(
         await adminSupabase
           .from("registered_arts")
           .select("id, title, c_secure_url")
-          .eq("id", primaryMatch.url)
+          .eq("id", reportMatch.url)
           .maybeSingle();
 
       if (matchedArtworkError) {
@@ -153,7 +155,7 @@ export async function recordArtworkInDatabase(
 
       similarityReport = {
         ...similarityReport,
-        matchedArtworkId: matchedArtwork?.id ?? primaryMatch.url,
+        matchedArtworkId: matchedArtwork?.id ?? reportMatch.url,
         matchedArtworkTitle: matchedArtwork?.title ?? null,
         matchedArtworkImageUrl: matchedArtwork?.c_secure_url ?? null,
         previewImageUrl: matchedArtwork?.c_secure_url ?? null,
