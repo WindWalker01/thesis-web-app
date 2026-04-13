@@ -57,6 +57,7 @@ export default function UploadArtworkPage() {
     setDragOver,
     isSubmitting,
     watchedFile,
+    watchedTitle,
     watchedDescription,
     completion,
     processingState,
@@ -94,9 +95,6 @@ export default function UploadArtworkPage() {
         : "Detected match";
 
   const matchPreviewUrl = similarityReport?.previewImageUrl ?? null;
-
-  console.log("SIMILARITY REPORT UI DEBUG", similarityReport);
-  console.log("MATCH PREVIEW URL UI DEBUG", matchPreviewUrl);
 
   return (
     <main className="bg-background min-h-screen">
@@ -344,6 +342,11 @@ export default function UploadArtworkPage() {
                               />
                             </FormControl>
                             <FormMessage />
+                            <div className="flex items-center justify-end">
+                              <span className="text-muted-foreground text-xs">
+                                {watchedTitle.length}/120
+                              </span>
+                            </div>
                           </FormItem>
                         )}
                       />
