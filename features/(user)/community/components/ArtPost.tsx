@@ -264,7 +264,7 @@ export function ArtPost({
               {score}
             </div>
             <span>
-              {upvoteCount} upvotes • {downvoteCount} downvotes
+              {upvoteCount} upvote{upvoteCount > 1 ? "s" : ""} • {downvoteCount} downvote{downvoteCount > 1 ? "s" : ""}
             </span>
           </div>
         </div>

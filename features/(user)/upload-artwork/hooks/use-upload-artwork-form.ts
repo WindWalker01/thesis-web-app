@@ -309,21 +309,21 @@ export function useUploadArtworkForm() {
           "Recording your artwork on blockchain and finalizing protection...",
         );
 
-        const blockchainResult = await recordArtworkOnBlockchain({
-          artworkId: dbResult.artworkId,
-          authorIdHash: dbResult.authorIdHash,
-          fileHash: dbResult.fileHash,
-          perceptualHash: dbResult.perceptualHash,
-          evidenceHash: dbResult.evidenceHash,
-        });
-
-        if (!blockchainResult.success) {
-          setStepStatus(STEP_KEYS.protect, "error");
-          setProcessingState("error");
-          setProcessingMessage(blockchainResult.message);
-          form.setError("root", { message: blockchainResult.message });
-          return;
-        }
+        /*         const blockchainResult = await recordArtworkOnBlockchain({
+                  artworkId: dbResult.artworkId,
+                  authorIdHash: dbResult.authorIdHash,
+                  fileHash: dbResult.fileHash,
+                  perceptualHash: dbResult.perceptualHash,
+                  evidenceHash: dbResult.evidenceHash,
+                });
+        
+                if (!blockchainResult.success) {
+                  setStepStatus(STEP_KEYS.protect, "error");
+                  setProcessingState("error");
+                  setProcessingMessage(blockchainResult.message);
+                  form.setError("root", { message: blockchainResult.message });
+                  return;
+                } */
 
         updateStepText(
           STEP_KEYS.protect,

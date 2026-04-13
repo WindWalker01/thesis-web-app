@@ -101,7 +101,7 @@ export function getArtworkStatusFromSimilarity(
             artworkStatus: "under_review",
             moderationMessage:
                 "An exact internet match was detected. Your artwork has been submitted for admin review.",
-            shouldClassify: false,
+            shouldClassify: true,
         };
     }
 
