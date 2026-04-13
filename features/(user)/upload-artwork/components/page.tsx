@@ -57,6 +57,7 @@ export default function UploadArtworkPage() {
     setDragOver,
     isSubmitting,
     watchedFile,
+    watchedTitle,
     watchedDescription,
     completion,
     processingState,
@@ -95,13 +96,8 @@ export default function UploadArtworkPage() {
 
   const matchPreviewUrl = similarityReport?.previewImageUrl ?? null;
 
-  console.log("SIMILARITY REPORT UI DEBUG", similarityReport);
-  console.log("MATCH PREVIEW URL UI DEBUG", matchPreviewUrl);
-
   return (
     <main className="bg-background min-h-screen">
-      <NavBar />
-
       <section className="border-b bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-20 text-white">
         <div className="container mx-auto px-4 py-12 md:px-6 md:py-16">
           <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
@@ -346,6 +342,11 @@ export default function UploadArtworkPage() {
                               />
                             </FormControl>
                             <FormMessage />
+                            <div className="flex items-center justify-end">
+                              <span className="text-muted-foreground text-xs">
+                                {watchedTitle.length}/120
+                              </span>
+                            </div>
                           </FormItem>
                         )}
                       />

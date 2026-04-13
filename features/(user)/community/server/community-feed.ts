@@ -59,6 +59,7 @@ type ArtPostRow = {
 
 type ArtGenreRow = {
     art_id: string;
+    genre_id: number;
     genres: { name: string } | { name: string }[] | null;
 };
 
@@ -75,7 +76,7 @@ function mapBadge(score: number): Post["artistBadge"] {
 
 function getCurrentUserVote(
     reactions: ArtReactionRow[] | null | undefined,
-    currentUserId: string | null
+    currentUserId: string | null,
 ): VoteType {
     if (!currentUserId || !reactions?.length) return null;
 
@@ -85,8 +86,8 @@ function getCurrentUserVote(
 
 function mapPosts(
     rows: ArtPostRow[],
-    genresMap: Map<string, string[]>,
-    currentUserId: string | null
+    categoryByArtId: Map<string, string>,
+    currentUserId: string | null,
 ): Post[] {
     const posts: Post[] = [];
 
@@ -96,8 +97,7 @@ function mapPosts(
 
         if (!artwork || !author) continue;
 
-        const tags = genresMap.get(row.art_id) ?? [];
-        const category = tags[0] ?? "Digital Artwork";
+        const category = categoryByArtId.get(row.art_id) ?? "Uncategorized";
         const currentUserVote = getCurrentUserVote(row.art_reactions, currentUserId);
 
         posts.push({
@@ -129,7 +129,7 @@ function mapPosts(
             category,
             excerpt: artwork.description ?? undefined,
             artistBadge: mapBadge(row.score),
-            tags,
+            tags: [],
 
             visibility: row.visibility,
             isArchived: row.is_archived,
@@ -156,12 +156,12 @@ const ART_POST_SELECT = `
     c_secure_url,
     status
   ),
-    users!art_posts_user_id_fkey (
+  users!art_posts_user_id_fkey (
     id,
     username,
     full_name,
     c_profile_image
-    ),
+  ),
   art_reactions (
     user_id,
     reaction_type
@@ -219,45 +219,43 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
 
     const mergedRows = Array.from(mergedMap.values());
     const artIds = Array.from(new Set(mergedRows.map((row) => row.art_id)));
-    const genresMap = new Map<string, string[]>();
+    const categoryByArtId = new Map<string, string>();
 
     if (artIds.length > 0) {
         const { data: genreRows, error: genreError } = await supabase
             .from("art_genres")
             .select(`
         art_id,
+        genre_id,
         genres (
           name
         )
       `)
-            .in("art_id", artIds);
+            .in("art_id", artIds)
+            .order("genre_id", { ascending: true });
 
         if (genreError) {
             throw new Error(genreError.message);
         }
 
         for (const row of (genreRows ?? []) as ArtGenreRow[]) {
-            const existing = genresMap.get(row.art_id) ?? [];
+            if (categoryByArtId.has(row.art_id)) continue;
+
             const genreValue = row.genres;
+            const genreName = Array.isArray(genreValue)
+                ? (genreValue[0]?.name ?? null)
+                : (genreValue?.name ?? null);
 
-            if (Array.isArray(genreValue)) {
-                for (const item of genreValue) {
-                    if (item?.name && !existing.includes(item.name)) {
-                        existing.push(item.name);
-                    }
-                }
-            } else if (genreValue?.name && !existing.includes(genreValue.name)) {
-                existing.push(genreValue.name);
+            if (genreName?.trim()) {
+                categoryByArtId.set(row.art_id, genreName.trim());
             }
-
-            genresMap.set(row.art_id, existing);
         }
     }
 
-    const posts = mapPosts(mergedRows, genresMap, user?.id ?? null);
+    const posts = mapPosts(mergedRows, categoryByArtId, user?.id ?? null);
 
     const publicPosts = posts.filter(
-        (post) => post.visibility === "public" && !post.isArchived
+        (post) => post.visibility === "public" && !post.isArchived,
     );
 
     const uniqueArtists = new Set(publicPosts.map((post) => post.userId));

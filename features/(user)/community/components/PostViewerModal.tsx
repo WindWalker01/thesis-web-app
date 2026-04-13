@@ -224,16 +224,11 @@ export function PostViewerModal({
                                         </p>
                                     )}
 
-                                    {post.tags?.length ? (
+                                    {post.tags?.[0] ? (
                                         <div className="mt-3 flex flex-wrap gap-2">
-                                            {post.tags.map((tag) => (
-                                                <span
-                                                    key={tag}
-                                                    className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
-                                                >
-                                                    #{tag}
-                                                </span>
-                                            ))}
+                                            <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                                                #{post.tags[0]}
+                                            </span>
                                         </div>
                                     ) : null}
                                 </div>
