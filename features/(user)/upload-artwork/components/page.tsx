@@ -100,8 +100,6 @@ export default function UploadArtworkPage() {
 
   return (
     <main className="bg-background min-h-screen">
-      <NavBar />
-
       <section className="border-b bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-20 text-white">
         <div className="container mx-auto px-4 py-12 md:px-6 md:py-16">
           <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">

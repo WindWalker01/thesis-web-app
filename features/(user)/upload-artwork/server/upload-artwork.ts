@@ -183,8 +183,15 @@ export async function recordArtworkInDatabase(
       };
     }
 
+    // Resolve the match source for policy decisions below.
+    // null means no match was returned by the scanner (treat as safest path: database-like).
+    const matchSource =
+      primaryMatch?.type === "database" || primaryMatch?.type === "internet"
+        ? primaryMatch.type
+        : null;
+
     const { artworkStatus, moderationMessage, shouldClassify } =
-      getArtworkStatusFromSimilarity(similarity);
+      getArtworkStatusFromSimilarity(similarity, matchSource);
 
     if (
       typeof result.original_hash !== "string" ||

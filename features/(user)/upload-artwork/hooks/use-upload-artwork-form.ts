@@ -29,6 +29,35 @@ const STEP_KEYS = {
   complete: "complete",
 } as const;
 
+const REVIEW_STEP_MESSAGES: Array<{ title: string; description: string }> = [
+  {
+    title: "Checking originality and preparing protection...",
+    description: "We are reviewing your artwork before protection.",
+  },
+  {
+    title: "Comparing against registered artworks...",
+    description: "Scanning our database for perceptual hash matches.",
+  },
+  {
+    title: "Scanning the internet for similar images...",
+    description: "Cross-referencing your artwork against web sources.",
+  },
+  {
+    title: "Running similarity analysis...",
+    description: "Calculating how closely your artwork matches known works.",
+  },
+  {
+    title: "Verifying originality results...",
+    description: "Finalizing the scan report before proceeding.",
+  },
+  {
+    title: "Still working - this can take up to 2 minutes...",
+    description: "Large or detailed artworks take a little longer to process.",
+  },
+];
+
+const REVIEW_STEP_INTERVAL_MS = 8_000;
+
 function createInitialSteps(): UploadArtworkStep[] {
   return [
     {
@@ -193,7 +222,15 @@ export function useUploadArtworkForm() {
       setStepStatus(STEP_KEYS.review, "active");
       setProcessingMessage("Checking originality and preparing protection...");
 
+      let reviewMsgIndex = 0;
+      const reviewInterval = setInterval(() => {
+        reviewMsgIndex = (reviewMsgIndex + 1) % REVIEW_STEP_MESSAGES.length;
+        const { title, description } = REVIEW_STEP_MESSAGES[reviewMsgIndex];
+        updateStepText(STEP_KEYS.review, title, description);
+      }, REVIEW_STEP_INTERVAL_MS);
+
       const dbResult = await recordArtworkInDatabase(formData);
+      clearInterval(reviewInterval);
 
       setSimilarityReport(dbResult.similarityReport ?? null);
 
@@ -272,21 +309,21 @@ export function useUploadArtworkForm() {
           "Recording your artwork on blockchain and finalizing protection...",
         );
 
-        const blockchainResult = await recordArtworkOnBlockchain({
-          artworkId: dbResult.artworkId,
-          authorIdHash: dbResult.authorIdHash,
-          fileHash: dbResult.fileHash,
-          perceptualHash: dbResult.perceptualHash,
-          evidenceHash: dbResult.evidenceHash,
-        });
-
-        if (!blockchainResult.success) {
-          setStepStatus(STEP_KEYS.protect, "error");
-          setProcessingState("error");
-          setProcessingMessage(blockchainResult.message);
-          form.setError("root", { message: blockchainResult.message });
-          return;
-        }
+        /*         const blockchainResult = await recordArtworkOnBlockchain({
+                  artworkId: dbResult.artworkId,
+                  authorIdHash: dbResult.authorIdHash,
+                  fileHash: dbResult.fileHash,
+                  perceptualHash: dbResult.perceptualHash,
+                  evidenceHash: dbResult.evidenceHash,
+                });
+        
+                if (!blockchainResult.success) {
+                  setStepStatus(STEP_KEYS.protect, "error");
+                  setProcessingState("error");
+                  setProcessingMessage(blockchainResult.message);
+                  form.setError("root", { message: blockchainResult.message });
+                  return;
+                } */
 
         updateStepText(
           STEP_KEYS.protect,
