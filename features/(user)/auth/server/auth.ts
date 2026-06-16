@@ -10,7 +10,9 @@ import {
   type SignUpInput,
 } from "../schemas/auth-schema";
 
-export async function signIn(input: SignInInput, /* captchaToken?: string | null */) {
+export async function signIn(
+  input: SignInInput /* captchaToken?: string | null */,
+) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
@@ -43,8 +45,10 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
       return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
     } */
 
-  const { email, password, fullName } = parsed.data;
+  const { email, password, firstName, lastName } = parsed.data;
   const supabase = await createSupabaseServerClient();
+
+  // TO DO: combine first and last name into full name and store in metadata
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -57,7 +61,10 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
   });
 
   if (error || !data.user) {
-    return { data: null, error: { message: error?.message ?? "Sign up failed" } };
+    return {
+      data: null,
+      error: { message: error?.message ?? "Sign up failed" },
+    };
   }
 
   return { data, error: null };
@@ -69,7 +76,10 @@ export async function signOut() {
   redirect("/login");
 }
 
-export async function forgotPassword(email: string, captchaToken?: string | null) {
+export async function forgotPassword(
+  email: string,
+  captchaToken?: string | null,
+) {
   const parsed = forgotPasswordSchema.safeParse({ email });
 
   if (!parsed.success) {
@@ -82,9 +92,12 @@ export async function forgotPassword(email: string, captchaToken?: string | null
 
   const supabase = await createSupabaseServerClient();
 
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    /* captchaToken, */
-  });
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    parsed.data.email,
+    {
+      /* captchaToken, */
+    },
+  );
 
   if (error) {
     return { error: { message: error.message } };

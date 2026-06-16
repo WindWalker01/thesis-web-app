@@ -10,6 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import GoogleIcon from "@/components/google-icon";
 import { useRegisterForm } from "../hooks/useRegisterForm";
+import { CheckCircle2, Circle } from "lucide-react";
+import { ValidationChecklist } from "./ValidationChecklist";
 /* import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { useRef } from "react"; */
 
@@ -18,10 +20,19 @@ export function RegisterForm() {
     serverError,
     oauthLoading,
     pendingEmail,
-    showPassword, setShowPassword,
-    showConfirm, setShowConfirm,
-    register, handleSubmit, errors,
-    isSubmitting, onSubmit, handleGoogleLogin,
+    showPassword,
+    setShowPassword,
+    showConfirm,
+    setShowConfirm,
+    register,
+    handleSubmit,
+    errors,
+    isSubmitting,
+    onSubmit,
+    handleGoogleLogin,
+    passwordChecklist,
+    confirmPasswordChecklist,
+    nameChecklist,
     /* captchaToken, setCaptchaToken, */
   } = useRegisterForm();
 
@@ -36,13 +47,17 @@ export function RegisterForm() {
 
   if (pendingEmail) {
     return (
-      <Card className="p-6 text-center border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 backdrop-blur-sm">
+      <Card className="border-slate-200 bg-white p-6 text-center backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-800/50">
         <CardContent className="space-y-4 pt-2">
-          <MailCheck className="h-12 w-12 mx-auto text-blue-500" />
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Check your email</h1>
+          <MailCheck className="mx-auto h-12 w-12 text-blue-500" />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+            Check your email
+          </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             We sent a confirmation link to{" "}
-            <strong className="text-slate-700 dark:text-slate-200">{pendingEmail}</strong>
+            <strong className="text-slate-700 dark:text-slate-200">
+              {pendingEmail}
+            </strong>
           </p>
         </CardContent>
       </Card>
@@ -50,12 +65,13 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="overflow-hidden p-0 border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-2xl dark:shadow-none backdrop-blur-sm">
+    <Card className="mt-15 overflow-hidden border-slate-200 bg-white p-0 shadow-2xl backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-800/50 dark:shadow-none">
       <CardContent className="p-0">
-        <form onSubmit={handleRegisterSubmit} className="p-6 md:p-8 space-y-5">
-
+        <form onSubmit={handleRegisterSubmit} className="space-y-5 p-6 md:p-8">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create Account</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+              Create Account
+            </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Fill in your details to get started
             </p>
@@ -64,26 +80,45 @@ export function RegisterForm() {
           {serverError && (
             <Alert className="border-red-300 bg-red-50 text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="ml-2">{serverError}</AlertDescription>
+              <AlertDescription className="ml-2">
+                {serverError}
+              </AlertDescription>
             </Alert>
           )}
 
-          {/* Full Name */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</Label>
-            <Input
-              placeholder="John Doe"
-              {...register("fullName")}
-              className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
-            />
-            {errors.fullName && (
-              <p className="text-xs text-red-500 dark:text-red-400">{errors.fullName.message}</p>
-            )}
+          <div className="flex flex-col md:flex">
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  First Name
+                </Label>
+                <Input
+                  placeholder="John"
+                  {...register("firstName")}
+                  className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Last Name
+                </Label>
+                <Input
+                  placeholder="Doe"
+                  {...register("lastName")}
+                  className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                />
+              </div>
+            </div>
+
+            <ValidationChecklist rules={nameChecklist} />
           </div>
 
           {/* Email */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</Label>
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Email
+            </Label>
             <Input
               type="email"
               placeholder="you@example.com"
@@ -91,48 +126,66 @@ export function RegisterForm() {
               className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
             />
             {errors.email && (
-              <p className="text-xs text-red-500 dark:text-red-400">{errors.email.message}</p>
+              <p className="text-xs text-red-500 dark:text-red-400">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           {/* Password */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</Label>
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Password
+            </Label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 {...register("password")}
-                className="h-11 pr-10 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                className="h-11 border-slate-300 bg-slate-50 pr-10 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-xs text-red-500 dark:text-red-400">{errors.password.message}</p>
-            )}
+
+            <ValidationChecklist rules={passwordChecklist} />
           </div>
 
           {/* Confirm Password */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirm Password</Label>
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Confirm Password
+            </Label>
             <div className="relative">
               <Input
                 type={showConfirm ? "text" : "password"}
                 placeholder="Confirm your password"
                 {...register("confirmPassword")}
-                className="h-11 pr-10 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                className="h-11 border-slate-300 bg-slate-50 pr-10 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
               />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                {showConfirm ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
-            {errors.confirmPassword && (
-              <p className="text-xs text-red-500 dark:text-red-400">{errors.confirmPassword.message}</p>
-            )}
+
+            <ValidationChecklist rules={confirmPasswordChecklist} />
           </div>
 
           {/*           <div className="flex justify-start">
@@ -156,17 +209,23 @@ export function RegisterForm() {
           <Button
             type="submit"
             disabled={isSubmitting || oauthLoading /* || !captchaToken */}
-            className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-11 w-full cursor-pointer bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSubmitting
-              ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</>
-              : "Sign Up"
-            }
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
 
           <div className="flex items-center gap-3">
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
-            <span className="text-xs text-slate-400 dark:text-slate-500">or</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">
+              or
+            </span>
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
           </div>
 
@@ -176,15 +235,22 @@ export function RegisterForm() {
             variant="outline"
             onClick={handleGoogleLogin}
             disabled={oauthLoading || isSubmitting}
-            className="h-11 w-full border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-600/60 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white transition-all duration-200 cursor-pointer"
+            className="h-11 w-full cursor-pointer border-slate-300 bg-white text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-600/60 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white"
           >
-            {oauthLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+            {oauthLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
             <span className="ml-2">Continue with Google</span>
           </Button>
 
           <p className="text-center text-sm text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
-            <Link href="/login" className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+            <Link
+              href="/login"
+              className="font-medium text-blue-500 transition-colors hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            >
               Sign in
             </Link>
           </p>
