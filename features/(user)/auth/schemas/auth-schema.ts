@@ -25,7 +25,16 @@ export const signUpSchema = z
         `First name must be at least ${NAME_RULES.minLength} characters`,
       )
       .regex(NAME_RULES.lettersOnly, "First name can only contain letters"),
-
+    middleName: z
+      .string()
+      .trim()
+      .min(
+        NAME_RULES.minLength,
+        `Middle name must be at least ${NAME_RULES.minLength} characters`,
+      )
+      .max(50, "Middle name must be at most 50 characters")
+      .optional()
+      .or(z.literal("")),
     lastName: z
       .string()
       .min(

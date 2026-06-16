@@ -86,8 +86,8 @@ export function RegisterForm() {
             </Alert>
           )}
 
-          <div className="flex flex-col md:flex">
-            <div className="flex flex-col gap-4 sm:flex-row">
+          <div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   First Name
@@ -95,23 +95,37 @@ export function RegisterForm() {
                 <Input
                   placeholder="John"
                   {...register("firstName")}
-                  className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                  className="h-11 w-full border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
                 />
               </div>
 
               <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Middle Name
+                  <span className="text-muted-foreground"> (optional)</span>
+                </Label>
+                <Input
+                  placeholder="Michael"
+                  {...register("middleName")}
+                  className="h-11 w-full border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
                 <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   Last Name
                 </Label>
                 <Input
                   placeholder="Doe"
                   {...register("lastName")}
-                  className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
+                  className="h-11 w-full border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
                 />
               </div>
             </div>
 
-            <ValidationChecklist rules={nameChecklist} />
+            <div className="sm:col-span-2">
+              <ValidationChecklist rules={nameChecklist} />
+            </div>
           </div>
 
           {/* Email */}

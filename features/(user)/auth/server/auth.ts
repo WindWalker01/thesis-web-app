@@ -45,10 +45,8 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
       return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
     } */
 
-  const { email, password, firstName, lastName } = parsed.data;
+  const { email, password, firstName, middleName, lastName } = parsed.data;
   const supabase = await createSupabaseServerClient();
-
-  // TO DO: combine first and last name into full name and store in metadata
 
   const { data, error } = await supabase.auth.signUp({
     email,

@@ -35,7 +35,12 @@ export function useRegisterForm() {
   const password = watch("password", "");
   const confirmPassword = watch("confirmPassword", "");
   const firstName = watch("firstName", "");
+  const middleName = watch("middleName") ?? "";
   const lastName = watch("lastName", "");
+
+  const isMiddleNameValid =
+    middleName.length === 0 ||
+    (middleName.length >= 2 && middleName.length <= 50);
 
   const passwordChecklist = [
     {
@@ -61,15 +66,18 @@ export function useRegisterForm() {
 
   const nameChecklist = [
     {
-      label: "First Name and Last Name must be at least 2 characters",
-      passed: firstName.length >= 2 && lastName.length >= 2,
+      label: "First & Last Names must be at least 2 characters",
+      passed:
+        firstName.length >= NAME_RULES.minLength &&
+        lastName.length >= NAME_RULES.minLength &&
+        isMiddleNameValid,
     },
     {
-      label: "Letters only",
+      label: "Names can only contain letters",
       passed:
-        firstName.length === 0 ||
-        (NAME_RULES.lettersOnly.test(firstName) && lastName.length === 0) ||
-        NAME_RULES.lettersOnly.test(lastName),
+        NAME_RULES.lettersOnly.test(firstName) &&
+        NAME_RULES.lettersOnly.test(lastName) &&
+        (middleName.length === 0 || NAME_RULES.lettersOnly.test(middleName)),
     },
   ];
 
