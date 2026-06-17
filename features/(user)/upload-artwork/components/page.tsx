@@ -18,7 +18,6 @@ import {
   X,
 } from "lucide-react";
 
-import NavBar from "@/components/blocks/navbar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -449,8 +448,9 @@ export default function UploadArtworkPage() {
                   currentMessage={processingMessage}
                 />
 
-                {(processingState === "success" || processingState === "error") &&
-                  similarityReport ? (
+                {(processingState === "success" ||
+                  processingState === "error") &&
+                similarityReport ? (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -491,7 +491,9 @@ export default function UploadArtworkPage() {
                         </div>
 
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">Source</p>
+                          <p className="text-muted-foreground text-xs">
+                            Source
+                          </p>
                           <p className="text-lg font-semibold">
                             {similarityReport.source ?? "Unknown"}
                           </p>
@@ -500,7 +502,7 @@ export default function UploadArtworkPage() {
 
                       {matchPreviewUrl ? (
                         <div className="overflow-hidden rounded-xl border">
-                          <div className="relative aspect-[4/3] w-full bg-muted">
+                          <div className="bg-muted relative aspect-[4/3] w-full">
                             <Image
                               src={matchPreviewUrl}
                               alt="Matched artwork preview"
@@ -511,7 +513,7 @@ export default function UploadArtworkPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                        <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
                           No matched preview image is available for this result.
                         </div>
                       )}
@@ -527,7 +529,7 @@ export default function UploadArtworkPage() {
                                 href={similarityReport.link}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
+                                className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
                               >
                                 {similarityReport.link}
                                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
@@ -546,7 +548,7 @@ export default function UploadArtworkPage() {
                                 href={similarityReport.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-primary inline-flex items-center gap-1 break-all text-sm underline underline-offset-4"
+                                className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
                               >
                                 {similarityReport.url}
                                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
@@ -556,32 +558,34 @@ export default function UploadArtworkPage() {
                             )}
                           </div>
                         </div>
-                      ) : <></>}
+                      ) : (
+                        <></>
+                      )}
                     </CardContent>
                   </Card>
                 ) : null}
 
                 {(processingState === "success" ||
                   processingState === "error") && (
-                    <Card>
-                      <CardContent className="flex flex-col gap-3 p-6 sm:flex-row">
-                        {processingState === "success" ? (
-                          <Button asChild className="w-full sm:w-auto">
-                            <Link href="/dashboard">Go to dashboard</Link>
-                          </Button>
-                        ) : null}
-
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full sm:w-auto"
-                          onClick={resetProgressState}
-                        >
-                          Register another artwork
+                  <Card>
+                    <CardContent className="flex flex-col gap-3 p-6 sm:flex-row">
+                      {processingState === "success" ? (
+                        <Button asChild className="w-full sm:w-auto">
+                          <Link href="/dashboard">Go to dashboard</Link>
                         </Button>
-                      </CardContent>
-                    </Card>
-                  )}
+                      ) : null}
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full sm:w-auto"
+                        onClick={resetProgressState}
+                      >
+                        Register another artwork
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </motion.div>
