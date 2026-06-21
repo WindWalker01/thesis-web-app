@@ -14,14 +14,14 @@ import {
   getSimilarityReportMatch,
 } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 
-import { RecordArtworkInDatabaseResult } from "../types";
+import { RecordArtworkInDatabaseResult, GenreScoreLabel } from "../types";
 import {
   sha256Hex,
   normalizePerceptualHashToBytes32,
   stableStringify,
   getArtworkStatusFromSimilarity,
 } from "..";
-import { getArtworkGenres } from "./fetch-genre";
+import { fetchGenreClassification } from "./fetch-genre";
 
 const HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD = 100;
 
@@ -30,13 +30,11 @@ async function rollbackArtworkInsert(params: {
   artworkId: string;
 }) {
   const { supabase, artworkId } = params;
-
   await supabase.from("registered_arts").delete().eq("id", artworkId);
 }
 
 function isUuidLike(value: string | null | undefined): value is string {
   if (!value) return false;
-
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value,
   );
@@ -75,7 +73,6 @@ export async function recordArtworkInDatabase(
 
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
-
       return {
         success: false,
         message: firstIssue?.message ?? "Invalid form submission.",
@@ -162,16 +159,6 @@ export async function recordArtworkInDatabase(
       };
     }
 
-    /**
-     * Hard block only exact internal duplicates.
-     *
-     * Store scans for:
-     * - internet matches from 1% to 100%
-     * - database matches from 1% to 99.99%
-     *
-     * Do not store anything when:
-     * - database match is exactly 100%
-     */
     if (
       primaryMatch?.type === "database" &&
       typeof primaryMatch.similarity === "number" &&
@@ -185,8 +172,6 @@ export async function recordArtworkInDatabase(
       };
     }
 
-    // Resolve the match source for policy decisions below.
-    // null means no match was returned by the scanner (treat as safest path: database-like).
     const matchSource =
       primaryMatch?.type === "database" || primaryMatch?.type === "internet"
         ? primaryMatch.type
@@ -307,26 +292,28 @@ export async function recordArtworkInDatabase(
       };
     }
 
+    // Fetch genre suggestions from the classifier when the artwork status
+    // warrants classification. Results are returned to the client for the user
+    // to confirm — nothing is inserted into art_genres here.
+    let genreSuggestions: GenreScoreLabel[] = [];
+
     if (shouldClassify) {
-      const genres = await getArtworkGenres(validFile, insertedArtworkId);
+      try {
+        const genreResult = await fetchGenreClassification(validFile);
 
-      if (genres.length > 0) {
-        const { error: genresError } = await supabase
-          .from("art_genres")
-          .insert(genres);
-
-        if (genresError) {
-          await rollbackArtworkInsert({
-            supabase,
-            artworkId: insertedArtworkId,
-          });
-
-          return {
-            success: false,
-            message: genresError.message,
-            similarityReport,
-          };
+        if (genreResult.success) {
+          // Return the top 10 genres by rank (API already returns results
+          // sorted by score descending). Score is not used as a filter here —
+          // all top-10 entries are shown regardless of confidence value.
+          // TODO: to filter by score in the future, replace the slice below with:
+          //   genreResult.results.filter((g) => g.score * 100 >= <threshold>)
+          // where <threshold> is a percentage (e.g. 1 for 1%).
+          genreSuggestions = genreResult.results.slice(0, 10);
         }
+      } catch {
+        // Non-fatal: genre suggestions are a convenience, not a hard requirement.
+        // The upload succeeds even if classification fails.
+        genreSuggestions = [];
       }
     }
 
@@ -341,6 +328,7 @@ export async function recordArtworkInDatabase(
       message: moderationMessage,
       similarityReport,
       artworkStatus,
+      genreSuggestions,
     };
   } catch (error) {
     return {

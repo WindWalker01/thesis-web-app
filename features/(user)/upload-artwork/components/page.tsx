@@ -47,6 +47,7 @@ import { useArtworkFilePreview } from "@/features/(user)/upload-artwork/hooks/us
 import { StatusProgress } from "@/features/(user)/upload-artwork/components/status-progress";
 import { UploadArtworkProgress } from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
 import { ConfirmUploadModal } from "./confirm-upload-modal";
+import { GenreTaggingModal } from "./genre-tagging-modal";
 
 export default function UploadArtworkPage() {
   const {
@@ -55,6 +56,7 @@ export default function UploadArtworkPage() {
     dragOver,
     setDragOver,
     isSubmitting,
+    isSubmittingGenres,
     watchedFile,
     watchedTitle,
     watchedDescription,
@@ -72,6 +74,9 @@ export default function UploadArtworkPage() {
     confirmUpload,
     pendingValues,
     confirmOpen,
+    genreModalOpen,
+    genreSuggestions,
+    handleGenreSubmit,
   } = useUploadArtworkForm();
 
   const previewUrl = useArtworkFilePreview(watchedFile);
@@ -601,6 +606,13 @@ export default function UploadArtworkPage() {
         previewUrl={previewUrl}
         isSubmitting={isSubmitting}
         onConfirm={confirmUpload}
+      />
+
+      <GenreTaggingModal
+        open={genreModalOpen}
+        suggestions={genreSuggestions}
+        isSubmitting={isSubmittingGenres}
+        onSubmit={handleGenreSubmit}
       />
     </main>
   );

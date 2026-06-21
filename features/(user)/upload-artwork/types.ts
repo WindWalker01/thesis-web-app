@@ -2,20 +2,11 @@ import { type SimilarityReport } from "@/features/(user)/upload-artwork/server/a
 
 /**
  * ArtworkStatus represents only the statuses that this upload pipeline can assign.
- *
- * We intentionally keep this narrower than the full database enum to make the
- * return type reflect the actual outcomes produced by this function.
  */
 export type ArtworkStatus = "flagged" | "under_review" | "pending_blockchain";
 
 /**
  * Server action result contract for artwork upload.
- *
- * On success, we return all hashes and metadata needed by the caller to continue
- * the protection flow or display a detailed result to the user.
- *
- * On failure, we return a user-facing message and, when available, the similarity
- * report so the UI can still explain why the request failed.
  */
 export type RecordArtworkInDatabaseResult =
   | {
@@ -29,6 +20,7 @@ export type RecordArtworkInDatabaseResult =
       message: string;
       similarityReport: SimilarityReport | null;
       artworkStatus: ArtworkStatus;
+      genreSuggestions: GenreScoreLabel[];
     }
   | {
       success: false;

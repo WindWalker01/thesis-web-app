@@ -14,11 +14,14 @@ import {
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
 import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
+import { submitArtworkGenres } from "../server/submit-artwork-genre";
 import type {
   UploadArtworkStep,
   UploadStepStatus,
 } from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
 import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+import type { GenreScoreLabel } from "@/features/(user)/upload-artwork/types";
+import type { SelectedGenre } from "@/features/(user)/upload-artwork/components/genre-tagging-modal";
 
 type ProcessingState = "idle" | "processing" | "success" | "error";
 
@@ -93,6 +96,7 @@ export function useUploadArtworkForm() {
 
   const [dragOver, setDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingGenres, setIsSubmittingGenres] = useState(false);
   const [similarityReport, setSimilarityReport] =
     useState<SimilarityReport | null>(null);
 
@@ -101,9 +105,21 @@ export function useUploadArtworkForm() {
   const [processingMessage, setProcessingMessage] = useState("");
   const [steps, setSteps] = useState<UploadArtworkStep[]>(createInitialSteps());
 
+  // Confirm upload modal state
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingValues, setPendingValues] =
     useState<UploadArtworkFormValues | null>(null);
+
+  // Genre tagging modal state
+  const [genreModalOpen, setGenreModalOpen] = useState(false);
+  const [genreSuggestions, setGenreSuggestions] = useState<GenreScoreLabel[]>(
+    [],
+  );
+  // Stores the artworkId after the pipeline completes so the genre submit
+  // action knows which record to attach tags to.
+  const [pendingGenreArtworkId, setPendingGenreArtworkId] = useState<
+    string | null
+  >(null);
 
   const form = useForm<UploadArtworkFormValues>({
     resolver: zodResolver(formSchema),
@@ -147,6 +163,9 @@ export function useUploadArtworkForm() {
     setProcessingMessage("");
     setProcessingState("idle");
     setSimilarityReport(null);
+    setGenreSuggestions([]);
+    setPendingGenreArtworkId(null);
+    setGenreModalOpen(false);
   }
 
   function handleFileSelect(file?: File) {
@@ -200,10 +219,45 @@ export function useUploadArtworkForm() {
     setPendingValues(null);
   }
 
+  // Called when the user confirms genre selections in the modal.
+  // All selections come from the classifier so every id is a valid genre_id.
+  async function handleGenreSubmit(selected: SelectedGenre[]) {
+    if (!pendingGenreArtworkId || selected.length === 0) return;
+
+    setIsSubmittingGenres(true);
+
+    try {
+      const result = await submitArtworkGenres({
+        artworkId: pendingGenreArtworkId,
+        genreIds: selected.map((s) => s.id),
+      });
+
+      if (!result.success) {
+        form.setError("root", { message: result.message });
+        return;
+      }
+
+      updateStepText(
+        STEP_KEYS.complete,
+        "Completed",
+        "Your artwork registration has finished successfully.",
+      );
+      setStepStatus(STEP_KEYS.complete, "done");
+      setProcessingMessage("Your artwork has been successfully registered.");
+
+      setGenreModalOpen(false);
+      setProcessingState("success");
+    } finally {
+      setIsSubmittingGenres(false);
+    }
+  }
+
   async function submitArtwork(values: UploadArtworkFormValues) {
     setIsSubmitting(true);
     form.clearErrors("root");
     setSimilarityReport(null);
+    setGenreSuggestions([]);
+    setPendingGenreArtworkId(null);
 
     setProcessingState("processing");
     setSteps(createInitialSteps());
@@ -242,6 +296,10 @@ export function useUploadArtworkForm() {
         return;
       }
 
+      // Store suggestions so the modal can display them after the pipeline.
+      setGenreSuggestions(dbResult.genreSuggestions);
+      setPendingGenreArtworkId(dbResult.artworkId);
+
       if (dbResult.artworkStatus === "flagged") {
         updateStepText(
           STEP_KEYS.review,
@@ -265,6 +323,9 @@ export function useUploadArtworkForm() {
         setProcessingMessage(
           "High similarity detected. Your artwork was saved and flagged for admin review.",
         );
+
+        // Flagged artworks have shouldClassify: false so genreSuggestions will
+        // be empty. Skip the tagging modal and go straight to success.
         setProcessingState("success");
       } else if (dbResult.artworkStatus === "under_review") {
         updateStepText(
@@ -279,18 +340,22 @@ export function useUploadArtworkForm() {
         );
         updateStepText(
           STEP_KEYS.complete,
-          "Submission recorded with pending review",
-          "The upload was saved, but the artwork still needs moderation review.",
+          "Submission recorded — genre tagging required",
+          "Add genre tags to complete your submission.",
         );
 
         setStepStatus(STEP_KEYS.review, "warning");
         setStepStatus(STEP_KEYS.protect, "warning");
-        setStepStatus(STEP_KEYS.complete, "warning");
+        setStepStatus(STEP_KEYS.complete, "active");
         setProcessingMessage(
-          "Moderate similarity detected. Your artwork was saved and placed under review.",
+          "Moderate similarity detected. Please tag your artwork to complete registration.",
         );
-        setProcessingState("success");
+
+        // Open the genre tagging modal. processingState stays "processing"
+        // until the user submits their tags.
+        setGenreModalOpen(true);
       } else {
+        // Clean path: no similarity issues — proceed to blockchain.
         setStepStatus(STEP_KEYS.review, "done");
         setStepStatus(STEP_KEYS.protect, "active");
 
@@ -332,14 +397,19 @@ export function useUploadArtworkForm() {
         );
         updateStepText(
           STEP_KEYS.complete,
-          "Completed",
-          "Your artwork registration and blockchain protection have finished successfully.",
+          "Almost done — tag your artwork",
+          "Add genre tags to complete your registration.",
         );
 
         setStepStatus(STEP_KEYS.protect, "done");
-        setStepStatus(STEP_KEYS.complete, "done");
-        setProcessingMessage("Your artwork has been successfully protected.");
-        setProcessingState("success");
+        setStepStatus(STEP_KEYS.complete, "active");
+        setProcessingMessage(
+          "Blockchain protection complete. Please tag your artwork to finish.",
+        );
+
+        // Open genre tagging modal. processingState stays "processing" until
+        // the user submits tags — the "complete" step activates after that.
+        setGenreModalOpen(true);
       }
 
       form.reset({
@@ -382,6 +452,7 @@ export function useUploadArtworkForm() {
     dragOver,
     setDragOver,
     isSubmitting,
+    isSubmittingGenres,
     watchedFile,
     watchedTitle,
     watchedDescription,
@@ -393,6 +464,8 @@ export function useUploadArtworkForm() {
     similarityReport,
     confirmOpen,
     pendingValues,
+    genreModalOpen,
+    genreSuggestions,
     resetProgressState,
     handleFileSelect,
     handleDrop,
@@ -400,5 +473,6 @@ export function useUploadArtworkForm() {
     openConfirmation,
     closeConfirmation,
     confirmUpload,
+    handleGenreSubmit,
   };
 }
