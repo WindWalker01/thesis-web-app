@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Globe, Lock, ImageIcon, Search, Sparkles, CheckCircle2 } from "lucide-react";
+import { Globe, Lock, ImageIcon, Search, Sparkles, CheckCircle2, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
     Form,
     FormControl,
@@ -14,6 +15,7 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
+    FormDescription,
 } from "@/components/ui/form";
 import {
     Select,
@@ -305,6 +307,40 @@ export default function PostForm({
                                                 })}
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {/* TODO: wire name="isNsfw" once added to the form schema */}
+                            <FormField
+                                control={form.control}
+                                name="isNsfw"
+                                render={({ field }) => (
+                                    <FormItem className="rounded-2xl border border-border bg-background p-4">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                                                    <ShieldAlert className="h-4 w-4" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-sm font-semibold leading-none">
+                                                        NSFW content
+                                                    </FormLabel>
+                                                    <FormDescription className="text-xs leading-5">
+                                                        Mark if this artwork contains mature or sensitive content.
+                                                    </FormDescription>
+                                                </div>
+                                            </div>
+                                            <FormControl>
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    disabled={isPending}
+                                                    aria-label="Mark post as NSFW"
+                                                />
+                                            </FormControl>
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}

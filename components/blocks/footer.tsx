@@ -124,8 +124,12 @@ export default function Footer() {
                         Using Perceptual Hashing &amp; Blockchain Technology.
                     </p>
                     <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-                        {["Privacy Policy", "Terms of Use"].map((link) => (
-                            <a key={link} href="#" className="hover:text-white transition-colors whitespace-nowrap">{link}</a>
+                        {[
+                            { label: "Privacy Policy", href: "/privacy-policy" },
+                            { label: "Terms of Use", href: "/terms-of-use" },
+                            { label: "Community Guidelines", href: "/community-guidelines" },
+                        ].map(({ label, href }) => (
+                            <Link key={label} href={href} className="hover:text-white transition-colors whitespace-nowrap">{label}</Link>
                         ))}
                     </div>
                 </div>

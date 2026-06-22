@@ -29,6 +29,7 @@ export type ExistingPostRecord = {
     isArchived: boolean;
     createdAt: string;
     updatedAt: string;
+    isNsfw: boolean;
 };
 
 export type PostEditorInitialData = {
@@ -40,6 +41,7 @@ export type UpsertPostInput = {
     postId?: string;
     artId: string;
     visibility: PostVisibility;
+    isNsfw: boolean;
 };
 
 export type UpsertPostResult =
@@ -51,5 +53,5 @@ export type UpsertPostResult =
     | {
         success: false;
         message: string;
-        fieldErrors?: Partial<Record<"artId" | "visibility", string[]>>;
+        fieldErrors?: Partial<Record<"artId" | "visibility" | "isNsfw", string[]>>;
     };
