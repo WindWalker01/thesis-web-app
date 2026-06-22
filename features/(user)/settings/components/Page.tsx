@@ -13,6 +13,7 @@ import {
     ChevronRight,
     Upload,
     Settings,
+    ShieldAlert
 } from "lucide-react";
 
 import { useCurrentUserProfile } from "../../profile/hooks/useFetchProfile";
@@ -21,6 +22,7 @@ import PlagiarismHistorySection from "../subfeatures/plagiarism-history/componen
 import ArtworkOwnershipSection from "../subfeatures/artwork-ownership/components/ArtworkOwnershipSection";
 import ProfileSection from "./ProfileSection";
 import ThemeSection from "./ThemeSection";
+import ShowNSFWSection from "./ShowNSFWSection";
 import ChangePasswordSection from "./ChangePasswordSection";
 import ConfirmActionModal from "./ConfirmActionModal";
 
@@ -43,6 +45,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     },
     { id: "security", label: "Security", icon: Shield, group: "Account" },
     { id: "theme", label: "Theme", icon: Palette, group: "Preferences" },
+    { id: "nsfw", label: "Show NSFW Content", icon: ShieldAlert, group: "Preferences" },
     {
         id: "artwork-ownership",
         label: "Artwork Ownership",
@@ -251,6 +254,8 @@ ${isActive
                             >
                                 {/* ══════════════ THEME ══════════════ */}
                                 {activeTab === "theme" && <ThemeSection />}
+
+                                {activeTab === "nsfw" && <ShowNSFWSection/>}
 
                                 {/* ══════════════ SECURITY ══════════════ */}
                                 {activeTab === "security" && <ChangePasswordSection />}

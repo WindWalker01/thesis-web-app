@@ -8,6 +8,7 @@ export type SettingsTab =
     | "notifications"
     | "security"
     | "theme"
+    | "nsfw"
     | "artwork-ownership"
     | "plagiarism-history"
     | "plagiarism-checker"

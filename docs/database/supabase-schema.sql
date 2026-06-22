@@ -27,6 +27,7 @@ create table public.art_posts (
   upvote_count integer not null default 0,
   downvote_count integer not null default 0,
   score integer not null default 0,
+  is_nsfw boolean null default false,
   constraint art_posts_pkey primary key (id),
   constraint art_posts_art_id_fkey foreign KEY (art_id) references registered_arts (id) on update CASCADE on delete CASCADE,
   constraint art_posts_user_id_fkey foreign KEY (user_id) references users (id) on update CASCADE on delete CASCADE,
@@ -52,6 +53,8 @@ where
   );
 
 create index IF not exists idx_art_posts_user_visibility_created on public.art_posts using btree (user_id, visibility, created_at desc) TABLESPACE pg_default;
+
+create index IF not exists art_posts_is_nsfw_idx on public.art_posts using btree (is_nsfw) TABLESPACE pg_default;
 
 create trigger trg_art_posts_updated_at BEFORE
 update on art_posts for EACH row
@@ -404,6 +407,37 @@ create index IF not exists idx_users_role on public.users using btree (role) TAB
 
 create index IF not exists idx_users_last_active on public.users using btree (last_active desc) TABLESPACE pg_default;
 
+create trigger trg_initialize_user_preferences
+after INSERT on users for EACH row
+execute FUNCTION handle_new_user_preferences ();
+
 create trigger trg_users_updated_at BEFORE
 update on users for EACH row
 execute FUNCTION set_updated_at ();
+
+
+
+-- USER PREFERENCES
+
+create table public.user_preferences (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null default gen_random_uuid (),
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone null,
+  show_nsfw_content boolean null default false,
+  constraint user_preferences_pkey primary key (id),
+  constraint user_preferences_user_id_key unique (user_id),
+  constraint user_preferences_user_id_fkey foreign KEY (user_id) references users (id) on update CASCADE on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_user_preferences_user_id on public.user_preferences using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_user_preferences_nsfw_false on public.user_preferences using btree (user_id) TABLESPACE pg_default
+where
+  (show_nsfw_content = false);
+
+create index IF not exists user_preferences_show_nsfw_content_idx on public.user_preferences using btree (show_nsfw_content) TABLESPACE pg_default;
+
+create trigger tr_update_user_preferences_timestamp BEFORE
+update on user_preferences for EACH row
+execute FUNCTION update_user_preferences_timestamp ();
