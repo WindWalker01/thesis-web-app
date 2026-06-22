@@ -115,3 +115,10 @@ The application relies on the following environment configurations (configured i
 2. **Implement Safe Changes**: Adopt KISS, DRY, and YAGNI. Keep changes minimal and modular.
 3. **Execute Verifications**: Run `npm run lint` and `npm run build` after modifying any code to ensure compile-time and lint safety.
 4. **Communicate Explicitly**: Explain the edits clearly upon completion, noting any configuration or security implications.
+
+---
+
+## 9) Git & Repository Rules
+
+- **No Unauthorized Pushes**: Agentic AI must **never** push to any branch without explicit user permission. All changes must be staged, reviewed, and committed locally only. The user controls all pushes to remote branches.
+- **Database Schema Reference**: All agentic AI agents may view `/media/keishin/New Volume/Personal Projects/thesis-web-app/docs/database/supabase-schema.sql` to understand the project's database schema and structure for informed decision-making during development and feature implementation.
