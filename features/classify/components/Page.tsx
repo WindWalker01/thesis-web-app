@@ -53,7 +53,7 @@ function FeatureStat({
 }) {
     return (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">{title}</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-300">{title}</p>
             <p className="mt-2 text-base font-semibold text-white">{value}</p>
         </div>
     );
@@ -281,7 +281,7 @@ export default function ClassificationPage() {
                                                                             <p className="truncate text-base font-medium">
                                                                                 {file.name}
                                                                             </p>
-                                                                            <p className="text-xs text-muted-foreground">
+                                                                            <p className="text-sm text-muted-foreground">
                                                                                 {(file.size / 1024 / 1024).toFixed(2)} MB
                                                                             </p>
                                                                         </div>
@@ -403,7 +403,7 @@ export default function ClassificationPage() {
                                         {topPrediction ? (
                                             <div className="rounded-2xl border bg-primary/5 p-5">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                                                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                                                         Top predicted genre
                                                     </p>
                                                     <Badge variant="secondary">{matchStrength}</Badge>
@@ -430,7 +430,7 @@ export default function ClassificationPage() {
                                                     key={`${item.label}-${index}`}
                                                     className="rounded-2xl border bg-card p-4"
                                                 >
-                                                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                                    <p className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
                                                         {index === 0
                                                             ? "Best match"
                                                             : index === 1
@@ -463,7 +463,7 @@ export default function ClassificationPage() {
                                                     <h4 className="text-base font-semibold">
                                                         Full ranked results
                                                     </h4>
-                                                    <p className="text-xs text-muted-foreground">
+                                                    <p className="text-sm text-muted-foreground">
                                                         Includes relative match score and raw API score.
                                                     </p>
                                                 </div>
@@ -484,14 +484,14 @@ export default function ClassificationPage() {
                                                     >
                                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                                                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-sm font-bold">
                                                                     {index + 1}
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-base font-semibold">
                                                                         {item.label}
                                                                     </p>
-                                                                    <p className="text-xs text-muted-foreground">
+                                                                    <p className="text-sm text-muted-foreground">
                                                                         Raw score: {formatRawPercent(item.score)}
                                                                     </p>
                                                                 </div>
@@ -501,7 +501,7 @@ export default function ClassificationPage() {
                                                                 <p className="text-base font-semibold">
                                                                     {item.displayPercent.toFixed(1)}%
                                                                 </p>
-                                                                <p className="text-xs text-muted-foreground">
+                                                                <p className="text-sm text-muted-foreground">
                                                                     relative match
                                                                 </p>
                                                             </div>

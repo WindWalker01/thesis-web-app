@@ -95,7 +95,7 @@ export function PostViewerModal({
                                 <p className="truncate text-base font-bold text-foreground">
                                     @{post.username}&apos;s Post
                                 </p>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-sm text-muted-foreground">
                                     Community artwork post
                                 </p>
                             </div>
@@ -135,7 +135,7 @@ export function PostViewerModal({
                                         </div>
 
                                         <div className="min-w-0">
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                                 <p
                                                     className="truncate text-base font-semibold text-foreground transition hover:text-primary"
                                                 >
@@ -143,7 +143,7 @@ export function PostViewerModal({
                                                 </p>
                                             </div>
 
-                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                                 <Link
                                                     href={post.subredditHref ?? "/community"}
                                                     className="font-medium transition hover:text-primary"
@@ -245,7 +245,7 @@ export function PostViewerModal({
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground sm:px-5">
+                                <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-muted-foreground sm:px-5">
                                     <div className="flex items-center gap-3">
                                         <div className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-primary/10 px-2 font-semibold text-primary">
                                             {post.score}

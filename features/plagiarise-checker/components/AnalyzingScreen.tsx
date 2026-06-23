@@ -46,7 +46,7 @@ export function AnalyzingScreen({ progress = 0, mode, indeterminate = false }: A
       </div>
 
       <div className="w-full max-w-sm space-y-2">
-        <div className="flex justify-between text-xs">
+        <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">pHash analysis</span>
           {!indeterminate && <span className="text-primary font-mono">{progress}%</span>}
         </div>

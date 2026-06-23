@@ -13,7 +13,7 @@ function FeatureStat({
 }) {
     return (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">{title}</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-300">{title}</p>
             <p className="mt-2 break-all text-base font-semibold text-white">{value}</p>
         </div>
     );

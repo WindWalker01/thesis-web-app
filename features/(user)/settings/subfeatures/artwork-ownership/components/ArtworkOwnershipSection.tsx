@@ -52,7 +52,7 @@ export default function ArtworkOwnershipSection() {
 
             <Card>
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    <p className="text-sm font-black uppercase tracking-widest text-slate-400">
                         Blockchain Certificates
                     </p>
                 </div>
@@ -82,7 +82,7 @@ export default function ArtworkOwnershipSection() {
                                 <p className="text-base font-semibold text-slate-500">
                                     No ownership records found.
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">
+                                <p className="text-sm text-slate-400 mt-1">
                                     Your blockchain-recorded and pending artworks will appear here.
                                 </p>
                             </div>
@@ -98,7 +98,7 @@ export default function ArtworkOwnershipSection() {
                                             <p className="text-base font-semibold truncate group-hover:text-blue-500 transition-colors">
                                                 {rec.artwork}
                                             </p>
-                                            <p className="text-xs text-slate-400 font-mono mt-0.5">
+                                            <p className="text-sm text-slate-400 font-mono mt-0.5">
                                                 {rec.hash}
                                                 {rec.tx ? ` · ${rec.tx}` : ""}
                                                 {" · "}

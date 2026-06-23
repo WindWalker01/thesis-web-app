@@ -96,13 +96,13 @@ export function ConfirmUploadModal({
                                 </div>
 
                                 <div className="rounded-xl border p-3 sm:p-4 lg:rounded-2xl">
-                                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                                         Selected file
                                     </p>
                                     <p className="mt-2 truncate text-base font-semibold">
                                         {file?.name ?? "No file selected"}
                                     </p>
-                                    <p className="mt-1 text-xs text-muted-foreground">
+                                    <p className="mt-1 text-sm text-muted-foreground">
                                         {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "—"}
                                     </p>
                                 </div>
@@ -110,7 +110,7 @@ export function ConfirmUploadModal({
 
                             <div className="space-y-3">
                                 <div className="rounded-xl border p-3 sm:p-4 lg:rounded-2xl">
-                                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                                         Artwork title
                                     </p>
                                     <p className="mt-2 break-words text-base font-semibold leading-6">
@@ -119,7 +119,7 @@ export function ConfirmUploadModal({
                                 </div>
 
                                 <div className="rounded-xl border p-3 sm:p-4 lg:rounded-2xl">
-                                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                                         Description
                                     </p>
                                     <p className="mt-2 whitespace-pre-wrap break-words text-base leading-6 text-muted-foreground">
@@ -165,7 +165,7 @@ export function ConfirmUploadModal({
                                     <Sparkles className="h-4 w-4 shrink-0 text-primary" />
                                     Originality check
                                 </div>
-                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                <p className="mt-1 text-sm leading-5 text-muted-foreground">
                                     pHash-based similarity review
                                 </p>
                             </div>
@@ -175,7 +175,7 @@ export function ConfirmUploadModal({
                                     <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
                                     Secure registration
                                 </div>
-                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                <p className="mt-1 text-sm leading-5 text-muted-foreground">
                                     Artwork metadata and hashes are recorded
                                 </p>
                             </div>
@@ -185,7 +185,7 @@ export function ConfirmUploadModal({
                                     <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
                                     Final status
                                 </div>
-                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                <p className="mt-1 text-sm leading-5 text-muted-foreground">
                                     Success, review, or flagged outcome
                                 </p>
                             </div>

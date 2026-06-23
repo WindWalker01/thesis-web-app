@@ -16,7 +16,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
           </div>
           <div>
             <p className="font-semibold text-base text-foreground">Artwork to Verify</p>
-            <p className="text-xs text-muted-foreground">Upload a single digital artwork</p>
+            <p className="text-sm text-muted-foreground">Upload a single digital artwork</p>
           </div>
         </div>
         <UploadZone onUpload={onUpload} />
@@ -40,7 +40,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-foreground">{label}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
                 </div>
               </div>
             ))}
@@ -49,7 +49,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
 
         <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex gap-3 items-start">
           <Info size={16} className="text-primary shrink-0 mt-0.5" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             All uploads are processed securely. Your artwork data is encrypted and never stored beyond the analysis session.
           </p>
         </div>

@@ -68,7 +68,7 @@ export default function NotificationsPage() {
                         <button
                             onClick={markAllRead}
                             disabled={unreadCount === 0}
-                            className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-blue-500/10 hover:text-blue-500 hover:border-blue-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <CheckCheck className="w-3.5 h-3.5" /> Mark all read
                         </button>
@@ -76,7 +76,7 @@ export default function NotificationsPage() {
                         <button
                             onClick={clearAll}
                             disabled={filtered.length === 0}
-                            className="flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-red-500/10 hover:text-red-500 hover:border-red-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-red-500/10 hover:text-red-500 hover:border-red-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <Trash2 className="w-3.5 h-3.5" /> Clear
                         </button>
@@ -147,7 +147,7 @@ export default function NotificationsPage() {
                             >
                                 <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
                                 <p className="font-bold text-slate-400">No notifications</p>
-                                <p className="text-xs text-slate-400 mt-1">
+                                <p className="text-sm text-slate-400 mt-1">
                                     You're all caught up!
                                 </p>
                             </motion.div>
@@ -180,7 +180,7 @@ export default function NotificationsPage() {
                                                     )}
                                                 </div>
 
-                                                <p className="text-xs text-slate-500 leading-relaxed mt-0.5 pr-4">
+                                                <p className="text-sm text-slate-500 leading-relaxed mt-0.5 pr-4">
                                                     {notification.message}
                                                 </p>
                                                 <p className="text-[10px] text-slate-400 mt-1.5 font-medium">

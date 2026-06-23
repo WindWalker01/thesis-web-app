@@ -40,11 +40,11 @@ export function CompareModeUpload({
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <span className="text-primary-foreground text-xs font-bold">A</span>
+              <span className="text-primary-foreground text-sm font-bold">A</span>
             </div>
             <div>
               <p className="font-semibold text-base text-foreground">Original Artwork</p>
-              <p className="text-xs text-muted-foreground">The artwork you own or created</p>
+              <p className="text-sm text-muted-foreground">The artwork you own or created</p>
             </div>
             {previewA && (
               <Badge className="ml-auto bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
@@ -66,11 +66,11 @@ export function CompareModeUpload({
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-destructive/80 flex items-center justify-center shrink-0">
-              <span className="text-white text-xs font-bold">B</span>
+              <span className="text-white text-sm font-bold">B</span>
             </div>
             <div>
               <p className="font-semibold text-base text-foreground">Suspected Copy</p>
-              <p className="text-xs text-muted-foreground">The image you want to compare against</p>
+              <p className="text-sm text-muted-foreground">The image you want to compare against</p>
             </div>
             {previewB && (
               <Badge variant="outline" className="ml-auto text-amber-400 border-amber-500/30 bg-amber-500/10 text-[10px]">

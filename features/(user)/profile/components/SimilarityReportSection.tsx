@@ -147,7 +147,7 @@ function HashGrid({
 
     return (
         <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                 {title}
             </p>
 
@@ -157,7 +157,7 @@ function HashGrid({
                         key={key}
                         className="rounded-2xl border border-border bg-background/60 p-4"
                     >
-                        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">
+                        <p className="mb-3 text-sm font-bold uppercase tracking-widest text-foreground">
                             {key.replaceAll("_", " ")}
                         </p>
 
@@ -313,7 +313,7 @@ export function SimilarityReportSection({
 
                 {scan?.errorMessage ? (
                     <div className="rounded-2xl border border-red-500/20 bg-red-500/8 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-red-500 mb-1">
+                        <p className="text-sm font-semibold uppercase tracking-widest text-red-500 mb-1">
                             Scan error
                         </p>
                         <p className="text-base text-muted-foreground">{scan.errorMessage}</p>
@@ -339,7 +339,7 @@ export function SimilarityReportSection({
                                     <Hash className="w-4 h-4 text-primary" />
                                     <p className="text-base font-bold text-foreground">Stored hashes payload</p>
                                 </div>
-                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-xs text-muted-foreground">
+                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-sm text-muted-foreground">
                                     {hashesText}
                                 </pre>
                             </div>
@@ -351,7 +351,7 @@ export function SimilarityReportSection({
                                     <ImageIcon className="w-4 h-4 text-primary" />
                                     <p className="text-base font-bold text-foreground">Full stored API response</p>
                                 </div>
-                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-xs text-muted-foreground">
+                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-sm text-muted-foreground">
                                     {rawScanText}
                                 </pre>
                             </div>

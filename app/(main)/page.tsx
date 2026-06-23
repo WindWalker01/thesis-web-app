@@ -92,7 +92,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-400/25 rounded-full px-5 py-2"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-xs font-bold text-blue-300 uppercase tracking-widest">Digital IP Protection Platform</span>
+              <span className="text-sm font-bold text-blue-300 uppercase tracking-widest">Digital IP Protection Platform</span>
             </motion.div>
 
             <motion.h1
@@ -150,7 +150,7 @@ export default function Home() {
               ].map((s) => (
                 <div key={s.label} className="flex flex-col items-center gap-0.5">
                   <span className="text-white font-black text-lg">{s.value}</span>
-                  <span className="text-slate-500 text-xs uppercase tracking-widest">{s.label}</span>
+                  <span className="text-slate-500 text-sm uppercase tracking-widest">{s.label}</span>
                 </div>
               ))}
             </motion.div>

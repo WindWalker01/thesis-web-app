@@ -51,7 +51,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
             </div>
             <div>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">ORIGINAL HASH</p>
-              <p className="text-xs text-primary font-mono">{result.original_hash}</p>
+              <p className="text-sm text-primary font-mono">{result.original_hash}</p>
             </div>
           </div>
         </div>
@@ -62,7 +62,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
             <p className="text-[10px] font-bold tracking-widest text-muted-foreground text-center">BEST MATCH</p>
             <SimilarityRing value={result.best_match.similarity} size={130} />
             <div className="w-full text-center space-y-1.5">
-              <p className="text-xs font-semibold text-foreground">{result.best_match.source}</p>
+              <p className="text-sm font-semibold text-foreground">{result.best_match.source}</p>
               <Badge
                 variant="outline"
                 className={`text-[10px] capitalize ${isBestDb
@@ -77,7 +77,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
         ) : (
           <div className="bg-card border border-border rounded-2xl p-5 flex flex-col items-center justify-center gap-3 w-48 text-center min-h-[180px]">
             <AlertCircle size={28} className="text-muted-foreground/30" />
-            <p className="text-xs text-muted-foreground">No matches found</p>
+            <p className="text-sm text-muted-foreground">No matches found</p>
           </div>
         )}
 
@@ -111,7 +111,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
               {isBestDb && bestMatch.title && (
                 <div>
                   <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">TITLE</p>
-                  <p className="text-xs text-foreground font-medium">{bestMatch.title}</p>
+                  <p className="text-sm text-foreground font-medium">{bestMatch.title}</p>
                 </div>
               )}
 
@@ -124,12 +124,12 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
                       href={bestMatch.imageUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-primary font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
+                      className="text-sm text-primary font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
                     >
                       {bestMatch.imageUrl}
                     </Link>
                   ) : (
-                    <p className="text-xs text-muted-foreground font-mono break-all">{bestMatch.url}</p>
+                    <p className="text-sm text-muted-foreground font-mono break-all">{bestMatch.url}</p>
                   )}
                 </div>
               )}
@@ -142,7 +142,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
                     href={bestMatch.link ?? bestMatch.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-primary font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
+                    className="text-sm text-primary font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
                   >
                     {bestMatch.link ?? bestMatch.url}
                   </a>
@@ -157,7 +157,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
                     href={bestMatch.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
+                    className="text-sm text-muted-foreground font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
                   >
                     {bestMatch.url}
                   </a>

@@ -35,7 +35,7 @@ export default function ProfileSection() {
                 <div>
                     <p className="font-black text-lg">{profile?.fullName}</p>
                     <p className="text-base text-slate-400">{profile?.username} · Digital Artist</p>
-                    <p className="text-xs text-slate-500 mt-1">Member since {profile?.joinDate}</p>
+                    <p className="text-sm text-slate-500 mt-1">Member since {profile?.joinDate}</p>
                 </div>
             </div>
             <div className="px-6 pb-6 border-t border-slate-100 dark:border-slate-800 pt-4">

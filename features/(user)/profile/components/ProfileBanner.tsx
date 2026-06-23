@@ -64,12 +64,12 @@ export function ProfileBanner({ profile, children }: Props) {
                         <p className="text-base text-slate-400 mb-1">{profile.username}</p>
 
                         {profile.bio && (
-                            <p className="text-xs text-slate-500 max-w-lg leading-relaxed hidden md:block">
+                            <p className="text-sm text-slate-500 max-w-lg leading-relaxed hidden md:block">
                                 {profile.bio}
                             </p>
                         )}
 
-                        <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
+                        <div className="flex items-center gap-1 mt-2 text-sm text-slate-500">
                             <Calendar className="w-3 h-3" />
                             <span>Joined {profile.joinDate}</span>
                         </div>

@@ -89,7 +89,7 @@ export function VerifyArtworkSelector({
                                     </span>
                                 </div>
 
-                                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                                     {item.description || "No description provided."}
                                 </p>
 

@@ -11,7 +11,7 @@ export function HashInfoRow({ label, value }: { label: string; value: string }) 
                 </p>
                 {canCopy && <CopyButton value={value} label="Copy" />}
             </div>
-            <p className="font-mono text-xs leading-5 break-all text-foreground">{value}</p>
+            <p className="font-mono text-sm leading-5 break-all text-foreground">{value}</p>
         </div>
     );
 }

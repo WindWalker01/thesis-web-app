@@ -240,11 +240,11 @@ export default function NavBar() {
 
                         <div className="max-h-72 divide-y divide-border overflow-y-auto">
                           {notificationsLoading ? (
-                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                               Loading notifications...
                             </div>
                           ) : notifications.length === 0 ? (
-                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                               No notifications yet.
                             </div>
                           ) : (
@@ -277,10 +277,10 @@ export default function NavBar() {
                                   </div>
 
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-semibold text-foreground">
+                                    <p className="text-sm font-semibold text-foreground">
                                       {n.title}
                                     </p>
-                                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-foreground/80">
+                                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-foreground/80">
                                       {n.message}
                                     </p>
                                     <p className="mt-1 text-[10px] text-muted-foreground">
@@ -302,7 +302,7 @@ export default function NavBar() {
                         <Link
                           href="/settings/notifications"
                           onClick={() => setNotifOpen(false)}
-                          className="block py-0.5 text-center text-xs font-semibold text-blue-500 transition-colors hover:text-blue-400"
+                          className="block py-0.5 text-center text-sm font-semibold text-blue-500 transition-colors hover:text-blue-400"
                         >
                           View All Notifications →
                         </Link>

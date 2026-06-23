@@ -67,7 +67,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                 <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                     <Link
                         href="/profile"
-                        className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
+                        className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
                     >
                         <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                         Back to profile
@@ -126,7 +126,7 @@ export default function ArtworkDetailPage({ id }: Props) {
             <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                 <Link
                     href="/profile"
-                    className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
+                    className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
                 >
                     <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                     Back to profile
@@ -270,13 +270,13 @@ export default function ArtworkDetailPage({ id }: Props) {
                                         <UserRound className="w-4 h-4 text-muted-foreground" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                                        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                                             Creator
                                         </p>
                                         <p className="text-base font-semibold text-foreground">
                                             {art.creator.fullName}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground">
                                             {art.creator.username}
                                         </p>
                                     </div>
@@ -344,7 +344,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                 </div>
 
                                 {evidenceText ? (
-                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
                                         {evidenceText}
                                     </pre>
                                 ) : (
@@ -363,7 +363,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                 </div>
 
                                 {plagiarismText ? (
-                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
                                         {plagiarismText}
                                     </pre>
                                 ) : (

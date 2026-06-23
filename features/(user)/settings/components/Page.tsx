@@ -139,7 +139,7 @@ export default function SettingsPage() {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 pb-0.5">
+                    <div className="flex items-center gap-1.5 text-sm text-slate-500 pb-0.5">
                         <span>Settings</span>
                         {activeItem && (
                             <>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
                         { label: "Since", value: `${profile?.joinDate ?? ""}` },
                     ].map((item) => (
                         <div key={item.label} className="flex items-center gap-2 text-base">
-                            <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">
+                            <span className="text-blue-200 text-sm uppercase tracking-widest font-medium">
                                 {item.label}
                             </span>
                             <span className="text-white font-black">{item.value}</span>
@@ -206,7 +206,7 @@ ${isActive
                                                 >
                                                     <div className="flex items-center gap-2.5">
                                                         <Icon className="w-3.5 h-3.5 shrink-0" />
-                                                        <span className="text-xs">
+                                                        <span className="text-sm">
                                                             {item.label}
                                                         </span>
                                                     </div>
@@ -232,7 +232,7 @@ ${isActive
                                 <button
                                     type="button"
                                     onClick={openLogoutModal}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-red-500 hover:bg-red-500/8 rounded-xl transition-all"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-500/8 rounded-xl transition-all"
                                 >
                                     <LogOut className="w-3.5 h-3.5 shrink-0" />
                                     <span>Logout</span>

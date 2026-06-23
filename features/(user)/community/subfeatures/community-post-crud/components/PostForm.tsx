@@ -110,7 +110,7 @@ export default function PostForm({
                         <div className="space-y-4">
                             <div>
                                 <h3 className="text-base font-semibold">Choose artwork</h3>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <p className="mt-1 text-sm text-muted-foreground">
                                     Search your active verified artworks and select one to publish.
                                 </p>
                             </div>
@@ -186,7 +186,7 @@ export default function PostForm({
                                                                                             <p className="line-clamp-1 text-base font-semibold text-foreground">
                                                                                                 {artwork.title}
                                                                                             </p>
-                                                                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                                                            <p className="mt-1 text-sm text-muted-foreground">
                                                                                                 {new Date(artwork.createdAt).toLocaleDateString()}
                                                                                             </p>
                                                                                         </div>
@@ -200,7 +200,7 @@ export default function PostForm({
                                                                                         ) : null}
                                                                                     </div>
 
-                                                                                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                                                                    <p className="mt-2 line-clamp-2 text-sm leading-5 text-muted-foreground">
                                                                                         {artwork.description || "No description provided."}
                                                                                     </p>
                                                                                 </div>
@@ -223,7 +223,7 @@ export default function PostForm({
                         <div className="space-y-4">
                             <div>
                                 <h3 className="text-base font-semibold">Selected artwork</h3>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <p className="mt-1 text-sm text-muted-foreground">
                                     Review the artwork that will be used for this post.
                                 </p>
                             </div>
@@ -255,13 +255,13 @@ export default function PostForm({
                                         {selectedArtwork?.title || "Artwork title"}
                                     </h4>
 
-                                    <p className="line-clamp-4 text-xs leading-5 text-muted-foreground">
+                                    <p className="line-clamp-4 text-sm leading-5 text-muted-foreground">
                                         {selectedArtwork?.description ||
                                             "The selected artwork description will appear here."}
                                     </p>
 
                                     {selectedArtwork ? (
-                                        <div className="pt-2 text-xs text-muted-foreground">
+                                        <div className="pt-2 text-sm text-muted-foreground">
                                             Registered on{" "}
                                             {new Date(selectedArtwork.createdAt).toLocaleDateString()}
                                         </div>
@@ -297,7 +297,7 @@ export default function PostForm({
                                                                 <Icon className="h-4 w-4" />
                                                                 <div className="flex flex-col">
                                                                     <span>{option.label}</span>
-                                                                    <span className="text-xs text-muted-foreground">
+                                                                    <span className="text-sm text-muted-foreground">
                                                                         {option.description}
                                                                     </span>
                                                                 </div>
@@ -327,7 +327,7 @@ export default function PostForm({
                                                     <FormLabel className="text-base font-semibold leading-none">
                                                         NSFW content
                                                     </FormLabel>
-                                                    <FormDescription className="text-xs leading-5">
+                                                    <FormDescription className="text-sm leading-5">
                                                         Mark if this artwork contains mature or sensitive content.
                                                     </FormDescription>
                                                 </div>

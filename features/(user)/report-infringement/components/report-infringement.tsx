@@ -131,7 +131,7 @@ export default function ReportInfringementPageShadcn() {
 
                                     <div className="w-40">
                                         <Progress value={progress} />
-                                        <p className="mt-1 text-xs text-muted-foreground text-right">{progress}%</p>
+                                        <p className="mt-1 text-sm text-muted-foreground text-right">{progress}%</p>
                                     </div>
                                 </div>
 
@@ -214,7 +214,7 @@ export default function ReportInfringementPageShadcn() {
                                                 onChange={(e) => setOriginalUrl(e.target.value)}
                                                 placeholder="https://..."
                                             />
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm text-muted-foreground">
                                                 Tip: use your portfolio link or the post URL where you first published it.
                                             </p>
                                         </div>
@@ -358,7 +358,7 @@ export default function ReportInfringementPageShadcn() {
                                                 <span className="font-medium">{similarity}%</span>
                                             </div>
                                             <Progress value={similarity} />
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm text-muted-foreground">
                                                 Tip: reviewers will use this as an indicator, plus your evidence and links.
                                             </p>
                                         </div>
@@ -473,7 +473,7 @@ export default function ReportInfringementPageShadcn() {
                                                 <p className="font-medium text-base">Case #A19F</p>
                                                 <Badge variant="secondary">Under review</Badge>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Plagiarism · Instagram</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Plagiarism · Instagram</p>
                                         </div>
 
                                         <div className="rounded-lg border p-3">
@@ -481,7 +481,7 @@ export default function ReportInfringementPageShadcn() {
                                                 <p className="font-medium text-base">Case #B02C</p>
                                                 <Badge>Submitted</Badge>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Repost · Facebook</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Repost · Facebook</p>
                                         </div>
 
                                         <div className="rounded-lg border p-3">
@@ -489,7 +489,7 @@ export default function ReportInfringementPageShadcn() {
                                                 <p className="font-medium text-base">Case #C77D</p>
                                                 <Badge variant="outline">Resolved</Badge>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Commercial use · Other</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Commercial use · Other</p>
                                         </div>
                                     </div>
                                 </ScrollArea>

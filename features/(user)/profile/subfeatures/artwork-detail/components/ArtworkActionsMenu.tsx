@@ -108,7 +108,7 @@ export function ArtworkActionsMenu({
                     {blockchainRecorded ? (
                         <>
                             <DropdownMenuSeparator />
-                            <div className="px-2 py-2 text-xs text-muted-foreground">
+                            <div className="px-2 py-2 text-sm text-muted-foreground">
                                 This artwork already has a blockchain record, so editing
                                 and deletion are disabled.
                             </div>

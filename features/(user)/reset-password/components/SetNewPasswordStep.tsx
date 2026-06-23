@@ -64,7 +64,7 @@ export function SetNewPasswordStep({
                             </button>
                         </div>
                         {form.formState.errors.password && (
-                            <p className="text-xs text-red-400">
+                            <p className="text-sm text-red-400">
                                 {form.formState.errors.password.message}
                             </p>
                         )}
@@ -88,7 +88,7 @@ export function SetNewPasswordStep({
                             </button>
                         </div>
                         {form.formState.errors.confirmPassword && (
-                            <p className="text-xs text-red-400">
+                            <p className="text-sm text-red-400">
                                 {form.formState.errors.confirmPassword.message}
                             </p>
                         )}

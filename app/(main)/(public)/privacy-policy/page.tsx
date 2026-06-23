@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
           <Reveal>
             <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-400/25 rounded-full px-5 py-2 mb-6">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-xs font-bold text-blue-300 uppercase tracking-widest">Data Privacy</span>
+              <span className="text-sm font-bold text-blue-300 uppercase tracking-widest">Data Privacy</span>
             </div>
           </Reveal>
           <Reveal delay={80}>
@@ -106,7 +106,7 @@ export default function PrivacyPolicyPage() {
             </h1>
           </Reveal>
           <Reveal delay={220}>
-            <div className="flex items-center justify-center gap-3 mt-5 text-xs text-slate-500">
+            <div className="flex items-center justify-center gap-3 mt-5 text-sm text-slate-500">
               <span>Last updated: January 2026</span>
               <span className="w-1 h-1 rounded-full bg-slate-600" />
               <span>ArtForgeLab Undergraduate Thesis Project</span>
@@ -123,7 +123,7 @@ export default function PrivacyPolicyPage() {
             { label: "Effective", value: "Jan 2026" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2 text-base">
-              <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">{item.label}</span>
+              <span className="text-blue-200 text-sm uppercase tracking-widest font-medium">{item.label}</span>
               <span className="text-white font-black">{item.value}</span>
             </div>
           ))}

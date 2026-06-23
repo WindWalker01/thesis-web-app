@@ -5,7 +5,7 @@ export function VerifyArtworkHero() {
         <section className="border-b border-border bg-gradient-to-b from-primary/5 via-background to-background">
             <div className="container mx-auto px-4 py-10 md:px-6 md:py-14">
                 <div className="max-w-3xl">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                         <ShieldCheck className="h-3.5 w-3.5" />
                         Proof of authorship and ownership
                     </div>

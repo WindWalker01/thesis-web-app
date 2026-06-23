@@ -69,7 +69,7 @@ export default function PlagiarismHistorySection() {
 
             <Card>
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    <p className="text-sm font-black uppercase tracking-widest text-slate-400">
                         Recent Scans
                     </p>
                 </div>
@@ -102,7 +102,7 @@ export default function PlagiarismHistorySection() {
                                 <p className="text-base font-semibold text-slate-500">
                                     No plagiarism scan history found.
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">
+                                <p className="text-sm text-slate-400 mt-1">
                                     Your completed scan results will appear here.
                                 </p>
                             </div>
@@ -121,13 +121,13 @@ export default function PlagiarismHistorySection() {
                                                 <p className="text-base font-semibold group-hover:text-blue-500 transition-colors">
                                                     {scan.artwork}
                                                 </p>
-                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                <p className="text-sm text-slate-400 mt-0.5">
                                                     {scan.date}
                                                 </p>
                                             </div>
 
                                             <div className="flex items-center gap-3 shrink-0">
-                                                <span className="text-xs text-slate-400">
+                                                <span className="text-sm text-slate-400">
                                                     {scan.matches} match{scan.matches !== 1 ? "es" : ""}
                                                     {typeof scan.similarity === "number"
                                                         ? ` · ${scan.similarity.toFixed(2)}%`

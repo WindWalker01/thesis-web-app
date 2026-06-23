@@ -76,7 +76,7 @@ export function VerifyOtpStep({
                         />
 
                         {form.formState.errors.token && (
-                            <p className="text-xs text-red-400">
+                            <p className="text-sm text-red-400">
                                 {form.formState.errors.token.message}
                             </p>
                         )}

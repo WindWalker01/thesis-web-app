@@ -36,7 +36,7 @@ export default function ChangePasswordForm() {
         <form onSubmit={onSubmit} className="p-6 space-y-4 max-w-lg">
             {fields.map((field) => (
                 <div key={field.key} className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400">
+                    <label className="text-sm font-semibold text-slate-400">
                         {field.label}
                     </label>
 
@@ -62,7 +62,7 @@ export default function ChangePasswordForm() {
                     </div>
 
                     {errors[field.key] && (
-                        <p className="text-xs text-red-500">
+                        <p className="text-sm text-red-500">
                             {errors[field.key]?.message}
                         </p>
                     )}

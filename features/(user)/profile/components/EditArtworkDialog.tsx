@@ -88,7 +88,7 @@ export function EditArtworkDialog({
                                     </FormControl>
                                     <div className="flex items-center justify-between">
                                         <FormMessage />
-                                        <span className="ml-auto text-xs text-muted-foreground">
+                                        <span className="ml-auto text-sm text-muted-foreground">
                                             {descriptionValue.length}/1000
                                         </span>
                                     </div>

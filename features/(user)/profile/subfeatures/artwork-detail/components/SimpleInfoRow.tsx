@@ -15,7 +15,7 @@ export function SimpleInfoRow({
             <p
                 className={
                     mono
-                        ? "font-mono text-xs leading-5 break-all text-foreground"
+                        ? "font-mono text-sm leading-5 break-all text-foreground"
                         : "text-base font-medium text-foreground wrap-break-word"
                 }
             >

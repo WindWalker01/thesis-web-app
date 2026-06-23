@@ -43,7 +43,7 @@ export function ActiveFilterChips({
       )}
       <button
         onClick={onClearAll}
-        className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors px-2"
+        className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-2"
       >
         Clear all
       </button>
@@ -66,7 +66,7 @@ const chipStyles: Record<ChipProps["color"], string> = {
 function Chip({ color, onRemove, children }: ChipProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full border text-xs font-semibold ${chipStyles[color]}`}
+      className={`inline-flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-full border text-sm font-semibold ${chipStyles[color]}`}
     >
       {children}
       <button

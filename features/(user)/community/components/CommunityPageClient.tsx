@@ -59,7 +59,7 @@ export default function CommunityPageClient({
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm font-semibold uppercase tracking-wide">
                 <Users className="h-3.5 w-3.5" />
                 Community Gallery
               </div>
@@ -152,7 +152,7 @@ export default function CommunityPageClient({
                     </p>
 
                     {!authed ? (
-                      <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                      <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
                         <Lock className="h-3.5 w-3.5" />
                         Viewing as guest
                       </div>
@@ -204,7 +204,7 @@ export default function CommunityPageClient({
                         >
                           <div className="space-y-4">
                             <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                 Feed scope
                               </p>
                               <div className="mt-2 flex flex-wrap gap-2">
@@ -222,7 +222,7 @@ export default function CommunityPageClient({
                             </div>
 
                             <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                 Visibility
                               </p>
                               <div className="mt-2 flex flex-wrap gap-2">
@@ -247,7 +247,7 @@ export default function CommunityPageClient({
                             </div>
 
                             <div>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                                 Sort by
                               </p>
                               <div className="mt-2 flex flex-wrap gap-2">
@@ -265,7 +265,7 @@ export default function CommunityPageClient({
                             </div>
 
                             <div className="flex items-center justify-between border-t border-border pt-3">
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-sm text-muted-foreground">
                                 {feedState.filteredPosts.length} post
                                 {feedState.filteredPosts.length === 1 ? "" : "s"} found
                               </p>
@@ -273,7 +273,7 @@ export default function CommunityPageClient({
                               <button
                                 type="button"
                                 onClick={feedActions.resetFilters}
-                                className="text-xs font-semibold text-primary transition hover:opacity-80"
+                                className="text-sm font-semibold text-primary transition hover:opacity-80"
                               >
                                 Reset filters
                               </button>
@@ -287,7 +287,7 @@ export default function CommunityPageClient({
 
                 {authed && feedState.availableFilters.length > 0 ? (
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                       Browse by genre
                     </p>
 
@@ -383,7 +383,7 @@ export default function CommunityPageClient({
                 </div>
 
                 <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100/80">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100/80">
                     Guest mode
                   </p>
 

@@ -71,7 +71,7 @@ export function FilterSidebar({
                         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                             <div className="flex items-center gap-2">
                                 <Filter className="w-3.5 h-3.5 text-primary" />
-                                <span className="text-xs font-black uppercase tracking-widest">Filters</span>
+                                <span className="text-sm font-black uppercase tracking-widest">Filters</span>
                             </div>
                             {activeFiltersCount > 0 && (
                                 <button

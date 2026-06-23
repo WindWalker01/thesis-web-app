@@ -198,7 +198,7 @@ export default function CommunityGuidelinesPage() {
           <Reveal>
             <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-400/25 rounded-full px-5 py-2 mb-6">
               <ShieldAlert className="w-3.5 h-3.5 text-orange-400" />
-              <span className="text-xs font-bold text-orange-300 uppercase tracking-widest">
+              <span className="text-sm font-bold text-orange-300 uppercase tracking-widest">
                 Platform Policy
               </span>
             </div>
@@ -223,7 +223,7 @@ export default function CommunityGuidelinesPage() {
           </Reveal>
 
           <Reveal delay={220}>
-            <div className="flex items-center justify-center gap-3 mt-5 text-xs text-slate-500">
+            <div className="flex items-center justify-center gap-3 mt-5 text-sm text-slate-500">
               <span>Last updated: June 2026</span>
               <span className="w-1 h-1 rounded-full bg-slate-600" />
               <span>ArtForgeLab Undergraduate Thesis Project</span>
@@ -241,7 +241,7 @@ export default function CommunityGuidelinesPage() {
             { label: "Effective", value: "Jun 2026" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2 text-base">
-              <span className="text-orange-100 text-xs uppercase tracking-widest font-medium">
+              <span className="text-orange-100 text-sm uppercase tracking-widest font-medium">
                 {item.label}
               </span>
               <span className="text-white font-black">{item.value}</span>
@@ -340,7 +340,7 @@ export default function CommunityGuidelinesPage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-5 text-xs text-slate-400 dark:text-slate-500 italic">
+              <p className="mt-5 text-sm text-slate-400 dark:text-slate-500 italic">
                 ArtForgeLab moderators reserve the right to make final
                 determinations on borderline content based on community
                 standards and the academic mission of this platform.

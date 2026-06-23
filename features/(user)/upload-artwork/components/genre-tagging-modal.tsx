@@ -113,10 +113,10 @@ export function GenreTaggingModal({
         {/* Body */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
           <div className="flex items-center justify-between">
-            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
               Available genres
             </p>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               {selectedIds.size} selected
             </p>
           </div>
@@ -164,7 +164,7 @@ export function GenreTaggingModal({
             </div>
           )}
 
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             The top {PRE_SELECT_COUNT} genres were pre-selected based on
             classifier confidence. You can change the selection freely.
           </p>
@@ -173,7 +173,7 @@ export function GenreTaggingModal({
         {/* Footer */}
         <DialogFooter className="bg-muted/20 border-t px-5 py-4 sm:px-6">
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               {selectedIds.size === 0
                 ? "Select at least one genre to continue."
                 : `${selectedIds.size} genre${selectedIds.size === 1 ? "" : "s"} selected.`}

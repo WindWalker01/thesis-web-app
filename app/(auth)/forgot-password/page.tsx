@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
                         >
                             Enter OTP Code
                         </Button>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm text-slate-500">
                             Didn&apos;t receive it? Check your spam folder or{" "}
                             <button
                                 type="button"
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
                             className="h-11 bg-slate-900/60 border-slate-600/60 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500"
                         />
                         {errors.email && (
-                            <p className="text-xs text-red-400">{errors.email.message}</p>
+                            <p className="text-sm text-red-400">{errors.email.message}</p>
                         )}
                     </div>
 

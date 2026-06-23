@@ -24,7 +24,7 @@ export default function Footer() {
                                 <span className="text-white">Lab</span>
                             </span>
                         </div>
-                        <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 border-l-2 border-blue-500 pl-3">
+                        <p className="text-sm font-semibold uppercase tracking-widest text-blue-400 border-l-2 border-blue-500 pl-3">
                             Advancing Digital IP Protection
                         </p>
                         <p className="text-base text-slate-300 dark:text-slate-400 leading-relaxed text-justify">
@@ -35,7 +35,7 @@ export default function Footer() {
                         </p>
                         <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2">
                             <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
-                            <span className="text-xs text-blue-300 font-medium">Undergraduate Thesis Research · 2026</span>
+                            <span className="text-sm text-blue-300 font-medium">Undergraduate Thesis Research · 2026</span>
                         </div>
                     </div>
 
@@ -117,7 +117,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400 dark:text-slate-500">
+                <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400 dark:text-slate-500">
                     <p className="text-center md:text-left leading-relaxed">
                         © 2026 ArtForgeLab &mdash; A Thesis Project on{" "}
                         <span className="text-slate-200 dark:text-slate-400">Intellectual Property Rights Management for Digital Artists</span>{" "}

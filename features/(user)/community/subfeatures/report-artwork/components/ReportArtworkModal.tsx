@@ -88,7 +88,7 @@ export function ReportArtworkModal({
                 ) : null}
 
                 {username ? (
-                  <div className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                     Posted by u/{username}
                   </div>
                 ) : null}

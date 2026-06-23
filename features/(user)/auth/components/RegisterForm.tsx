@@ -140,7 +140,7 @@ export function RegisterForm() {
               className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
             />
             {errors.email && (
-              <p className="text-xs text-red-500 dark:text-red-400">
+              <p className="text-sm text-red-500 dark:text-red-400">
                 {errors.email.message}
               </p>
             )}
@@ -237,7 +237,7 @@ export function RegisterForm() {
 
           <div className="flex items-center gap-3">
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
-            <span className="text-xs text-slate-400 dark:text-slate-500">
+            <span className="text-sm text-slate-400 dark:text-slate-500">
               or
             </span>
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />

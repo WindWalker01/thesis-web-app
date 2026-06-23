@@ -23,7 +23,7 @@ export function VerifyArtworkComparisonTable({
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-border">
-                <div className="hidden grid-cols-[1.2fr_1fr_1fr_140px] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:grid">
+                <div className="hidden grid-cols-[1.2fr_1fr_1fr_140px] gap-4 border-b border-border bg-muted/40 px-4 py-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground md:grid">
                     <div>Field</div>
                     <div>Database value</div>
                     <div>Blockchain value</div>
@@ -39,7 +39,7 @@ export function VerifyArtworkComparisonTable({
                             <div>
                                 <div className="font-semibold">{item.label}</div>
                                 {item.note ? (
-                                    <p className="mt-1 text-xs text-muted-foreground">
+                                    <p className="mt-1 text-sm text-muted-foreground">
                                         {item.note}
                                     </p>
                                 ) : null}
@@ -61,7 +61,7 @@ export function VerifyArtworkComparisonTable({
 
                             <div>
                                 <span
-                                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${item.matches
+                                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${item.matches
                                             ? "bg-green-500/10 text-green-600 dark:text-green-400"
                                             : "bg-red-500/10 text-red-600 dark:text-red-400"
                                         }`}

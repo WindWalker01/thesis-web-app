@@ -205,9 +205,9 @@ export default function PlagiarismCheckerPage() {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <span className="text-muted-foreground text-xs">Dashboard</span>
-              <span className="text-muted-foreground/40 text-xs">›</span>
-              <span className="text-primary text-xs font-medium">Plagiarism Analysis</span>
+              <span className="text-muted-foreground text-sm">Dashboard</span>
+              <span className="text-muted-foreground/40 text-sm">›</span>
+              <span className="text-primary text-sm font-medium">Plagiarism Analysis</span>
             </div>
             <h1 className="text-foreground text-2xl font-bold tracking-tight">
               Plagiarism Detection Analysis
@@ -250,7 +250,7 @@ export default function PlagiarismCheckerPage() {
         {/* Mode toggle */}
         <div className="flex items-center justify-between">
           <ModeToggle mode={mode} onChange={handleModeChange} />
-          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
             {mode === "web" ? (
               <><Globe size={12} /> Checks registered DB + web sources</>
             ) : (

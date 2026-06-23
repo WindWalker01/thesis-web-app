@@ -14,7 +14,7 @@ export function FilterChip({
             type="button"
             onClick={onClick}
             className={[
-                "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                "rounded-full border px-3 py-1.5 text-sm font-semibold transition",
                 active
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/60",

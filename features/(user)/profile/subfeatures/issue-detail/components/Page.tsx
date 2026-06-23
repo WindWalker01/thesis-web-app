@@ -71,7 +71,7 @@ export default function IssueDetailPage({ id }: Props) {
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                     <Link
                         href="/profile/issues"
-                        className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
+                        className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
                     >
                         <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                         Back to profile
@@ -129,7 +129,7 @@ export default function IssueDetailPage({ id }: Props) {
             <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                 <Link
                     href="/profile/issues"
-                    className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-8"
+                    className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-8"
                 >
                     <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                     Back to profile
@@ -213,13 +213,13 @@ export default function IssueDetailPage({ id }: Props) {
                                         </div>
 
                                         <div>
-                                            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                                            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                                                 Creator
                                             </p>
                                             <p className="text-base font-semibold text-foreground">
                                                 {issue.creator.fullName}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm text-muted-foreground">
                                                 {issue.creator.username}
                                             </p>
                                         </div>
@@ -329,7 +329,7 @@ export default function IssueDetailPage({ id }: Props) {
                                                 {report.description}
                                             </p>
 
-                                            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                                            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                                                 <span>Created {formatUploadDate(report.createdAt)}</span>
                                                 <span>
                                                     Resolved{" "}
@@ -373,7 +373,7 @@ export default function IssueDetailPage({ id }: Props) {
                                 </div>
 
                                 {evidenceText ? (
-                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
                                         {evidenceText}
                                     </pre>
                                 ) : (
@@ -390,7 +390,7 @@ export default function IssueDetailPage({ id }: Props) {
                                 </div>
 
                                 {plagiarismText ? (
-                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
                                         {plagiarismText}
                                     </pre>
                                 ) : (

@@ -25,7 +25,7 @@ export function TechnicalDetailsToggle({
             >
                 <div>
                     <p className="text-base font-bold text-foreground">{title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{description}</p>
                 </div>
 
                 <span className="shrink-0 text-muted-foreground">

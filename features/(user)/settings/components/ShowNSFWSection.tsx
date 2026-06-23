@@ -21,7 +21,7 @@ export default function ShowNSFWSection() {
       {/* ── Main Settings Card ── */}
       <Card>
         <div className="p-6">
-          <p className="mb-5 text-xs font-black tracking-widest text-slate-400 uppercase">
+          <p className="mb-5 text-sm font-black tracking-widest text-slate-400 uppercase">
             Preferences
           </p>
 
@@ -34,7 +34,7 @@ export default function ShowNSFWSection() {
               >
                 Show NSFW Content
               </label>
-              <p className="text-xs leading-normal text-slate-400">
+              <p className="text-sm leading-normal text-slate-400">
                 Turn this on if you want to see mature or sensitive artwork on
                 the platform.
               </p>
@@ -60,7 +60,7 @@ export default function ShowNSFWSection() {
             )}
           </div>
           <div className="space-y-1">
-            <p className="text-foreground text-xs font-bold">
+            <p className="text-foreground text-sm font-bold">
               What happens now?
             </p>
             <p className="text-[11px] leading-relaxed text-slate-400">

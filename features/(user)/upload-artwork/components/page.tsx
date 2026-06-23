@@ -205,7 +205,7 @@ export default function UploadArtworkPage() {
                         ))}
                       </div>
 
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-sm">
                         Maximum file size: 5MB
                       </p>
                     </div>
@@ -235,7 +235,7 @@ export default function UploadArtworkPage() {
                           <p className="truncate text-base font-medium">
                             {file.name}
                           </p>
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
@@ -347,7 +347,7 @@ export default function UploadArtworkPage() {
                             </FormControl>
                             <FormMessage />
                             <div className="flex items-center justify-end">
-                              <span className="text-muted-foreground text-xs">
+                              <span className="text-muted-foreground text-sm">
                                 {watchedTitle.length}/120
                               </span>
                             </div>
@@ -369,7 +369,7 @@ export default function UploadArtworkPage() {
                               />
                             </FormControl>
                             <div className="flex items-center justify-end">
-                              <span className="text-muted-foreground text-xs">
+                              <span className="text-muted-foreground text-sm">
                                 {watchedDescription.length}/1000
                               </span>
                             </div>
@@ -471,7 +471,7 @@ export default function UploadArtworkPage() {
                     <CardContent className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             Similarity
                           </p>
                           <p className="text-lg font-semibold">
@@ -480,7 +480,7 @@ export default function UploadArtworkPage() {
                         </div>
 
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             Match type
                           </p>
                           <div className="mt-1 flex items-center gap-2">
@@ -496,7 +496,7 @@ export default function UploadArtworkPage() {
                         </div>
 
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             Source
                           </p>
                           <p className="text-lg font-semibold">
@@ -526,7 +526,7 @@ export default function UploadArtworkPage() {
                       {similarityReport.type === "internet" ? (
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-2 rounded-lg border p-4">
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-muted-foreground text-sm">
                               Reference link
                             </p>
                             {similarityReport.link ? (
@@ -545,7 +545,7 @@ export default function UploadArtworkPage() {
                           </div>
 
                           <div className="space-y-2 rounded-lg border p-4">
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-muted-foreground text-sm">
                               Image reference
                             </p>
                             {similarityReport.url ? (
@@ -621,7 +621,7 @@ export default function UploadArtworkPage() {
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-      <p className="text-xs tracking-wide text-slate-400 uppercase">{title}</p>
+      <p className="text-sm tracking-wide text-slate-400 uppercase">{title}</p>
       <p className="mt-1 text-base font-semibold text-white">{value}</p>
     </div>
   );
