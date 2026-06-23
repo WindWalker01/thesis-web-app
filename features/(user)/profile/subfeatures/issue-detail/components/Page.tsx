@@ -78,17 +78,17 @@ export default function IssueDetailPage({ id }: Props) {
                     </Link>
 
                     <div className="rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-8">
-                        <p className="text-sm font-semibold text-foreground mb-2">
+                        <p className="text-base font-semibold text-foreground mb-2">
                             Failed to load issue detail.
                         </p>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-base text-muted-foreground mb-4">
                             {error ?? "Issue record not found."}
                         </p>
 
                         <button
                             type="button"
                             onClick={() => refetch()}
-                            className="inline-flex items-center rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
+                            className="inline-flex items-center rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-base font-semibold text-primary hover:bg-primary/15 transition-colors"
                         >
                             Try again
                         </button>
@@ -184,7 +184,7 @@ export default function IssueDetailPage({ id }: Props) {
                                 {issue.title}
                             </h1>
 
-                            <p className="text-sm leading-6 text-muted-foreground mb-5">
+                            <p className="text-base leading-6 text-muted-foreground mb-5">
                                 {issue.description?.trim() || "No artwork description provided."}
                             </p>
 
@@ -195,10 +195,10 @@ export default function IssueDetailPage({ id }: Props) {
                                     </div>
 
                                     <div>
-                                        <p className="text-sm font-bold text-foreground mb-1">
+                                        <p className="text-base font-bold text-foreground mb-1">
                                             Why this artwork appears in Review & Issues
                                         </p>
-                                        <p className="text-sm leading-6 text-muted-foreground">
+                                        <p className="text-base leading-6 text-muted-foreground">
                                             {explanation}
                                         </p>
                                     </div>
@@ -216,7 +216,7 @@ export default function IssueDetailPage({ id }: Props) {
                                             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                                                 Creator
                                             </p>
-                                            <p className="text-sm font-semibold text-foreground">
+                                            <p className="text-base font-semibold text-foreground">
                                                 {issue.creator.fullName}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
@@ -281,7 +281,7 @@ export default function IssueDetailPage({ id }: Props) {
                                         href={txUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex w-fit items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-2 text-sm font-semibold text-blue-500 hover:bg-blue-500/15 transition-colors"
+                                        className="inline-flex w-fit items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-2 text-base font-semibold text-blue-500 hover:bg-blue-500/15 transition-colors"
                                     >
                                         <ExternalLink className="w-4 h-4" />
                                         View blockchain transaction
@@ -322,10 +322,10 @@ export default function IssueDetailPage({ id }: Props) {
                                                 </span>
                                             </div>
 
-                                            <p className="mb-1 text-sm font-semibold text-foreground">
+                                            <p className="mb-1 text-base font-semibold text-foreground">
                                                 {report.title}
                                             </p>
-                                            <p className="mb-3 text-sm leading-6 text-muted-foreground">
+                                            <p className="mb-3 text-base leading-6 text-muted-foreground">
                                                 {report.description}
                                             </p>
 
@@ -355,7 +355,7 @@ export default function IssueDetailPage({ id }: Props) {
                             <div>
                                 <div className="mb-3 flex items-center gap-2">
                                     <Fingerprint className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">Artwork hashes</p>
+                                    <p className="text-base font-bold text-foreground">Artwork hashes</p>
                                 </div>
 
                                 <div className="grid gap-3 md:grid-cols-2">
@@ -369,7 +369,7 @@ export default function IssueDetailPage({ id }: Props) {
                             <div>
                                 <div className="mb-3 flex items-center gap-2">
                                     <ScrollText className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">Evidence payload</p>
+                                    <p className="text-base font-bold text-foreground">Evidence payload</p>
                                 </div>
 
                                 {evidenceText ? (
@@ -384,7 +384,7 @@ export default function IssueDetailPage({ id }: Props) {
                             <div>
                                 <div className="mb-3 flex items-center gap-2">
                                     <Hash className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">
+                                    <p className="text-base font-bold text-foreground">
                                         Plagiarism hashes payload
                                     </p>
                                 </div>

@@ -38,7 +38,7 @@ export function AnalyzingScreen({ progress = 0, mode, indeterminate = false }: A
         <h2 className="text-xl font-bold text-foreground">
           {mode === "web" ? "Searching Web & Database" : "Comparing Images"}
         </h2>
-        <p className="text-sm text-muted-foreground mt-1.5">
+        <p className="text-base text-muted-foreground mt-1.5">
           {mode === "web"
             ? "Running perceptual hash lookup across DB and web sources…"
             : "Computing transform and block similarities…"}

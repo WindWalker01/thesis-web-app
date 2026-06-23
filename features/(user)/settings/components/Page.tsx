@@ -134,7 +134,7 @@ export default function SettingsPage() {
                         <h1 className="text-4xl md:text-5xl font-black text-white leading-none">
                             Settings
                         </h1>
-                        <p className="text-slate-400 text-sm mt-2">
+                        <p className="text-slate-400 text-base mt-2">
                             Manage your account and ArtForgeLab preferences.
                         </p>
                     </div>
@@ -160,7 +160,7 @@ export default function SettingsPage() {
                         { label: "Role", value: "Digital Artist" },
                         { label: "Since", value: `${profile?.joinDate ?? ""}` },
                     ].map((item) => (
-                        <div key={item.label} className="flex items-center gap-2 text-sm">
+                        <div key={item.label} className="flex items-center gap-2 text-base">
                             <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">
                                 {item.label}
                             </span>
@@ -198,7 +198,7 @@ export default function SettingsPage() {
                                                     onClick={() =>
                                                         !item.href && setActiveTab(item.id)
                                                     }
-                                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-all group
+                                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-base font-medium transition-all group
 ${isActive
                                                             ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-r-2 border-blue-500"
                                                             : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"

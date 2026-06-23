@@ -125,7 +125,7 @@ export default function AboutPage() {
             { label: "Algorithm", value: "Perceptual Hash" },
             { label: "Year", value: "2026" },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 text-sm">
+            <div key={item.label} className="flex items-center gap-2 text-base">
               <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">{item.label}</span>
               <span className="text-white font-black">{item.value}</span>
             </div>
@@ -167,7 +167,7 @@ export default function AboutPage() {
                         {section.title}
                       </h2>
                     </div>
-                    <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
                       {section.body}
                     </p>
                   </div>
@@ -195,7 +195,7 @@ export default function AboutPage() {
                     Research Team
                   </h2>
                 </div>
-                <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
                   ArtForgeLab was built by a three-member undergraduate research team, each contributing specialized expertise to the development and design of the system.
                 </p>
               </div>
@@ -233,7 +233,7 @@ export default function AboutPage() {
 
         {/* ── Back link ── */}
         <Reveal className="pt-4 text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors group">
+          <Link href="/" className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:text-blue-400 transition-colors group">
             <span className="group-hover:-translate-x-1 transition-transform inline-block">←</span>
             Back to Home
           </Link>

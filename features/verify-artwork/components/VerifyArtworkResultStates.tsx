@@ -29,7 +29,7 @@ export function VerifyArtworkResultStates({
                     <h3 className="font-semibold">
                         {isWarning ? "Review required" : "Verification information"}
                     </h3>
-                    <p className="mt-1 text-sm opacity-90">{result.summary}</p>
+                    <p className="mt-1 text-base opacity-90">{result.summary}</p>
                 </div>
             </div>
         </div>

@@ -39,7 +39,7 @@ export default function NotificationsPage() {
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
                 <Link
                     href="/settings"
-                    className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-blue-500 transition-colors mb-6"
+                    className="inline-flex items-center gap-2 text-base text-slate-400 hover:text-blue-500 transition-colors mb-6"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back
                 </Link>
@@ -54,12 +54,12 @@ export default function NotificationsPage() {
                         <div className="flex items-center gap-3">
                             <h1 className="text-3xl font-black">Notifications</h1>
                             {unreadCount > 0 && (
-                                <span className="text-sm font-bold bg-orange-500 text-white px-2.5 py-0.5 rounded-full">
+                                <span className="text-base font-bold bg-orange-500 text-white px-2.5 py-0.5 rounded-full">
                                     {unreadCount}
                                 </span>
                             )}
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">
+                        <p className="text-base text-slate-400 mt-1">
                             Stay updated on your artwork activity.
                         </p>
                     </div>
@@ -93,7 +93,7 @@ export default function NotificationsPage() {
                         <button
                             key={tab.id}
                             onClick={() => setActiveCategory(tab.id)}
-                            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${activeCategory === tab.id
+                            className={`px-4 py-2 rounded-xl text-base font-semibold whitespace-nowrap transition-all ${activeCategory === tab.id
                                 ? "bg-blue-500 text-white shadow-md"
                                 : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500 hover:border-blue-400 hover:text-blue-500"
                                 }`}
@@ -168,7 +168,7 @@ export default function NotificationsPage() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start justify-between gap-2">
                                                     <p
-                                                        className={`text-sm font-bold leading-snug ${!notification.is_read
+                                                        className={`text-base font-bold leading-snug ${!notification.is_read
                                                             ? "text-slate-900 dark:text-white"
                                                             : "text-slate-700 dark:text-slate-300"
                                                             }`}

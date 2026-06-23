@@ -58,7 +58,7 @@ export function TransactionsTable({
                                 href={item.explorerUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:underline"
+                                className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:underline"
                             >
                                 {truncateHash(item.txHash, 12, 10)}
                                 <ExternalLink className="h-3.5 w-3.5" />
@@ -85,7 +85,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 Block
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {item.blockNumber ?? "Pending"}
                             </p>
                         </div>
@@ -94,7 +94,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 Age
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {item.timestamp ? formatTimeAgo(item.timestamp) : "Pending"}
                             </p>
                         </div>
@@ -103,7 +103,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 From
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {truncateHash(item.from, 8, 6)}
                             </p>
                         </div>
@@ -112,7 +112,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 To
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {truncateHash(item.to, 8, 6)}
                             </p>
                         </div>

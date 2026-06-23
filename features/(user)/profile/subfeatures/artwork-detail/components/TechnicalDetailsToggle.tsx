@@ -24,7 +24,7 @@ export function TechnicalDetailsToggle({
                 className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-background/40 transition-colors"
             >
                 <div>
-                    <p className="text-sm font-bold text-foreground">{title}</p>
+                    <p className="text-base font-bold text-foreground">{title}</p>
                     <p className="text-xs text-muted-foreground mt-1">{description}</p>
                 </div>
 

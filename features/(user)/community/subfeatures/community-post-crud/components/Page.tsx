@@ -22,7 +22,7 @@ export default async function CreatePostPage({
                         Create a post from your registered artwork
                     </h1>
 
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+                    <p className="mt-3 text-base leading-6 text-muted-foreground sm:text-base">
                         Share your protected artwork with the community without duplicating the
                         title and description. Just select the artwork, add an optional caption,
                         and choose who can view it.

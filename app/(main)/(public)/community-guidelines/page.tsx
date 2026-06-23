@@ -240,7 +240,7 @@ export default function CommunityGuidelinesPage() {
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jun 2026" },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 text-sm">
+            <div key={item.label} className="flex items-center gap-2 text-base">
               <span className="text-orange-100 text-xs uppercase tracking-widest font-medium">
                 {item.label}
               </span>
@@ -266,7 +266,7 @@ export default function CommunityGuidelinesPage() {
                 What Constitutes NSFW Content?
               </h2>
             </div>
-            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-8 ml-13 pl-1">
+            <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-8 ml-13 pl-1">
               NSFW (Not Safe for Work) content on ArtForgeLab refers to
               material that may be inappropriate for general audiences. While we
               respect artistic freedom, the following categories are classified
@@ -288,11 +288,11 @@ export default function CommunityGuidelinesPage() {
                       <div className="w-9 h-9 rounded-xl bg-orange-500/10 group-hover:bg-orange-500/20 flex items-center justify-center shrink-0 transition-colors">
                         <Icon className="w-4 h-4 text-orange-500" />
                       </div>
-                      <h3 className="text-sm font-black text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-snug">
+                      <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors leading-snug">
                         {item.label}
                       </h3>
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -320,7 +320,7 @@ export default function CommunityGuidelinesPage() {
                   Context Matters: Permitted Mature Content
                 </h2>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-5">
+              <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-5">
                 ArtForgeLab acknowledges that mature themes can carry legitimate
                 artistic, cultural, and social merit. The following types of
                 content{" "}
@@ -333,7 +333,7 @@ export default function CommunityGuidelinesPage() {
                 {ALLOWED.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300"
+                    className="flex items-start gap-3 text-base text-slate-600 dark:text-slate-300"
                   >
                     <CheckCircle2 className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
                     <span>{item}</span>
@@ -363,7 +363,7 @@ export default function CommunityGuidelinesPage() {
                 Strictly Prohibited Content
               </h2>
             </div>
-            <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-8 ml-13 pl-1">
+            <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-8 ml-13 pl-1">
               The following categories of content are{" "}
               <span className="font-semibold text-destructive">
                 absolutely prohibited
@@ -442,7 +442,7 @@ export default function CommunityGuidelinesPage() {
                           </h3>
                           <SeverityBadge level={section.severity as "critical" | "high"} />
                         </div>
-                        <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
                           {section.body}
                         </p>
                       </div>
@@ -474,7 +474,7 @@ export default function CommunityGuidelinesPage() {
                 <h2 className="text-xl md:text-2xl font-black mb-3">
                   Help Keep ArtForgeLab Safe
                 </h2>
-                <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-5">
+                <p className="text-slate-300 text-base md:text-base leading-relaxed mb-5">
                   If you encounter content that violates these guidelines,
                   please use the{" "}
                   <span className="text-orange-400 font-semibold">
@@ -486,15 +486,15 @@ export default function CommunityGuidelinesPage() {
                   legal referral.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm">
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-base">
                     <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
                     <span className="text-slate-300">Anonymous reports accepted</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm">
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-base">
                     <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
                     <span className="text-slate-300">Reviewed within 24 hours</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm">
+                  <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-base">
                     <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
                     <span className="text-slate-300">Legal escalation for CSAM</span>
                   </div>
@@ -508,12 +508,12 @@ export default function CommunityGuidelinesPage() {
         <Reveal className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 pt-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors group"
+            className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:text-blue-400 transition-colors group"
           >
             <span className="group-hover:-translate-x-1 transition-transform inline-block">←</span>
             Back to Home
           </Link>
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-slate-400">
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-base text-slate-400">
             <Link href="/terms-of-use" className="hover:text-blue-400 transition-colors whitespace-nowrap">
               Terms of Use
             </Link>

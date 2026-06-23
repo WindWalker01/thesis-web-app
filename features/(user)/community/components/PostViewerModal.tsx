@@ -92,7 +92,7 @@ export function PostViewerModal({
                     <div className="flex max-h-[92vh] min-h-0 flex-col">
                         <div className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border/70 bg-background/95 px-4 py-3 backdrop-blur sm:px-5">
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-foreground">
+                                <p className="truncate text-base font-bold text-foreground">
                                     @{post.username}&apos;s Post
                                 </p>
                                 <p className="text-xs text-muted-foreground">
@@ -137,7 +137,7 @@ export function PostViewerModal({
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                                 <p
-                                                    className="truncate text-sm font-semibold text-foreground transition hover:text-primary"
+                                                    className="truncate text-base font-semibold text-foreground transition hover:text-primary"
                                                 >
                                                     @{post.username}
                                                 </p>
@@ -219,7 +219,7 @@ export function PostViewerModal({
                                     </h2>
 
                                     {post.excerpt && (
-                                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                        <p className="mt-2 text-base leading-6 text-muted-foreground">
                                             {post.excerpt}
                                         </p>
                                     )}
@@ -262,7 +262,7 @@ export function PostViewerModal({
                                             type="button"
                                             onClick={onUpvote}
                                             className={[
-                                                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+                                                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
                                                 upvoteActive
                                                     ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
                                                     : "text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
@@ -281,7 +281,7 @@ export function PostViewerModal({
                                             type="button"
                                             onClick={onDownvote}
                                             className={[
-                                                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+                                                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
                                                 downvoteActive
                                                     ? "bg-red-500/15 text-red-600 dark:text-red-400"
                                                     : "text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400",

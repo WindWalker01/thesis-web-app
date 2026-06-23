@@ -17,7 +17,7 @@ export function VerifyArtworkComparisonTable({
         <div className="rounded-3xl border border-border bg-card/80 p-5 backdrop-blur-xl">
             <div className="mb-4">
                 <h2 className="text-lg font-black">Verification comparison</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                     Each stored ownership value is checked against the live blockchain record.
                 </p>
             </div>
@@ -45,14 +45,14 @@ export function VerifyArtworkComparisonTable({
                                 ) : null}
                             </div>
 
-                            <div className="text-sm">
+                            <div className="text-base">
                                 <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:hidden">
                                     Database value
                                 </div>
                                 <span className="break-all">{formatValue(item.expected)}</span>
                             </div>
 
-                            <div className="text-sm">
+                            <div className="text-base">
                                 <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:hidden">
                                     Blockchain value
                                 </div>

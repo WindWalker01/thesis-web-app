@@ -43,7 +43,7 @@ export function CompareModeUpload({
               <span className="text-primary-foreground text-xs font-bold">A</span>
             </div>
             <div>
-              <p className="font-semibold text-sm text-foreground">Original Artwork</p>
+              <p className="font-semibold text-base text-foreground">Original Artwork</p>
               <p className="text-xs text-muted-foreground">The artwork you own or created</p>
             </div>
             {previewA && (
@@ -69,7 +69,7 @@ export function CompareModeUpload({
               <span className="text-white text-xs font-bold">B</span>
             </div>
             <div>
-              <p className="font-semibold text-sm text-foreground">Suspected Copy</p>
+              <p className="font-semibold text-base text-foreground">Suspected Copy</p>
               <p className="text-xs text-muted-foreground">The image you want to compare against</p>
             </div>
             {previewB && (
@@ -95,9 +95,9 @@ export function CompareModeUpload({
           <ArrowLeftRight size={16} /> Compare Images
         </Button>
         {!canCompare ? (
-          <p className="text-sm text-muted-foreground">{missingHint}</p>
+          <p className="text-base text-muted-foreground">{missingHint}</p>
         ) : (
-          <p className="text-sm text-emerald-400 flex items-center gap-1.5">
+          <p className="text-base text-emerald-400 flex items-center gap-1.5">
             <ShieldCheck size={14} /> Both images loaded — ready to compare
           </p>
         )}

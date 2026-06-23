@@ -14,7 +14,7 @@ function FeatureStat({
     return (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-300">{title}</p>
-            <p className="mt-2 break-all text-sm font-semibold text-white">{value}</p>
+            <p className="mt-2 break-all text-base font-semibold text-white">{value}</p>
         </div>
     );
 }
@@ -51,7 +51,7 @@ export function TransactionsHero({
                             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                                 Public contract activity
                             </h1>
-                            <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                            <p className="max-w-2xl text-base text-slate-300 sm:text-base">
                                 Browse contract activity in an explorer-style layout while
                                 keeping the public view limited to safe transaction metadata.
                             </p>

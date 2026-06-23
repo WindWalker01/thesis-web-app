@@ -30,7 +30,7 @@ export default function ShowNSFWSection() {
             <div className="max-w-md space-y-1">
               <label
                 htmlFor="nsfw-toggle"
-                className="text-foreground cursor-pointer text-sm font-bold"
+                className="text-foreground cursor-pointer text-base font-bold"
               >
                 Show NSFW Content
               </label>

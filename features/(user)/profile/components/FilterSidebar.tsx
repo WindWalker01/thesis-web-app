@@ -178,7 +178,7 @@ function FilterButton({ active, onClick, icon, label, count }: FilterButtonProps
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-base transition-colors ${active ? "bg-primary/10 text-primary" : "hover:bg-muted"
                 }`}
         >
             {icon}

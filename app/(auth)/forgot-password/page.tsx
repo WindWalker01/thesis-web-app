@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
                 <CardContent className="space-y-4 pt-2">
                     <MailCheck className="h-12 w-12 mx-auto text-blue-500" />
                     <h1 className="text-2xl font-bold text-white">Check your email</h1>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-base text-slate-400">
                         We sent an 8-digit password reset code to{" "}
                         <strong className="text-white">{emailSent}</strong>.
                     </p>
@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 space-y-5">
                     <div className="flex flex-col items-center text-center">
                         <h1 className="text-2xl font-bold text-white">Forgot password?</h1>
-                        <p className="text-sm text-slate-400 mt-1">
+                        <p className="text-base text-slate-400 mt-1">
                             Enter your email and we&apos;ll send you an 8-digit reset code.
                         </p>
                     </div>
@@ -166,7 +166,7 @@ export default function ForgotPasswordPage() {
 
                     <Link
                         href="/login"
-                        className="flex items-center justify-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                        className="flex items-center justify-center gap-1.5 text-base text-slate-400 hover:text-slate-200 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4" />
                         Back to Sign In

@@ -14,22 +14,22 @@ export function VerifyArtworkHero() {
                         Verify artwork ownership against the blockchain record
                     </h1>
 
-                    <p className="mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">
+                    <p className="mt-4 max-w-2xl text-base text-muted-foreground sm:text-base">
                         Select one of your registered artworks and compare its stored
                         ownership data with the blockchain record to confirm whether the
                         proof of authorship is valid, complete, and unchanged.
                     </p>
 
                     <div className="mt-6 flex flex-wrap gap-3">
-                        <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm">
+                        <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card/80 px-4 py-2 text-base">
                             <Fingerprint className="h-4 w-4 text-primary" />
                             Hash-by-hash comparison
                         </div>
-                        <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm">
+                        <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card/80 px-4 py-2 text-base">
                             <ShieldCheck className="h-4 w-4 text-primary" />
                             Live on-chain validation
                         </div>
-                        <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card/80 px-4 py-2 text-sm">
+                        <div className="inline-flex items-center gap-2 rounded-2xl border border-border bg-card/80 px-4 py-2 text-base">
                             <Sparkles className="h-4 w-4 text-primary" />
                             Clear verification summary
                         </div>

@@ -40,7 +40,7 @@ function HeroStatCard({ label, value }: { label: string; value: string }) {
     return (
         <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
             <p className="text-xs tracking-wide text-slate-400 uppercase">{label}</p>
-            <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+            <p className="mt-1 text-base font-semibold text-white">{value}</p>
         </div>
     );
 }
@@ -120,7 +120,7 @@ export default function DashboardPage() {
         return (
             <main className="bg-background min-h-screen font-display text-foreground overflow-x-hidden">
                 <section className="container mx-auto px-4 py-20 md:px-6">
-                    <p className="text-sm text-red-400">{error ?? "Failed to load dashboard."}</p>
+                    <p className="text-base text-red-400">{error ?? "Failed to load dashboard."}</p>
                 </section>
             </main>
         );
@@ -142,19 +142,19 @@ export default function DashboardPage() {
                                 <h1 className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                                     Welcome back
                                 </h1>
-                                <p className="max-w-xl text-sm text-slate-300 sm:text-base">
+                                <p className="max-w-xl text-base text-slate-300 sm:text-base">
                                     Track your uploads, monitor blockchain protection, and see how
                                     the community is engaging with your work — all in one place.
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-3 pt-1">
                                 <Link href="/upload-artwork">
-                                    <button className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(59,130,246,0.35)] transition hover:bg-blue-600">
+                                    <button className="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-5 py-2.5 text-base font-bold text-white shadow-[0_0_20px_rgba(59,130,246,0.35)] transition hover:bg-blue-600">
                                         <Upload className="h-3.5 w-3.5" /> Upload Art
                                     </button>
                                 </Link>
                                 <Link href="/profile">
-                                    <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10">
+                                    <button className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-base font-semibold text-white/80 transition hover:bg-white/10">
                                         <Eye className="h-3.5 w-3.5" /> View Gallery
                                     </button>
                                 </Link>
@@ -220,7 +220,7 @@ export default function DashboardPage() {
                                     <div>
                                         <div className="flex items-center gap-2 mb-0.5">
                                             <BarChart2 className="w-4 h-4 text-orange-400" />
-                                            <span className="text-sm font-black uppercase tracking-widest">Upvotes</span>
+                                            <span className="text-base font-black uppercase tracking-widest">Upvotes</span>
                                         </div>
                                         <p className="text-[10px] text-muted-foreground">
                                             Total upvotes your posts received {rangeLabel[activeRange]}
@@ -365,7 +365,7 @@ export default function DashboardPage() {
                         >
                             <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
                                 <Flame className="w-4 h-4 text-red-400" />
-                                <span className="text-sm font-black uppercase tracking-widest">Engagement</span>
+                                <span className="text-base font-black uppercase tracking-widest">Engagement</span>
                             </div>
                             <div className="px-5 py-4 space-y-4">
                                 {[
@@ -407,7 +407,7 @@ export default function DashboardPage() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                                                <p className={`font-black truncate ${"small" in item && item.small ? "text-xs" : "text-sm"} text-foreground`}>
+                                                <p className={`font-black truncate ${"small" in item && item.small ? "text-xs" : "text-base"} text-foreground`}>
                                                     {item.value}
                                                 </p>
                                             </div>
@@ -433,7 +433,7 @@ export default function DashboardPage() {
                                 <div>
                                     <div className="flex items-center gap-2 mb-0.5">
                                         <TrendingUp className="w-4 h-4 text-blue-400" />
-                                        <span className="text-sm font-black uppercase tracking-widest">Top Posts by Upvotes</span>
+                                        <span className="text-base font-black uppercase tracking-widest">Top Posts by Upvotes</span>
                                     </div>
                                     <p className="text-[10px] text-muted-foreground">Your most-loved pieces in the gallery</p>
                                 </div>
@@ -456,13 +456,13 @@ export default function DashboardPage() {
                                         {/* TODO: Replace with <Image src={post.thumbnailUrl} ... /> when real thumbnails are available */}
                                         <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${post.color} shrink-0`} />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold truncate">{post.title}</p>
+                                            <p className="text-base font-bold truncate">{post.title}</p>
                                             <p className="text-[10px] text-muted-foreground">{post.category} · {post.timeAgo}</p>
                                         </div>
                                         <div className="flex flex-col items-end gap-0.5 shrink-0">
                                             <div className="flex items-center gap-1">
                                                 <ArrowUp className="w-3 h-3 text-orange-400" />
-                                                <span className="text-sm font-black text-foreground">{post.upvotes.toLocaleString()}</span>
+                                                <span className="text-base font-black text-foreground">{post.upvotes.toLocaleString()}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 {post.trend === "up"
@@ -490,7 +490,7 @@ export default function DashboardPage() {
                         >
                             <div className="flex items-center gap-2 px-5 py-4 border-b border-border">
                                 <Clock className="w-4 h-4 text-purple-400" />
-                                <span className="text-sm font-black uppercase tracking-widest">Recent Activity</span>
+                                <span className="text-base font-black uppercase tracking-widest">Recent Activity</span>
                             </div>
                             <div className="px-4 py-3 space-y-1">
                                 {dashboard.recentActivity.map((item, i) => {
@@ -555,7 +555,7 @@ export default function DashboardPage() {
                                 ))}
                             </div>
                             <Link href="/plagiarism-checker" className="shrink-0">
-                                <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(59,130,246,0.35)]">
+                                <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-base font-bold transition-all shadow-[0_0_20px_rgba(59,130,246,0.35)]">
                                     <ImageIcon className="w-3.5 h-3.5" /> Check Plagiarism?
                                 </button>
                             </Link>

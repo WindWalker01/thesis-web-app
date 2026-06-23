@@ -27,7 +27,7 @@ export default function Footer() {
                         <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 border-l-2 border-blue-500 pl-3">
                             Advancing Digital IP Protection
                         </p>
-                        <p className="text-sm text-slate-300 dark:text-slate-400 leading-relaxed text-justify">
+                        <p className="text-base text-slate-300 dark:text-slate-400 leading-relaxed text-justify">
                             ArtForgeLab is an academic research initiative developing a Web-based Intellectual Property Rights Management System for Digital Artists. The system integrates{" "}
                             <span className="text-white font-medium">Perceptual Hashing</span> algorithms and{" "}
                             <span className="text-white font-medium">Blockchain Technology</span>{" "}
@@ -41,10 +41,10 @@ export default function Footer() {
 
                     {/* Platform */}
                     <div className="space-y-5">
-                        <h4 className="text-sm font-bold uppercase tracking-widest text-slate-100 dark:text-slate-200 border-b border-slate-700 pb-3">
+                        <h4 className="text-base font-bold uppercase tracking-widest text-slate-100 dark:text-slate-200 border-b border-slate-700 pb-3">
                             Platform
                         </h4>
-                        <ul className="space-y-3 text-sm text-slate-300 dark:text-slate-400">
+                        <ul className="space-y-3 text-base text-slate-300 dark:text-slate-400">
                             {[
                                 { icon: FileText, label: "Artwork Registration", href: "/upload-artwork" },
                                 { icon: ShieldCheck, label: "Proof of Authorship", href: "/plagiarism-checker" },
@@ -69,10 +69,10 @@ export default function Footer() {
 
                     {/* Resources */}
                     <div className="space-y-5">
-                        <h4 className="text-sm font-bold uppercase tracking-widest text-slate-100 dark:text-slate-200 border-b border-slate-700 pb-3">
+                        <h4 className="text-base font-bold uppercase tracking-widest text-slate-100 dark:text-slate-200 border-b border-slate-700 pb-3">
                             Resources
                         </h4>
-                        <ul className="space-y-3 text-sm text-slate-300 dark:text-slate-400">
+                        <ul className="space-y-3 text-base text-slate-300 dark:text-slate-400">
                             {[
                                 { icon: BookOpen, label: "Intellectual Property Guide" },
                                 { icon: BrainCircuit, label: "How Perceptual Hashing Works" },
@@ -90,13 +90,13 @@ export default function Footer() {
 
                     {/* Research Team */}
                     <div className="space-y-5">
-                        <h4 className="text-sm font-bold uppercase tracking-widest text-slate-100 dark:text-slate-200 border-b border-slate-700 pb-3">
+                        <h4 className="text-base font-bold uppercase tracking-widest text-slate-100 dark:text-slate-200 border-b border-slate-700 pb-3">
                             Research Team
                         </h4>
-                        <p className="text-sm text-slate-300 dark:text-slate-400 leading-relaxed">
+                        <p className="text-base text-slate-300 dark:text-slate-400 leading-relaxed">
                             This system was developed as partial fulfillment of an undergraduate thesis requirement. For academic inquiries or collaboration proposals, please reach out below.
                         </p>
-                        <ul className="space-y-3 text-sm text-slate-300 dark:text-slate-400">
+                        <ul className="space-y-3 text-base text-slate-300 dark:text-slate-400">
                             <li className="flex items-start gap-3">
                                 <Mail className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
                                 <span className="break-all">artforgelab@thesis.edu.ph</span>

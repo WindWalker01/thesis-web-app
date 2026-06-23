@@ -119,7 +119,7 @@ export default function TermsOfUsePage() {
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jan 2026" },
           ].map((item, i) => (
-            <div key={item.label} className="flex items-center gap-2 text-sm">
+            <div key={item.label} className="flex items-center gap-2 text-base">
               <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">{item.label}</span>
               <span className="text-white font-black">{item.value}</span>
             </div>
@@ -165,7 +165,7 @@ export default function TermsOfUsePage() {
                         {section.title}
                       </h2>
                     </div>
-                    <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
                       {section.body}
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export default function TermsOfUsePage() {
         <Reveal className="pt-6 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors group"
+            className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:text-blue-400 transition-colors group"
           >
             <span className="group-hover:-translate-x-1 transition-transform inline-block">←</span>
             Back to Home

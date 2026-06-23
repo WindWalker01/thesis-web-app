@@ -64,7 +64,7 @@ export function ConfirmUploadModal({
                             <DialogTitle className="text-lg font-semibold text-white sm:text-xl">
                                 Review your artwork before submission
                             </DialogTitle>
-                            <DialogDescription className="max-w-2xl text-sm leading-6 text-slate-300">
+                            <DialogDescription className="max-w-2xl text-base leading-6 text-slate-300">
                                 Please confirm the details below. After submission, your artwork
                                 will proceed to originality checking, secure registration, and
                                 protection flow.
@@ -99,7 +99,7 @@ export function ConfirmUploadModal({
                                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                         Selected file
                                     </p>
-                                    <p className="mt-2 truncate text-sm font-semibold">
+                                    <p className="mt-2 truncate text-base font-semibold">
                                         {file?.name ?? "No file selected"}
                                     </p>
                                     <p className="mt-1 text-xs text-muted-foreground">
@@ -113,7 +113,7 @@ export function ConfirmUploadModal({
                                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                         Artwork title
                                     </p>
-                                    <p className="mt-2 break-words text-sm font-semibold leading-6">
+                                    <p className="mt-2 break-words text-base font-semibold leading-6">
                                         {values?.title?.trim() || "Untitled artwork"}
                                     </p>
                                 </div>
@@ -122,7 +122,7 @@ export function ConfirmUploadModal({
                                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                         Description
                                     </p>
-                                    <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+                                    <p className="mt-2 whitespace-pre-wrap break-words text-base leading-6 text-muted-foreground">
                                         {values?.description?.trim() || "No description provided."}
                                     </p>
                                 </div>
@@ -131,10 +131,10 @@ export function ConfirmUploadModal({
                                     <div className="flex items-start gap-3">
                                         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
                                         <div className="min-w-0">
-                                            <p className="text-sm font-semibold">
+                                            <p className="text-base font-semibold">
                                                 Ownership confirmation
                                             </p>
-                                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                            <p className="mt-1 text-base leading-6 text-muted-foreground">
                                                 {values?.rightsConfirmed
                                                     ? "You confirmed that you own this artwork or are authorized to register it."
                                                     : "Ownership confirmation was not provided."}
@@ -149,8 +149,8 @@ export function ConfirmUploadModal({
                             <div className="flex items-start gap-3">
                                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                                 <div className="space-y-1">
-                                    <p className="text-sm font-semibold">Important reminder</p>
-                                    <p className="text-sm leading-6 text-muted-foreground">
+                                    <p className="text-base font-semibold">Important reminder</p>
+                                    <p className="text-base leading-6 text-muted-foreground">
                                         Submission does not always mean immediate blockchain protection.
                                         If a notable similarity result is detected, the artwork may be
                                         flagged or placed under review first.
@@ -161,7 +161,7 @@ export function ConfirmUploadModal({
 
                         <div className="grid gap-3 sm:grid-cols-3">
                             <div className="rounded-xl border bg-muted/20 p-3 lg:rounded-2xl">
-                                <div className="flex items-center gap-2 text-sm font-medium">
+                                <div className="flex items-center gap-2 text-base font-medium">
                                     <Sparkles className="h-4 w-4 shrink-0 text-primary" />
                                     Originality check
                                 </div>
@@ -171,7 +171,7 @@ export function ConfirmUploadModal({
                             </div>
 
                             <div className="rounded-xl border bg-muted/20 p-3 lg:rounded-2xl">
-                                <div className="flex items-center gap-2 text-sm font-medium">
+                                <div className="flex items-center gap-2 text-base font-medium">
                                     <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
                                     Secure registration
                                 </div>
@@ -181,7 +181,7 @@ export function ConfirmUploadModal({
                             </div>
 
                             <div className="rounded-xl border bg-muted/20 p-3 lg:rounded-2xl">
-                                <div className="flex items-center gap-2 text-sm font-medium">
+                                <div className="flex items-center gap-2 text-base font-medium">
                                     <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
                                     Final status
                                 </div>

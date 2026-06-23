@@ -94,7 +94,7 @@ export function EditProfileForm({ profile }: Props) {
                 </div>
 
                 <div>
-                    <p className="text-sm font-semibold">Profile Picture</p>
+                    <p className="text-base font-semibold">Profile Picture</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                         JPG, PNG or WebP · Max 5 MB
                     </p>

@@ -82,7 +82,7 @@ export function ArtworkCardGrid({ art, index, scope = "gallery" }: Props) {
             </div>
 
             <div className="p-3">
-                <p className="mb-1 truncate text-sm font-bold">{art.title}</p>
+                <p className="mb-1 truncate text-base font-bold">{art.title}</p>
                 <p className="mb-2 text-[10px] text-muted-foreground">{art.uploadDate}</p>
 
                 <div className="flex flex-wrap items-center gap-2">

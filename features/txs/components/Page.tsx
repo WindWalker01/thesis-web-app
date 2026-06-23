@@ -61,7 +61,7 @@ export default function BlockchainTransactionsPage() {
                 />
 
                 {isFetching && !showInitialSkeleton ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-base text-muted-foreground">
                         <LoaderCircle className="h-4 w-4 animate-spin" />
                         Updating transactions...
                     </div>
@@ -73,7 +73,7 @@ export default function BlockchainTransactionsPage() {
                             <AlertTriangle className="mt-0.5 h-5 w-5" />
                             <div>
                                 <h2 className="font-semibold">Unable to load transactions</h2>
-                                <p className="mt-1 text-sm text-red-500/80">{errorMessage}</p>
+                                <p className="mt-1 text-base text-red-500/80">{errorMessage}</p>
                             </div>
                         </div>
                     </div>

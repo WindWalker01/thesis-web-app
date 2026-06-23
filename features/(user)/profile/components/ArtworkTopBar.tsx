@@ -43,7 +43,7 @@ export function ArtworkTopBar({
             {/* Sidebar filter toggle */}
             <button
                 onClick={onSidebarToggle}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-all
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-base font-semibold transition-all
           ${sidebarOpen
                         ? "bg-primary/10 border-primary/30 text-primary"
                         : "border-border hover:bg-muted"
@@ -65,7 +65,7 @@ export function ArtworkTopBar({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder="Search artworks..."
-                    className="w-full pl-9 pr-9 py-2 rounded-xl border border-border bg-muted/40 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
+                    className="w-full pl-9 pr-9 py-2 rounded-xl border border-border bg-muted/40 text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
                 />
                 {searchQuery && (
                     <button
@@ -78,7 +78,7 @@ export function ArtworkTopBar({
             </div>
 
             {/* Result count */}
-            <span className="text-sm text-muted-foreground whitespace-nowrap hidden sm:block">
+            <span className="text-base text-muted-foreground whitespace-nowrap hidden sm:block">
                 {resultCount} items
             </span>
 
@@ -89,7 +89,7 @@ export function ArtworkTopBar({
                 <button
                     onClick={() => onSortOpenChange(!sortOpen)}
                     onBlur={() => setTimeout(() => onSortOpenChange(false), 150)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border hover:bg-muted text-sm font-medium transition-all"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border hover:bg-muted text-base font-medium transition-all"
                 >
                     <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
                     <span className="hidden sm:inline">{sortBy}</span>
@@ -108,7 +108,7 @@ export function ArtworkTopBar({
                                 <button
                                     key={opt}
                                     onClick={() => { onSortChange(opt); onSortOpenChange(false); }}
-                                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors
+                                    className={`w-full text-left px-4 py-2.5 text-base transition-colors
                     ${sortBy === opt ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"}`}
                                 >
                                     {opt}

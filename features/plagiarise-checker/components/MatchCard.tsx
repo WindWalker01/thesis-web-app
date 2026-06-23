@@ -34,7 +34,7 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
             {isDb ? <Database size={15} /> : <Globe size={15} />}
           </div>
           <div>
-            <p className="font-semibold text-sm text-foreground">{match.source}</p>
+            <p className="font-semibold text-base text-foreground">{match.source}</p>
             <p className="text-[10px] text-muted-foreground capitalize">{match.type}</p>
           </div>
         </div>

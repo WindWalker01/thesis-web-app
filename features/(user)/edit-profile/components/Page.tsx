@@ -26,7 +26,7 @@ export default function EditProfilePage() {
                     {/* Back link */}
                     <Link
                         href="/profile"
-                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6"
+                        className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-primary transition-colors mb-6"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to Profile
@@ -34,7 +34,7 @@ export default function EditProfilePage() {
 
 
                     <h1 className="text-3xl font-black mb-1">Edit Profile</h1>
-                    <p className="text-sm text-muted-foreground mb-8">
+                    <p className="text-base text-muted-foreground mb-8">
                         Update your artist information and public profile.
                     </p>
 
@@ -42,7 +42,7 @@ export default function EditProfilePage() {
                         {isLoading && <EditProfileSkeleton />}
 
                         {!isLoading && error && (
-                            <p className="text-sm text-destructive">{error}</p>
+                            <p className="text-base text-destructive">{error}</p>
                         )}
 
                         {!isLoading && !error && profile && (

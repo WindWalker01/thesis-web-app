@@ -4,7 +4,7 @@ export function InfoRow({ label, value }: { label: string; value: string }) {
             <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
                 {label}
             </p>
-            <p className="text-sm text-foreground wrap-break-word">{value}</p>
+            <p className="text-base text-foreground wrap-break-word">{value}</p>
         </div>
     );
 }

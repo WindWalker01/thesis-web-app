@@ -31,7 +31,7 @@ export default async function EditCommunityPostPage({
                         Edit your community post
                     </h1>
 
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+                    <p className="mt-3 text-base leading-6 text-muted-foreground sm:text-base">
                         Update the artwork selection or visibility of your post while keeping your
                         community sharing details accurate and up to date.
                     </p>

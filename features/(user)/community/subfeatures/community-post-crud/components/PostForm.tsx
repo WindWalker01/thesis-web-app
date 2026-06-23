@@ -97,7 +97,7 @@ export default function PostForm({
                     <h2 className="text-lg font-black tracking-tight">
                         {isEdit ? "Edit community post" : "Create community post"}
                     </h2>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-1 text-base leading-6 text-muted-foreground">
                         Select one of your active registered artworks and choose who can view
                         your post.
                     </p>
@@ -109,14 +109,14 @@ export default function PostForm({
                     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
                         <div className="space-y-4">
                             <div>
-                                <h3 className="text-sm font-semibold">Choose artwork</h3>
+                                <h3 className="text-base font-semibold">Choose artwork</h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     Search your active verified artworks and select one to publish.
                                 </p>
                             </div>
 
                             {!hasArtworks ? (
-                                <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
+                                <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-base text-muted-foreground">
                                     You do not have any eligible active artworks yet.
                                 </div>
                             ) : (
@@ -141,7 +141,7 @@ export default function PostForm({
                                                     <div className="rounded-2xl border border-border bg-background">
                                                         <div className="max-h-[440px] overflow-y-auto p-3">
                                                             {filteredArtworks.length === 0 ? (
-                                                                <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                                                                <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center text-base text-muted-foreground">
                                                                     No artworks matched your search.
                                                                 </div>
                                                             ) : (
@@ -183,7 +183,7 @@ export default function PostForm({
                                                                                 <div className="min-w-0 flex-1">
                                                                                     <div className="flex items-start justify-between gap-3">
                                                                                         <div className="min-w-0">
-                                                                                            <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                                                                                            <p className="line-clamp-1 text-base font-semibold text-foreground">
                                                                                                 {artwork.title}
                                                                                             </p>
                                                                                             <p className="mt-1 text-xs text-muted-foreground">
@@ -222,7 +222,7 @@ export default function PostForm({
 
                         <div className="space-y-4">
                             <div>
-                                <h3 className="text-sm font-semibold">Selected artwork</h3>
+                                <h3 className="text-base font-semibold">Selected artwork</h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     Review the artwork that will be used for this post.
                                 </p>
@@ -242,7 +242,7 @@ export default function PostForm({
                                         <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                                             <div className="flex flex-col items-center gap-2 text-center">
                                                 <ImageIcon className="h-6 w-6" />
-                                                <span className="text-sm">
+                                                <span className="text-base">
                                                     {hasArtworks ? "Select an artwork" : "No artwork available"}
                                                 </span>
                                             </div>
@@ -251,7 +251,7 @@ export default function PostForm({
                                 </div>
 
                                 <div className="space-y-2 p-4">
-                                    <h4 className="line-clamp-2 text-sm font-bold text-foreground">
+                                    <h4 className="line-clamp-2 text-base font-bold text-foreground">
                                         {selectedArtwork?.title || "Artwork title"}
                                     </h4>
 
@@ -324,7 +324,7 @@ export default function PostForm({
                                                     <ShieldAlert className="h-4 w-4" />
                                                 </div>
                                                 <div className="space-y-0.5">
-                                                    <FormLabel className="text-sm font-semibold leading-none">
+                                                    <FormLabel className="text-base font-semibold leading-none">
                                                         NSFW content
                                                     </FormLabel>
                                                     <FormDescription className="text-xs leading-5">
@@ -349,7 +349,7 @@ export default function PostForm({
                     </div>
 
                     {serverMessage ? (
-                        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-base text-destructive">
                             {serverMessage}
                         </div>
                     ) : null}
@@ -375,7 +375,7 @@ export default function PostForm({
                         </Button>
 
                         {isPending ? (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-base text-muted-foreground">
                                 Please wait while we save your post.
                             </p>
                         ) : null}

@@ -68,7 +68,7 @@ export default function CommunityPageClient({
                 <h1 className="text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
                   Discover, share, and protect digital artworks
                 </h1>
-                <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                <p className="max-w-2xl text-base text-slate-300 sm:text-base">
                   Explore registered works from the ArtForgeLab community, support artists
                   through engagement, and report suspicious or infringing content in one
                   secure space.
@@ -80,7 +80,7 @@ export default function CommunityPageClient({
                   <>
                     <Link
                       href="/community/create-post"
-                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-base font-semibold text-primary-foreground transition hover:opacity-90"
                     >
                       <Plus className="h-4 w-4" />
                       Create post
@@ -88,7 +88,7 @@ export default function CommunityPageClient({
 
                     <Link
                       href="/upload-artwork"
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-base font-semibold text-white transition hover:bg-white/15"
                     >
                       <ShieldCheck className="h-4 w-4" />
                       Upload protected artwork
@@ -99,7 +99,7 @@ export default function CommunityPageClient({
                     <button
                       type="button"
                       onClick={() => actions.setLoginOpen(true)}
-                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                      className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-base font-semibold text-primary-foreground transition hover:opacity-90"
                     >
                       <Plus className="h-4 w-4" />
                       Create post
@@ -108,7 +108,7 @@ export default function CommunityPageClient({
                     <button
                       type="button"
                       onClick={() => actions.setLoginOpen(true)}
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-base font-semibold text-white transition hover:bg-white/15"
                     >
                       <ShieldCheck className="h-4 w-4" />
                       Upload protected artwork
@@ -147,7 +147,7 @@ export default function CommunityPageClient({
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <h2 className="text-xl font-black">Featured community posts</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                       Browse registered artworks shared by artists in the platform.
                     </p>
 
@@ -171,7 +171,7 @@ export default function CommunityPageClient({
                             : "Log in to search the community"
                         }
                         disabled={!authed}
-                        className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-sm outline-none ring-0 placeholder:text-muted-foreground focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+                        className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-base outline-none ring-0 placeholder:text-muted-foreground focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </div>
 
@@ -190,7 +190,7 @@ export default function CommunityPageClient({
                           feedActions.setFiltersOpen(!feedState.filtersOpen);
                         }}
                         disabled={!authed}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-base font-medium text-foreground transition hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Filter className="h-4 w-4" />
                         Filters
@@ -315,7 +315,7 @@ export default function CommunityPageClient({
                         ? "No posts yet"
                         : "No artworks found"}
                     </h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="mt-2 text-base text-muted-foreground">
                       {feedState.feedScope === "mine"
                         ? "You have not shared any eligible artworks in the community yet."
                         : "Try another search term or change the selected filters."}
@@ -343,7 +343,7 @@ export default function CommunityPageClient({
           <aside className="sticky top-20 self-start space-y-4">
             <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
               <h3 className="text-base font-black">Community principles</h3>
-              <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+              <div className="mt-4 space-y-3 text-base text-muted-foreground">
                 <InfoRow
                   title="Originality first"
                   description="Post artworks you created or have the right to share."
@@ -361,7 +361,7 @@ export default function CommunityPageClient({
 
             <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
               <h3 className="text-base font-black">Visibility with protection</h3>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <p className="mt-3 text-base leading-6 text-muted-foreground">
                 This community space encourages artists to share their work with confidence
                 by combining public engagement with visible ownership, authenticity, and
                 reporting safeguards.
@@ -391,7 +391,7 @@ export default function CommunityPageClient({
                     Log in to continue exploring the community
                   </h3>
 
-                  <p className="mt-2 text-sm leading-6 text-blue-50/85 sm:text-base">
+                  <p className="mt-2 text-base leading-6 text-blue-50/85 sm:text-base">
                     You can preview the community feed, but scrolling deeper, posting,
                     voting, reporting, and artist-only interactions are available only to
                     signed-in users.
@@ -400,7 +400,7 @@ export default function CommunityPageClient({
                   <div className="mt-5 flex flex-wrap gap-3">
                     <Link
                       href="/login"
-                      className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+                      className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-base font-semibold text-blue-700 transition hover:bg-blue-50"
                     >
                       <LogIn className="h-4 w-4" />
                       Log in
@@ -408,7 +408,7 @@ export default function CommunityPageClient({
 
                     <Link
                       href="/register"
-                      className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/15"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-base font-semibold text-white transition hover:bg-white/15"
                     >
                       Create account
                     </Link>

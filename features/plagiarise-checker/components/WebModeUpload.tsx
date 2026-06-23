@@ -15,7 +15,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
             <Globe size={17} className="text-primary-foreground" />
           </div>
           <div>
-            <p className="font-semibold text-sm text-foreground">Artwork to Verify</p>
+            <p className="font-semibold text-base text-foreground">Artwork to Verify</p>
             <p className="text-xs text-muted-foreground">Upload a single digital artwork</p>
           </div>
         </div>
@@ -25,7 +25,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
       {/* What we check */}
       <div className="space-y-4">
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-          <p className="font-semibold text-sm text-foreground">What we check</p>
+          <p className="font-semibold text-base text-foreground">What we check</p>
 
           <div className="space-y-4">
             {[
@@ -39,7 +39,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
                   {n}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{label}</p>
+                  <p className="text-base font-semibold text-foreground">{label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
                 </div>
               </div>

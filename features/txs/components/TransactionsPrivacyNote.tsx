@@ -12,8 +12,8 @@ export function TransactionsPrivacyNote() {
                     </div>
 
                     <div>
-                        <h3 className="text-sm font-bold">Privacy-aware public view</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <h3 className="text-base font-bold">Privacy-aware public view</h3>
+                        <p className="mt-1 text-base text-muted-foreground">
                             This page only shows public transaction metadata such as
                             transaction hash, method, block, age, addresses, and status.
                         </p>
@@ -26,7 +26,7 @@ export function TransactionsPrivacyNote() {
                     </div>
 
                     <div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-base text-muted-foreground">
                             Internal user identity, raw artwork details, and private
                             evidence data are intentionally not displayed here.
                         </p>

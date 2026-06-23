@@ -16,7 +16,7 @@ function NoMatchNote({ label }: { label: string }) {
   return (
     <div className="bg-card border border-border rounded-2xl p-5 flex items-center gap-3 text-muted-foreground">
       <AlertCircle size={15} className="shrink-0" />
-      <p className="text-sm">No {label} match found.</p>
+      <p className="text-base">No {label} match found.</p>
     </div>
   );
 }
@@ -36,7 +36,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
             <div>
-              <p className="font-semibold text-sm text-foreground">Submitted Artwork</p>
+              <p className="font-semibold text-base text-foreground">Submitted Artwork</p>
               <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{result.filename}</p>
             </div>
             <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10">
@@ -47,7 +47,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
           <div className="p-5 grid grid-cols-2 gap-4">
             <div>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">FILENAME</p>
-              <p className="text-sm text-foreground font-mono truncate">{result.filename}</p>
+              <p className="text-base text-foreground font-mono truncate">{result.filename}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">ORIGINAL HASH</p>
@@ -86,7 +86,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
               <div>
-                <p className="font-semibold text-sm text-foreground">
+                <p className="font-semibold text-base text-foreground">
                   {isBestDb ? "Database Match" : "Web Match"}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{bestMatch.source}</p>
@@ -181,7 +181,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 flex items-center gap-3 text-muted-foreground">
             <AlertCircle size={15} className="shrink-0" />
-            <p className="text-sm">No match found.</p>
+            <p className="text-base">No match found.</p>
           </div>
         )}
       </div>

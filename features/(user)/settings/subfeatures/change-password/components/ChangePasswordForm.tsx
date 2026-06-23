@@ -45,7 +45,7 @@ export default function ChangePasswordForm() {
                             type={showPassword[field.key] ? "text" : "password"}
                             placeholder="••••••••••"
                             {...register(field.key)}
-                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                         />
 
                         <button
@@ -72,7 +72,7 @@ export default function ChangePasswordForm() {
             <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-base font-semibold transition-colors"
             >
                 {isSubmitting ? "Updating..." : "Update Password"}
             </button>

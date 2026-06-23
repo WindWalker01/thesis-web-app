@@ -97,7 +97,7 @@ export function EditArtworkDialog({
                         />
 
                         {form.formState.errors.root?.message ? (
-                            <p className="text-sm text-destructive">
+                            <p className="text-base text-destructive">
                                 {form.formState.errors.root.message}
                             </p>
                         ) : null}

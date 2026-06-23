@@ -56,7 +56,7 @@ export function CompareModeResult({
                 </span>
               </div>
               <div>
-                <p className="text-foreground text-sm font-semibold">
+                <p className="text-foreground text-base font-semibold">
                   Original Artwork
                 </p>
                 <p className="text-muted-foreground mt-0.5 font-mono text-[11px]">
@@ -143,7 +143,7 @@ export function CompareModeResult({
                 <span className="text-[10px] font-bold text-white">B</span>
               </div>
               <div>
-                <p className="text-foreground text-sm font-semibold">
+                <p className="text-foreground text-base font-semibold">
                   Compared Image
                 </p>
                 <p className="text-muted-foreground mt-0.5 font-mono text-[11px]">

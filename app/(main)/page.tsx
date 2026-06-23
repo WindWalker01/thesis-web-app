@@ -139,7 +139,7 @@ export default function Home() {
 
             {/* Stat strip */}
             <motion.div
-              className="flex flex-wrap justify-center gap-8 pt-6 text-sm"
+              className="flex flex-wrap justify-center gap-8 pt-6 text-base"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
@@ -210,7 +210,7 @@ export default function Home() {
                 ].map((item, index) => (
                   <motion.li
                     key={item.title}
-                    className="relative group flex items-center gap-3 text-sm font-medium cursor-pointer"
+                    className="relative group flex items-center gap-3 text-base font-medium cursor-pointer"
                     initial={{ opacity: 0, x: 40 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 + index * 0.15 }}
@@ -222,7 +222,7 @@ export default function Home() {
                     <span className="group-hover:text-blue-500 transition-colors">{item.title}</span>
                     <InfoIcon className="w-4 h-4 text-primary opacity-70 group-hover:opacity-100 animate-pulse shrink-0" />
                     <div className="absolute left-0 top-10 w-[min(24rem,90vw)] p-4 rounded-xl bg-blue-300 shadow-2xl border-2 border-blue-950 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-1 transition-all duration-300 pointer-events-none z-50">
-                      <p className="text-sm text-primary dark:text-slate-300 leading-relaxed text-justify">{item.desc}</p>
+                      <p className="text-base text-primary dark:text-slate-300 leading-relaxed text-justify">{item.desc}</p>
                     </div>
                   </motion.li>
                 ))}
@@ -258,7 +258,7 @@ export default function Home() {
               Explore Protected Categories
             </motion.h2>
             <motion.p
-              className="text-sm md:text-base text-slate-600 dark:text-slate-400"
+              className="text-base md:text-base text-slate-600 dark:text-slate-400"
               initial={{ opacity: 0, scale: 0.85, y: 16 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
@@ -289,7 +289,7 @@ export default function Home() {
                   <Image src={item.img} alt={item.label} fill className="object-contain" />
                 </div>
                 <h3 className="text-lg font-black mb-2 group-hover:text-orange-500 transition-colors">{item.label}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                <p className="text-slate-500 text-base leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -344,7 +344,7 @@ export default function Home() {
                     transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: index * 0.15 }}
                   >
                     <div className="font-black text-xl md:text-2xl text-blue-500">{item.stat}</div>
-                    <div className="text-sm text-slate-500 mt-0.5">{item.label}</div>
+                    <div className="text-base text-slate-500 mt-0.5">{item.label}</div>
                   </motion.div>
                 ))}
               </div>
@@ -409,7 +409,7 @@ export default function Home() {
               Why Choose ArtForgeLab?
             </motion.h2>
             <motion.p
-              className="text-sm md:text-base text-slate-400"
+              className="text-base md:text-base text-slate-400"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -485,7 +485,7 @@ export default function Home() {
                       <Icon className={`w-6 h-6 ${item.iconColor}`} strokeWidth={1.8} />
                     </div>
                     <h3 className="text-lg font-black mb-2 text-white">{item.title}</h3>
-                    <p className="text-sm text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300">
+                    <p className="text-base text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300">
                       {item.desc}
                     </p>
                   </div>
@@ -509,7 +509,7 @@ export default function Home() {
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-black mb-3 text-slate-900 dark:text-white">
               The Innovators Behind the Vision
             </h2>
-            <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
+            <p className="text-base md:text-base text-slate-600 dark:text-slate-400">
               Meet the dedicated team developing the future of digital IP.
             </p>
           </div>
@@ -530,7 +530,7 @@ export default function Home() {
                                   group-hover:opacity-100 group-hover:-translate-y-12 md:group-hover:-translate-y-16
                                   transition-all duration-500 ease-out
                                   bg-linear-to-r from-orange-400 via-amber-400 to-yellow-300
-                                  text-white font-semibold px-4 py-1 rounded-xl shadow-xl text-sm">
+                                  text-white font-semibold px-4 py-1 rounded-xl shadow-xl text-base">
                     {member.role}
                   </div>
                 </div>
@@ -572,7 +572,7 @@ export default function Home() {
               Frequently Asked Questions
             </motion.h2>
             <motion.p
-              className="text-sm text-slate-500 dark:text-slate-400"
+              className="text-base text-slate-500 dark:text-slate-400"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -603,7 +603,7 @@ export default function Home() {
                     className="w-full flex items-center justify-between p-5 md:p-6 cursor-pointer text-left group"
                     onClick={() => setOpenFaqIndex(isOpen ? null : i)}
                   >
-                    <span className={`text-sm md:text-base font-semibold pr-4 transition-colors ${isOpen ? "text-orange-500" : "group-hover:text-orange-500"}`}>
+                    <span className={`text-base md:text-base font-semibold pr-4 transition-colors ${isOpen ? "text-orange-500" : "group-hover:text-orange-500"}`}>
                       {faq.q}
                     </span>
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 ${isOpen ? "bg-orange-500 rotate-45" : "bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/30"
@@ -634,7 +634,7 @@ export default function Home() {
                       >
                         <div className="px-5 md:px-6 pb-5 md:pb-6">
                           <div className="h-px bg-slate-100 dark:bg-slate-800 mb-4" />
-                          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{faq.a}</p>
+                          <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">{faq.a}</p>
                         </div>
                       </motion.div>
                     )}

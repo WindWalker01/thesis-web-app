@@ -30,7 +30,7 @@ export function VerifyArtworkSelector({
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h2 className="text-lg font-black">Select artwork to verify</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                         Choose a registered artwork, then run the ownership check.
                     </p>
                 </div>

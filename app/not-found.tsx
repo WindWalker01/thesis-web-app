@@ -48,7 +48,7 @@ export default function NotFound() {
                 <h1 className="mb-3 text-2xl font-black tracking-tight sm:text-3xl">
                     Page not found
                 </h1>
-                <p className="mb-8 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                <p className="mb-8 max-w-sm text-base leading-relaxed text-muted-foreground">
                     The page you're looking for doesn't exist or has been moved.
                     It may have been removed or the URL might be incorrect.
                 </p>
@@ -57,7 +57,7 @@ export default function NotFound() {
                 <div className="flex flex-wrap items-center justify-center gap-3">
                     <Link
                         href="/"
-                        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                        className="rounded-xl bg-primary px-5 py-2.5 text-base font-semibold text-primary-foreground transition hover:opacity-90"
                     >
                         Go home
                     </Link>

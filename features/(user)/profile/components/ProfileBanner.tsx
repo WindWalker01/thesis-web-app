@@ -61,7 +61,7 @@ export function ProfileBanner({ profile, children }: Props) {
                             </span>
                         </div>
 
-                        <p className="text-sm text-slate-400 mb-1">{profile.username}</p>
+                        <p className="text-base text-slate-400 mb-1">{profile.username}</p>
 
                         {profile.bio && (
                             <p className="text-xs text-slate-500 max-w-lg leading-relaxed hidden md:block">
@@ -78,13 +78,13 @@ export function ProfileBanner({ profile, children }: Props) {
                     {/* Actions */}
                     <div className="flex gap-2 shrink-0 pb-1">
                         <Link href="/profile/edit-profile">
-                            <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-[0_0_16px_rgba(59,130,246,0.3)]">
+                            <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-xl text-base font-semibold transition-all shadow-[0_0_16px_rgba(59,130,246,0.3)]">
                                 <Edit className="w-3.5 h-3.5" />
                                 Edit Profile
                             </button>
                         </Link>
                         <Link href="/upload-artwork">
-                            <button className="flex items-center gap-2 border border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+                            <button className="flex items-center gap-2 border border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white px-4 py-2 rounded-xl text-base font-semibold transition-all">
                                 <Upload className="w-3.5 h-3.5" />
                                 Upload
                             </button>

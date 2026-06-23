@@ -212,7 +212,7 @@ export default function PlagiarismCheckerPage() {
             <h1 className="text-foreground text-2xl font-bold tracking-tight">
               Plagiarism Detection Analysis
             </h1>
-            <p className="text-muted-foreground mt-0.5 text-sm">
+            <p className="text-muted-foreground mt-0.5 text-base">
               Perceptual hash comparison using pHash algorithm v4.2
             </p>
           </div>
@@ -265,7 +265,7 @@ export default function PlagiarismCheckerPage() {
             <AlertTriangle size={20} className="text-destructive mt-0.5 shrink-0" />
             <div>
               <p className="text-foreground font-semibold">Analysis Failed</p>
-              <p className="text-muted-foreground mt-1 text-sm">{error}</p>
+              <p className="text-muted-foreground mt-1 text-base">{error}</p>
               <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={handleReset}>
                 <RotateCcw size={12} /> Try Again
               </Button>

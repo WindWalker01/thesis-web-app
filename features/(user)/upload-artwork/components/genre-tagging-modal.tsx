@@ -102,7 +102,7 @@ export function GenreTaggingModal({
               <DialogTitle className="text-lg font-semibold text-white">
                 Tag your artwork before completing
               </DialogTitle>
-              <DialogDescription className="text-sm leading-6 text-slate-300">
+              <DialogDescription className="text-base leading-6 text-slate-300">
                 Our classifier pre-selected the best matches. Toggle any genre
                 to add or remove it — at least one is required.
               </DialogDescription>
@@ -140,7 +140,7 @@ export function GenreTaggingModal({
                   aria-pressed={isSelected}
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5",
-                    "text-sm font-medium transition-all",
+                    "text-base font-medium transition-all",
                     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                     "disabled:pointer-events-none disabled:opacity-50",
                     isSelected
@@ -159,7 +159,7 @@ export function GenreTaggingModal({
           </div>
 
           {suggestions.length === 0 && (
-            <div className="text-muted-foreground flex min-h-[80px] items-center justify-center rounded-xl border border-dashed text-sm">
+            <div className="text-muted-foreground flex min-h-[80px] items-center justify-center rounded-xl border border-dashed text-base">
               No genres available from the classifier.
             </div>
           )}
