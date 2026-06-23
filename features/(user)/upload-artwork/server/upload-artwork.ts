@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
-import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
+import { checkPlagiarismWeb, SearchMatch } from "@/features/plagiarise-checker";
 import {
   buildSimilarityReport,
   buildSimilarityScanInsert,
@@ -22,6 +22,7 @@ import {
   getArtworkStatusFromSimilarity,
 } from "..";
 import { fetchGenreClassification } from "./fetch-genre";
+import { OtherSearchMatch } from "@/features/plagiarise-checker/types";
 
 const HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD = 100;
 
@@ -56,6 +57,7 @@ export async function recordArtworkInDatabase(
         success: false,
         message: "You must be logged in.",
         similarityReport: null,
+        otherMatches: null,
       };
     }
 
@@ -77,6 +79,7 @@ export async function recordArtworkInDatabase(
         success: false,
         message: firstIssue?.message ?? "Invalid form submission.",
         similarityReport: null,
+        otherMatches: null,
       };
     }
 
@@ -102,6 +105,7 @@ export async function recordArtworkInDatabase(
         success: false,
         message: existingError.message,
         similarityReport: null,
+        otherMatches: null,
       };
     }
 
@@ -110,16 +114,19 @@ export async function recordArtworkInDatabase(
         success: false,
         message: "This artwork has already been registered by your account.",
         similarityReport: null,
+        otherMatches: null,
       };
     }
 
     const result = await checkPlagiarismWeb(validFile);
+    console.log("Similarity check result:", result);
 
     if (!result.success) {
       return {
         success: false,
         message: "Unexpected server error during similarity checking.",
         similarityReport: null,
+        otherMatches: null,
       };
     }
 
@@ -127,7 +134,8 @@ export async function recordArtworkInDatabase(
     const reportMatch = getSimilarityReportMatch(result);
     let similarityReport = buildSimilarityReport(result);
     const similarity = similarityReport?.similarityPercentage ?? 0;
-
+    const otherMatches = result.other_matches;
+    
     if (
       similarityReport &&
       reportMatch?.type === "database" &&
@@ -147,6 +155,7 @@ export async function recordArtworkInDatabase(
           success: false,
           message: matchedArtworkError.message,
           similarityReport,
+          otherMatches,
         };
       }
 
@@ -169,6 +178,7 @@ export async function recordArtworkInDatabase(
         message:
           "Upload blocked. An exact 100% match was detected against a registered artwork in the database.",
         similarityReport,
+        otherMatches,
       };
     }
 
@@ -188,6 +198,8 @@ export async function recordArtworkInDatabase(
         success: false,
         message: "Missing perceptual hash from similarity checking service.",
         similarityReport,
+        otherMatches,
+
       };
     }
 
@@ -203,6 +215,7 @@ export async function recordArtworkInDatabase(
             ? error.message
             : "Invalid perceptual hash format.",
         similarityReport,
+        otherMatches,
       };
     }
 
@@ -263,6 +276,7 @@ export async function recordArtworkInDatabase(
           ? "This artwork has already been registered by your account."
           : error.message,
         similarityReport,
+        otherMatches,
       };
     }
 
@@ -289,6 +303,8 @@ export async function recordArtworkInDatabase(
         success: false,
         message: scanInsertError.message,
         similarityReport,
+        otherMatches,
+
       };
     }
 
@@ -329,6 +345,7 @@ export async function recordArtworkInDatabase(
       similarityReport,
       artworkStatus,
       genreSuggestions,
+      otherMatches,
     };
   } catch (error) {
     return {
@@ -336,6 +353,7 @@ export async function recordArtworkInDatabase(
       message:
         error instanceof Error ? error.message : "Failed to save artwork.",
       similarityReport: null,
+      otherMatches: null,
     };
   }
 }

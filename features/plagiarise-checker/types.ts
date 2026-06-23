@@ -17,6 +17,13 @@ export interface SearchMatch {
   title?: string | null;    // resolved artwork title (only for DB matches)
 }
 
+export interface OtherSearchMatch {
+  source: string;
+  link: string;
+  url: string;
+  similarity: number;
+}
+
 export interface PlagiarismWebResult {
   filename: string;
   success: boolean;
@@ -28,6 +35,7 @@ export interface PlagiarismWebResult {
     transforms: Record<string, HashSet>;
     blocks: Record<string, HashSet>;
   };
+  other_matches: OtherSearchMatch[] | null;
 }
 
 export interface ResultBestSearch {

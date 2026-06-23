@@ -32,6 +32,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
   Form,
   FormControl,
@@ -77,6 +80,7 @@ export default function UploadArtworkPage() {
     genreModalOpen,
     genreSuggestions,
     handleGenreSubmit,
+    otherMatchesReport,
   } = useUploadArtworkForm();
 
   const previewUrl = useArtworkFilePreview(watchedFile);
@@ -99,6 +103,20 @@ export default function UploadArtworkPage() {
         : "Detected match";
 
   const matchPreviewUrl = similarityReport?.previewImageUrl ?? null;
+  
+  const databaseMatches =
+  otherMatchesReport?.filter(
+    (match: any) =>
+      (match.source?.toLowerCase() === "database" ||
+      match.artwork_id) && match.similarity >= 69
+  ) ?? [];
+
+  const webMatches =
+    otherMatchesReport?.filter(
+      (match: any) =>
+        match.source?.toLowerCase() !== "database" &&
+        !match.artwork_id
+    ) ?? [];
 
   return (
     <main className="bg-background min-h-screen">
@@ -456,118 +474,322 @@ export default function UploadArtworkPage() {
                 {(processingState === "success" ||
                   processingState === "error") &&
                 similarityReport ? (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                        Similarity report
-                      </CardTitle>
-                      <CardDescription>
-                        This shows the strongest detected match from either your
-                        internal artwork database or an online source.
-                      </CardDescription>
-                    </CardHeader>
+                  processingState === "error" ? (
+                    /* ── Error state: full multi-match report ── */
+                    <Card className="border-destructive/30 bg-destructive/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <AlertTriangle className="h-5 w-5 text-amber-500" />
+                          Similarity report
+                        </CardTitle>
+                        <CardDescription>
+                          Your artwork was flagged for similarity. Review the
+                          best match and all other detected matches below.
+                        </CardDescription>
+                      </CardHeader>
 
-                    <CardContent className="space-y-4">
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
-                            Similarity
+                      <CardContent className="space-y-5">
+                        {/* ── Best match ── */}
+                        <div className="space-y-3">
+                          <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+                            <span className="bg-amber-500 h-1.5 w-1.5 rounded-full" />
+                            Best match
                           </p>
-                          <p className="text-lg font-semibold">
-                            {similarityValue}
-                          </p>
+
+                          <div className="rounded-xl border bg-background overflow-hidden">
+                            <div className="grid sm:grid-cols-[auto_1fr]">
+                              {/* Thumbnail */}
+                              {matchPreviewUrl ? (
+                                <div className="bg-muted relative h-36 w-full sm:h-auto sm:w-36 shrink-0">
+                                  <Image
+                                    src={matchPreviewUrl}
+                                    alt="Best match preview"
+                                    fill
+                                    unoptimized
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="bg-muted flex h-36 w-full sm:h-auto sm:w-36 shrink-0 items-center justify-center">
+                                  <ImageIcon className="text-muted-foreground h-8 w-8" />
+                                </div>
+                              )}
+
+                              {/* Details */}
+                              <div className="flex flex-col justify-between gap-3 p-4">
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div className="space-y-0.5">
+                                    <p className="text-muted-foreground text-[11px] uppercase tracking-wide">
+                                      Similarity
+                                    </p>
+                                    <p className="text-xl font-bold text-amber-500">
+                                      {similarityValue}
+                                    </p>
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    <p className="text-muted-foreground text-[11px] uppercase tracking-wide">
+                                      Type
+                                    </p>
+                                    <div className="flex items-center gap-1">
+                                      {similarityReport.type === "database" ? (
+                                        <Database className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <Globe className="h-3.5 w-3.5" />
+                                      )}
+                                      <p className="text-sm font-semibold">
+                                        {matchTypeLabel}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-0.5">
+                                    <p className="text-muted-foreground text-[11px] uppercase tracking-wide">
+                                      Source
+                                    </p>
+                                    <p className="text-sm font-semibold">
+                                      {similarityReport.source ?? "Unknown"}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {similarityReport.type === "internet" && (
+                                  <div className="space-y-1">
+                                    {similarityReport.link && (
+                                      <Link
+                                        href={similarityReport.link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-primary inline-flex items-center gap-1 text-xs break-all underline underline-offset-4"
+                                      >
+                                        {similarityReport.link}
+                                        <ExternalLink className="h-3 w-3 shrink-0" />
+                                      </Link>
+                                    )}
+                                    {similarityReport.url && (
+                                      <Link
+                                        href={similarityReport.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-muted-foreground inline-flex items-center gap-1 text-xs break-all underline underline-offset-4"
+                                      >
+                                        Image source
+                                        <ExternalLink className="h-3 w-3 shrink-0" />
+                                      </Link>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
-                            Match type
-                          </p>
-                          <div className="mt-1 flex items-center gap-2">
-                            {similarityReport.type === "database" ? (
-                              <Database className="h-4 w-4" />
-                            ) : (
-                              <Globe className="h-4 w-4" />
-                            )}
+                        <Separator />
+
+                        {/* ── Other matches ── */}
+                        {otherMatchesReport &&
+                          otherMatchesReport.length > 0 && (
+                            <div className="space-y-3">
+                              <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide">
+                                <span className="bg-muted-foreground/50 h-1.5 w-1.5 rounded-full" />
+                                Other matches
+                              </p>
+
+                              <Tabs
+                                defaultValue={
+                                  databaseMatches.length > 0 ? "db" : "web"
+                                }
+                              >
+                                <TabsList className="h-8">
+                                  {webMatches.length > 0 && (
+                                    <TabsTrigger
+                                      value="web"
+                                      className="gap-1.5 text-xs"
+                                    >
+                                      <Globe className="h-3 w-3" />
+                                      Web
+                                      <Badge
+                                        variant="secondary"
+                                        className="h-4 px-1 text-[10px]"
+                                      >
+                                        {webMatches.length}
+                                      </Badge>
+                                    </TabsTrigger>
+                                  )}
+                                  {databaseMatches.length > 0 && (
+                                    <TabsTrigger
+                                      value="db"
+                                      className="gap-1.5 text-xs"
+                                    >
+                                      <Database className="h-3 w-3" />
+                                      Database
+                                      <Badge
+                                        variant="secondary"
+                                        className="h-4 px-1 text-[10px]"
+                                      >
+                                        {databaseMatches.length}
+                                      </Badge>
+                                    </TabsTrigger>
+                                  )}
+                                </TabsList>
+
+                                {databaseMatches.length > 0 && (
+                                  <TabsContent value="db" className="mt-3">
+                                    <ScrollArea className="h-[260px] pr-2">
+                                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                        {databaseMatches.map((match, i) => (
+                                          <MatchThumbnail
+                                            key={match.url ?? i}
+                                            imageUrl={match.url}
+                                            similarity={match.similarity}
+                                            label="Registered artwork"
+                                            icon="db"
+                                          />
+                                        ))}
+                                      </div>
+                                    </ScrollArea>
+                                  </TabsContent>
+                                )}
+
+                                {webMatches.length > 0 && (
+                                  <TabsContent value="web" className="mt-3">
+                                    <ScrollArea className="h-[260px] pr-2">
+                                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                        {webMatches.map((match, i) => (
+                                          <MatchThumbnail
+                                            key={match.url ?? i}
+                                            imageUrl={match.url}
+                                            similarity={match.similarity}
+                                            label={match.source}
+                                            href={match.link}
+                                            icon="web"
+                                          />
+                                        ))}
+                                      </div>
+                                    </ScrollArea>
+                                  </TabsContent>
+                                )}
+                              </Tabs>
+                            </div>
+                          )}
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    /* ── Success state: compact single-match card (unchanged) ── */
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-amber-500" />
+                          Similarity report
+                        </CardTitle>
+                        <CardDescription>
+                          This shows the strongest detected match from either
+                          your internal artwork database or an online source.
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          <div className="rounded-lg border p-3">
+                            <p className="text-muted-foreground text-xs">
+                              Similarity
+                            </p>
                             <p className="text-lg font-semibold">
-                              {matchTypeLabel}
+                              {similarityValue}
                             </p>
                           </div>
-                        </div>
 
-                        <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
-                            Source
-                          </p>
-                          <p className="text-lg font-semibold">
-                            {similarityReport.source ?? "Unknown"}
-                          </p>
-                        </div>
-                      </div>
-
-                      {matchPreviewUrl ? (
-                        <div className="overflow-hidden rounded-xl border">
-                          <div className="bg-muted relative aspect-[4/3] w-full">
-                            <Image
-                              src={matchPreviewUrl}
-                              alt="Matched artwork preview"
-                              fill
-                              unoptimized
-                              className="object-contain"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
-                          No matched preview image is available for this result.
-                        </div>
-                      )}
-
-                      {similarityReport.type === "internet" ? (
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <div className="space-y-2 rounded-lg border p-4">
+                          <div className="rounded-lg border p-3">
                             <p className="text-muted-foreground text-xs">
-                              Reference link
+                              Match type
                             </p>
-                            {similarityReport.link ? (
-                              <Link
-                                href={similarityReport.link}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
-                              >
-                                {similarityReport.link}
-                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                              </Link>
-                            ) : (
-                              <p className="text-sm">No link available.</p>
-                            )}
+                            <div className="mt-1 flex items-center gap-2">
+                              {similarityReport.type === "database" ? (
+                                <Database className="h-4 w-4" />
+                              ) : (
+                                <Globe className="h-4 w-4" />
+                              )}
+                              <p className="text-lg font-semibold">
+                                {matchTypeLabel}
+                              </p>
+                            </div>
                           </div>
 
-                          <div className="space-y-2 rounded-lg border p-4">
+                          <div className="rounded-lg border p-3">
                             <p className="text-muted-foreground text-xs">
-                              Image reference
+                              Source
                             </p>
-                            {similarityReport.url ? (
-                              <Link
-                                href={similarityReport.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
-                              >
-                                {similarityReport.url}
-                                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                              </Link>
-                            ) : (
-                              <p className="text-sm">No image URL available.</p>
-                            )}
+                            <p className="text-lg font-semibold">
+                              {similarityReport.source ?? "Unknown"}
+                            </p>
                           </div>
                         </div>
-                      ) : (
-                        <></>
-                      )}
-                    </CardContent>
-                  </Card>
+
+                        {matchPreviewUrl ? (
+                          <div className="overflow-hidden rounded-xl border">
+                            <div className="bg-muted relative aspect-[4/3] w-full">
+                              <Image
+                                src={matchPreviewUrl}
+                                alt="Matched artwork preview"
+                                fill
+                                unoptimized
+                                className="object-contain"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
+                            No matched preview image is available for this
+                            result.
+                          </div>
+                        )}
+
+                        {similarityReport.type === "internet" ? (
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-2 rounded-lg border p-4">
+                              <p className="text-muted-foreground text-xs">
+                                Reference link
+                              </p>
+                              {similarityReport.link ? (
+                                <Link
+                                  href={similarityReport.link}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
+                                >
+                                  {similarityReport.link}
+                                  <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                </Link>
+                              ) : (
+                                <p className="text-sm">No link available.</p>
+                              )}
+                            </div>
+
+                            <div className="space-y-2 rounded-lg border p-4">
+                              <p className="text-muted-foreground text-xs">
+                                Image reference
+                              </p>
+                              {similarityReport.url ? (
+                                <Link
+                                  href={similarityReport.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
+                                >
+                                  {similarityReport.url}
+                                  <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                </Link>
+                              ) : (
+                                <p className="text-sm">
+                                  No image URL available.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <></>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )
                 ) : null}
 
                 {(processingState === "success" ||
@@ -625,4 +847,80 @@ function StatCard({ title, value }: { title: string; value: string }) {
       <p className="mt-1 text-sm font-semibold text-white">{value}</p>
     </div>
   );
+}
+
+function MatchThumbnail({
+  imageUrl,
+  similarity,
+  label,
+  href,
+  icon,
+}: {
+  imageUrl: string;
+  similarity: number;
+  label: string;
+  href?: string;
+  icon: "db" | "web";
+}) {
+  const similarityLabel =
+    similarity >= 90
+      ? "Very Similar"
+      : similarity >= 75
+        ? "Similar"
+        : "Potential Match";
+
+  const card = (
+    <div className="group relative overflow-hidden rounded-lg border bg-background transition-colors hover:border-primary/50">
+      <div className="bg-muted relative aspect-square w-full">
+        <Image
+          src={imageUrl}
+          alt={label}
+          fill
+          unoptimized
+          className="object-cover transition-transform duration-200 group-hover:scale-105"
+        />
+      </div>
+
+      <div className="space-y-2 p-2">
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1 min-w-0">
+            {icon === "db" ? (
+              <Database className="text-muted-foreground h-3 w-3 shrink-0" />
+            ) : (
+              <Globe className="text-muted-foreground h-3 w-3 shrink-0" />
+            )}
+
+            <span className="text-muted-foreground truncate text-[11px]">
+              {label}
+            </span>
+          </div>
+
+          {href && (
+            <ExternalLink className="text-muted-foreground h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+          )}
+        </div>
+
+        <Badge
+          variant="outline"
+          className="w-fit text-[10px]"
+        >
+          {similarityLabel}
+        </Badge>
+      </div>
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 }

@@ -1,4 +1,5 @@
 import { type SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+import { OtherSearchMatch, type SearchMatch } from "@/features/plagiarise-checker/types";
 
 /**
  * ArtworkStatus represents only the statuses that this upload pipeline can assign.
@@ -21,11 +22,14 @@ export type RecordArtworkInDatabaseResult =
       similarityReport: SimilarityReport | null;
       artworkStatus: ArtworkStatus;
       genreSuggestions: GenreScoreLabel[];
+      otherMatches: OtherSearchMatch[] | null;
     }
   | {
       success: false;
       message: string;
       similarityReport: SimilarityReport | null;
+      otherMatches: OtherSearchMatch[] | null;
+
     };
 
 /**

@@ -22,6 +22,7 @@ import type {
 import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 import type { GenreScoreLabel } from "@/features/(user)/upload-artwork/types";
 import type { SelectedGenre } from "@/features/(user)/upload-artwork/components/genre-tagging-modal";
+import { OtherSearchMatch, SearchMatch } from "@/features/plagiarise-checker/types";
 
 type ProcessingState = "idle" | "processing" | "success" | "error";
 
@@ -99,6 +100,8 @@ export function useUploadArtworkForm() {
   const [isSubmittingGenres, setIsSubmittingGenres] = useState(false);
   const [similarityReport, setSimilarityReport] =
     useState<SimilarityReport | null>(null);
+  
+  const [otherMatchesReport, setOtherMatchesReport] = useState<OtherSearchMatch[] | null>(null);
 
   const [processingState, setProcessingState] =
     useState<ProcessingState>("idle");
@@ -287,6 +290,8 @@ export function useUploadArtworkForm() {
       clearInterval(reviewInterval);
 
       setSimilarityReport(dbResult.similarityReport ?? null);
+      setOtherMatchesReport(dbResult.otherMatches ?? null);
+      console.log("Other Matches report:", dbResult);
 
       if (!dbResult.success) {
         setStepStatus(STEP_KEYS.review, "error");
@@ -474,5 +479,6 @@ export function useUploadArtworkForm() {
     closeConfirmation,
     confirmUpload,
     handleGenreSubmit,
+    otherMatchesReport,
   };
 }

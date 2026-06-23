@@ -26,6 +26,7 @@ type CheckPlagiarismWebResult = {
   db?: SearchMatch | null;
   web?: SearchMatch | null;
   best_match?: SearchMatch | null;
+  other_matches: SearchMatch[] | null;
 };
 
 export type SimilarityReport = {
