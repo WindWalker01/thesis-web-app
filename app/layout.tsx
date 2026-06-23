@@ -43,12 +43,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Script
-          src="https://tweakcn.com/live-preview.min.js"
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-        />
-
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -59,6 +53,12 @@ export default function RootLayout({
             <Toaster position="top-center" />
           </ReactQueryClientProvider>
         </ThemeProvider>
+
+        <Script
+          src="https://tweakcn.com/live-preview.min.js"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
       </body>
     </html>
   );
