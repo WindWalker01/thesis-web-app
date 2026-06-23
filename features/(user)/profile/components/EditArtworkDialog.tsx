@@ -88,7 +88,7 @@ export function EditArtworkDialog({
                                     </FormControl>
                                     <div className="flex items-center justify-between">
                                         <FormMessage />
-                                        <span className="ml-auto text-xs text-muted-foreground">
+                                        <span className="ml-auto text-sm text-muted-foreground">
                                             {descriptionValue.length}/1000
                                         </span>
                                     </div>
@@ -97,7 +97,7 @@ export function EditArtworkDialog({
                         />
 
                         {form.formState.errors.root?.message ? (
-                            <p className="text-sm text-destructive">
+                            <p className="text-base text-destructive">
                                 {form.formState.errors.root.message}
                             </p>
                         ) : null}

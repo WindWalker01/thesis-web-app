@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatTimeAgo } from "@/lib/client-utils";
+import { getShowNsfwContentAction } from "@/features/(user)/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
 import type { CommunityPageData, Post, VoteType } from "../types";
 
 const COMMUNITY_NAME = "ArtForgeLab";
@@ -20,6 +21,7 @@ type ArtPostRow = {
     user_id: string;
     visibility: "public" | "private";
     is_archived: boolean;
+    is_nsfw: boolean;
     upvote_count: number;
     downvote_count: number;
     score: number;
@@ -133,6 +135,7 @@ function mapPosts(
 
             visibility: row.visibility,
             isArchived: row.is_archived,
+            isNsfw: row.is_nsfw ?? false,
         });
     }
 
@@ -145,6 +148,7 @@ const ART_POST_SELECT = `
   user_id,
   visibility,
   is_archived,
+  is_nsfw,
   upvote_count,
   downvote_count,
   score,
@@ -176,6 +180,9 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
     } = await supabase.auth.getUser();
 
     const authed = Boolean(user);
+
+    // Fetch the user's NSFW preference (defaults to false for guests)
+    const showNsfwContent = user ? await getShowNsfwContentAction() : false;
 
     const { data: publicRows, error: publicError } = await supabase
         .from("art_posts")
@@ -252,7 +259,15 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
         }
     }
 
-    const posts = mapPosts(mergedRows, categoryByArtId, user?.id ?? null);
+    const allPosts = mapPosts(mergedRows, categoryByArtId, user?.id ?? null);
+
+    // Filter out NSFW posts unless the user has opted in.
+    // Always keep the user's own posts regardless of NSFW status.
+    const posts = showNsfwContent
+        ? allPosts
+        : allPosts.filter(
+              (post) => !post.isNsfw || post.userId === user?.id,
+          );
 
     const publicPosts = posts.filter(
         (post) => post.visibility === "public" && !post.isArchived,

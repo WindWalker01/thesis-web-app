@@ -22,14 +22,14 @@ export function VerifyArtworkSummary({
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
                         <VerificationStatusBadge status={result.status} />
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-sm text-muted-foreground">
                             Verified on {formatDate(result.verifiedAt)}
                         </span>
                     </div>
 
                     <div>
                         <h2 className="text-xl font-black">{result.artwork.title}</h2>
-                        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                        <p className="mt-1 max-w-2xl text-base text-muted-foreground">
                             {result.summary}
                         </p>
                     </div>
@@ -58,33 +58,33 @@ export function VerifyArtworkSummary({
 
             <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-2xl border border-border bg-background/70 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                         Chain
                     </div>
-                    <div className="mt-2 text-sm font-bold">{result.chainLabel}</div>
+                    <div className="mt-2 text-base font-bold">{result.chainLabel}</div>
                 </div>
 
                 <div className="rounded-2xl border border-border bg-background/70 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                         Work ID
                     </div>
-                    <div className="mt-2 text-sm font-bold">{result.artwork.workId ?? "Not recorded"}</div>
+                    <div className="mt-2 text-base font-bold">{result.artwork.workId ?? "Not recorded"}</div>
                 </div>
 
                 <div className="rounded-2xl border border-border bg-background/70 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                         Transaction hash
                     </div>
-                    <div className="mt-2 break-all text-sm font-bold">
+                    <div className="mt-2 break-all text-base font-bold">
                         {result.artwork.txHash ? truncateHash(result.artwork.txHash, 12, 10) : "—"}
                     </div>
                 </div>
 
                 <div className="rounded-2xl border border-border bg-background/70 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                         On-chain timestamp
                     </div>
-                    <div className="mt-2 text-sm font-bold">
+                    <div className="mt-2 text-base font-bold">
                         {result.onChainWork?.createdAt
                             ? formatDate(result.onChainWork.createdAt)
                             : "—"}
@@ -93,7 +93,7 @@ export function VerifyArtworkSummary({
             </div>
 
             {result.onChainWork?.revoked ? (
-                <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-600 dark:text-red-400">
+                <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-base text-red-600 dark:text-red-400">
                     <div className="flex items-start gap-2">
                         <TimerReset className="mt-0.5 h-4 w-4 shrink-0" />
                         <div>

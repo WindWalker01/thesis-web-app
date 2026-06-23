@@ -36,6 +36,7 @@ export function usePostEditorForm({
         defaultValues: {
             artId: existingPost?.artId ?? "",
             visibility: existingPost?.visibility ?? "public",
+            isNsfw: existingPost?.isNsfw ?? false,
         },
     });
 
@@ -72,6 +73,7 @@ export function usePostEditorForm({
                 postId,
                 artId: values.artId,
                 visibility: values.visibility,
+                isNsfw: values.isNsfw,
             });
 
             if (!result.success) {

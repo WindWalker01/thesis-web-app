@@ -53,7 +53,7 @@ export function RegisterForm() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Check your email
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-base text-slate-500 dark:text-slate-300">
             We sent a confirmation link to{" "}
             <strong className="text-slate-700 dark:text-slate-200">
               {pendingEmail}
@@ -72,7 +72,7 @@ export function RegisterForm() {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Create Account
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-base text-slate-500 dark:text-slate-300">
               Fill in your details to get started
             </p>
           </div>
@@ -89,7 +89,7 @@ export function RegisterForm() {
           <div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label className="text-base font-medium text-slate-700 dark:text-slate-300">
                   First Name
                 </Label>
                 <Input
@@ -100,7 +100,7 @@ export function RegisterForm() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label className="text-base font-medium text-slate-700 dark:text-slate-300">
                   Middle Name
                   <span className="text-muted-foreground"> (optional)</span>
                 </Label>
@@ -112,7 +112,7 @@ export function RegisterForm() {
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <Label className="text-base font-medium text-slate-700 dark:text-slate-300">
                   Last Name
                 </Label>
                 <Input
@@ -130,7 +130,7 @@ export function RegisterForm() {
 
           {/* Email */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <Label className="text-base font-medium text-slate-700 dark:text-slate-300">
               Email
             </Label>
             <Input
@@ -140,7 +140,7 @@ export function RegisterForm() {
               className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
             />
             {errors.email && (
-              <p className="text-xs text-red-500 dark:text-red-400">
+              <p className="text-sm text-red-500 dark:text-red-400">
                 {errors.email.message}
               </p>
             )}
@@ -148,7 +148,7 @@ export function RegisterForm() {
 
           {/* Password */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <Label className="text-base font-medium text-slate-700 dark:text-slate-300">
               Password
             </Label>
             <div className="relative">
@@ -176,7 +176,7 @@ export function RegisterForm() {
 
           {/* Confirm Password */}
           <div className="space-y-1.5">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <Label className="text-base font-medium text-slate-700 dark:text-slate-300">
               Confirm Password
             </Label>
             <div className="relative">
@@ -237,7 +237,7 @@ export function RegisterForm() {
 
           <div className="flex items-center gap-3">
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
-            <span className="text-xs text-slate-400 dark:text-slate-500">
+            <span className="text-sm text-slate-400 dark:text-slate-500">
               or
             </span>
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
@@ -259,7 +259,7 @@ export function RegisterForm() {
             <span className="ml-2">Continue with Google</span>
           </Button>
 
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-center text-base text-slate-500 dark:text-slate-300">
             Already have an account?{" "}
             <Link
               href="/login"

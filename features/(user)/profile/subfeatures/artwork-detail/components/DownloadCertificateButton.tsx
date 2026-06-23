@@ -59,7 +59,7 @@ export function DownloadCertificateButton({ artwork }: Props) {
             type="button"
             onClick={handleDownload}
             disabled={isGenerating}
-            className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/15 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-base font-semibold text-primary hover:bg-primary/15 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
             <Download className="h-4 w-4" />
             {isGenerating ? "Generating..." : "Download certificate"}

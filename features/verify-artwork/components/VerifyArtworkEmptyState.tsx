@@ -13,7 +13,7 @@ export function VerifyArtworkEmptyState({
                 <SearchX className="h-6 w-6 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-black">{title}</h3>
-            <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+            <p className="mx-auto mt-2 max-w-xl text-base text-muted-foreground">
                 {description}
             </p>
         </div>

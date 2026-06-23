@@ -13,6 +13,7 @@ import {
     ChevronRight,
     Upload,
     Settings,
+    ShieldAlert
 } from "lucide-react";
 
 import { useCurrentUserProfile } from "../../profile/hooks/useFetchProfile";
@@ -21,6 +22,7 @@ import PlagiarismHistorySection from "../subfeatures/plagiarism-history/componen
 import ArtworkOwnershipSection from "../subfeatures/artwork-ownership/components/ArtworkOwnershipSection";
 import ProfileSection from "./ProfileSection";
 import ThemeSection from "./ThemeSection";
+import ShowNSFWSection from "./ShowNSFWSection";
 import ChangePasswordSection from "./ChangePasswordSection";
 import ConfirmActionModal from "./ConfirmActionModal";
 
@@ -43,6 +45,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
     },
     { id: "security", label: "Security", icon: Shield, group: "Account" },
     { id: "theme", label: "Theme", icon: Palette, group: "Preferences" },
+    { id: "nsfw", label: "Show NSFW Content", icon: ShieldAlert, group: "Preferences" },
     {
         id: "artwork-ownership",
         label: "Artwork Ownership",
@@ -131,12 +134,12 @@ export default function SettingsPage() {
                         <h1 className="text-4xl md:text-5xl font-black text-white leading-none">
                             Settings
                         </h1>
-                        <p className="text-slate-400 text-sm mt-2">
+                        <p className="text-slate-400 text-base mt-2">
                             Manage your account and ArtForgeLab preferences.
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 pb-0.5">
+                    <div className="flex items-center gap-1.5 text-sm text-slate-500 pb-0.5">
                         <span>Settings</span>
                         {activeItem && (
                             <>
@@ -157,8 +160,8 @@ export default function SettingsPage() {
                         { label: "Role", value: "Digital Artist" },
                         { label: "Since", value: `${profile?.joinDate ?? ""}` },
                     ].map((item) => (
-                        <div key={item.label} className="flex items-center gap-2 text-sm">
-                            <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">
+                        <div key={item.label} className="flex items-center gap-2 text-base">
+                            <span className="text-blue-200 text-sm uppercase tracking-widest font-medium">
                                 {item.label}
                             </span>
                             <span className="text-white font-black">{item.value}</span>
@@ -195,15 +198,15 @@ export default function SettingsPage() {
                                                     onClick={() =>
                                                         !item.href && setActiveTab(item.id)
                                                     }
-                                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-all group
+                                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-base font-medium transition-all group
 ${isActive
                                                             ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-r-2 border-blue-500"
-                                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                                                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                                                         }`}
                                                 >
                                                     <div className="flex items-center gap-2.5">
                                                         <Icon className="w-3.5 h-3.5 shrink-0" />
-                                                        <span className="text-xs">
+                                                        <span className="text-sm">
                                                             {item.label}
                                                         </span>
                                                     </div>
@@ -229,7 +232,7 @@ ${isActive
                                 <button
                                     type="button"
                                     onClick={openLogoutModal}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-red-500 hover:bg-red-500/8 rounded-xl transition-all"
+                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-500/8 rounded-xl transition-all"
                                 >
                                     <LogOut className="w-3.5 h-3.5 shrink-0" />
                                     <span>Logout</span>
@@ -251,6 +254,8 @@ ${isActive
                             >
                                 {/* ══════════════ THEME ══════════════ */}
                                 {activeTab === "theme" && <ThemeSection />}
+
+                                {activeTab === "nsfw" && <ShowNSFWSection/>}
 
                                 {/* ══════════════ SECURITY ══════════════ */}
                                 {activeTab === "security" && <ChangePasswordSection />}

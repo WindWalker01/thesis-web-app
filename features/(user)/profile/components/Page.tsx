@@ -86,10 +86,10 @@ export default function ProfilePage({ scope = "gallery" }: Props) {
       {!pageLoading && pageError && (
         <>
           <div className="flex items-center justify-center h-52 bg-slate-900">
-            <p className="text-sm text-red-400">{pageError}</p>
+            <p className="text-base text-red-400">{pageError}</p>
           </div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               Could not load profile artworks. Please refresh the page.
             </p>
           </div>
@@ -112,13 +112,13 @@ export default function ProfilePage({ scope = "gallery" }: Props) {
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-black">{pageTitle}</h2>
-                <p className="text-sm text-muted-foreground">{pageDescription}</p>
+                <p className="text-base text-muted-foreground">{pageDescription}</p>
               </div>
 
               <div className="inline-flex rounded-xl border border-border p-1 bg-card">
                 <Link
                   href="/profile"
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                  className={`rounded-lg px-3 py-2 text-base font-semibold transition-colors ${
                     scope === "gallery"
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -128,7 +128,7 @@ export default function ProfilePage({ scope = "gallery" }: Props) {
                 </Link>
                 <Link
                   href="/profile/issues"
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                  className={`rounded-lg px-3 py-2 text-base font-semibold transition-colors ${
                     scope === "issues"
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"

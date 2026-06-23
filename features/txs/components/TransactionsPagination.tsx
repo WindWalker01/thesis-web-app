@@ -19,7 +19,7 @@ export function TransactionsPagination({
 }) {
     return (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-base text-muted-foreground">
                 Page <span className="font-semibold text-foreground">{page}</span>
             </div>
 

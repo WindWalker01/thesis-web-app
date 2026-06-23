@@ -13,7 +13,7 @@ export function TransactionsEmptyState({
                 <Blocks className="h-6 w-6 text-muted-foreground" />
             </div>
             <h3 className="mt-4 text-lg font-bold">{title}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+            <p className="mt-2 text-base text-muted-foreground">{description}</p>
         </div>
     );
 }

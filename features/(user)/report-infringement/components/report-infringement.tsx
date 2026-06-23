@@ -96,14 +96,14 @@ export default function ReportInfringementPageShadcn() {
                 <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-6">
                     <div className="space-y-1">
                         <h1 className="text-2xl md:text-3xl font-bold">Report Infringement</h1>
-                        <p className="text-sm md:text-base text-muted-foreground">
+                        <p className="text-base md:text-base text-muted-foreground">
                             Submit a formal complaint. Reports can be saved as draft and are timestamped for integrity.
                         </p>
                     </div>
 
                     <div className="inline-flex items-center gap-2 rounded-full border px-4 py-2 bg-muted">
                         <LockKeyhole className="h-4 w-4" />
-                        <span className="text-sm font-medium">Secure submission</span>
+                        <span className="text-base font-medium">Secure submission</span>
                     </div>
                 </div>
 
@@ -131,7 +131,7 @@ export default function ReportInfringementPageShadcn() {
 
                                     <div className="w-40">
                                         <Progress value={progress} />
-                                        <p className="mt-1 text-xs text-muted-foreground text-right">{progress}%</p>
+                                        <p className="mt-1 text-sm text-muted-foreground text-right">{progress}%</p>
                                     </div>
                                 </div>
 
@@ -170,7 +170,7 @@ export default function ReportInfringementPageShadcn() {
                                 <CardContent className="space-y-6">
                                     {/* Report kind */}
                                     <div className="space-y-2">
-                                        <Label className="text-sm font-medium">What are you reporting?</Label>
+                                        <Label className="text-base font-medium">What are you reporting?</Label>
                                         <RadioGroup
                                             value={reportKind}
                                             onValueChange={(v) => setReportKind(v as any)}
@@ -180,7 +180,7 @@ export default function ReportInfringementPageShadcn() {
                                                 <RadioGroupItem value="copied" className="mt-1" />
                                                 <div>
                                                     <p className="font-medium">My artwork was copied</p>
-                                                    <p className="text-sm text-muted-foreground">Plagiarism, reposting, tracing, unauthorized use.</p>
+                                                    <p className="text-base text-muted-foreground">Plagiarism, reposting, tracing, unauthorized use.</p>
                                                 </div>
                                             </label>
 
@@ -188,7 +188,7 @@ export default function ReportInfringementPageShadcn() {
                                                 <RadioGroupItem value="dispute" className="mt-1" />
                                                 <div>
                                                     <p className="font-medium">Ownership dispute</p>
-                                                    <p className="text-sm text-muted-foreground">Someone claims my work, or I need to contest a claim.</p>
+                                                    <p className="text-base text-muted-foreground">Someone claims my work, or I need to contest a claim.</p>
                                                 </div>
                                             </label>
                                         </RadioGroup>
@@ -214,7 +214,7 @@ export default function ReportInfringementPageShadcn() {
                                                 onChange={(e) => setOriginalUrl(e.target.value)}
                                                 placeholder="https://..."
                                             />
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm text-muted-foreground">
                                                 Tip: use your portfolio link or the post URL where you first published it.
                                             </p>
                                         </div>
@@ -285,7 +285,7 @@ export default function ReportInfringementPageShadcn() {
 
                                     <div className="rounded-lg border p-3 bg-muted/50 flex items-start gap-3">
                                         <ShieldAlert className="h-5 w-5 mt-0.5" />
-                                        <div className="text-sm">
+                                        <div className="text-base">
                                             <p className="font-medium">Reminder</p>
                                             <p className="text-muted-foreground">
                                                 This platform helps document and verify. It does not replace formal legal procedures.
@@ -315,7 +315,7 @@ export default function ReportInfringementPageShadcn() {
                                     <div className="rounded-xl border border-dashed p-6 flex flex-col items-center justify-center text-center gap-2">
                                         <Upload className="h-6 w-6" />
                                         <p className="font-medium">Upload screenshots / proof</p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-base text-muted-foreground">
                                             (Demo UI) Integrate Cloudinary/Supabase storage here.
                                         </p>
                                         <Button variant="secondary" type="button">Choose files</Button>
@@ -338,7 +338,7 @@ export default function ReportInfringementPageShadcn() {
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
                                                 <p className="font-medium">Similarity scan</p>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-base text-muted-foreground">
                                                     Uses perceptual hashing to find visually similar works (robust to cropping/color shifts).
                                                 </p>
                                             </div>
@@ -353,12 +353,12 @@ export default function ReportInfringementPageShadcn() {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <div className="flex items-center justify-between text-sm">
+                                            <div className="flex items-center justify-between text-base">
                                                 <span className="text-muted-foreground">Similarity score</span>
                                                 <span className="font-medium">{similarity}%</span>
                                             </div>
                                             <Progress value={similarity} />
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-sm text-muted-foreground">
                                                 Tip: reviewers will use this as an indicator, plus your evidence and links.
                                             </p>
                                         </div>
@@ -387,7 +387,7 @@ export default function ReportInfringementPageShadcn() {
                                             <Badge variant="secondary">{reportKind === "copied" ? "Copied work" : "Ownership dispute"}</Badge>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-base">
                                             <div className="space-y-1">
                                                 <p className="text-muted-foreground">Original</p>
                                                 <p className="font-medium">{originalTitle || "—"}</p>
@@ -416,7 +416,7 @@ export default function ReportInfringementPageShadcn() {
                                         </div>
 
                                         {notes ? (
-                                            <div className="pt-2 text-sm">
+                                            <div className="pt-2 text-base">
                                                 <p className="text-muted-foreground">Notes</p>
                                                 <p className="whitespace-pre-wrap">{notes}</p>
                                             </div>
@@ -427,14 +427,14 @@ export default function ReportInfringementPageShadcn() {
                                     <div className="space-y-3">
                                         <label className="flex items-start gap-3">
                                             <Checkbox checked={attest} onCheckedChange={(v) => setAttest(Boolean(v))} />
-                                            <span className="text-sm">
+                                            <span className="text-base">
                                                 I attest that the information provided is accurate to the best of my knowledge.
                                             </span>
                                         </label>
 
                                         <label className="flex items-start gap-3">
                                             <Checkbox checked={understand} onCheckedChange={(v) => setUnderstand(Boolean(v))} />
-                                            <span className="text-sm">
+                                            <span className="text-base">
                                                 I understand this system provides documentation and verification support, not legal advice.
                                             </span>
                                         </label>
@@ -458,7 +458,7 @@ export default function ReportInfringementPageShadcn() {
                                 <CardTitle className="text-base">Recent reports</CardTitle>
                                 <CardDescription className="flex items-center justify-between">
                                     Track ongoing cases
-                                    <Link href="/recent-reports" className="text-blue-600 text-sm hover:underline">
+                                    <Link href="/recent-reports" className="text-blue-600 text-base hover:underline">
                                         View all
                                     </Link>
                                 </CardDescription>
@@ -470,33 +470,33 @@ export default function ReportInfringementPageShadcn() {
                                         {/* Demo items */}
                                         <div className="rounded-lg border p-3">
                                             <div className="flex items-center justify-between">
-                                                <p className="font-medium text-sm">Case #A19F</p>
+                                                <p className="font-medium text-base">Case #A19F</p>
                                                 <Badge variant="secondary">Under review</Badge>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Plagiarism · Instagram</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Plagiarism · Instagram</p>
                                         </div>
 
                                         <div className="rounded-lg border p-3">
                                             <div className="flex items-center justify-between">
-                                                <p className="font-medium text-sm">Case #B02C</p>
+                                                <p className="font-medium text-base">Case #B02C</p>
                                                 <Badge>Submitted</Badge>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Repost · Facebook</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Repost · Facebook</p>
                                         </div>
 
                                         <div className="rounded-lg border p-3">
                                             <div className="flex items-center justify-between">
-                                                <p className="font-medium text-sm">Case #C77D</p>
+                                                <p className="font-medium text-base">Case #C77D</p>
                                                 <Badge variant="outline">Resolved</Badge>
                                             </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Commercial use · Other</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Commercial use · Other</p>
                                         </div>
                                     </div>
                                 </ScrollArea>
 
                                 <Separator />
 
-                                <div className="text-sm space-y-2">
+                                <div className="text-base space-y-2">
                                     <p className="font-medium">Tips for strong reports</p>
                                     <ul className="list-disc pl-5 text-muted-foreground space-y-1">
                                         <li>Include direct URLs and screenshots.</li>

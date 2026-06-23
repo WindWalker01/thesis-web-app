@@ -52,13 +52,13 @@ export default function ArtworkOwnershipSection() {
 
             <Card>
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    <p className="text-sm font-black uppercase tracking-widest text-slate-400">
                         Blockchain Certificates
                     </p>
                 </div>
 
                 {error ? (
-                    <div className="px-6 py-4 text-sm text-red-500">{error}</div>
+                    <div className="px-6 py-4 text-base text-red-500">{error}</div>
                 ) : (
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {isLoading ? (
@@ -79,10 +79,10 @@ export default function ArtworkOwnershipSection() {
                                 <div className="mx-auto mb-3 w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                     <FileCheck className="w-4 h-4 text-slate-400" />
                                 </div>
-                                <p className="text-sm font-semibold text-slate-500">
+                                <p className="text-base font-semibold text-slate-500">
                                     No ownership records found.
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">
+                                <p className="text-sm text-slate-400 mt-1">
                                     Your blockchain-recorded and pending artworks will appear here.
                                 </p>
                             </div>
@@ -95,10 +95,10 @@ export default function ArtworkOwnershipSection() {
                                 >
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="min-w-0">
-                                            <p className="text-sm font-semibold truncate group-hover:text-blue-500 transition-colors">
+                                            <p className="text-base font-semibold truncate group-hover:text-blue-500 transition-colors">
                                                 {rec.artwork}
                                             </p>
-                                            <p className="text-xs text-slate-400 font-mono mt-0.5">
+                                            <p className="text-sm text-slate-400 font-mono mt-0.5">
                                                 {rec.hash}
                                                 {rec.tx ? ` · ${rec.tx}` : ""}
                                                 {" · "}

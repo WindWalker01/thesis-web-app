@@ -12,7 +12,7 @@ export function StatCard({
             <div className="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
                 {icon}
             </div>
-            <p className="text-xs uppercase tracking-wide text-slate-300">{label}</p>
+            <p className="text-sm uppercase tracking-wide text-slate-300">{label}</p>
             <p className="mt-1 text-lg font-black text-white">{value}</p>
         </div>
     );

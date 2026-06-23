@@ -53,8 +53,8 @@ function FeatureStat({
 }) {
     return (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-300">{title}</p>
-            <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-slate-300">{title}</p>
+            <p className="mt-2 text-base font-semibold text-white">{value}</p>
         </div>
     );
 }
@@ -151,7 +151,7 @@ export default function ClassificationPage() {
                                 <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                                     Classify an artwork in seconds
                                 </h1>
-                                <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                                <p className="max-w-2xl text-base text-slate-300 sm:text-base">
                                     Upload an image to get instant visual analysis and predicted results in a simple, easy-to-read format.
                                 </p>
                             </div>
@@ -242,7 +242,7 @@ export default function ClassificationPage() {
                                                                         <p className="text-base font-semibold">
                                                                             Drag and drop an image here
                                                                         </p>
-                                                                        <p className="text-sm text-muted-foreground">
+                                                                        <p className="text-base text-muted-foreground">
                                                                             Or click to choose an artwork from your device
                                                                         </p>
                                                                     </div>
@@ -278,17 +278,17 @@ export default function ClassificationPage() {
                                                                     <div className="flex items-start gap-3 rounded-xl border p-4">
                                                                         <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
                                                                         <div className="min-w-0 flex-1">
-                                                                            <p className="truncate text-sm font-medium">
+                                                                            <p className="truncate text-base font-medium">
                                                                                 {file.name}
                                                                             </p>
-                                                                            <p className="text-xs text-muted-foreground">
+                                                                            <p className="text-sm text-muted-foreground">
                                                                                 {(file.size / 1024 / 1024).toFixed(2)} MB
                                                                             </p>
                                                                         </div>
                                                                     </div>
 
                                                                     {hasCompletedClassification ? (
-                                                                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">
+                                                                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-base text-muted-foreground">
                                                                             Classification is complete. Start a fresh run to
                                                                             upload another image.
                                                                         </div>
@@ -390,10 +390,10 @@ export default function ClassificationPage() {
                                 {!result ? (
                                     <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/30 px-6 text-center">
                                         <FileImage className="mb-4 h-10 w-10 text-muted-foreground" />
-                                        <p className="text-sm font-medium">
+                                        <p className="text-base font-medium">
                                             No classification result yet
                                         </p>
-                                        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                                        <p className="mt-1 max-w-sm text-base text-muted-foreground">
                                             Upload an image and run classification to see the predicted
                                             art genres here.
                                         </p>
@@ -403,7 +403,7 @@ export default function ClassificationPage() {
                                         {topPrediction ? (
                                             <div className="rounded-2xl border bg-primary/5 p-5">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                                                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                                                         Top predicted genre
                                                     </p>
                                                     <Badge variant="secondary">{matchStrength}</Badge>
@@ -418,7 +418,7 @@ export default function ClassificationPage() {
                                                     </Badge>
                                                 </div>
 
-                                                <p className="mt-3 text-sm text-muted-foreground">
+                                                <p className="mt-3 text-base text-muted-foreground">
                                                     {interpretation}
                                                 </p>
                                             </div>
@@ -430,7 +430,7 @@ export default function ClassificationPage() {
                                                     key={`${item.label}-${index}`}
                                                     className="rounded-2xl border bg-card p-4"
                                                 >
-                                                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                                    <p className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
                                                         {index === 0
                                                             ? "Best match"
                                                             : index === 1
@@ -440,7 +440,7 @@ export default function ClassificationPage() {
                                                     <h4 className="mt-2 text-lg font-bold">
                                                         {item.label}
                                                     </h4>
-                                                    <p className="mt-1 text-sm text-muted-foreground">
+                                                    <p className="mt-1 text-base text-muted-foreground">
                                                         {item.displayPercent.toFixed(1)}% relative match
                                                     </p>
                                                     <div className="mt-3">
@@ -460,10 +460,10 @@ export default function ClassificationPage() {
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between gap-3">
                                                 <div>
-                                                    <h4 className="text-sm font-semibold">
+                                                    <h4 className="text-base font-semibold">
                                                         Full ranked results
                                                     </h4>
-                                                    <p className="text-xs text-muted-foreground">
+                                                    <p className="text-sm text-muted-foreground">
                                                         Includes relative match score and raw API score.
                                                     </p>
                                                 </div>
@@ -484,24 +484,24 @@ export default function ClassificationPage() {
                                                     >
                                                         <div className="flex flex-wrap items-center justify-between gap-3">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                                                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-sm font-bold">
                                                                     {index + 1}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-sm font-semibold">
+                                                                    <p className="text-base font-semibold">
                                                                         {item.label}
                                                                     </p>
-                                                                    <p className="text-xs text-muted-foreground">
+                                                                    <p className="text-sm text-muted-foreground">
                                                                         Raw score: {formatRawPercent(item.score)}
                                                                     </p>
                                                                 </div>
                                                             </div>
 
                                                             <div className="text-right">
-                                                                <p className="text-sm font-semibold">
+                                                                <p className="text-base font-semibold">
                                                                     {item.displayPercent.toFixed(1)}%
                                                                 </p>
-                                                                <p className="text-xs text-muted-foreground">
+                                                                <p className="text-sm text-muted-foreground">
                                                                     relative match
                                                                 </p>
                                                             </div>
@@ -540,7 +540,7 @@ export default function ClassificationPage() {
                                 </CardDescription>
                             </CardHeader>
 
-                            <CardContent className="space-y-3 text-sm text-muted-foreground">
+                            <CardContent className="space-y-3 text-base text-muted-foreground">
                                 <p>
                                     The uploaded image is processed only to generate on-screen results for this session.
                                 </p>

@@ -94,18 +94,18 @@ export function EditProfileForm({ profile }: Props) {
                 </div>
 
                 <div>
-                    <p className="text-sm font-semibold">Profile Picture</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-base font-semibold">Profile Picture</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
                         JPG, PNG or WebP · Max 5 MB
                     </p>
                     {avatarError && (
-                        <p className="text-xs text-destructive mt-1">{avatarError}</p>
+                        <p className="text-sm text-destructive mt-1">{avatarError}</p>
                     )}
                     <Button
                         type="button"
                         variant="link"
                         size="sm"
-                        className="px-0 mt-1 h-auto text-xs"
+                        className="px-0 mt-1 h-auto text-sm"
                         onClick={handleAvatarClick}
                         disabled={isUploadingAvatar}
                     >
@@ -122,7 +122,7 @@ export function EditProfileForm({ profile }: Props) {
 
                     {/* Section: Basic Info */}
                     <div className="space-y-4">
-                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">
                             Basic Information
                         </p>
 
@@ -190,7 +190,7 @@ export function EditProfileForm({ profile }: Props) {
                                     </FormControl>
                                     <div className="flex items-center justify-between">
                                         <FormMessage />
-                                        <span className={`text-xs tabular-nums ml-auto ${bio.length > 230 ? "text-destructive" : "text-muted-foreground"}`}>
+                                        <span className={`text-sm tabular-nums ml-auto ${bio.length > 230 ? "text-destructive" : "text-muted-foreground"}`}>
                                             {bio.length}/250
                                         </span>
                                     </div>

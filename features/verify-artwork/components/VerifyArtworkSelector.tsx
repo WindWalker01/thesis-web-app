@@ -30,7 +30,7 @@ export function VerifyArtworkSelector({
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h2 className="text-lg font-black">Select artwork to verify</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-base text-muted-foreground">
                         Choose a registered artwork, then run the ownership check.
                     </p>
                 </div>
@@ -89,7 +89,7 @@ export function VerifyArtworkSelector({
                                     </span>
                                 </div>
 
-                                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                                     {item.description || "No description provided."}
                                 </p>
 

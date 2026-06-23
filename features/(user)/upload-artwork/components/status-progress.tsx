@@ -23,7 +23,7 @@ export function StatusProgress({
 
     return (
         <div className={cn("w-full max-w-sm space-y-2", className)}>
-            <div className="flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-muted-foreground">{label}</span>
 
                 {showPercentage && (

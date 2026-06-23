@@ -85,7 +85,7 @@ export default function TermsOfUsePage() {
           <Reveal>
             <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-400/25 rounded-full px-5 py-2 mb-6">
               <Scale className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-xs font-bold text-blue-300 uppercase tracking-widest">Legal Agreement</span>
+              <span className="text-sm font-bold text-blue-300 uppercase tracking-widest">Legal Agreement</span>
             </div>
           </Reveal>
           <Reveal delay={80}>
@@ -102,7 +102,7 @@ export default function TermsOfUsePage() {
             </p>
           </Reveal>
           <Reveal delay={220}>
-            <div className="flex items-center justify-center gap-3 mt-5 text-xs text-slate-500">
+            <div className="flex items-center justify-center gap-3 mt-5 text-sm text-slate-500">
               <span>Last updated: January 2026</span>
               <span className="w-1 h-1 rounded-full bg-slate-600" />
               <span>ArtForgeLab Undergraduate Thesis Project</span>
@@ -119,8 +119,8 @@ export default function TermsOfUsePage() {
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jan 2026" },
           ].map((item, i) => (
-            <div key={item.label} className="flex items-center gap-2 text-sm">
-              <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">{item.label}</span>
+            <div key={item.label} className="flex items-center gap-2 text-base">
+              <span className="text-blue-200 text-sm uppercase tracking-widest font-medium">{item.label}</span>
               <span className="text-white font-black">{item.value}</span>
             </div>
           ))}
@@ -165,7 +165,7 @@ export default function TermsOfUsePage() {
                         {section.title}
                       </h2>
                     </div>
-                    <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed">
                       {section.body}
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export default function TermsOfUsePage() {
         <Reveal className="pt-6 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors group"
+            className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:text-blue-400 transition-colors group"
           >
             <span className="group-hover:-translate-x-1 transition-transform inline-block">←</span>
             Back to Home

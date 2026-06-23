@@ -117,7 +117,7 @@ export function UploadArtworkProgress({
                 />
 
                 {currentMessage ? (
-                    <div className="rounded-lg border bg-muted/40 px-4 py-3 text-sm">
+                    <div className="rounded-lg border bg-muted/40 px-4 py-3 text-base">
                         {currentMessage}
                     </div>
                 ) : null}
@@ -133,10 +133,10 @@ export function UploadArtworkProgress({
                                 <div className="min-w-0 flex-1 space-y-2">
                                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
-                                            <p className="text-sm font-semibold">
+                                            <p className="text-base font-semibold">
                                                 {index + 1}. {step.title}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-base text-muted-foreground">
                                                 {step.description}
                                             </p>
                                         </div>

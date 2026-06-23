@@ -118,7 +118,7 @@ export default function UploadArtworkPage() {
                 <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                   Upload and protect your artwork
                 </h1>
-                <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                <p className="max-w-2xl text-base text-slate-300 sm:text-base">
                   Submit your original artwork for uniqueness checking, genre
                   classification, secure storage, and blockchain-backed
                   registration.
@@ -192,7 +192,7 @@ export default function UploadArtworkPage() {
                         <p className="text-base font-semibold">
                           Drag and drop your artwork here
                         </p>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-base">
                           Or click to browse from your device
                         </p>
                       </div>
@@ -205,7 +205,7 @@ export default function UploadArtworkPage() {
                         ))}
                       </div>
 
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-sm">
                         Maximum file size: 5MB
                       </p>
                     </div>
@@ -232,10 +232,10 @@ export default function UploadArtworkPage() {
                       <div className="flex items-start gap-3 rounded-lg border p-4">
                         <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">
+                          <p className="truncate text-base font-medium">
                             {file.name}
                           </p>
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             {(file.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
@@ -268,7 +268,7 @@ export default function UploadArtworkPage() {
                 </div>
 
                 {form.formState.errors.file && (
-                  <p className="text-destructive text-sm font-medium">
+                  <p className="text-destructive text-base font-medium">
                     {form.formState.errors.file.message}
                   </p>
                 )}
@@ -347,7 +347,7 @@ export default function UploadArtworkPage() {
                             </FormControl>
                             <FormMessage />
                             <div className="flex items-center justify-end">
-                              <span className="text-muted-foreground text-xs">
+                              <span className="text-muted-foreground text-sm">
                                 {watchedTitle.length}/120
                               </span>
                             </div>
@@ -369,7 +369,7 @@ export default function UploadArtworkPage() {
                               />
                             </FormControl>
                             <div className="flex items-center justify-end">
-                              <span className="text-muted-foreground text-xs">
+                              <span className="text-muted-foreground text-sm">
                                 {watchedDescription.length}/1000
                               </span>
                             </div>
@@ -393,7 +393,7 @@ export default function UploadArtworkPage() {
                                 />
                               </FormControl>
                               <div className="space-y-1">
-                                <FormLabel className="text-sm leading-none">
+                                <FormLabel className="text-base leading-none">
                                   I confirm that I own this artwork or I am
                                   authorized to register it.
                                 </FormLabel>
@@ -471,7 +471,7 @@ export default function UploadArtworkPage() {
                     <CardContent className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             Similarity
                           </p>
                           <p className="text-lg font-semibold">
@@ -480,7 +480,7 @@ export default function UploadArtworkPage() {
                         </div>
 
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             Match type
                           </p>
                           <div className="mt-1 flex items-center gap-2">
@@ -496,7 +496,7 @@ export default function UploadArtworkPage() {
                         </div>
 
                         <div className="rounded-lg border p-3">
-                          <p className="text-muted-foreground text-xs">
+                          <p className="text-muted-foreground text-sm">
                             Source
                           </p>
                           <p className="text-lg font-semibold">
@@ -518,7 +518,7 @@ export default function UploadArtworkPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-sm">
+                        <div className="text-muted-foreground rounded-xl border border-dashed p-6 text-base">
                           No matched preview image is available for this result.
                         </div>
                       )}
@@ -526,7 +526,7 @@ export default function UploadArtworkPage() {
                       {similarityReport.type === "internet" ? (
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div className="space-y-2 rounded-lg border p-4">
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-muted-foreground text-sm">
                               Reference link
                             </p>
                             {similarityReport.link ? (
@@ -534,18 +534,18 @@ export default function UploadArtworkPage() {
                                 href={similarityReport.link}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
+                                className="text-primary inline-flex items-center gap-1 text-base break-all underline underline-offset-4"
                               >
                                 {similarityReport.link}
                                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                               </Link>
                             ) : (
-                              <p className="text-sm">No link available.</p>
+                              <p className="text-base">No link available.</p>
                             )}
                           </div>
 
                           <div className="space-y-2 rounded-lg border p-4">
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-muted-foreground text-sm">
                               Image reference
                             </p>
                             {similarityReport.url ? (
@@ -553,13 +553,13 @@ export default function UploadArtworkPage() {
                                 href={similarityReport.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
+                                className="text-primary inline-flex items-center gap-1 text-base break-all underline underline-offset-4"
                               >
                                 {similarityReport.url}
                                 <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                               </Link>
                             ) : (
-                              <p className="text-sm">No image URL available.</p>
+                              <p className="text-base">No image URL available.</p>
                             )}
                           </div>
                         </div>
@@ -621,8 +621,8 @@ export default function UploadArtworkPage() {
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-      <p className="text-xs tracking-wide text-slate-400 uppercase">{title}</p>
-      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
+      <p className="text-sm tracking-wide text-slate-400 uppercase">{title}</p>
+      <p className="mt-1 text-base font-semibold text-white">{value}</p>
     </div>
   );
 }

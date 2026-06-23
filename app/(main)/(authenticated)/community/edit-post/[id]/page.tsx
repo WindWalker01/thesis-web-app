@@ -23,7 +23,7 @@ export default async function EditCommunityPostPage({
         <div className="min-h-screen overflow-x-hidden bg-background-light font-display text-slate-900 dark:bg-background-dark dark:text-slate-100">
             <div className="mx-auto max-w-6xl px-4 pb-16 pt-24">
                 <div className="mb-8 max-w-2xl">
-                    <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                         Community
                     </span>
 
@@ -31,7 +31,7 @@ export default async function EditCommunityPostPage({
                         Edit your community post
                     </h1>
 
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
+                    <p className="mt-3 text-base leading-6 text-muted-foreground sm:text-base">
                         Update the artwork selection or visibility of your post while keeping your
                         community sharing details accurate and up to date.
                     </p>

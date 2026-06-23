@@ -102,7 +102,7 @@ export function GenreTaggingModal({
               <DialogTitle className="text-lg font-semibold text-white">
                 Tag your artwork before completing
               </DialogTitle>
-              <DialogDescription className="text-sm leading-6 text-slate-300">
+              <DialogDescription className="text-base leading-6 text-slate-300">
                 Our classifier pre-selected the best matches. Toggle any genre
                 to add or remove it — at least one is required.
               </DialogDescription>
@@ -113,10 +113,10 @@ export function GenreTaggingModal({
         {/* Body */}
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
           <div className="flex items-center justify-between">
-            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
               Available genres
             </p>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               {selectedIds.size} selected
             </p>
           </div>
@@ -140,7 +140,7 @@ export function GenreTaggingModal({
                   aria-pressed={isSelected}
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5",
-                    "text-sm font-medium transition-all",
+                    "text-base font-medium transition-all",
                     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                     "disabled:pointer-events-none disabled:opacity-50",
                     isSelected
@@ -159,12 +159,12 @@ export function GenreTaggingModal({
           </div>
 
           {suggestions.length === 0 && (
-            <div className="text-muted-foreground flex min-h-[80px] items-center justify-center rounded-xl border border-dashed text-sm">
+            <div className="text-muted-foreground flex min-h-[80px] items-center justify-center rounded-xl border border-dashed text-base">
               No genres available from the classifier.
             </div>
           )}
 
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             The top {PRE_SELECT_COUNT} genres were pre-selected based on
             classifier confidence. You can change the selection freely.
           </p>
@@ -173,7 +173,7 @@ export function GenreTaggingModal({
         {/* Footer */}
         <DialogFooter className="bg-muted/20 border-t px-5 py-4 sm:px-6">
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               {selectedIds.size === 0
                 ? "Select at least one genre to continue."
                 : `${selectedIds.size} genre${selectedIds.size === 1 ? "" : "s"} selected.`}

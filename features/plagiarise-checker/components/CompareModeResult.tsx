@@ -56,7 +56,7 @@ export function CompareModeResult({
                 </span>
               </div>
               <div>
-                <p className="text-foreground text-sm font-semibold">
+                <p className="text-foreground text-base font-semibold">
                   Original Artwork
                 </p>
                 <p className="text-muted-foreground mt-0.5 font-mono text-[11px]">
@@ -79,7 +79,7 @@ export function CompareModeResult({
             <p className="text-muted-foreground mb-0.5 text-[10px] font-bold tracking-widest">
               FILENAME
             </p>
-            <p className="text-foreground font-mono text-xs">{filenameA}</p>
+            <p className="text-foreground font-mono text-sm">{filenameA}</p>
           </div>
         </div>
 
@@ -124,7 +124,7 @@ export function CompareModeResult({
             <Button
               variant="destructive"
               size="sm"
-              className="w-full gap-1.5 text-xs"
+              className="w-full gap-1.5 text-sm"
             >
               <AlertTriangle size={12} /> Report Plagiarism
             </Button>
@@ -143,7 +143,7 @@ export function CompareModeResult({
                 <span className="text-[10px] font-bold text-white">B</span>
               </div>
               <div>
-                <p className="text-foreground text-sm font-semibold">
+                <p className="text-foreground text-base font-semibold">
                   Compared Image
                 </p>
                 <p className="text-muted-foreground mt-0.5 font-mono text-[11px]">
@@ -169,7 +169,7 @@ export function CompareModeResult({
             <p className="text-muted-foreground mb-0.5 text-[10px] font-bold tracking-widest">
               FILENAME
             </p>
-            <p className="text-foreground font-mono text-xs">{filenameB}</p>
+            <p className="text-foreground font-mono text-sm">{filenameB}</p>
           </div>
         </div>
       </div>

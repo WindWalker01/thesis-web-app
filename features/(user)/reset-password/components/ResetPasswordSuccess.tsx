@@ -7,7 +7,7 @@ export function ResetPasswordSuccess() {
             <CardContent className="space-y-4 pt-2">
                 <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
                 <h1 className="text-2xl font-bold text-white">Password updated!</h1>
-                <p className="text-sm text-slate-400">
+                <p className="text-base text-slate-400">
                     Your password has been changed. Redirecting to sign in...
                 </p>
             </CardContent>

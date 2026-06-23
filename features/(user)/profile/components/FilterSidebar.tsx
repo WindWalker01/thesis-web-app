@@ -71,7 +71,7 @@ export function FilterSidebar({
                         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                             <div className="flex items-center gap-2">
                                 <Filter className="w-3.5 h-3.5 text-primary" />
-                                <span className="text-xs font-black uppercase tracking-widest">Filters</span>
+                                <span className="text-sm font-black uppercase tracking-widest">Filters</span>
                             </div>
                             {activeFiltersCount > 0 && (
                                 <button
@@ -178,7 +178,7 @@ function FilterButton({ active, onClick, icon, label, count }: FilterButtonProps
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-base transition-colors ${active ? "bg-primary/10 text-primary" : "hover:bg-muted"
                 }`}
         >
             {icon}

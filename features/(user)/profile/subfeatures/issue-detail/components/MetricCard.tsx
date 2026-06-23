@@ -15,7 +15,7 @@ export function MetricCard({
             <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
                 {label}
             </p>
-            <p className="text-sm font-bold text-foreground">{value}</p>
+            <p className="text-base font-bold text-foreground">{value}</p>
         </div>
     );
 }

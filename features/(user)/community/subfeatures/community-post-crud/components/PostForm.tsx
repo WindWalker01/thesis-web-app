@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Globe, Lock, ImageIcon, Search, Sparkles, CheckCircle2 } from "lucide-react";
+import { Globe, Lock, ImageIcon, Search, Sparkles, CheckCircle2, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
     Form,
     FormControl,
@@ -14,6 +15,7 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
+    FormDescription,
 } from "@/components/ui/form";
 import {
     Select,
@@ -95,7 +97,7 @@ export default function PostForm({
                     <h2 className="text-lg font-black tracking-tight">
                         {isEdit ? "Edit community post" : "Create community post"}
                     </h2>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-1 text-base leading-6 text-muted-foreground">
                         Select one of your active registered artworks and choose who can view
                         your post.
                     </p>
@@ -107,14 +109,14 @@ export default function PostForm({
                     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_360px]">
                         <div className="space-y-4">
                             <div>
-                                <h3 className="text-sm font-semibold">Choose artwork</h3>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <h3 className="text-base font-semibold">Choose artwork</h3>
+                                <p className="mt-1 text-sm text-muted-foreground">
                                     Search your active verified artworks and select one to publish.
                                 </p>
                             </div>
 
                             {!hasArtworks ? (
-                                <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-sm text-muted-foreground">
+                                <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-base text-muted-foreground">
                                     You do not have any eligible active artworks yet.
                                 </div>
                             ) : (
@@ -139,7 +141,7 @@ export default function PostForm({
                                                     <div className="rounded-2xl border border-border bg-background">
                                                         <div className="max-h-[440px] overflow-y-auto p-3">
                                                             {filteredArtworks.length === 0 ? (
-                                                                <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                                                                <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-6 text-center text-base text-muted-foreground">
                                                                     No artworks matched your search.
                                                                 </div>
                                                             ) : (
@@ -181,10 +183,10 @@ export default function PostForm({
                                                                                 <div className="min-w-0 flex-1">
                                                                                     <div className="flex items-start justify-between gap-3">
                                                                                         <div className="min-w-0">
-                                                                                            <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                                                                                            <p className="line-clamp-1 text-base font-semibold text-foreground">
                                                                                                 {artwork.title}
                                                                                             </p>
-                                                                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                                                            <p className="mt-1 text-sm text-muted-foreground">
                                                                                                 {new Date(artwork.createdAt).toLocaleDateString()}
                                                                                             </p>
                                                                                         </div>
@@ -198,7 +200,7 @@ export default function PostForm({
                                                                                         ) : null}
                                                                                     </div>
 
-                                                                                    <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                                                                                    <p className="mt-2 line-clamp-2 text-sm leading-5 text-muted-foreground">
                                                                                         {artwork.description || "No description provided."}
                                                                                     </p>
                                                                                 </div>
@@ -220,8 +222,8 @@ export default function PostForm({
 
                         <div className="space-y-4">
                             <div>
-                                <h3 className="text-sm font-semibold">Selected artwork</h3>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <h3 className="text-base font-semibold">Selected artwork</h3>
+                                <p className="mt-1 text-sm text-muted-foreground">
                                     Review the artwork that will be used for this post.
                                 </p>
                             </div>
@@ -240,7 +242,7 @@ export default function PostForm({
                                         <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                                             <div className="flex flex-col items-center gap-2 text-center">
                                                 <ImageIcon className="h-6 w-6" />
-                                                <span className="text-sm">
+                                                <span className="text-base">
                                                     {hasArtworks ? "Select an artwork" : "No artwork available"}
                                                 </span>
                                             </div>
@@ -249,17 +251,17 @@ export default function PostForm({
                                 </div>
 
                                 <div className="space-y-2 p-4">
-                                    <h4 className="line-clamp-2 text-sm font-bold text-foreground">
+                                    <h4 className="line-clamp-2 text-base font-bold text-foreground">
                                         {selectedArtwork?.title || "Artwork title"}
                                     </h4>
 
-                                    <p className="line-clamp-4 text-xs leading-5 text-muted-foreground">
+                                    <p className="line-clamp-4 text-sm leading-5 text-muted-foreground">
                                         {selectedArtwork?.description ||
                                             "The selected artwork description will appear here."}
                                     </p>
 
                                     {selectedArtwork ? (
-                                        <div className="pt-2 text-xs text-muted-foreground">
+                                        <div className="pt-2 text-sm text-muted-foreground">
                                             Registered on{" "}
                                             {new Date(selectedArtwork.createdAt).toLocaleDateString()}
                                         </div>
@@ -295,7 +297,7 @@ export default function PostForm({
                                                                 <Icon className="h-4 w-4" />
                                                                 <div className="flex flex-col">
                                                                     <span>{option.label}</span>
-                                                                    <span className="text-xs text-muted-foreground">
+                                                                    <span className="text-sm text-muted-foreground">
                                                                         {option.description}
                                                                     </span>
                                                                 </div>
@@ -309,11 +311,45 @@ export default function PostForm({
                                     </FormItem>
                                 )}
                             />
+
+                            {/* TODO: wire name="isNsfw" once added to the form schema */}
+                            <FormField
+                                control={form.control}
+                                name="isNsfw"
+                                render={({ field }) => (
+                                    <FormItem className="rounded-2xl border border-border bg-background p-4">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+                                                    <ShieldAlert className="h-4 w-4" />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base font-semibold leading-none">
+                                                        NSFW content
+                                                    </FormLabel>
+                                                    <FormDescription className="text-sm leading-5">
+                                                        Mark if this artwork contains mature or sensitive content.
+                                                    </FormDescription>
+                                                </div>
+                                            </div>
+                                            <FormControl>
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                    disabled={isPending}
+                                                    aria-label="Mark post as NSFW"
+                                                />
+                                            </FormControl>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </div>
 
                     {serverMessage ? (
-                        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-base text-destructive">
                             {serverMessage}
                         </div>
                     ) : null}
@@ -339,7 +375,7 @@ export default function PostForm({
                         </Button>
 
                         {isPending ? (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-base text-muted-foreground">
                                 Please wait while we save your post.
                             </p>
                         ) : null}
