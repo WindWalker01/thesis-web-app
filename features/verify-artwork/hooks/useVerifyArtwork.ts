@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -9,7 +9,6 @@ import { verifyArtworkOwnership } from "../server/verify-artwork-ownership";
 import { verifyArtworkSchema } from "../schemas/verify-artwork-schema";
 
 export function useVerifyArtwork() {
-    const [selectedArtworkId, setSelectedArtworkId] = useState("");
     const [search, setSearch] = useState("");
 
     const artworksQuery = useQuery({
@@ -26,13 +25,14 @@ export function useVerifyArtwork() {
         staleTime: 30_000,
     });
 
-    const artworks = artworksQuery.data ?? [];
+    const artworks = useMemo(
+        () => artworksQuery.data ?? [],
+        [artworksQuery.data]
+    );
 
-    useEffect(() => {
-        if (!selectedArtworkId && artworks.length > 0) {
-            setSelectedArtworkId(artworks[0].id);
-        }
-    }, [artworks, selectedArtworkId]);
+    const [selectedArtworkId, setSelectedArtworkId] = useState(() => {
+        return artworks.length > 0 ? artworks[0].id : "";
+    });
 
     const filteredArtworks = useMemo(() => {
         const needle = search.trim().toLowerCase();

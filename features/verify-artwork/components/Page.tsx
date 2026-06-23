@@ -30,7 +30,7 @@ export default function VerifyArtworkPage() {
             <VerifyArtworkHero />
 
             <section className="container mx-auto space-y-6 px-4 py-8 md:px-6 md:py-10">
-                <div className="rounded-3xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-blue-700 dark:text-blue-400">
+                <div className="rounded-3xl border border-blue-500/20 bg-blue-500/5 p-4 text-base text-blue-700 dark:text-blue-400">
                     This module verifies whether the selected registered artwork still
                     matches its stored blockchain ownership record. It compares the
                     local database values against the live on-chain proof of authorship.
@@ -42,7 +42,7 @@ export default function VerifyArtworkPage() {
                             <AlertTriangle className="mt-0.5 h-5 w-5" />
                             <div>
                                 <h2 className="font-semibold">Unable to load artworks</h2>
-                                <p className="mt-1 text-sm text-red-500/80">{artworksError}</p>
+                                <p className="mt-1 text-base text-red-500/80">{artworksError}</p>
                             </div>
                         </div>
                     </div>
@@ -59,7 +59,7 @@ export default function VerifyArtworkPage() {
                 />
 
                 {isLoadingArtworks ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-base text-muted-foreground">
                         <LoaderCircle className="h-4 w-4 animate-spin" />
                         Loading your artworks...
                     </div>
@@ -78,7 +78,7 @@ export default function VerifyArtworkPage() {
                             <AlertTriangle className="mt-0.5 h-5 w-5" />
                             <div>
                                 <h2 className="font-semibold">Verification failed</h2>
-                                <p className="mt-1 text-sm text-red-500/80">{verificationError}</p>
+                                <p className="mt-1 text-base text-red-500/80">{verificationError}</p>
                             </div>
                         </div>
                     </div>

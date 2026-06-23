@@ -14,7 +14,7 @@ export default function ChangePasswordSection() {
 
             <Card>
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                    <p className="text-sm font-black uppercase tracking-widest text-slate-400">
                         Change Password
                     </p>
                 </div>

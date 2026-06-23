@@ -43,8 +43,8 @@ export function ArtworkCardList({ art, index, scope = "gallery" }: Props) {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold">{art.title}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate text-base font-bold">{art.title}</p>
+                    <p className="text-sm text-muted-foreground">
                         {art.category} · {art.uploadDate}
                     </p>
                 </div>

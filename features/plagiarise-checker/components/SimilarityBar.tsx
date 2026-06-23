@@ -17,10 +17,10 @@ export function SimilarityBar({ label, value, sublabel }: SimilarityBarProps) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-xs font-semibold text-foreground">{label}</span>
+          <span className="text-sm font-semibold text-foreground">{label}</span>
           {sublabel && <span className="text-[10px] text-muted-foreground ml-1.5">{sublabel}</span>}
         </div>
-        <span className="text-xs font-mono font-bold" style={{ color }}>{value.toFixed(2)}%</span>
+        <span className="text-sm font-mono font-bold" style={{ color }}>{value.toFixed(2)}%</span>
       </div>
       <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div

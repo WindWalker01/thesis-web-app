@@ -34,7 +34,7 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
             {isDb ? <Database size={15} /> : <Globe size={15} />}
           </div>
           <div>
-            <p className="font-semibold text-sm text-foreground">{match.source}</p>
+            <p className="font-semibold text-base text-foreground">{match.source}</p>
             <p className="text-[10px] text-muted-foreground capitalize">{match.type}</p>
           </div>
         </div>
@@ -67,7 +67,7 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-primary font-mono underline-offset-2 hover:underline flex items-center gap-1 break-all"
+              className="text-sm text-primary font-mono underline-offset-2 hover:underline flex items-center gap-1 break-all"
             >
               {href.length > 60 ? href.slice(0, 60) + "…" : href}
               <ExternalLink size={10} className="shrink-0" />
@@ -81,7 +81,7 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
                 href={match.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-muted-foreground font-mono underline-offset-2 hover:underline break-all"
+                className="text-sm text-muted-foreground font-mono underline-offset-2 hover:underline break-all"
               >
                 {match.url.length > 60 ? match.url.slice(0, 60) + "…" : match.url}
               </a>

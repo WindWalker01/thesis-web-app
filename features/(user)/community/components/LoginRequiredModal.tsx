@@ -23,7 +23,7 @@ export function LoginRequiredModal({
             <DialogContent className="sm:max-w-105 rounded-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-lg">Login required</DialogTitle>
-                    <DialogDescription className="text-sm">{message}</DialogDescription>
+                    <DialogDescription className="text-base">{message}</DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter className="gap-2">

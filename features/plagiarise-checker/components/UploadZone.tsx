@@ -62,14 +62,14 @@ export function UploadZone({
           <div className="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
             <button
               onClick={() => inputRef.current?.click()}
-              className="bg-background/90 backdrop-blur text-foreground text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-background transition-colors"
+              className="bg-background/90 backdrop-blur text-foreground text-sm font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-background transition-colors"
             >
               Replace
             </button>
             {onClear && (
               <button
                 onClick={onClear}
-                className="bg-destructive/90 backdrop-blur text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-destructive transition-colors flex items-center gap-1"
+                className="bg-destructive/90 backdrop-blur text-white text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-destructive transition-colors flex items-center gap-1"
               >
                 <X size={11} /> Remove
               </button>
@@ -99,7 +99,7 @@ export function UploadZone({
 
       <div className="text-center">
         <p className={`${compact ? "text-base" : "text-lg"} font-semibold text-foreground`}>{label}</p>
-        <p className="text-xs text-muted-foreground mt-1">Drag & drop or click to browse</p>
+        <p className="text-sm text-muted-foreground mt-1">Drag & drop or click to browse</p>
       </div>
 
       <Button variant="default" size={compact ? "sm" : "lg"} className="rounded-lg pointer-events-none">
@@ -107,7 +107,7 @@ export function UploadZone({
         Upload Image
       </Button>
 
-      <p className="text-xs text-muted-foreground">JPG, PNG, WEBP · Max 50MB</p>
+      <p className="text-sm text-muted-foreground">JPG, PNG, WEBP · Max 50MB</p>
     </div>
   );
 }

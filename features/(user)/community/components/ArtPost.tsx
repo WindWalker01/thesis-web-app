@@ -138,15 +138,15 @@ export function ArtPost({
             </div>
 
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <p
-                  className="truncate text-sm font-semibold text-foreground transition hover:text-primary"
+                  className="truncate text-base font-semibold text-foreground transition hover:text-primary"
                 >
                   @{username}
                 </p>
               </div>
 
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Link
                   href={subredditHref}
                   className="font-medium transition hover:text-primary"
@@ -226,7 +226,7 @@ export function ArtPost({
             </h2>
 
             {excerpt && (
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-base leading-6 text-muted-foreground">
                 {excerpt}
               </p>
             )}
@@ -253,7 +253,7 @@ export function ArtPost({
           </div>
         </button>
 
-        <div className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground sm:px-5">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-muted-foreground sm:px-5">
           <div className="flex items-center gap-3">
             <div className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-primary/10 px-2 font-semibold text-primary">
               {score}
@@ -270,7 +270,7 @@ export function ArtPost({
               type="button"
               onClick={onUpvote}
               className={[
-                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
                 upvoteActive
                   ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
                   : "text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
@@ -289,7 +289,7 @@ export function ArtPost({
               type="button"
               onClick={onDownvote}
               className={[
-                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition",
+                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
                 downvoteActive
                   ? "bg-red-500/15 text-red-600 dark:text-red-400"
                   : "text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400",

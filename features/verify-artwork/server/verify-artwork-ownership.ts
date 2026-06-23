@@ -50,11 +50,6 @@ function normalizeHash(value: string | null | undefined): string | null {
   return value.trim().toLowerCase();
 }
 
-function safeBigIntToString(value: bigint | null | undefined): string | null {
-  if (value === null || value === undefined) return null;
-  return value.toString();
-}
-
 function unixToIso(seconds: bigint | number | null | undefined): string | null {
   if (seconds === null || seconds === undefined) return null;
   const numeric = typeof seconds === "bigint" ? Number(seconds) : seconds;

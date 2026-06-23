@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
           <Reveal>
             <div className="inline-flex items-center gap-2 bg-blue-500/15 border border-blue-400/25 rounded-full px-5 py-2 mb-6">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-xs font-bold text-blue-300 uppercase tracking-widest">Data Privacy</span>
+              <span className="text-sm font-bold text-blue-300 uppercase tracking-widest">Data Privacy</span>
             </div>
           </Reveal>
           <Reveal delay={80}>
@@ -106,7 +106,7 @@ export default function PrivacyPolicyPage() {
             </h1>
           </Reveal>
           <Reveal delay={220}>
-            <div className="flex items-center justify-center gap-3 mt-5 text-xs text-slate-500">
+            <div className="flex items-center justify-center gap-3 mt-5 text-sm text-slate-500">
               <span>Last updated: January 2026</span>
               <span className="w-1 h-1 rounded-full bg-slate-600" />
               <span>ArtForgeLab Undergraduate Thesis Project</span>
@@ -122,8 +122,8 @@ export default function PrivacyPolicyPage() {
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jan 2026" },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 text-sm">
-              <span className="text-blue-200 text-xs uppercase tracking-widest font-medium">{item.label}</span>
+            <div key={item.label} className="flex items-center gap-2 text-base">
+              <span className="text-blue-200 text-sm uppercase tracking-widest font-medium">{item.label}</span>
               <span className="text-white font-black">{item.value}</span>
             </div>
           ))}
@@ -144,7 +144,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-[10px] font-bold text-orange-200 uppercase tracking-widest">Our Commitments</span>
             </div>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white mb-3">Our Privacy Commitments</h2>
-            <p className="text-sm text-orange-200/55">Core principles that govern how your data is handled.</p>
+            <p className="text-base text-orange-200/55">Core principles that govern how your data is handled.</p>
           </Reveal>
 
           <div className="flex gap-5 items-center">
@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
                         <Icon className="w-5 h-5 text-orange-300" strokeWidth={2} />
                       </div>
                       <h3 className="text-base font-bold mb-2 text-white">{item.title}</h3>
-                      <p className="text-sm text-orange-100/60 leading-relaxed">{item.desc}</p>
+                      <p className="text-base text-orange-100/60 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 </Reveal>
@@ -183,7 +183,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Full Policy</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-black mb-3">Full Privacy Policy</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-base text-slate-500 dark:text-slate-300">
               Please read the following sections carefully before using ArtForgeLab.
             </p>
           </Reveal>
@@ -221,7 +221,7 @@ export default function PrivacyPolicyPage() {
                             {section.title}
                           </h3>
                         </div>
-                        <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed">
                           {section.body}
                         </p>
                       </div>
@@ -234,7 +234,7 @@ export default function PrivacyPolicyPage() {
 
           {/* ── Back link ── */}
           <Reveal className="mt-10 text-center">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors group">
+            <Link href="/" className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:text-blue-400 transition-colors group">
               <span className="group-hover:-translate-x-1 transition-transform inline-block">←</span>
               Back to Home
             </Link>

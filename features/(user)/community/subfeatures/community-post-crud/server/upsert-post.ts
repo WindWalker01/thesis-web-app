@@ -9,6 +9,7 @@ export async function upsertPost(input: UpsertPostInput): Promise<UpsertPostResu
         const parsed = postFormSchema.safeParse({
             artId: input.artId,
             visibility: input.visibility,
+            isNsfw: input.isNsfw,
         });
 
         if (!parsed.success) {
@@ -33,7 +34,7 @@ export async function upsertPost(input: UpsertPostInput): Promise<UpsertPostResu
             };
         }
 
-        const { artId, visibility } = parsed.data;
+        const { artId, visibility, isNsfw } = parsed.data;
 
         const { data: ownedArtwork, error: artworkError } = await supabase
             .from("registered_arts")
@@ -108,6 +109,7 @@ export async function upsertPost(input: UpsertPostInput): Promise<UpsertPostResu
                 .update({
                     art_id: artId,
                     visibility,
+                    is_nsfw: isNsfw,
                 })
                 .eq("id", input.postId)
                 .eq("user_id", user.id)
@@ -157,6 +159,7 @@ export async function upsertPost(input: UpsertPostInput): Promise<UpsertPostResu
                 art_id: artId,
                 user_id: user.id,
                 visibility,
+                is_nsfw: isNsfw,
             })
             .select("id")
             .single();

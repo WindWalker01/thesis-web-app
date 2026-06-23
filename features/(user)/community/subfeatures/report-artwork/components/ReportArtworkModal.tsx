@@ -72,7 +72,7 @@ export function ReportArtworkModal({
       <DialogContent className="sm:max-w-[520px] rounded-2xl max-h-[85vh] flex flex-col bg-card">
         <DialogHeader className="shrink-0">
           <DialogTitle className="text-lg">Report artwork</DialogTitle>
-          <DialogDescription className="text-sm">
+          <DialogDescription className="text-base">
             Help keep the community safe. Reports are reviewed by moderators/admins.
           </DialogDescription>
         </DialogHeader>
@@ -82,13 +82,13 @@ export function ReportArtworkModal({
             {(title || username) && (
               <div className="rounded-xl border p-3">
                 {title ? (
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
                     {title}
                   </div>
                 ) : null}
 
                 {username ? (
-                  <div className="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                  <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                     Posted by u/{username}
                   </div>
                 ) : null}
@@ -96,7 +96,7 @@ export function ReportArtworkModal({
             )}
 
             <fieldset className="space-y-2">
-              <Label className="text-sm">
+              <Label className="text-base">
                 Reason <span className="text-red-600">*</span>
               </Label>
 
@@ -125,7 +125,7 @@ export function ReportArtworkModal({
                         id={`reason-${r.value}`}
                         className="mt-1"
                       />
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="text-base font-medium text-gray-900 dark:text-gray-100">
                         {r.label}
                       </div>
                     </Label>
@@ -136,7 +136,7 @@ export function ReportArtworkModal({
 
             {contextConfig ? (
               <div className="space-y-2">
-                <Label htmlFor="context" className="text-sm">
+                <Label htmlFor="context" className="text-base">
                   {contextConfig.label} <span className="text-red-600">*</span>
                 </Label>
 
@@ -154,7 +154,7 @@ export function ReportArtworkModal({
             ) : null}
 
             <div className="space-y-2">
-              <Label htmlFor="details" className="text-sm">
+              <Label htmlFor="details" className="text-base">
                 Additional details (optional)
               </Label>
               <Textarea
@@ -167,7 +167,7 @@ export function ReportArtworkModal({
             </div>
 
             {error ? (
-              <div id="report-error" className="text-sm text-red-600 dark:text-red-400">
+              <div id="report-error" className="text-base text-red-600 dark:text-red-400">
                 {error}
               </div>
             ) : null}

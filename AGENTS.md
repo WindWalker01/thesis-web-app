@@ -115,3 +115,21 @@ The application relies on the following environment configurations (configured i
 2. **Implement Safe Changes**: Adopt KISS, DRY, and YAGNI. Keep changes minimal and modular.
 3. **Execute Verifications**: Run `npm run lint` and `npm run build` after modifying any code to ensure compile-time and lint safety.
 4. **Communicate Explicitly**: Explain the edits clearly upon completion, noting any configuration or security implications.
+
+---
+
+## 9) Git & Repository Rules
+
+- **User-Controlled Git Operations**: Agentic AI must **never** perform any git operations (commits, staging, pushing, branch creation, merges, etc.) on either local or remote repositories. The user has full and exclusive control over all git operations. Agentic AI may only view git history and status for context.
+
+---
+
+## 10) Database Schema & Column Proposals
+
+- **Schema Reference Access**: All agentic AI agents may view `/thesis-web-app/docs/database/supabase-schema.sql` to understand the project's database schema and structure for informed decision-making during development and feature implementation.
+- **Proposing New Columns**: When proposing to add a new column to a specific table (e.g., adding a field to the `users`, `registered_arts`, `art_posts`, or other tables), agentic AI must:
+  1. **Justify the addition**: Explain why this column is necessary and what problem it solves.
+  2. **Define the column specification**: Provide the exact column name, data type (with constraints), and any defaults.
+  3. **Request user confirmation**: Present the proposal to the user and **wait for explicit approval** before any schema changes are made.
+  4. **Update documentation**: Only after user approval, update the `supabase-schema.sql` file with the new column definition and any necessary indexes or constraints.
+  5. **Document the change**: Add a comment in the schema SQL explaining the purpose of the new column.

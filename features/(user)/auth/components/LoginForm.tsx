@@ -48,7 +48,7 @@ export function LoginForm() {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Welcome back
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-base text-slate-500 dark:text-slate-300">
               Sign in to your ArtForgeLab account
             </p>
           </div>
@@ -62,7 +62,7 @@ export function LoginForm() {
 
           {/* Email */}
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <Label htmlFor="email" className="text-base font-medium text-slate-700 dark:text-slate-300">
               Email address
             </Label>
             <Input
@@ -74,17 +74,17 @@ export function LoginForm() {
               className="h-11 border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500 dark:border-slate-600/60 dark:bg-slate-900/60 dark:text-white dark:placeholder:text-slate-500"
             />
             {errors.email && (
-              <p className="text-xs text-red-500 dark:text-red-400">{errors.email.message}</p>
+              <p className="text-sm text-red-500 dark:text-red-400">{errors.email.message}</p>
             )}
           </div>
 
           {/* Password */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="password" className="text-base font-medium text-slate-700 dark:text-slate-300">
                 Password
               </Label>
-              <Link href="/forgot-password" className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+              <Link href="/forgot-password" className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
                 Forgot password?
               </Link>
             </div>
@@ -107,7 +107,7 @@ export function LoginForm() {
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-red-500 dark:text-red-400">{errors.password.message}</p>
+              <p className="text-sm text-red-500 dark:text-red-400">{errors.password.message}</p>
             )}
           </div>
 
@@ -142,7 +142,7 @@ export function LoginForm() {
 
           <div className="flex items-center gap-3">
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
-            <span className="text-xs whitespace-nowrap text-slate-400 dark:text-slate-500">or</span>
+            <span className="text-sm whitespace-nowrap text-slate-400 dark:text-slate-500">or</span>
             <Separator className="flex-1 bg-slate-200 dark:bg-slate-700/60" />
           </div>
 
@@ -158,7 +158,7 @@ export function LoginForm() {
             <span className="ml-2">Continue with Google</span>
           </Button>
 
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-center text-base text-slate-500 dark:text-slate-300">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
               Sign up

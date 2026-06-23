@@ -147,7 +147,7 @@ function HashGrid({
 
     return (
         <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                 {title}
             </p>
 
@@ -157,7 +157,7 @@ function HashGrid({
                         key={key}
                         className="rounded-2xl border border-border bg-background/60 p-4"
                     >
-                        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">
+                        <p className="mb-3 text-sm font-bold uppercase tracking-widest text-foreground">
                             {key.replaceAll("_", " ")}
                         </p>
 
@@ -209,10 +209,10 @@ export function SimilarityReportSection({
                         </div>
 
                         <div>
-                            <p className="text-sm font-bold text-foreground mb-1">
+                            <p className="text-base font-bold text-foreground mb-1">
                                 Saved plagiarism review summary
                             </p>
-                            <p className="text-sm leading-6 text-muted-foreground">
+                            <p className="text-base leading-6 text-muted-foreground">
                                 {getSimilaritySummary(report)}
                             </p>
                         </div>
@@ -245,7 +245,7 @@ export function SimilarityReportSection({
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
                             <Boxes className="w-4 h-4 text-primary" />
-                            <p className="text-sm font-bold text-foreground">Database match</p>
+                            <p className="text-base font-bold text-foreground">Database match</p>
                         </div>
                         <MatchCard title="Database Match" match={report?.dbMatch ?? null} />
                     </div>
@@ -253,7 +253,7 @@ export function SimilarityReportSection({
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
                             <Globe className="w-4 h-4 text-primary" />
-                            <p className="text-sm font-bold text-foreground">Internet match</p>
+                            <p className="text-base font-bold text-foreground">Internet match</p>
                         </div>
                         <MatchCard title="Internet Match" match={report?.webMatch ?? null} />
                     </div>
@@ -262,7 +262,7 @@ export function SimilarityReportSection({
                 <div className="rounded-2xl border border-border bg-background/60 p-4">
                     <div className="mb-4 flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-primary" />
-                        <p className="text-sm font-bold text-foreground">Best match snapshot</p>
+                        <p className="text-base font-bold text-foreground">Best match snapshot</p>
                     </div>
 
                     {report?.bestMatch ? (
@@ -313,10 +313,10 @@ export function SimilarityReportSection({
 
                 {scan?.errorMessage ? (
                     <div className="rounded-2xl border border-red-500/20 bg-red-500/8 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-red-500 mb-1">
+                        <p className="text-sm font-semibold uppercase tracking-widest text-red-500 mb-1">
                             Scan error
                         </p>
-                        <p className="text-sm text-muted-foreground">{scan.errorMessage}</p>
+                        <p className="text-base text-muted-foreground">{scan.errorMessage}</p>
                     </div>
                 ) : null}
 
@@ -337,9 +337,9 @@ export function SimilarityReportSection({
                             <div className="rounded-2xl border border-border bg-background/60 p-4">
                                 <div className="mb-3 flex items-center gap-2">
                                     <Hash className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">Stored hashes payload</p>
+                                    <p className="text-base font-bold text-foreground">Stored hashes payload</p>
                                 </div>
-                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-xs text-muted-foreground">
+                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-sm text-muted-foreground">
                                     {hashesText}
                                 </pre>
                             </div>
@@ -349,9 +349,9 @@ export function SimilarityReportSection({
                             <div className="rounded-2xl border border-border bg-background/60 p-4">
                                 <div className="mb-3 flex items-center gap-2">
                                     <ImageIcon className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">Full stored API response</p>
+                                    <p className="text-base font-bold text-foreground">Full stored API response</p>
                                 </div>
-                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-xs text-muted-foreground">
+                                <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-background p-3 text-sm text-muted-foreground">
                                     {rawScanText}
                                 </pre>
                             </div>

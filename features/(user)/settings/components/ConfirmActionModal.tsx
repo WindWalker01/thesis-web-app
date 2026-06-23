@@ -55,7 +55,7 @@ export default function ConfirmActionModal({
                     <DialogTitle className="text-center text-lg font-black">
                         {title}
                     </DialogTitle>
-                    <DialogDescription className="text-center text-sm text-slate-400">
+                    <DialogDescription className="text-center text-base text-slate-400">
                         {description}
                     </DialogDescription>
                 </DialogHeader>
@@ -65,7 +65,7 @@ export default function ConfirmActionModal({
                         type="button"
                         onClick={onCancel}
                         disabled={isLoading}
-                        className="flex-1 rounded-xl border border-border py-3 text-sm font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                        className="flex-1 rounded-xl border border-border py-3 text-base font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {cancelLabel}
                     </button>
@@ -74,7 +74,7 @@ export default function ConfirmActionModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className={`flex-1 rounded-xl py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${confirmButtonClassName}`}
+                        className={`flex-1 rounded-xl py-3 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${confirmButtonClassName}`}
                     >
                         {isLoading ? loadingLabel : confirmLabel}
                     </button>

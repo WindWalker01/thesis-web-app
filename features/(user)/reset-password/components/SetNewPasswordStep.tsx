@@ -34,7 +34,7 @@ export function SetNewPasswordStep({
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-6 md:p-8">
                     <div className="flex flex-col items-center text-center">
                         <h1 className="text-2xl font-bold text-white">Set new password</h1>
-                        <p className="mt-1 text-sm text-slate-400">
+                        <p className="mt-1 text-base text-slate-400">
                             Code verified. Choose a strong new password.
                         </p>
                     </div>
@@ -64,7 +64,7 @@ export function SetNewPasswordStep({
                             </button>
                         </div>
                         {form.formState.errors.password && (
-                            <p className="text-xs text-red-400">
+                            <p className="text-sm text-red-400">
                                 {form.formState.errors.password.message}
                             </p>
                         )}
@@ -88,7 +88,7 @@ export function SetNewPasswordStep({
                             </button>
                         </div>
                         {form.formState.errors.confirmPassword && (
-                            <p className="text-xs text-red-400">
+                            <p className="text-sm text-red-400">
                                 {form.formState.errors.confirmPassword.message}
                             </p>
                         )}

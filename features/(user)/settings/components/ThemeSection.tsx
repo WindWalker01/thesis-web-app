@@ -29,7 +29,7 @@ export default function ThemeSection() {
 
             <Card>
                 <div className="p-6 pb-2">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
+                    <p className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">
                         Appearance
                     </p>
 
@@ -55,7 +55,7 @@ export default function ThemeSection() {
                                             <Icon className={`w-4 h-4 ${isActive ? "text-blue-500" : "text-slate-400 group-hover:text-blue-400"}`} />
                                         </div>
                                         <span className={`text-[11px] font-bold text-center leading-tight
-                                            ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                                            ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-300"}`}>
                                             {opt.label}
                                         </span>
                                         {isActive && (
@@ -87,7 +87,7 @@ export default function ThemeSection() {
                             }
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-foreground">
+                            <p className="text-sm font-bold text-foreground">
                                 Currently: <span className="text-primary capitalize">{resolvedTheme} mode</span>
                             </p>
                             <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -98,7 +98,7 @@ export default function ThemeSection() {
                 )}
 
                 <div className="px-6 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4">
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm text-slate-400">
                         <span className="font-semibold text-slate-500 dark:text-slate-300">System</span> mode
                         automatically follows your device&apos;s OS preference.
                     </p>

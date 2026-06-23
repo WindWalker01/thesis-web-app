@@ -14,7 +14,7 @@ export function HashRow({
                     <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
                         {label}
                     </p>
-                    <p className="text-sm text-foreground break-all">
+                    <p className="text-base text-foreground break-all">
                         {value ?? "No value recorded"}
                     </p>
                 </div>

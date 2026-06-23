@@ -36,7 +36,7 @@ export default function ChangePasswordForm() {
         <form onSubmit={onSubmit} className="p-6 space-y-4 max-w-lg">
             {fields.map((field) => (
                 <div key={field.key} className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-400">
+                    <label className="text-sm font-semibold text-slate-400">
                         {field.label}
                     </label>
 
@@ -45,7 +45,7 @@ export default function ChangePasswordForm() {
                             type={showPassword[field.key] ? "text" : "password"}
                             placeholder="••••••••••"
                             {...register(field.key)}
-                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                         />
 
                         <button
@@ -62,7 +62,7 @@ export default function ChangePasswordForm() {
                     </div>
 
                     {errors[field.key] && (
-                        <p className="text-xs text-red-500">
+                        <p className="text-sm text-red-500">
                             {errors[field.key]?.message}
                         </p>
                     )}
@@ -72,7 +72,7 @@ export default function ChangePasswordForm() {
             <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl text-base font-semibold transition-colors"
             >
                 {isSubmitting ? "Updating..." : "Update Password"}
             </button>

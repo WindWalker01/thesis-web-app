@@ -20,7 +20,7 @@ function MethodBadge({
 
     return (
         <span
-            className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${styles}`}
+            className={`inline-flex w-fit rounded-full border px-2.5 py-1 text-sm font-semibold ${styles}`}
         >
             {methodLabel}
         </span>
@@ -34,7 +34,7 @@ export function TransactionsTable({
 }) {
     return (
         <div className="overflow-hidden rounded-2xl border border-border bg-card/80 backdrop-blur-xl">
-            <div className="hidden grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_1fr_1fr_0.8fr] gap-4 border-b border-border bg-muted/40 px-5 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground md:grid">
+            <div className="hidden grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_1fr_1fr_0.8fr] gap-4 border-b border-border bg-muted/40 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground md:grid">
                 <div>Transaction Hash</div>
                 <div>Method</div>
                 <div>Block</div>
@@ -58,14 +58,14 @@ export function TransactionsTable({
                                 href={item.explorerUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-500 hover:underline"
+                                className="inline-flex items-center gap-2 text-base font-semibold text-blue-500 hover:underline"
                             >
                                 {truncateHash(item.txHash, 12, 10)}
                                 <ExternalLink className="h-3.5 w-3.5" />
                             </a>
 
                             {item.workId ? (
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-sm text-muted-foreground">
                                     Work ID: {item.workId}
                                 </p>
                             ) : null}
@@ -85,7 +85,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 Block
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {item.blockNumber ?? "Pending"}
                             </p>
                         </div>
@@ -94,7 +94,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 Age
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {item.timestamp ? formatTimeAgo(item.timestamp) : "Pending"}
                             </p>
                         </div>
@@ -103,7 +103,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 From
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {truncateHash(item.from, 8, 6)}
                             </p>
                         </div>
@@ -112,7 +112,7 @@ export function TransactionsTable({
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:hidden">
                                 To
                             </p>
-                            <p className="text-sm font-medium">
+                            <p className="text-base font-medium">
                                 {truncateHash(item.to, 8, 6)}
                             </p>
                         </div>

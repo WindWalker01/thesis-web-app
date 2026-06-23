@@ -67,24 +67,24 @@ export default function ArtworkDetailPage({ id }: Props) {
                 <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                     <Link
                         href="/profile"
-                        className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
+                        className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
                     >
                         <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                         Back to profile
                     </Link>
 
                     <div className="rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-8">
-                        <p className="text-sm font-semibold text-foreground mb-2">
+                        <p className="text-base font-semibold text-foreground mb-2">
                             Failed to load artwork.
                         </p>
-                        <p className="text-sm text-muted-foreground mb-4">
+                        <p className="text-base text-muted-foreground mb-4">
                             {error ?? "Artwork not found."}
                         </p>
 
                         <button
                             type="button"
                             onClick={() => refetch()}
-                            className="inline-flex items-center rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
+                            className="inline-flex items-center rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-base font-semibold text-primary hover:bg-primary/15 transition-colors"
                         >
                             Try again
                         </button>
@@ -126,7 +126,7 @@ export default function ArtworkDetailPage({ id }: Props) {
             <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 md:py-12">
                 <Link
                     href="/profile"
-                    className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
+                    className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-10"
                 >
                     <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
                     Back to profile
@@ -180,7 +180,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                     {art.title}
                                 </h1>
 
-                                <div className="flex flex-wrap items-center gap-5 text-sm text-muted-foreground">
+                                <div className="flex flex-wrap items-center gap-5 text-base text-muted-foreground">
                                     <span className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4" />
                                         {art.uploadDate}
@@ -193,7 +193,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                 </div>
 
                                 {art.description ? (
-                                    <p className="mt-5 max-w-2xl border-l-2 border-primary/20 pl-4 text-sm leading-7 text-muted-foreground">
+                                    <p className="mt-5 max-w-2xl border-l-2 border-primary/20 pl-4 text-base leading-7 text-muted-foreground">
                                         {art.description}
                                     </p>
                                 ) : null}
@@ -216,7 +216,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                         <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                                             {label}
                                         </p>
-                                        <p className="break-words text-sm font-semibold text-foreground">
+                                        <p className="break-words text-base font-semibold text-foreground">
                                             {value}
                                         </p>
                                     </div>
@@ -230,7 +230,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                     href={txUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-500 hover:bg-blue-500/15 transition-colors"
+                                    className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-base font-semibold text-blue-500 hover:bg-blue-500/15 transition-colors"
                                 >
                                     <ExternalLink className="w-4 h-4" />
                                     View blockchain transaction
@@ -270,13 +270,13 @@ export default function ArtworkDetailPage({ id }: Props) {
                                         <UserRound className="w-4 h-4 text-muted-foreground" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                                        <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                                             Creator
                                         </p>
-                                        <p className="text-sm font-semibold text-foreground">
+                                        <p className="text-base font-semibold text-foreground">
                                             {art.creator.fullName}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground">
                                             {art.creator.username}
                                         </p>
                                     </div>
@@ -326,7 +326,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                             <div>
                                 <div className="mb-3 flex items-center gap-2">
                                     <Fingerprint className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">Hash values</p>
+                                    <p className="text-base font-bold text-foreground">Hash values</p>
                                 </div>
 
                                 <div className="grid gap-3 md:grid-cols-2">
@@ -340,15 +340,15 @@ export default function ArtworkDetailPage({ id }: Props) {
                             <div>
                                 <div className="mb-3 flex items-center gap-2">
                                     <ScrollText className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">Stored evidence payload</p>
+                                    <p className="text-base font-bold text-foreground">Stored evidence payload</p>
                                 </div>
 
                                 {evidenceText ? (
-                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
                                         {evidenceText}
                                     </pre>
                                 ) : (
-                                    <div className="rounded-2xl border border-dashed border-border bg-background/40 p-4 text-sm text-muted-foreground">
+                                    <div className="rounded-2xl border border-dashed border-border bg-background/40 p-4 text-base text-muted-foreground">
                                         No evidence payload recorded.
                                     </div>
                                 )}
@@ -357,17 +357,17 @@ export default function ArtworkDetailPage({ id }: Props) {
                             <div>
                                 <div className="mb-3 flex items-center gap-2">
                                     <Hash className="w-4 h-4 text-primary" />
-                                    <p className="text-sm font-bold text-foreground">
+                                    <p className="text-base font-bold text-foreground">
                                         Stored plagiarism hashes payload
                                     </p>
                                 </div>
 
                                 {plagiarismText ? (
-                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-xs text-muted-foreground">
+                                    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-2xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
                                         {plagiarismText}
                                     </pre>
                                 ) : (
-                                    <div className="rounded-2xl border border-dashed border-border bg-background/40 p-4 text-sm text-muted-foreground">
+                                    <div className="rounded-2xl border border-dashed border-border bg-background/40 p-4 text-base text-muted-foreground">
                                         No extra plagiarism hashes payload recorded.
                                     </div>
                                 )}

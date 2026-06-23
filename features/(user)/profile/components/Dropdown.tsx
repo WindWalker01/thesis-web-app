@@ -8,7 +8,7 @@ export function Dropdown({
         <div className="border-b border-border last:border-0">
             <button
                 onClick={onToggle}
-                className="w-full flex items-center justify-between px-4 py-3 text-xs font-black uppercase tracking-widest hover:text-primary transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 text-sm font-black uppercase tracking-widest hover:text-primary transition-colors"
             >
                 {label}
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />

@@ -117,7 +117,7 @@ export default function NavBar() {
           </Link>
 
           {/* ── Desktop center nav (lg+) ── */}
-          <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 text-sm font-medium lg:flex">
+          <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 text-base font-medium lg:flex">
             {visibleNavLinks.map((link) => (
               <Link
                 key={link.href}
@@ -163,7 +163,7 @@ export default function NavBar() {
                         <Link
                           href={item.href}
                           onClick={() => setMoreOpen(false)}
-                          className="block px-4 py-2.5 text-sm transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+                          className="block px-4 py-2.5 text-base transition-colors hover:bg-blue-500/10 hover:text-blue-500"
                         >
                           {item.label}
                         </Link>
@@ -218,7 +218,7 @@ export default function NavBar() {
                     >
                       <div className="max-h-72 divide-y divide-border overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                          <span className="text-sm font-bold">Notifications</span>
+                          <span className="text-base font-bold">Notifications</span>
 
                           <div className="flex items-center gap-2">
                             {unreadCount > 0 && (
@@ -240,11 +240,11 @@ export default function NavBar() {
 
                         <div className="max-h-72 divide-y divide-border overflow-y-auto">
                           {notificationsLoading ? (
-                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                               Loading notifications...
                             </div>
                           ) : notifications.length === 0 ? (
-                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">
+                            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                               No notifications yet.
                             </div>
                           ) : (
@@ -277,10 +277,10 @@ export default function NavBar() {
                                   </div>
 
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-semibold text-foreground">
+                                    <p className="text-sm font-semibold text-foreground">
                                       {n.title}
                                     </p>
-                                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-foreground/80">
+                                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-foreground/80">
                                       {n.message}
                                     </p>
                                     <p className="mt-1 text-[10px] text-muted-foreground">
@@ -302,7 +302,7 @@ export default function NavBar() {
                         <Link
                           href="/settings/notifications"
                           onClick={() => setNotifOpen(false)}
-                          className="block py-0.5 text-center text-xs font-semibold text-blue-500 transition-colors hover:text-blue-400"
+                          className="block py-0.5 text-center text-sm font-semibold text-blue-500 transition-colors hover:text-blue-400"
                         >
                           View All Notifications →
                         </Link>
@@ -345,13 +345,13 @@ export default function NavBar() {
                 <>
                   <Link
                     href="/login"
-                    className="whitespace-nowrap px-1 text-sm font-medium transition-colors hover:text-blue-500"
+                    className="whitespace-nowrap px-1 text-base font-medium transition-colors hover:text-blue-500"
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
-                    className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                    className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-base font-semibold text-primary-foreground transition hover:opacity-90"
                   >
                     Register
                   </Link>
@@ -415,7 +415,7 @@ export default function NavBar() {
             >
               {/* Panel header */}
               <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-5">
-                <span className="text-sm font-bold text-blue-500">
+                <span className="text-base font-bold text-blue-500">
                   Art
                   <span className="text-orange-600">
                     Forge<span className="text-primary">Lab</span>
@@ -446,7 +446,7 @@ export default function NavBar() {
                       key={link.href}
                       href={link.href}
                       onClick={closeMobile}
-                      className="flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+                      className="flex items-center rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-blue-500/10 hover:text-blue-500"
                     >
                       {link.label}
                     </Link>
@@ -466,7 +466,7 @@ export default function NavBar() {
                       key={link.href}
                       href={link.href}
                       onClick={closeMobile}
-                      className="flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+                      className="flex items-center rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-blue-500/10 hover:text-blue-500"
                     >
                       {link.label}
                     </Link>
@@ -506,7 +506,7 @@ export default function NavBar() {
                           key={href}
                           href={href}
                           onClick={closeMobile}
-                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted"
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-muted"
                         >
                           <Icon className={`h-4 w-4 ${color}`} />
                           <span>{label}</span>
@@ -523,12 +523,12 @@ export default function NavBar() {
                 ) : (
                   <>
                     <Link href="/login" onClick={closeMobile}>
-                      <button className="w-full cursor-pointer rounded-xl border border-border py-2.5 text-sm font-semibold transition-colors hover:bg-muted">
+                      <button className="w-full cursor-pointer rounded-xl border border-border py-2.5 text-base font-semibold transition-colors hover:bg-muted">
                         Login
                       </button>
                     </Link>
                     <Link href="/register" onClick={closeMobile}>
-                      <button className="w-full cursor-pointer rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
+                      <button className="w-full cursor-pointer rounded-xl bg-primary py-2.5 text-base font-semibold text-primary-foreground transition hover:opacity-90">
                         Register
                       </button>
                     </Link>

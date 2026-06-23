@@ -37,7 +37,7 @@ export function VerifyOtpStep({
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-6 md:p-8">
                     <div className="flex flex-col items-center text-center">
                         <h1 className="text-2xl font-bold text-white">Enter reset code</h1>
-                        <p className="mt-1 text-sm text-slate-400">
+                        <p className="mt-1 text-base text-slate-400">
                             Enter the 8-digit code sent to <strong className="text-white">{email}</strong>.
                         </p>
                     </div>
@@ -76,7 +76,7 @@ export function VerifyOtpStep({
                         />
 
                         {form.formState.errors.token && (
-                            <p className="text-xs text-red-400">
+                            <p className="text-sm text-red-400">
                                 {form.formState.errors.token.message}
                             </p>
                         )}
@@ -99,7 +99,7 @@ export function VerifyOtpStep({
 
                     <Link
                         href="/forgot-password"
-                        className="flex items-center justify-center gap-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                        className="flex items-center justify-center gap-1.5 text-base text-slate-400 hover:text-slate-200 transition-colors"
                     >
                         <ArrowLeft className="h-4 w-4" />
                         Back to Forgot Password

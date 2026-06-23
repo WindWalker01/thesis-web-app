@@ -65,7 +65,8 @@ export async function getPostEditorData({
         visibility,
         is_archived,
         created_at,
-        updated_at
+        updated_at,
+        is_nsfw
       `)
             .eq("id", postId)
             .eq("user_id", user.id)
@@ -84,6 +85,7 @@ export async function getPostEditorData({
                 isArchived: post.is_archived,
                 createdAt: post.created_at,
                 updatedAt: post.updated_at,
+                isNsfw: post.is_nsfw,
             };
         }
     }

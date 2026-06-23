@@ -108,7 +108,7 @@ export default function AuthCallbackPage() {
                     <>
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                         <h1 className="text-2xl font-bold">Confirming your email...</h1>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-base">
                             Please wait while we verify your account.
                         </p>
                     </>
@@ -118,7 +118,7 @@ export default function AuthCallbackPage() {
                     <>
                         <CheckCircle className="h-12 w-12 text-green-500" />
                         <h1 className="text-2xl font-bold">Email confirmed!</h1>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-base">
                             Redirecting you to the dashboard...
                         </p>
                     </>
@@ -129,14 +129,14 @@ export default function AuthCallbackPage() {
                         <XCircle className="h-12 w-12 text-destructive" />
                         <h1 className="text-2xl font-bold">Verification failed</h1>
 
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-base">
                             {errorMessage}
                         </p>
 
                         <button
                             onClick={handleResend}
                             disabled={cooldown > 0 || resendStatus === "sending"}
-                            className="text-primary hover:underline text-sm disabled:opacity-50"
+                            className="text-primary hover:underline text-base disabled:opacity-50"
                         >
                             {resendStatus === "sending"
                                 ? "Sending..."
@@ -145,7 +145,7 @@ export default function AuthCallbackPage() {
                                     : "Resend confirmation email"}
                         </button>
 
-                        <a href="/register" className="text-sm text-muted-foreground hover:underline">
+                        <a href="/register" className="text-base text-muted-foreground hover:underline">
                             Back to Register
                         </a>
                     </>

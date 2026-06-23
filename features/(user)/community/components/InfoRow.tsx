@@ -1,14 +1,16 @@
 export function InfoRow({
-    title,
-    description,
+  title,
+  description,
 }: {
-    title: string;
-    description: string;
+  title: string;
+  description: string;
 }) {
-    return (
-        <div className="rounded-2xl border border-border bg-background p-3">
-            <p className="font-semibold text-foreground">{title}</p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
-        </div>
-    );
+  return (
+    <div className="border-border bg-background rounded-2xl border p-3">
+      <p className="text-foreground font-semibold">{title}</p>
+      <p className="text-muted-foreground mt-1 text-sm leading-5">
+        {description}
+      </p>
+    </div>
+  );
 }

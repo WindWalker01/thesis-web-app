@@ -18,7 +18,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
         <button
           key={key}
           onClick={() => onChange(key)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium transition-all duration-200 ${
             mode === key
               ? "bg-background text-foreground shadow-sm border border-border"
               : "text-muted-foreground hover:text-foreground"

@@ -84,7 +84,7 @@ function ArtPostSkeleton() {
                 <SkeletonBlock className="aspect-[4/3] w-full rounded-none sm:aspect-[16/10] md:aspect-[16/9]" />
             </div>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-3 text-xs text-muted-foreground sm:px-5">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-muted-foreground sm:px-5">
                 <div className="flex items-center gap-3">
                     <SkeletonBlock className="h-7 w-10 rounded-full" />
                     <SkeletonBlock className="h-3 w-36" />
