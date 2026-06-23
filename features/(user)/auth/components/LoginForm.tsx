@@ -48,7 +48,7 @@ export function LoginForm() {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Welcome back
             </h1>
-            <p className="text-base text-slate-500 dark:text-slate-400">
+            <p className="text-base text-slate-500 dark:text-slate-300">
               Sign in to your ArtForgeLab account
             </p>
           </div>
@@ -158,7 +158,7 @@ export function LoginForm() {
             <span className="ml-2">Continue with Google</span>
           </Button>
 
-          <p className="text-center text-base text-slate-500 dark:text-slate-400">
+          <p className="text-center text-base text-slate-500 dark:text-slate-300">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="font-medium text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
               Sign up

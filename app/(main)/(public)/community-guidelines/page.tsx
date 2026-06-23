@@ -266,7 +266,7 @@ export default function CommunityGuidelinesPage() {
                 What Constitutes NSFW Content?
               </h2>
             </div>
-            <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-8 ml-13 pl-1">
+            <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed mb-8 ml-13 pl-1">
               NSFW (Not Safe for Work) content on ArtForgeLab refers to
               material that may be inappropriate for general audiences. While we
               respect artistic freedom, the following categories are classified
@@ -292,7 +292,7 @@ export default function CommunityGuidelinesPage() {
                         {item.label}
                       </h3>
                     </div>
-                    <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-base text-slate-500 dark:text-slate-300 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -363,7 +363,7 @@ export default function CommunityGuidelinesPage() {
                 Strictly Prohibited Content
               </h2>
             </div>
-            <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-8 ml-13 pl-1">
+            <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed mb-8 ml-13 pl-1">
               The following categories of content are{" "}
               <span className="font-semibold text-destructive">
                 absolutely prohibited
@@ -442,7 +442,7 @@ export default function CommunityGuidelinesPage() {
                           </h3>
                           <SeverityBadge level={section.severity as "critical" | "high"} />
                         </div>
-                        <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed">
                           {section.body}
                         </p>
                       </div>

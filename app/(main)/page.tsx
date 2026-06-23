@@ -196,7 +196,7 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight">
                 The Foundation of<br />Digital Ownership
               </h2>
-              <p className="text-base text-justify text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-base text-justify text-slate-600 dark:text-slate-300 leading-relaxed">
                 Our platform focuses on securing digital assets through advanced verification
                 methods, providing creators with the confidence they deserve. By leveraging
                 cryptographic proof-of-ownership, we bridge the gap between creation and legal protection.
@@ -258,7 +258,7 @@ export default function Home() {
               Explore Protected Categories
             </motion.h2>
             <motion.p
-              className="text-base md:text-base text-slate-600 dark:text-slate-400"
+              className="text-base md:text-base text-slate-600 dark:text-slate-300"
               initial={{ opacity: 0, scale: 0.85, y: 16 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1], delay: 0.1 }}
@@ -321,7 +321,7 @@ export default function Home() {
                 Empowering Collectors with Verified Provenance
               </motion.h2>
               <motion.p
-                className="text-base md:text-lg text-slate-600 dark:text-slate-400"
+                className="text-base md:text-lg text-slate-600 dark:text-slate-300"
                 initial={{ y: 30, opacity: 0 }}
                 animate={collectorsInView ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -509,7 +509,7 @@ export default function Home() {
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-black mb-3 text-slate-900 dark:text-white">
               The Innovators Behind the Vision
             </h2>
-            <p className="text-base md:text-base text-slate-600 dark:text-slate-400">
+            <p className="text-base md:text-base text-slate-600 dark:text-slate-300">
               Meet the dedicated team developing the future of digital IP.
             </p>
           </div>
@@ -572,7 +572,7 @@ export default function Home() {
               Frequently Asked Questions
             </motion.h2>
             <motion.p
-              className="text-base text-slate-500 dark:text-slate-400"
+              className="text-base text-slate-500 dark:text-slate-300"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
@@ -634,7 +634,7 @@ export default function Home() {
                       >
                         <div className="px-5 md:px-6 pb-5 md:pb-6">
                           <div className="h-px bg-slate-100 dark:bg-slate-800 mb-4" />
-                          <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">{faq.a}</p>
+                          <p className="text-base text-slate-500 dark:text-slate-300 leading-relaxed">{faq.a}</p>
                         </div>
                       </motion.div>
                     )}

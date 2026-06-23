@@ -183,7 +183,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Full Policy</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-black mb-3">Full Privacy Policy</h2>
-            <p className="text-base text-slate-500 dark:text-slate-400">
+            <p className="text-base text-slate-500 dark:text-slate-300">
               Please read the following sections carefully before using ArtForgeLab.
             </p>
           </Reveal>
@@ -221,7 +221,7 @@ export default function PrivacyPolicyPage() {
                             {section.title}
                           </h3>
                         </div>
-                        <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed">
                           {section.body}
                         </p>
                       </div>

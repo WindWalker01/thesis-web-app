@@ -165,7 +165,7 @@ export default function TermsOfUsePage() {
                         {section.title}
                       </h2>
                     </div>
-                    <p className="text-base md:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-base md:text-base text-slate-500 dark:text-slate-300 leading-relaxed">
                       {section.body}
                     </p>
                   </div>

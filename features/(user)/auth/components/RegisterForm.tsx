@@ -53,7 +53,7 @@ export function RegisterForm() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Check your email
           </h1>
-          <p className="text-base text-slate-500 dark:text-slate-400">
+          <p className="text-base text-slate-500 dark:text-slate-300">
             We sent a confirmation link to{" "}
             <strong className="text-slate-700 dark:text-slate-200">
               {pendingEmail}
@@ -72,7 +72,7 @@ export function RegisterForm() {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
               Create Account
             </h1>
-            <p className="text-base text-slate-500 dark:text-slate-400">
+            <p className="text-base text-slate-500 dark:text-slate-300">
               Fill in your details to get started
             </p>
           </div>
@@ -259,7 +259,7 @@ export function RegisterForm() {
             <span className="ml-2">Continue with Google</span>
           </Button>
 
-          <p className="text-center text-base text-slate-500 dark:text-slate-400">
+          <p className="text-center text-base text-slate-500 dark:text-slate-300">
             Already have an account?{" "}
             <Link
               href="/login"

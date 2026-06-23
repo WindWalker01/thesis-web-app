@@ -55,7 +55,7 @@ export default function ThemeSection() {
                                             <Icon className={`w-4 h-4 ${isActive ? "text-blue-500" : "text-slate-400 group-hover:text-blue-400"}`} />
                                         </div>
                                         <span className={`text-[11px] font-bold text-center leading-tight
-                                            ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                                            ${isActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-300"}`}>
                                             {opt.label}
                                         </span>
                                         {isActive && (
