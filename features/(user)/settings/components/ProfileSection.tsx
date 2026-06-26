@@ -21,7 +21,7 @@ export default function ProfileSection() {
                     {profile?.profileImage ? (
                         <Image
                             src={profile.profileImage}
-                            alt={profile.fullName}
+                            alt={profile.firstName + " " + profile.lastName}
                             fill
                             sizes="(max-width: 768px) 96px, 112px"
                             loading="eager"
@@ -33,7 +33,7 @@ export default function ProfileSection() {
                     )}
                 </div>
                 <div>
-                    <p className="font-black text-lg">{profile?.fullName}</p>
+                    <p className="font-black text-lg">{profile?.firstName } {profile?.lastName}</p>
                     <p className="text-base text-slate-400">{profile?.username} · Digital Artist</p>
                     <p className="text-sm text-slate-500 mt-1">Member since {profile?.joinDate}</p>
                 </div>
