@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Database, Globe, ExternalLink, Trophy } from "lucide-react";
-import { SearchMatch } from "./types";
+import { SearchMatch } from "../types";
 import { SimilarityRing } from "./SimilarityRing";
 
 interface MatchCardProps {

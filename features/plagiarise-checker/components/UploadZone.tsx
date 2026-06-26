@@ -76,7 +76,7 @@ export function UploadZone({
             )}
           </div>
         </div>
-        <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+          <input ref={inputRef} type="file" accept=".png,.jpg,.jpeg,.webp,.avif,.gif,.bmp,.tiff,.svg" onChange={handleFile} className="hidden" />
       </div>
     );
   }
@@ -91,7 +91,7 @@ export function UploadZone({
         ${compact ? "px-6 py-10" : "px-8 py-16"}
         ${dragging ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-primary/[0.02]"}`}
     >
-      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+        <input ref={inputRef} type="file" accept=".png,.jpg,.jpeg,.webp,.avif,.gif,.bmp,.tiff,.svg" onChange={handleFile} className="hidden" />
 
       <div className={`${compact ? "w-12 h-12" : "w-16 h-16"} rounded-2xl bg-background border border-border flex items-center justify-center shadow-lg shadow-primary/10`}>
         <ImageUp size={compact ? 20 : 28} className="text-primary" />
@@ -107,7 +107,18 @@ export function UploadZone({
         Upload Image
       </Button>
 
-      <p className="text-sm text-muted-foreground">JPG, PNG, WEBP · Max 50MB</p>
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
+        {["PNG", "JPG", "JPEG", "WEBP", "AVIF", "GIF", "BMP", "TIFF", "SVG"].map((fmt) => (
+          <span
+            key={fmt}
+            className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+          >
+            {fmt}
+          </span>
+        ))}
+        <span className="text-muted-foreground/50 text-xs mx-1">·</span>
+        <span className="text-xs text-muted-foreground">Max 50MB</span>
+      </div>
     </div>
   );
 }

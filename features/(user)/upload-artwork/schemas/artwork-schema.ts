@@ -3,12 +3,18 @@ import * as z from "zod";
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export const ACCEPTED_TYPES = [
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/avif",
+  "image/gif",
+  "image/bmp",
+  "image/tiff",
+  "image/svg+xml",
 ] as const;
 
-export const ACCEPT_ATTR = ".png,.jpg,.jpeg";
+export const ACCEPT_ATTR = ".png,.jpg,.jpeg,.webp,.avif,.gif,.bmp,.tiff,.svg";
 
 export const formSchema = z.object({
     title: z
@@ -25,9 +31,8 @@ export const formSchema = z.object({
         .instanceof(File, { message: "Please upload an artwork file." })
         .refine((file) => file.size <= MAX_FILE_SIZE, "File must be 5MB or smaller.")
         .refine(
-            (file) =>
-                ACCEPTED_TYPES.includes(file.type as (typeof ACCEPTED_TYPES)[number]),
-            "Unsupported file format."
+            (file) => ACCEPTED_TYPES.includes(file.type as (typeof ACCEPTED_TYPES)[number]),
+            "Unsupported format. Please upload a PNG, JPG, WEBP, AVIF, GIF, BMP, TIFF, or SVG file."
         ),
     rightsConfirmed: z.boolean().refine((value) => value === true, {
         message: "You must confirm ownership or authorization.",

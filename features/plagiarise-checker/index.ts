@@ -55,7 +55,7 @@ export async function checkPlagiarismWeb(
   formData.append("file", file);
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL}/plagiarism/check/web`,
+    `${process.env.DIGITAL_ART_API_URL}/plagiarism/check/web`,
     {
       method: "POST",
       body: formData,
@@ -63,6 +63,13 @@ export async function checkPlagiarismWeb(
   );
 
   if (!response.ok) {
+    // Guard against HTML error pages from HF proxy
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+      throw new Error(`Server error (${response.status}): ${text.slice(0, 200)}`);
+    }
+
     const error = await response.json();
     throw new Error(error.detail ?? "Failed to check plagiarism");
   }

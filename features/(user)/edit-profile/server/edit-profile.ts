@@ -12,10 +12,6 @@ type UpdateAvatarResult =
     | { success: true; imageUrl: string }
     | { success: false; message: string };
 
-/**
- * Updates the authenticated user's profile fields (fullName, username, bio).
- * Called by the edit profile form on submit.
- */
 export async function updateUserProfile(
     formData: FormData
 ): Promise<UpdateProfileResult> {
@@ -32,7 +28,9 @@ export async function updateUserProfile(
         }
 
         const raw = {
-            fullName: formData.get("fullName"),
+            firstName: formData.get("firstName"),
+            middleName: formData.get("middleName"),
+            lastName: formData.get("lastName"),
             username: formData.get("username"),
             bio: formData.get("bio"),
         };
@@ -47,7 +45,7 @@ export async function updateUserProfile(
             };
         }
 
-        const { fullName, username, bio } = parsed.data;
+        const { firstName, middleName, lastName, username, bio } = parsed.data;
 
         // Check username uniqueness (exclude current user)
         const { data: existing } = await supabase
@@ -64,8 +62,10 @@ export async function updateUserProfile(
         const { error: updateError } = await supabase
             .from("users")
             .update({
-                full_name: fullName,
-                username: username,
+                first_name: firstName,
+                middle_name: middleName || null,
+                last_name: lastName,
+                username,
                 bio: bio || null,
             })
             .eq("id", user.id);
@@ -83,10 +83,6 @@ export async function updateUserProfile(
     }
 }
 
-/**
- * Uploads a new avatar to Cloudinary and updates c_profile_image in the DB.
- * Called separately from the profile text update.
- */
 export async function updateUserAvatar(
     formData: FormData
 ): Promise<UpdateAvatarResult> {
@@ -108,7 +104,7 @@ export async function updateUserAvatar(
             return { success: false, message: "No image file provided." };
         }
 
-        const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+        const MAX_SIZE = 5 * 1024 * 1024;
         if (file.size > MAX_SIZE) {
             return { success: false, message: "Image must be 5 MB or smaller." };
         }

@@ -17,13 +17,15 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export type UserProfile = {
     id: string;
-    fullName: string;
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
     username: string;
     bio: string | null;
     profileImage: string | null;
     role: "user" | "admin";
-    joinDate: string;   // already formatted for UI
-    initials: string;   // derived value (not from DB)
+    joinDate: string;
+    initials: string;
 };
 
 /**
@@ -81,7 +83,7 @@ export async function fetchUserProfileById(
          */
         const { data, error } = await supabase
             .from("users")
-            .select("id, full_name, username, bio, c_profile_image, role, created_at")
+            .select("id, first_name, middle_name, last_name, username, bio, c_profile_image, role, created_at")
             .eq("id", userId)
             .single();
 
@@ -121,7 +123,7 @@ export async function fetchUserProfileByUsername(
 
         const { data, error } = await supabase
             .from("users")
-            .select("id, full_name, username, bio, c_profile_image, role, created_at")
+            .select("id, first_name, middle_name, last_name, username, bio, c_profile_image, role, created_at")
             .eq("username", username)
             .single();
 
@@ -153,7 +155,9 @@ export async function fetchUserProfileByUsername(
  */
 type RawUser = {
     id: string;
-    full_name: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
     username: string;
     bio: string | null;
     c_profile_image: string | null;
@@ -171,13 +175,15 @@ type RawUser = {
 function mapToUserProfile(raw: RawUser): UserProfile {
     return {
         id: raw.id,
-        fullName: raw.full_name,
-        username: `@${raw.username}`, // enforce @ prefix
+        firstName: raw.first_name,
+        middleName: raw.middle_name,
+        lastName: raw.last_name,
+        username: `@${raw.username}`,
         bio: raw.bio,
         profileImage: raw.c_profile_image,
         role: raw.role as UserProfile["role"],
         joinDate: formatJoinDate(raw.created_at),
-        initials: deriveInitials(raw.full_name),
+        initials: deriveInitials(raw.first_name, raw.last_name),
     };
 }
 
@@ -198,15 +204,9 @@ function formatJoinDate(isoString: string): string {
  *   "John Doe" → "JD"
  *   "Plato" → "P"
  */
-function deriveInitials(fullName: string): string {
-    const parts = fullName.trim().split(/\s+/);
-
-    if (parts.length === 1) {
-        return parts[0].charAt(0).toUpperCase();
-    }
-
+function deriveInitials(firstName: string, lastName: string): string {
     return (
-        parts[0].charAt(0) +
-        parts[parts.length - 1].charAt(0)
+        (firstName.charAt(0) ?? "") +
+        (lastName.charAt(0) ?? "")
     ).toUpperCase();
 }

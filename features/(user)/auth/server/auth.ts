@@ -11,21 +11,16 @@ import {
 } from "../schemas/auth-schema";
 
 export async function signIn(
-  input: SignInInput /* captchaToken?: string | null */,
+  input: SignInInput,
 ) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
   }
 
-  /*   if (!captchaToken) {
-      return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
-    } */
-
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     ...parsed.data,
-    /* options: { captchaToken }, */
   });
 
   if (error) {
@@ -41,10 +36,6 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
   }
 
-  /*   if (!captchaToken) {
-      return { data: null, error: { message: "Please complete the CAPTCHA verification." } };
-    } */
-
   const { email, password, firstName, middleName, lastName } = parsed.data;
   const supabase = await createSupabaseServerClient();
 
@@ -53,8 +44,11 @@ export async function signUp(input: SignUpInput, captchaToken?: string | null) {
     password,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm?email=${encodeURIComponent(email)}`,
-      data: { full_name: fullName },
-      /* captchaToken, */
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        middle_name: middleName ?? null,
+      },
     },
   });
 
@@ -83,18 +77,12 @@ export async function forgotPassword(
   if (!parsed.success) {
     return { error: { message: parsed.error.issues[0].message } };
   }
-  /* 
-    if (!captchaToken) {
-      return { error: { message: "Please complete the CAPTCHA verification." } };
-    } */
 
   const supabase = await createSupabaseServerClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(
     parsed.data.email,
-    {
-      /* captchaToken, */
-    },
+    {},
   );
 
   if (error) {

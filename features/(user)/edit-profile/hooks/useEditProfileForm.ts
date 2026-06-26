@@ -32,8 +32,9 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
     const form = useForm<EditProfileFormValues>({
         resolver: zodResolver(editProfileSchema),
         defaultValues: {
-            fullName: profile.fullName,
-            // Strip leading @ stored by mapToUserProfile
+            firstName: profile.firstName ?? "",
+            middleName: profile.middleName ?? "",
+            lastName: profile.lastName ?? "",
             username: profile.username.startsWith("@")
                 ? profile.username.slice(1)
                 : profile.username,
@@ -51,7 +52,6 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Optimistic preview
         const reader = new FileReader();
         reader.onload = (ev) => setAvatarPreview(ev.target?.result as string);
         reader.readAsDataURL(file);
@@ -68,18 +68,14 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
 
         if (!result.success) {
             setAvatarError(result.message);
-
             toast.error("Profile Image upload failed", {
                 description: result.message,
             });
-
             setAvatarPreview(profile.profileImage);
             return;
         }
 
         toast.success("Profile Image updated!");
-
-        // Invalidate profile cache so the banner reflects the new image
         await queryClient.invalidateQueries({ queryKey: profileKeys.current() });
     }
 
@@ -89,7 +85,9 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
         form.clearErrors("root");
 
         const fd = new FormData();
-        fd.append("fullName", values.fullName);
+        fd.append("firstName", values.firstName);
+        fd.append("middleName", values.middleName ?? "");
+        fd.append("lastName", values.lastName);
         fd.append("username", values.username);
         fd.append("bio", values.bio ?? "");
 
@@ -97,11 +95,9 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
 
         if (!result.success) {
             form.setError("root", { message: result.message });
-
             toast.error("Update failed", {
                 description: result.message,
             });
-
             return;
         }
 
@@ -109,7 +105,6 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
             description: "Your changes have been saved successfully.",
         });
 
-        // Invalidate profile cache so navbar / banner update immediately
         await queryClient.invalidateQueries({ queryKey: profileKeys.current() });
     }
 

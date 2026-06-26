@@ -15,7 +15,7 @@ type ArtReactionRow = {
     reaction_type: "upvote" | "downvote";
 };
 
-type ArtPostRow = {
+    type ArtPostRow = {
     id: string;
     art_id: string;
     user_id: string;
@@ -27,37 +27,26 @@ type ArtPostRow = {
     score: number;
     created_at: string;
     registered_arts:
-    | {
-        id: string;
-        title: string;
-        description: string | null;
-        c_secure_url: string | null;
-        status: string;
-    }
-    | {
-        id: string;
-        title: string;
-        description: string | null;
-        c_secure_url: string | null;
-        status: string;
-    }[]
-    | null;
+        | {
+            id: string;
+            title: string;
+            description: string | null;
+            c_secure_url: string | null;
+            status: string;
+        }[]
+        | null;
     users:
-    | {
-        id: string;
-        username: string;
-        full_name: string | null;
-        c_profile_image: string | null;
-    }
-    | {
-        id: string;
-        username: string;
-        full_name: string | null;
-        c_profile_image: string | null;
-    }[]
-    | null;
+        | {
+            id: string;
+            username: string;
+            first_name: string | null;
+            middle_name: string | null;
+            last_name: string | null;
+            c_profile_image: string | null;
+        }[]
+        | null;
     art_reactions?: ArtReactionRow[] | null;
-};
+    };
 
 type ArtGenreRow = {
     art_id: string;
@@ -113,7 +102,9 @@ function mapPosts(
 
             username: author.username,
             userHref: `/profile/${author.username}`,
-            fullName: author.full_name ?? author.username,
+            fullName: [author.first_name, author.middle_name, author.last_name]
+            .filter(Boolean)
+            .join(" ") || author.username,
             profileImage: author.c_profile_image,
 
             createdAt: row.created_at,
@@ -163,7 +154,9 @@ const ART_POST_SELECT = `
   users!art_posts_user_id_fkey (
     id,
     username,
-    full_name,
+    first_name,
+    middle_name,
+    last_name,
     c_profile_image
   ),
   art_reactions (

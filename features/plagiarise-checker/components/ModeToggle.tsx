@@ -1,5 +1,5 @@
 import { Globe, Images } from "lucide-react";
-import { Mode } from "./types";
+import { Mode } from "../types";
 
 interface ModeToggleProps {
   mode: Mode;
