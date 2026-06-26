@@ -87,6 +87,9 @@ export async function classifyArtwork(
             cache: "no-store",
         });
 
+        console.log("Classify status:", response.status);
+        console.log("Classify content-type:", response.headers.get("content-type"));
+
         if (!response.ok) {
             let message = "Failed to classify the uploaded image.";
 
@@ -102,6 +105,7 @@ export async function classifyArtwork(
                 }
             } catch {
                 // keep fallback message
+                message = `Server error (${response.status})`;
             }
 
             return {

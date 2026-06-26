@@ -42,8 +42,11 @@ export async function fetchGenreClassification(
     const formData = new FormData();
     formData.append("file", file);
 
+    console.log("HF URL:", process.env.DIGITAL_ART_API_URL);
+    console.log("HF URL public:", process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL);
+
     const response = await fetch(
-        `${process.env.DIGITAL_ART_API_URL ?? process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL}/classify/`,
+        `${process.env.DIGITAL_ART_API_URL}/classify/`,
         {
             method: "POST",
             body: formData,

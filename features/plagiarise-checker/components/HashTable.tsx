@@ -1,4 +1,4 @@
-import { HashSet } from "./types";
+import { HashSet } from "../types";
 
 interface HashTableProps {
   title: string;

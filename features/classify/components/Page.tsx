@@ -180,7 +180,7 @@ export default function ClassificationPage() {
                                     Upload artwork image
                                 </CardTitle>
                                 <CardDescription>
-                                    Supported formats: PNG, JPG, JPEG, Maximum file size: 5MB.
+                                    Supported formats: PNG, JPG, JPEG, WEBP, AVIF, GIF, BMP, TIFF, and SVG , Maximum file size: 5MB.
                                 </CardDescription>
                             </CardHeader>
 
@@ -248,7 +248,7 @@ export default function ClassificationPage() {
                                                                     </div>
 
                                                                     <div className="flex flex-wrap items-center justify-center gap-2">
-                                                                        {["PNG", "JPG", "JPEG"].map((type) => (
+                                                                        {["PNG", "JPG", "JPEG", "WEBP", "AVIF", "GIF", "BMP", "TIFF", "SVG"].map((type) => (
                                                                             <Badge key={type} variant="outline">
                                                                                 {type}
                                                                             </Badge>

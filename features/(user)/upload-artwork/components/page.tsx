@@ -215,17 +215,25 @@ export default function UploadArtworkPage() {
                         </p>
                       </div>
 
-                      <div className="flex flex-wrap items-center justify-center gap-2">
-                        {["PNG", "JPG"].map((format) => (
-                          <Badge key={format} variant="outline">
-                            {format}
-                          </Badge>
-                        ))}
-                      </div>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          {["PNG", "JPG", "JPEG", "WEBP", "GIF", "BMP", "TIFF", "SVG", "AVIF"].map((format) => (
+                            <Badge
+                              key={format}
+                              variant={["PNG", "JPG", "JPEG"].includes(format) ? "default" : "outline"}
+                              className={["PNG", "JPG", "JPEG"].includes(format) ? "opacity-90" : "opacity-60"}
+                            >
+                              {format}
+                            </Badge>
+                          ))}
+                        </div>
 
-                      <p className="text-muted-foreground text-sm">
-                        Maximum file size: 5MB
-                      </p>
+                        <p className="text-muted-foreground text-xs">
+                          <span className="text-foreground font-medium">Recommended:</span> PNG or JPG for best detection accuracy
+                        </p>
+
+                        <p className="text-muted-foreground text-sm">
+                          Maximum file size: 5MB
+                        </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -278,7 +286,7 @@ export default function UploadArtworkPage() {
                   <input
                     ref={inputRef}
                     type="file"
-                    accept={ACCEPT_ATTR}
+                    accept={ACCEPT_ATTR ?? "image/png,image/jpeg,image/jpg,image/webp,image/gif,image/bmp,image/tiff,image/svg+xml/avif,image"}
                     className="hidden"
                     onChange={(e) => handleFileSelect(e.target.files?.[0])}
                     disabled={showProgressView}
@@ -291,14 +299,19 @@ export default function UploadArtworkPage() {
                   </p>
                 )}
 
-                <Alert>
-                  <FileImage className="h-4 w-4" />
-                  <AlertTitle>Supported formats</AlertTitle>
-                  <AlertDescription>
-                    PNG, JPG are accepted. Use the highest quality source file
-                    available for better similarity detection.
-                  </AlertDescription>
-                </Alert>
+                  <Alert>
+                    <FileImage className="h-4 w-4" />
+                    <AlertTitle>Supported formats</AlertTitle>
+                    <AlertDescription className="space-y-1">
+                      <span className="block">
+                        PNG, JPG, JPEG, WEBP, GIF, BMP, TIFF, AVIF, and SVG are all accepted.
+                      </span>
+                      <span className="block text-muted-foreground">
+                        For best similarity detection results, upload in{" "}
+                        <span className="text-foreground font-medium">PNG or JPG</span> — the most widely used formats for digital artwork.
+                      </span>
+                    </AlertDescription>
+                  </Alert>
 
                 <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100">
                   <AlertTriangle className="h-4 w-4" />
@@ -310,9 +323,8 @@ export default function UploadArtworkPage() {
                       href="/terms-of-use"
                       className="font-medium underline underline-offset-4"
                     >
-                      Terms of Use
+                      Terms of Use.
                     </Link>
-                    .
                   </AlertDescription>
                 </Alert>
               </CardContent>

@@ -35,7 +35,7 @@ export function ProfileBanner({ profile, children }: Props) {
                             {profile.profileImage ? (
                                 <Image
                                     src={profile.profileImage}
-                                    alt={profile.fullName}
+                                    alt={`${profile.firstName} ${profile.lastName}`}
                                     fill
                                     sizes="(max-width: 768px) 96px, 112px"
                                     loading="eager"
@@ -54,7 +54,11 @@ export function ProfileBanner({ profile, children }: Props) {
                     {/* Profile text */}
                     <div className="flex-1 min-w-0 text-white pb-1">
                         <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h1 className="text-xl md:text-2xl font-black">{profile.fullName}</h1>
+                            <h1 className="text-xl md:text-2xl font-black">
+                                {[profile.firstName, profile.middleName, profile.lastName]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                                </h1>
                             <span className="text-[10px] font-bold bg-green-500/15 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
                                 <CheckCircle className="w-2.5 h-2.5" />
                                 Verified Artist
