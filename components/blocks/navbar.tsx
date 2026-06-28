@@ -26,6 +26,7 @@ import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
 import { useNotifications } from "@/features/(user)/notifications-navbar/hooks/useNotification";
 import { getNotificationUI } from "@/features/(user)/notifications-navbar/lib/notification-ui";
 import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
+import { useCurrentUserProfile } from "@/features/(user)/profile/hooks/useFetchProfile";
 
 /* ── Types ── */
 interface Notification {
@@ -67,6 +68,8 @@ export default function NavBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const { user } = useAuth();
+  const { profile } = useCurrentUserProfile();
+  const isAdmin = profile?.role === "admin";
 
   const {
     notifications,
@@ -77,11 +80,14 @@ export default function NavBar() {
   } = useNotifications(user?.id);
 
   const visibleNavLinks = useMemo(() => {
-    return NAV_LINKS.filter((link) => {
+    const base = NAV_LINKS.filter((link) => {
       if (link.requiresAuth && !user) return false;
       return true;
     });
-  }, [user]);
+    return isAdmin
+      ? [...base, { label: "Reports", href: "/admin/reports" }]
+      : base;
+  }, [user, isAdmin]);
 
   const visibleMoreLinks = useMemo(() => {
     return MORE_LINKS.filter((link) => {
@@ -481,6 +487,17 @@ export default function NavBar() {
                       <p className="px-3 pb-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
                         Account
                       </p>
+
+                      {isAdmin && (
+                        <Link
+                          href="/admin/reports"
+                          onClick={closeMobile}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-muted"
+                        >
+                          <ShieldCheck className="h-4 w-4 text-purple-500" />
+                          <span>Admin Reports</span>
+                        </Link>
+                      )}
 
                       {[
                         {
