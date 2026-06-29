@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   RotateCcw,
@@ -19,208 +18,34 @@ import {
   CompareModeResult,
 } from "@/features/plagiarise-checker";
 
-import {
-  type Stage,
-  type Mode,
-  type CompareResponse,
-  type SearchResponse,
-} from "@/features/plagiarise-checker";
-
-import { resolveDbArtworkById } from "../server/resolve-db-artwork";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
-import { generatePlagiarismReportPdf } from "@/features/plagiarise-checker/lib/plagiarism-report";
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL ?? "http://localhost:8000";
+import { usePlagiarismChecker } from "@/features/plagiarise-checker/hooks/use-plagiarism-checker";
 
 export default function PlagiarismCheckerPage() {
-  const [mode, setMode] = useState<Mode>("web");
-  const [stage, setStage] = useState<Stage>("upload");
-  const [error, setError] = useState<string | null>(null);
-  const [errorTime, setErrorTime] = useState<Date | null>(null);
-  const [exportingPdf, setExportingPdf] = useState(false);
-  const [copyConfirmed, setCopyConfirmed] = useState(false);
-
-  // Web mode state
-  const [webFile, setWebFile] = useState<File | null>(null);
-  const [webPreview, setWebPreview] = useState<string | null>(null);
-  const [webResult, setWebResult] = useState<SearchResponse | null>(null);
-
-  // Compare mode state
-  const [fileA, setFileA] = useState<File | null>(null);
-  const [fileB, setFileB] = useState<File | null>(null);
-  const [previewA, setPreviewA] = useState<string | null>(null);
-  const [previewB, setPreviewB] = useState<string | null>(null);
-  const [compareResult, setCompareResult] = useState<CompareResponse | null>(null);
-
-  const { isAuthenticated } = useAuth();
-
-  // Revoke all object URLs on unmount
-  useEffect(() => {
-    return () => {
-      if (webPreview) URL.revokeObjectURL(webPreview);
-      if (previewA) URL.revokeObjectURL(previewA);
-      if (previewB) URL.revokeObjectURL(previewB);
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Handlers: Web mode ─────────────────────────────────────────────────────
-
-  const handleWebUpload = async (file: File) => {
-    if (webPreview) URL.revokeObjectURL(webPreview);
-    setWebFile(file);
-    setWebPreview(URL.createObjectURL(file));
-    setWebResult(null);
-    setError(null);
-    setErrorTime(null);
-    setStage("analyzing");
-
-    try {
-      const form = new FormData();
-      form.append("file", file);
-
-      const res = await fetch(`${API_BASE}/plagiarism/check/web`, {
-        method: "POST",
-        body: form,
-      });
-
-      if (!res.ok) {
-        const detail = await res.json().catch(() => null);
-        throw new Error(detail?.detail ?? `Server error: ${res.status}`);
-      }
-
-      const data: SearchResponse = await res.json();
-
-      // ── Enrich DB match: resolve UUID → Cloudinary imageUrl + title ──
-      if (data.db?.type === "database" && data.db.url) {
-        const resolved = await resolveDbArtworkById(data.db.url);
-        if (resolved) {
-          data.db = { ...data.db, imageUrl: resolved.imageUrl, title: resolved.title };
-          if (data.best_match?.type === "database") {
-            data.best_match = { ...data.best_match, imageUrl: resolved.imageUrl, title: resolved.title };
-          }
-        }
-      }
-
-      setWebResult(data);
-      setStage("result");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
-      setErrorTime(new Date());
-      setStage("error");
-    }
-  };
-
-  // ── Export PDF ─────────────────────────────────────────────────────────────
-
-  const handleExportPdf = async () => {
-    if (!webResult) return;
-    setExportingPdf(true);
-    try {
-      await generatePlagiarismReportPdf({
-        result: webResult,
-        submittedImagePreview: webPreview ?? undefined,
-        checkedAt: new Date(),
-      });
-    } finally {
-      setExportingPdf(false);
-    }
-  };
-
-  // ── Handlers: Compare mode ─────────────────────────────────────────────────
-
-  const handleCompareUploadA = (file: File) => {
-    if (previewA) URL.revokeObjectURL(previewA);
-    setFileA(file);
-    setPreviewA(URL.createObjectURL(file));
-  };
-
-  const handleCompareUploadB = (file: File) => {
-    if (previewB) URL.revokeObjectURL(previewB);
-    setFileB(file);
-    setPreviewB(URL.createObjectURL(file));
-  };
-
-  const handleClearA = () => {
-    if (previewA) URL.revokeObjectURL(previewA);
-    setFileA(null);
-    setPreviewA(null);
-  };
-
-  const handleClearB = () => {
-    if (previewB) URL.revokeObjectURL(previewB);
-    setFileB(null);
-    setPreviewB(null);
-  };
-
-  const handleCompare = async () => {
-    if (!fileA || !fileB) return;
-    setCompareResult(null);
-    setError(null);
-    setErrorTime(null);
-    setStage("analyzing");
-
-    try {
-      const form = new FormData();
-      form.append("file1", fileA);
-      form.append("file2", fileB);
-
-      const res = await fetch(`${API_BASE}/plagiarism/compare`, {
-        method: "POST",
-        body: form,
-      });
-
-      if (!res.ok) {
-        const detail = await res.json().catch(() => null);
-        throw new Error(detail?.detail ?? `Server error: ${res.status}`);
-      }
-
-      const data: CompareResponse = await res.json();
-      setCompareResult(data);
-      setStage("result");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
-      setErrorTime(new Date());
-      setStage("error");
-    }
-  };
-
-  // ── Reset ──────────────────────────────────────────────────────────────────
-
-  const handleReset = () => {
-    setStage("upload");
-    setError(null);
-    setErrorTime(null);
-    setCompareResult(null);
-    setWebResult(null);
-    if (webPreview) { URL.revokeObjectURL(webPreview); setWebPreview(null); setWebFile(null); }
-    if (previewA) { URL.revokeObjectURL(previewA); setPreviewA(null); setFileA(null); }
-    if (previewB) { URL.revokeObjectURL(previewB); setPreviewB(null); setFileB(null); }
-  };
-
-  const handleModeChange = (m: Mode) => {
-    handleReset();
-    setMode(m);
-  };
-
-  const handleCopyErrorReport = async () => {
-    const report = [
-      `Plagiarism Detection — Error Report`,
-      `────────────────────────────────────`,
-      `Mode:      ${mode === "web" ? "Web Search" : "Direct Comparison"}`,
-      `Time:      ${errorTime?.toISOString() ?? new Date().toISOString()}`,
-      `Status:    Analysis failed — pending manual review`,
-      ``,
-      `Error Detail:`,
-      error ?? "Unknown error",
-    ].join("\n");
-
-    await navigator.clipboard.writeText(report);
-    setCopyConfirmed(true);
-    setTimeout(() => setCopyConfirmed(false), 2000);
-  };
-
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const {
+    mode,
+    stage,
+    error,
+    errorTime,
+    exportingPdf,
+    copyConfirmed,
+    webPreview,
+    webResult,
+    fileA,
+    fileB,
+    previewA,
+    previewB,
+    compareResult,
+    handleWebUpload,
+    handleExportPdf,
+    handleCompareUploadA,
+    handleCompareUploadB,
+    handleClearA,
+    handleClearB,
+    handleCompare,
+    handleReset,
+    handleModeChange,
+    handleCopyErrorReport,
+  } = usePlagiarismChecker();
 
   return (
     <main className="bg-background min-h-screen">

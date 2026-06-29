@@ -22,6 +22,7 @@ export interface OtherSearchMatch {
   link: string;
   url: string;
   similarity: number;
+  artwork_id?: string;
 }
 
 export interface PlagiarismWebResult {
@@ -35,7 +36,7 @@ export interface PlagiarismWebResult {
     transforms: Record<string, HashSet>;
     blocks: Record<string, HashSet>;
   };
-  other_matches: OtherSearchMatch[] | null;
+  other_matches: OtherSearchMatch[];
 }
 
 export interface ResultBestSearch {
@@ -79,4 +80,5 @@ export interface SearchResponse {
     transforms: Record<string, HashSet>;
     blocks: Record<string, HashSet>;
   };
+  other_matches: OtherSearchMatch[];
 }

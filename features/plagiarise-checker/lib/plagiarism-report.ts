@@ -358,6 +358,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const isBestDatabase = best?.type === "database";
     const dbMatch = result.db;
     const webMatch = result.web;
+    const otherMatches = result.other_matches ?? [];
 
     const bestSourceLabel = isBestDatabase ? "DATABASE MATCH" : "WEB MATCH";
     const bestSourceUrl = getSourceUrl(best);
@@ -685,6 +686,33 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
         [14, 165, 233]
     );
 
+    // ── Other Matches section ────────────────────────────────────────────────
+    let otherMatchesY = summaryY + SUMMARY_CARD_H + 4;
+    if (otherMatches.length > 0) {
+        otherMatchesY = drawSectionHeader(doc, 12, otherMatchesY, W - 24, `Other Matches (${otherMatches.length})`, [148, 163, 184]);
+
+        otherMatches.forEach((m, i) => {
+            const isDb = !!m.artwork_id;
+            const label = isDb ? "Database" : "Internet";
+            const sourceUrl = m.link || m.url;
+            otherMatchesY = drawInfoRow(
+                doc,
+                12,
+                otherMatchesY,
+                W - 24,
+                `${m.source} (${label})`,
+                `${m.similarity.toFixed(1)}% — ${shortenMiddle(sourceUrl, 24, 16)}`,
+                {
+                    mono: true,
+                    isLast: i === otherMatches.length - 1,
+                    link: sourceUrl,
+                }
+            );
+        });
+
+        otherMatchesY += 4;
+    }
+
     const declarationText = best
         ? `This report documents the plagiarism analysis performed for "${safeValue(
             result.filename
@@ -721,7 +749,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const declH = Math.max(24, declHeaderOffset + declTextHeight + declBottomPadding);
 
     const footerTop = H - 14;
-    const declY = summaryY + SUMMARY_CARD_H + DECLARATION_TOP_GAP;
+    const declY = otherMatches.length > 0 ? otherMatchesY : summaryY + SUMMARY_CARD_H + DECLARATION_TOP_GAP;
     const disclaimerY = declY + declH + DECLARATION_TO_DISCLAIMER_GAP;
 
     let finalDeclY = declY;
