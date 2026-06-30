@@ -10,6 +10,8 @@ export { UploadZone } from "./components/UploadZone";
 export { WebModeResult } from "./components/WebModeResult";
 export { WebModeUpload } from "./components/WebModeUpload";
 
+export { usePlagiarismChecker } from "./hooks/use-plagiarism-checker";
+
 export type {
   Stage,
   Mode,
@@ -17,6 +19,7 @@ export type {
   SearchResponse,
   SearchMatch,
   HashSet,
+  OtherSearchMatch,
 } from "./types";
 
 import { PlagiarismWebResult } from "./types";
@@ -55,7 +58,7 @@ export async function checkPlagiarismWeb(
   formData.append("file", file);
 
   const response = await fetch(
-    `${process.env.DIGITAL_ART_API_URL}/plagiarism/check/web`,
+    `${process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL}/plagiarism/check/web`,
     {
       method: "POST",
       body: formData,

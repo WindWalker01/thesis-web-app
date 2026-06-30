@@ -156,7 +156,7 @@ export default function SettingsPage() {
             <div className="bg-blue-600">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-6 md:gap-10">
                     {[
-                        { label: "Account", value: `${profile?.fullName ?? ""}` },
+                        { label: "Account", value: `${(profile?.firstName || profile?.lastName) ? `${profile.firstName} ${profile.lastName}` : ""}` },
                         { label: "Role", value: "Digital Artist" },
                         { label: "Since", value: `${profile?.joinDate ?? ""}` },
                     ].map((item) => (
