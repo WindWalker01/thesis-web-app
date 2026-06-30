@@ -274,7 +274,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                                             Creator
                                         </p>
                                         <p className="text-base font-semibold text-foreground">
-                                            {art.creator.fullName}
+                                            {art.creator.first_name} {art.creator.last_name}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             {art.creator.username}

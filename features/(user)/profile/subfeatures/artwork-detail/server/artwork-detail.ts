@@ -54,7 +54,9 @@ type RawGenreRow = {
 
 type RawUserRow = {
     id: string;
-    full_name: string;
+    first_name: string;
+    last_name: string;
+    middle_name: string | null;
     username: string;
     c_profile_image: string | null;
 };
@@ -163,7 +165,7 @@ export async function fetchArtworkDetailById(
 
         const { data: creator, error: creatorError } = await supabase
             .from("users")
-            .select("id, full_name, username, c_profile_image")
+            .select("id, first_name, last_name, middle_name, username, c_profile_image")
             .eq("id", data.owner_id)
             .maybeSingle();
 
@@ -312,7 +314,9 @@ function mapToArtworkDetail(
         creator: creator
             ? {
                 id: creator.id,
-                fullName: creator.full_name,
+                first_name: creator.first_name,
+                last_name: creator.last_name,
+                middle_name: creator.middle_name ?? null,
                 username: `@${creator.username}`,
                 profileImage: creator.c_profile_image,
             }
