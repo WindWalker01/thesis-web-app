@@ -22,7 +22,7 @@ import type {
 import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 import type { GenreScoreLabel } from "@/features/(user)/upload-artwork/types";
 import type { SelectedGenre } from "@/features/(user)/upload-artwork/components/genre-tagging-modal";
-import { OtherSearchMatch, SearchMatch } from "@/features/plagiarise-checker/types";
+import { OtherSearchMatch } from "@/features/plagiarise-checker/types";
 
 type ProcessingState = "idle" | "processing" | "success" | "error";
 
@@ -171,6 +171,103 @@ export function useUploadArtworkForm() {
     setGenreModalOpen(false);
   }
 
+  // ── Step-transition helpers ────────────────────────────────────────────────
+  // Each helper groups the updateStepText + setStepStatus calls for one branch
+  // of the submit pipeline, keeping submitArtwork readable.
+
+  /** Flagged path: high-risk match — review + protect + complete all warn. */
+  function markReviewFlagged() {
+    updateStepText(
+      STEP_KEYS.review,
+      "Similarity check detected high-risk match",
+      "A high similarity result was detected, so the artwork was flagged for admin review.",
+    );
+    updateStepText(
+      STEP_KEYS.protect,
+      "Protection flow paused for moderation",
+      "Blockchain protection is blocked until the flagged artwork is reviewed.",
+    );
+    updateStepText(
+      STEP_KEYS.complete,
+      "Submission recorded with admin review required",
+      "The upload was saved, but the artwork is not treated as fully cleared.",
+    );
+
+    setStepStatus(STEP_KEYS.review, "warning");
+    setStepStatus(STEP_KEYS.protect, "warning");
+    setStepStatus(STEP_KEYS.complete, "warning");
+    setProcessingMessage(
+      "High similarity detected. Your artwork was saved and flagged for admin review.",
+    );
+  }
+
+  /** Under-review path: moderate match — review + protect warn, complete active. */
+  function markUnderReview() {
+    updateStepText(
+      STEP_KEYS.review,
+      "Similarity check detected moderate match",
+      "A moderate similarity result was detected, so the artwork was placed under review.",
+    );
+    updateStepText(
+      STEP_KEYS.protect,
+      "Protection flow waiting for review result",
+      "Blockchain protection will continue after moderation review is completed.",
+    );
+    updateStepText(
+      STEP_KEYS.complete,
+      "Submission recorded — genre tagging required",
+      "Add genre tags to complete your submission.",
+    );
+
+    setStepStatus(STEP_KEYS.review, "warning");
+    setStepStatus(STEP_KEYS.protect, "warning");
+    setStepStatus(STEP_KEYS.complete, "active");
+    setProcessingMessage(
+      "Moderate similarity detected. Please tag your artwork to complete registration.",
+    );
+  }
+
+  /** Clean path: no similarity issues — review done, protect active for chain. */
+  function markCleanPath() {
+    setStepStatus(STEP_KEYS.review, "done");
+    setStepStatus(STEP_KEYS.protect, "active");
+
+    updateStepText(
+      STEP_KEYS.review,
+      "Originality check completed",
+      "No review threshold was triggered.",
+    );
+    updateStepText(
+      STEP_KEYS.protect,
+      "Recording artwork on blockchain...",
+      "Your artwork is now being written to the blockchain registry.",
+    );
+
+    setProcessingMessage(
+      "Recording your artwork on blockchain and finalizing protection...",
+    );
+  }
+
+  /** Clean path continuation: blockchain write succeeded — protect done, complete active. */
+  function markBlockchainDone() {
+    updateStepText(
+      STEP_KEYS.protect,
+      "Blockchain protection completed",
+      "Your artwork was successfully recorded on-chain.",
+    );
+    updateStepText(
+      STEP_KEYS.complete,
+      "Almost done — tag your artwork",
+      "Add genre tags to complete your registration.",
+    );
+
+    setStepStatus(STEP_KEYS.protect, "done");
+    setStepStatus(STEP_KEYS.complete, "active");
+    setProcessingMessage(
+      "Blockchain protection complete. Please tag your artwork to finish.",
+    );
+  }
+
   function handleFileSelect(file?: File) {
     if (!file) return;
 
@@ -291,7 +388,6 @@ export function useUploadArtworkForm() {
 
       setSimilarityReport(dbResult.similarityReport ?? null);
       setOtherMatchesReport(dbResult.otherMatches ?? null);
-      console.log("Other Matches report:", dbResult);
 
       if (!dbResult.success) {
         setStepStatus(STEP_KEYS.review, "error");
@@ -306,78 +402,20 @@ export function useUploadArtworkForm() {
       setPendingGenreArtworkId(dbResult.artworkId);
 
       if (dbResult.artworkStatus === "flagged") {
-        updateStepText(
-          STEP_KEYS.review,
-          "Similarity check detected high-risk match",
-          "A high similarity result was detected, so the artwork was flagged for admin review.",
-        );
-        updateStepText(
-          STEP_KEYS.protect,
-          "Protection flow paused for moderation",
-          "Blockchain protection is blocked until the flagged artwork is reviewed.",
-        );
-        updateStepText(
-          STEP_KEYS.complete,
-          "Submission recorded with admin review required",
-          "The upload was saved, but the artwork is not treated as fully cleared.",
-        );
-
-        setStepStatus(STEP_KEYS.review, "warning");
-        setStepStatus(STEP_KEYS.protect, "warning");
-        setStepStatus(STEP_KEYS.complete, "warning");
-        setProcessingMessage(
-          "High similarity detected. Your artwork was saved and flagged for admin review.",
-        );
+        markReviewFlagged();
 
         // Flagged artworks have shouldClassify: false so genreSuggestions will
         // be empty. Skip the tagging modal and go straight to success.
         setProcessingState("success");
       } else if (dbResult.artworkStatus === "under_review") {
-        updateStepText(
-          STEP_KEYS.review,
-          "Similarity check detected moderate match",
-          "A moderate similarity result was detected, so the artwork was placed under review.",
-        );
-        updateStepText(
-          STEP_KEYS.protect,
-          "Protection flow waiting for review result",
-          "Blockchain protection will continue after moderation review is completed.",
-        );
-        updateStepText(
-          STEP_KEYS.complete,
-          "Submission recorded — genre tagging required",
-          "Add genre tags to complete your submission.",
-        );
-
-        setStepStatus(STEP_KEYS.review, "warning");
-        setStepStatus(STEP_KEYS.protect, "warning");
-        setStepStatus(STEP_KEYS.complete, "active");
-        setProcessingMessage(
-          "Moderate similarity detected. Please tag your artwork to complete registration.",
-        );
+        markUnderReview();
 
         // Open the genre tagging modal. processingState stays "processing"
         // until the user submits their tags.
         setGenreModalOpen(true);
       } else {
         // Clean path: no similarity issues — proceed to blockchain.
-        setStepStatus(STEP_KEYS.review, "done");
-        setStepStatus(STEP_KEYS.protect, "active");
-
-        updateStepText(
-          STEP_KEYS.review,
-          "Originality check completed",
-          "No review threshold was triggered.",
-        );
-        updateStepText(
-          STEP_KEYS.protect,
-          "Recording artwork on blockchain...",
-          "Your artwork is now being written to the blockchain registry.",
-        );
-
-        setProcessingMessage(
-          "Recording your artwork on blockchain and finalizing protection...",
-        );
+        markCleanPath();
 
         const blockchainResult = await recordArtworkOnBlockchain({
           artworkId: dbResult.artworkId,
@@ -395,22 +433,7 @@ export function useUploadArtworkForm() {
           return;
         }
 
-        updateStepText(
-          STEP_KEYS.protect,
-          "Blockchain protection completed",
-          "Your artwork was successfully recorded on-chain.",
-        );
-        updateStepText(
-          STEP_KEYS.complete,
-          "Almost done — tag your artwork",
-          "Add genre tags to complete your registration.",
-        );
-
-        setStepStatus(STEP_KEYS.protect, "done");
-        setStepStatus(STEP_KEYS.complete, "active");
-        setProcessingMessage(
-          "Blockchain protection complete. Please tag your artwork to finish.",
-        );
+        markBlockchainDone();
 
         // Open genre tagging modal. processingState stays "processing" until
         // the user submits tags — the "complete" step activates after that.
@@ -461,7 +484,6 @@ export function useUploadArtworkForm() {
     watchedFile,
     watchedTitle,
     watchedDescription,
-    watchedRightsConfirmed,
     completion,
     processingState,
     processingMessage,

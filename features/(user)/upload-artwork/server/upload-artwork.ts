@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
-import { checkPlagiarismWeb, SearchMatch } from "@/features/plagiarise-checker";
+import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
   buildSimilarityReport,
   buildSimilarityScanInsert,
@@ -19,10 +19,9 @@ import {
   sha256Hex,
   normalizePerceptualHashToBytes32,
   stableStringify,
-  getArtworkStatusFromSimilarity,
-} from "..";
+} from "@/features/(user)/upload-artwork/lib/artwork-hashing";
+import { getArtworkStatusFromSimilarity } from "@/features/(user)/upload-artwork/lib/moderation-policy";
 import { fetchGenreClassification } from "./fetch-genre";
-import { OtherSearchMatch } from "@/features/plagiarise-checker/types";
 
 const HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD = 100;
 
@@ -119,7 +118,6 @@ export async function recordArtworkInDatabase(
     }
 
     const result = await checkPlagiarismWeb(validFile);
-    console.log("Similarity check result:", result);
 
     if (!result.success) {
       return {
