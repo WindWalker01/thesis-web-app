@@ -379,7 +379,6 @@ execute FUNCTION notify_report_submitted_to_reporter ();
 
 create table public.users (
   id uuid not null,
-  full_name text not null,
   username public.citext not null,
   bio text null,
   c_profile_image text null,
@@ -389,6 +388,9 @@ create table public.users (
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
   email text null,
+  first_name text null,
+  last_name text null,
+  middle_name text null,
   constraint users_pkey primary key (id),
   constraint users_email_key unique (email),
   constraint users_username_key unique (username),
