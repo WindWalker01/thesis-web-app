@@ -383,6 +383,7 @@ create table public.users (
   username public.citext not null,
   bio text null,
   c_profile_image text null,
+  is_verified boolean not null default false,
   role public.user_role not null default 'user'::user_role,
   last_active timestamp with time zone not null default now(),
   is_online boolean not null default false,
