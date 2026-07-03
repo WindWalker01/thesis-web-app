@@ -55,12 +55,20 @@ function SimilarityBadge({
     );
 }
 
+/**
+ * Maps a similarity percentage to a badge tone using the same thresholds as
+ * the moderation policy (`upload-artwork/lib/moderation-policy.ts`):
+ *
+ *  ≥ 87.5% → danger  (flagged band — admin review, no genre classification)
+ *  ≥ 70%   → warning (under_review band — moderate risk)
+ *  < 70%   → success (safe / pending blockchain)
+ */
 function getToneFromSimilarity(
     value: number | null
 ): "default" | "success" | "warning" | "danger" {
     if (value === null) return "default";
-    if (value >= 95) return "danger";
-    if (value >= 50) return "warning";
+    if (value >= 87.5) return "danger";
+    if (value >= 70) return "warning";
     return "success";
 }
 
