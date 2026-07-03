@@ -28,8 +28,13 @@ export async function proxy(request: NextRequest) {
             cookies: {
                 // Read cookies from the incoming request
                 getAll: () => request.cookies.getAll(),
-                // Write refreshed cookies onto the outgoing response
                 setAll: (cookiesToSet) => {
+                    // 1. Update the request so downstream Server Components/Actions 
+                    // see the newly refreshed token immediately.
+                    cookiesToSet.forEach(({ name, value }) => {
+                        request.cookies.set(name, value);
+                    });
+                    // 2. Update the response so the browser saves the new token.
                     cookiesToSet.forEach(({ name, value, options }) => {
                         response.cookies.set(name, value, options);
                     });
