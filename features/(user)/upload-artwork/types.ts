@@ -1,5 +1,5 @@
 import { type SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
-import { OtherSearchMatch, type SearchMatch } from "@/features/plagiarise-checker/types";
+import { OtherSearchMatch } from "@/features/plagiarise-checker/types";
 
 /**
  * ArtworkStatus represents only the statuses that this upload pipeline can assign.

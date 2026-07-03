@@ -39,6 +39,29 @@ export interface PlagiarismWebResult {
   other_matches: OtherSearchMatch[];
 }
 
+/**
+ * Loosely-typed shape of the raw plagiarism-check response as consumed by the
+ * upload-artwork similarity selectors. The optional envelope fields mean the
+ * enriched {@link PlagiarismWebResult} returned by `checkPlagiarismWeb` is
+ * assignable here without casts.
+ */
+export interface CheckPlagiarismWebResult {
+  success: boolean;
+  filename?: string;
+  original_hash?: string;
+  hashes?:
+    | {
+        transforms?: Record<string, HashSet>;
+        blocks?: Record<string, HashSet>;
+      }
+    | Record<string, unknown>
+    | null;
+  db?: SearchMatch | null;
+  web?: SearchMatch | null;
+  best_match?: SearchMatch | null;
+  other_matches: OtherSearchMatch[] | null;
+}
+
 export interface ResultBestSearch {
   type: string;
   source: string;

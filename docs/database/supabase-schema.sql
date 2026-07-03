@@ -360,6 +360,8 @@ create index IF not exists idx_reports_reporter_id on public.reports using btree
 
 create index IF not exists idx_reports_created_at on public.reports using btree (created_at desc) TABLESPACE pg_default;
 
+create unique INDEX IF not exists uq_reports_reporter_post on public.reports using btree (reporter_id, reported_art_post_id) TABLESPACE pg_default;
+
 create trigger trg_notify_report_resolved
 after
 update on reports for EACH row

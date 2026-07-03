@@ -195,6 +195,15 @@ export function useCommunityPage({
 
   const handleSubmitReport = useCallback(async (payload: ReportPayload) => {
     const result = await submitArtworkReport(payload);
+    
+    if (result.success) {
+      setPosts((current) => 
+        current.map((item) => 
+          item.postId === payload.postId ? { ...item, hasReported: true } : item
+        )
+      );
+    }
+
     toast.success(result.message);
     return result;
   }, []);

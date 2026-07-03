@@ -93,14 +93,22 @@ export function formatSimilarityPercentage(value: number | null): string {
     return value === null ? "N/A" : `${Number(value).toFixed(2)}%`;
 }
 
+/**
+ * Maps a similarity percentage to a human-readable label that mirrors the
+ * moderation-policy bands defined in `upload-artwork/lib/moderation-policy.ts`:
+ *
+ *  ≥ 100%          → Exact match (internet: under_review; db: hard-blocked upstream)
+ *  ≥ 87.5 – 99.99% → Flagged (admin review, no genre classification)
+ *  ≥ 70 – 87.49%   → Under review (moderate risk, genre classified)
+ *  < 70%           → Low similarity (safe / pending blockchain)
+ */
 export function getSimilarityLevel(value: number | null): string {
     if (value === null) return "No similarity recorded";
-    if (value >= 100) return "Exact match candidate";
-    if (value >= 80) return "Very high similarity";
-    if (value >= 50) return "High similarity";
-    if (value >= 25) return "Moderate similarity";
+    if (value >= 100) return "Exact match";
+    if (value >= 87.5) return "Flagged — high similarity";
+    if (value >= 70) return "Moderate — under review";
     if (value > 0) return "Low similarity";
-    return "No similarity recorded";
+    return "No similarity detected";
 }
 
 export function enrichDatabaseMatchInReport(
