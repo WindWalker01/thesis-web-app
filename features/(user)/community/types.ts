@@ -38,6 +38,7 @@ export type Post = {
     visibility: PostVisibility;
     isArchived: boolean;
     isNsfw: boolean;
+    hasReported: boolean;
 };
 export type FeedScope = "community" | "mine";
 export type VisibilityFilter = "all" | "public" | "private";

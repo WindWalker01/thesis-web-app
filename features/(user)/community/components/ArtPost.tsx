@@ -62,6 +62,7 @@ export type ArtPostProps = {
   onDownvote?: () => void;
   onShare?: () => void;
   onReport?: () => void;
+  hasReported?: boolean;
 
   isVoting?: boolean;
   className?: string;
@@ -94,6 +95,7 @@ export function ArtPost({
   onUpvote,
   onDownvote,
   onReport,
+  hasReported = false,
   isVoting = false,
   className = "",
 }: ArtPostProps) {
@@ -203,11 +205,12 @@ export function ArtPost({
                 </>
               ) : (
                 <DropdownMenuItem
-                  onClick={onReport}
+                  onClick={hasReported ? undefined : onReport}
+                  disabled={hasReported}
                   className="flex cursor-pointer items-center gap-2"
                 >
                   <Flag className="h-4 w-4" />
-                  Report artwork
+                  {hasReported ? "Reported" : "Report artwork"}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

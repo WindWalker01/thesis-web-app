@@ -46,6 +46,7 @@ type ArtReactionRow = {
         }[]
         | null;
     art_reactions?: ArtReactionRow[] | null;
+    reports?: { reporter_id: string }[] | null;
     };
 
 type ArtGenreRow = {
@@ -75,6 +76,14 @@ function getCurrentUserVote(
     return match?.reaction_type ?? null;
 }
 
+function getHasReported(
+    reports: { reporter_id: string }[] | null | undefined,
+    currentUserId: string | null,
+): boolean {
+    if (!currentUserId || !reports?.length) return false;
+    return reports.some((report) => report.reporter_id === currentUserId);
+}
+
 function mapPosts(
     rows: ArtPostRow[],
     categoryByArtId: Map<string, string>,
@@ -90,6 +99,7 @@ function mapPosts(
 
         const category = categoryByArtId.get(row.art_id) ?? "Uncategorized";
         const currentUserVote = getCurrentUserVote(row.art_reactions, currentUserId);
+        const hasReported = getHasReported(row.reports, currentUserId);
 
         posts.push({
             id: row.id,
@@ -127,6 +137,7 @@ function mapPosts(
             visibility: row.visibility,
             isArchived: row.is_archived,
             isNsfw: row.is_nsfw ?? false,
+            hasReported,
         });
     }
 
@@ -162,6 +173,9 @@ const ART_POST_SELECT = `
   art_reactions (
     user_id,
     reaction_type
+  ),
+  reports (
+    reporter_id
   )
 `;
 

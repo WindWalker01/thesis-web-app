@@ -207,11 +207,12 @@ export function PostViewerModal({
                         </>
                       ) : (
                         <DropdownMenuItem
-                          onClick={onReport}
+                          onClick={post.hasReported ? undefined : onReport}
+                          disabled={post.hasReported}
                           className="flex cursor-pointer items-center gap-2"
                         >
                           <Flag className="h-4 w-4" />
-                          Report artwork
+                          {post.hasReported ? "Reported" : "Report artwork"}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
