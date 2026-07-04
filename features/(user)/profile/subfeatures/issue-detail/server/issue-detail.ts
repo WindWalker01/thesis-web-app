@@ -56,7 +56,9 @@ type RawGenreRow = {
 
 type RawUserRow = {
     id: string;
-    full_name: string;
+    first_name: string;
+    middle_name: string;
+    last_name: string | null;
     username: string;
     c_profile_image: string | null;
 };
@@ -189,7 +191,7 @@ export async function fetchIssueDetailByArtworkId(
 
         const { data: creator, error: creatorError } = await supabase
             .from("users")
-            .select("id, full_name, username, c_profile_image")
+            .select("id, first_name, middle_name, last_name, username, c_profile_image")
             .eq("id", artwork.owner_id)
             .maybeSingle();
 
@@ -352,7 +354,7 @@ function mapToIssueDetail(
         creator: creator
             ? {
                 id: creator.id,
-                fullName: creator.full_name,
+                fullName: [creator.first_name, creator?.middle_name, creator.last_name].filter(Boolean).join(" "),
                 username: `@${creator.username}`,
                 profileImage: creator.c_profile_image,
             }

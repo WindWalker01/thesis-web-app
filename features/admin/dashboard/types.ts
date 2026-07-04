@@ -80,7 +80,9 @@ export type LatestArtwork = {
 export type TopArtist = {
   id: string;
   username: string;
-  full_name: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string | null;
   avatar: string | null;
   artwork_count: number;
   total_upvotes: number;

@@ -107,7 +107,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
         .from("reports")
         .select(`
           id, title, report_type, status, created_at,
-          reporter:users!reports_reporter_id_fkey ( full_name, c_profile_image )
+          reporter:users!reports_reporter_id_fkey ( first_name, middle_name, last_name, username, c_profile_image )
         `)
         .order("created_at", { ascending: false })
         .limit(5),
@@ -116,7 +116,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
         .from("registered_arts")
         .select(`
           id, title, c_secure_url, status, created_at,
-          owner:users!registered_arts_owner_id_fkey ( id, full_name )
+          owner:users!registered_arts_owner_id_fkey ( id, first_name, middle_name, last_name )
         `)
         .order("created_at", { ascending: false })
         .limit(6),
@@ -124,7 +124,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       supabase
         .from("users")
         .select(`
-          id, username, full_name, c_profile_image, is_verified,
+          id, username, first_name, middle_name, last_name, c_profile_image, is_verified,
           artwork_count:registered_arts(count)
         `)
         .order("created_at", { ascending: false })
@@ -258,14 +258,14 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       report_type: string;
       status: string;
       created_at: string;
-      reporter: { full_name: string; c_profile_image: string | null } | { full_name: string; c_profile_image: string | null }[] | null;
+      reporter: { first_name: string; middle_name: string; last_name: string | null; c_profile_image: string | null } | { first_name: string; middle_name: string; last_name: string | null; c_profile_image: string | null }[] | null;
     }>).map((r) => {
       const reporter = Array.isArray(r.reporter) ? r.reporter[0] : r.reporter;
       return {
         id: r.id,
         title: r.title,
         reporter: {
-          name: reporter?.full_name ?? "Unknown",
+          name: [reporter?.first_name, reporter?.middle_name, reporter?.last_name].filter(Boolean).join(" ") || "Unknown",
           avatar: reporter?.c_profile_image ?? null,
         },
         status: r.status,
@@ -282,14 +282,14 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       c_secure_url: string | null;
       status: string;
       created_at: string;
-      owner: { id: string; full_name: string } | { id: string; full_name: string }[] | null;
+      owner: { id: string; first_name: string; middle_name: string; last_name: string | null } | { id: string; first_name: string; middle_name: string; last_name: string | null }[] | null;
     }>).map((a) => {
       const owner = Array.isArray(a.owner) ? a.owner[0] : a.owner;
       return {
         id: a.id,
         title: a.title,
         thumbnail: a.c_secure_url,
-        artist: owner?.full_name ?? "Unknown",
+        artist: [owner?.first_name, owner?.middle_name, owner?.last_name].filter(Boolean).join(" ") || "Unknown",
         artist_id: owner?.id ?? "",
         category: null,
         created_at: formatTimeAgo(a.created_at),
@@ -314,7 +314,9 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
     const leaderboard: TopArtist[] = ((leaderboardRaw.data ?? []) as Array<{
       id: string;
       username: string;
-      full_name: string;
+      first_name: string;
+      middle_name: string;
+      last_name: string | null;
       c_profile_image: string | null;
       is_verified: boolean;
       artwork_count: { count: number }[] | { count: number } | null;
@@ -330,7 +332,9 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
         return {
           id: u.id,
           username: u.username,
-          full_name: u.full_name,
+          first_name: u.first_name,
+          middle_name: u.middle_name,
+          last_name: u.last_name,
           avatar: u.c_profile_image,
           artwork_count: artworks,
           total_upvotes: upvotes,

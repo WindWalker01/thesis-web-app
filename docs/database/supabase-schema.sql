@@ -377,14 +377,23 @@ execute FUNCTION notify_report_submitted_to_reporter ();
 
 -- USERS
 
+-- Account status enum for user management
+create type public.account_status as enum ('active', 'suspended', 'banned');
+
 create table public.users (
   id uuid not null,
-  full_name text not null,
+  first_name text not null,
+  last_name text not null,
+  middle_name text null,
   username public.citext not null,
   bio text null,
   c_profile_image text null,
   is_verified boolean not null default false,
   role public.user_role not null default 'user'::user_role,
+  account_status public.account_status not null default 'active'::account_status,
+  suspended_until timestamp with time zone null,
+  suspension_reason text null,
+  country text null,
   last_active timestamp with time zone not null default now(),
   is_online boolean not null default false,
   created_at timestamp with time zone not null default now(),
@@ -405,6 +414,8 @@ create table public.users (
 create index IF not exists idx_users_username on public.users using btree (username) TABLESPACE pg_default;
 
 create index IF not exists idx_users_role on public.users using btree (role) TABLESPACE pg_default;
+
+create index IF not exists idx_users_account_status on public.users using btree (account_status) TABLESPACE pg_default;
 
 create index IF not exists idx_users_last_active on public.users using btree (last_active desc) TABLESPACE pg_default;
 
@@ -552,3 +563,46 @@ create index IF not exists idx_report_decisions_admin_id on public.report_decisi
 create index IF not exists idx_reports_status_created on public.reports using btree (status, created_at desc) TABLESPACE pg_default;
 create index IF not exists idx_reports_reporter_status on public.reports using btree (reporter_id, status) TABLESPACE pg_default;
 create index IF not exists idx_reports_report_type on public.reports using btree (report_type) TABLESPACE pg_default;
+
+
+
+-- ADMIN AUDIT LOGS
+-- Tracks all administrative actions for accountability and audit trail
+
+create table public.admin_audit_logs (
+  id uuid not null default gen_random_uuid(),
+  admin_id uuid not null,
+  target_user_id uuid null,
+  action text not null,
+  reason text null,
+  previous_value text null,
+  new_value text null,
+  metadata jsonb not null default '{}'::jsonb,
+  ip_address text null,
+  created_at timestamp with time zone not null default now(),
+  constraint admin_audit_logs_pkey primary key (id),
+  constraint admin_audit_logs_admin_id_fkey foreign key (admin_id) references users (id) on delete cascade,
+  constraint admin_audit_logs_target_user_id_fkey foreign key (target_user_id) references users (id) on delete set null,
+  constraint admin_audit_logs_action_check check (
+    action = any (array[
+      'suspend_user'::text,
+      'ban_user'::text,
+      'reactivate_user'::text,
+      'verify_artist'::text,
+      'remove_verification'::text,
+      'reset_password'::text,
+      'send_notification'::text,
+      'force_logout'::text,
+      'delete_account'::text,
+      'bulk_suspend'::text,
+      'bulk_ban'::text,
+      'bulk_verify'::text,
+      'export_users'::text
+    ])
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_admin_audit_logs_admin_id on public.admin_audit_logs using btree (admin_id) TABLESPACE pg_default;
+create index IF not exists idx_admin_audit_logs_target_user_id on public.admin_audit_logs using btree (target_user_id) TABLESPACE pg_default;
+create index IF not exists idx_admin_audit_logs_action on public.admin_audit_logs using btree (action) TABLESPACE pg_default;
+create index IF not exists idx_admin_audit_logs_created_at on public.admin_audit_logs using btree (created_at desc) TABLESPACE pg_default;

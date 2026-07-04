@@ -58,12 +58,12 @@ export function Leaderboard({ artists }: Props) {
                 {artist.avatar ? (
                   <img
                     src={artist.avatar}
-                    alt={artist.full_name}
+                    alt={artist.first_name || artist.username}
                     className="h-full w-full object-cover"
                   />
                 ) : (
                   <span className="text-sm font-bold text-muted-foreground">
-                    {artist.full_name.charAt(0).toUpperCase()}
+                    {artist.first_name?.charAt(0).toUpperCase() || "?"}
                   </span>
                 )}
               </div>
@@ -72,7 +72,7 @@ export function Leaderboard({ artists }: Props) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-medium truncate">
-                    {artist.full_name || artist.username}
+                    {[artist.first_name, artist.middle_name, artist.last_name].filter(Boolean).join(" ") || artist.username}
                   </p>
                   {artist.is_verified && (
                     <ShieldCheck className="h-3.5 w-3.5 text-green-500 shrink-0" />
