@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
 import { Button } from "@/components/ui/button";
+import { usePendingReviewCount } from "@/features/admin/artwork-verification/hooks/useReviews";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -27,12 +28,14 @@ const navItems = [
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Artworks", href: "/admin/artworks", icon: ImageIcon },
   { label: "Reports", href: "/admin/reports", icon: FileText },
+  { label: "Artwork Verification", href: "/admin/artwork-verification", icon: ShieldCheck },
   { label: "Analytics", href: "#", icon: BarChart3 },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { data: pendingCount = 0 } = usePendingReviewCount();
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
@@ -47,6 +50,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const showBadge = item.label === "Artwork Verification" && pendingCount > 0;
           return (
             <Link
               key={item.href}
@@ -60,7 +64,12 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {showBadge && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                  {pendingCount}
+                </span>
+              )}
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"

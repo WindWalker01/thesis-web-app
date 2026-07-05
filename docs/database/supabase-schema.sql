@@ -606,3 +606,77 @@ create index IF not exists idx_admin_audit_logs_admin_id on public.admin_audit_l
 create index IF not exists idx_admin_audit_logs_target_user_id on public.admin_audit_logs using btree (target_user_id) TABLESPACE pg_default;
 create index IF not exists idx_admin_audit_logs_action on public.admin_audit_logs using btree (action) TABLESPACE pg_default;
 create index IF not exists idx_admin_audit_logs_created_at on public.admin_audit_logs using btree (created_at desc) TABLESPACE pg_default;
+
+
+
+-- ARTWORK REVIEWS
+-- Tracks manual review queue for artworks flagged by plagiarism detection
+
+create table public.artwork_reviews (
+  id uuid not null default gen_random_uuid(),
+  artwork_id uuid not null,
+  reviewer_id uuid null,
+  status text not null default 'pending'::text,
+  decision text null,
+  decision_reason text null,
+  review_notes text null,
+  requested_documents jsonb not null default '[]'::jsonb,
+  assigned_at timestamp with time zone null,
+  reviewed_at timestamp with time zone null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  constraint artwork_reviews_pkey primary key (id),
+  constraint artwork_reviews_artwork_id_key unique (artwork_id),
+  constraint artwork_reviews_artwork_id_fkey foreign key (artwork_id) references registered_arts (id) on delete cascade,
+  constraint artwork_reviews_reviewer_id_fkey foreign key (reviewer_id) references users (id) on delete set null,
+  constraint artwork_reviews_status_check check (
+    status = any (array['pending'::text, 'under_review'::text, 'needs_info'::text, 'approved'::text, 'rejected'::text])
+  ),
+  constraint artwork_reviews_decision_check check (
+    decision is null or decision = any (array['approved'::text, 'rejected'::text, 'needs_info'::text])
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_artwork_reviews_status on public.artwork_reviews using btree (status) TABLESPACE pg_default;
+create index IF not exists idx_artwork_reviews_reviewer_id on public.artwork_reviews using btree (reviewer_id) TABLESPACE pg_default;
+create index IF not exists idx_artwork_reviews_created_at on public.artwork_reviews using btree (created_at desc) TABLESPACE pg_default;
+create index IF not exists idx_artwork_reviews_artwork_id on public.artwork_reviews using btree (artwork_id) TABLESPACE pg_default;
+
+create trigger trg_artwork_reviews_updated_at before
+update on artwork_reviews for each row
+execute function set_updated_at ();
+
+
+
+-- ARTWORK REVIEW ACTIONS (Audit Trail)
+
+create table public.artwork_review_actions (
+  id uuid not null default gen_random_uuid(),
+  review_id uuid not null,
+  admin_id uuid not null,
+  action text not null,
+  previous_status text null,
+  new_status text null,
+  notes text null,
+  created_at timestamp with time zone not null default now(),
+  constraint artwork_review_actions_pkey primary key (id),
+  constraint artwork_review_actions_review_id_fkey foreign key (review_id) references artwork_reviews (id) on delete cascade,
+  constraint artwork_review_actions_admin_id_fkey foreign key (admin_id) references users (id) on delete cascade,
+  constraint artwork_review_actions_action_check check (
+    action = any (array[
+      'viewed'::text,
+      'assigned'::text,
+      'unassigned'::text,
+      'approved'::text,
+      'rejected'::text,
+      'comment_added'::text,
+      'information_requested'::text,
+      'decision_changed'::text,
+      'blockchain_triggered'::text
+    ])
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_artwork_review_actions_review_id on public.artwork_review_actions using btree (review_id) TABLESPACE pg_default;
+create index IF not exists idx_artwork_review_actions_admin_id on public.artwork_review_actions using btree (admin_id) TABLESPACE pg_default;
+create index IF not exists idx_artwork_review_actions_created_at on public.artwork_review_actions using btree (review_id, created_at desc) TABLESPACE pg_default;
