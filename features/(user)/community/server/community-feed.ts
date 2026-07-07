@@ -5,6 +5,12 @@ import { formatTimeAgo } from "@/lib/client-utils";
 import { getShowNsfwContentAction } from "@/features/(user)/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
 import type { CommunityPageData, Post, VoteType } from "../types";
 
+export type CommunityPostDetail = {
+    post: Post;
+    currentUserId: string | null;
+    authed: boolean;
+};
+
 const COMMUNITY_NAME = "ArtForgeLab";
 const COMMUNITY_HREF = "/community";
 const COMMUNITY_ICON =
@@ -294,4 +300,100 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
             protectedPosts: `${posts.length}+`,
         },
     };
+}
+
+async function getCategoryForArt(
+    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+    artId: string,
+): Promise<Map<string, string>> {
+    const categoryByArtId = new Map<string, string>();
+
+    const { data: genreRows, error } = await supabase
+        .from("art_genres")
+        .select(`
+        art_id,
+        genre_id,
+        genres (
+          name
+        )
+      `)
+        .eq("art_id", artId)
+        .order("genre_id", { ascending: true });
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    for (const row of (genreRows ?? []) as ArtGenreRow[]) {
+        if (categoryByArtId.has(row.art_id)) continue;
+
+        const genreValue = row.genres;
+        const genreName = Array.isArray(genreValue)
+            ? (genreValue[0]?.name ?? null)
+            : (genreValue?.name ?? null);
+
+        if (genreName?.trim()) {
+            categoryByArtId.set(row.art_id, genreName.trim());
+        }
+    }
+
+    return categoryByArtId;
+}
+
+/**
+ * Fetch a single community post for its dedicated page. Returns null when the
+ * post cannot be shown to the current viewer (missing, archived, inactive
+ * artwork, private and not owned, or NSFW without opt-in) so the route can 404.
+ */
+export async function getCommunityPostById(
+    postId: string,
+): Promise<CommunityPostDetail | null> {
+    const supabase = await createSupabaseServerClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    const currentUserId = user?.id ?? null;
+    const authed = Boolean(user);
+
+    const { data, error } = await supabase
+        .from("art_posts")
+        .select(ART_POST_SELECT)
+        .eq("id", postId)
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    if (!data) return null;
+
+    const row = data as ArtPostRow;
+    const artwork = toSingleObject(row.registered_arts);
+    const author = toSingleObject(row.users);
+
+    if (!artwork || !author) return null;
+
+    const isOwner = currentUserId === row.user_id;
+
+    // Access rules: only the owner may view archived, inactive, or private posts.
+    if (!isOwner) {
+        if (row.is_archived) return null;
+        if (row.visibility !== "public") return null;
+        if (artwork.status !== "active") return null;
+    }
+
+    // Respect the viewer's NSFW preference unless they own the post.
+    if (row.is_nsfw && !isOwner) {
+        const showNsfwContent = user ? await getShowNsfwContentAction() : false;
+        if (!showNsfwContent) return null;
+    }
+
+    const categoryByArtId = await getCategoryForArt(supabase, row.art_id);
+    const [post] = mapPosts([row], categoryByArtId, currentUserId);
+
+    if (!post) return null;
+
+    return { post, currentUserId, authed };
 }
