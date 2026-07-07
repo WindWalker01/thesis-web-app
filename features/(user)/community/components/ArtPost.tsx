@@ -9,7 +9,6 @@ import {
   Loader2,
   MoreHorizontal,
   Pencil,
-  Share2,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +23,7 @@ import {
 import ConfirmActionModal from "../../settings/components/ConfirmActionModal";
 import { useArtPost } from "../hooks/useArtPost";
 import type { VoteType, PostVisibility } from "../types";
+import { SharePostButton } from "./SharePostButton";
 
 export type ArtPostProps = {
   postId: string;
@@ -60,7 +60,6 @@ export type ArtPostProps = {
 
   onUpvote?: () => void;
   onDownvote?: () => void;
-  onShare?: () => void;
   onReport?: () => void;
   hasReported?: boolean;
 
@@ -94,7 +93,6 @@ export function ArtPost({
   onOpen,
   onUpvote,
   onDownvote,
-  onShare,
   onReport,
   hasReported = false,
   isVoting = false,
@@ -314,15 +312,11 @@ export function ArtPost({
               Downvote
             </button>
 
-            <button
-              type="button"
-              onClick={onShare}
-              className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition"
-              aria-label="Share"
-            >
-              <Share2 className="h-4 w-4" />
-              Share
-            </button>
+            <SharePostButton
+              postId={postId}
+              title={title}
+              className="text-sm"
+            />
           </div>
         </div>
       </article>

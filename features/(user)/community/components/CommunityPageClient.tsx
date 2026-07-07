@@ -18,7 +18,6 @@ import {
 import { ArtPost } from "./ArtPost";
 import { LoginRequiredModal } from "./LoginRequiredModal";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
-import { sharePost } from "../lib/share-post";
 import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
 import { InfoRow } from "./InfoRow";
@@ -336,9 +335,6 @@ export default function CommunityPageClient({
                       onReport={() => actions.openReport(post)}
                       onUpvote={() => actions.upVote(post)}
                       onDownvote={() => actions.downVote(post)}
-                      onShare={() =>
-                        sharePost({ postId: post.postId, title: post.title })
-                      }
                     />
                   ))
                 )}
