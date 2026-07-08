@@ -186,7 +186,7 @@ export default function ArtworkVerificationPage() {
   const totalPages = reviewsData?.totalPages ?? 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       {/* Top Bar */}
       <div className="border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3">
@@ -243,6 +243,6 @@ export default function ArtworkVerificationPage() {
           onClearFilters={clearFilters}
         />
       </div>
-    </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,6 @@ const EngagementChart = dynamic(
   { ssr: false }
 );
 
-import { Sidebar } from "./sidebar";
-import { TopNav } from "./top-nav";
 import { OverviewCards } from "./overview-cards";
 import { ActivityFeed } from "./activity-feed";
 import { RecentReportsTable } from "./recent-reports-table";
@@ -43,14 +41,7 @@ import { SystemHealth } from "./system-health";
 import { QuickActions } from "./quick-actions";
 
 export default function AdminDashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { dashboard, isLoading, error, refetch } = useAdminDashboard();
-
-  const unreadCount = useMemo(
-    () => dashboard?.notifications.filter((n) => !n.is_read).length ?? 0,
-    [dashboard?.notifications]
-  );
 
   // Loading state
   if (isLoading) {
@@ -83,86 +74,68 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Sidebar */}
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        onClose={() => setMobileMenuOpen(false)}
-      />
+    <div className="space-y-6 p-4 lg:p-6">
+      {/* Welcome Section */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Welcome back, Administrator
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">{today}</p>
+        </div>
+      </div>
 
-      {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0">
-        <TopNav
-          onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          unreadCount={unreadCount}
-        />
+      <Separator />
 
-        <main className="flex-1 space-y-6 p-4 lg:p-6 overflow-auto">
-          {/* Welcome Section */}
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Welcome back, Administrator
-              </h1>
-              <p className="text-muted-foreground text-sm mt-1">{today}</p>
-            </div>
-            <QuickActions />
-          </div>
+      {/* Statistics Cards */}
+      <OverviewCards stats={dashboard.stats} />
 
-          <Separator />
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted/60" />}>
+          <UploadChart data={dashboard.charts.artworkUploads} />
+        </Suspense>
+        <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted/60" />}>
+          <NewUsersChart data={dashboard.charts.newUsers} />
+        </Suspense>
+      </div>
 
-          {/* Statistics Cards */}
-          <OverviewCards stats={dashboard.stats} />
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/60" />}>
+          <ReportsChart data={dashboard.charts.reportStatuses} />
+        </Suspense>
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/60" />}>
+          <CategoryChart data={dashboard.charts.artworkCategories} />
+        </Suspense>
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/60" />}>
+          <EngagementChart data={dashboard.charts.dailyEngagement} />
+        </Suspense>
+      </div>
 
-          {/* Charts Row 1 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted/60" />}>
-              <UploadChart data={dashboard.charts.artworkUploads} />
-            </Suspense>
-            <Suspense fallback={<div className="h-80 animate-pulse rounded-2xl bg-muted/60" />}>
-              <NewUsersChart data={dashboard.charts.newUsers} />
-            </Suspense>
-          </div>
+      {/* Activity & Reports Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ActivityFeed activities={dashboard.recentActivity} />
+        <RecentReportsTable reports={dashboard.recentReports} />
+      </div>
 
-          {/* Charts Row 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/60" />}>
-              <ReportsChart data={dashboard.charts.reportStatuses} />
-            </Suspense>
-            <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/60" />}>
-              <CategoryChart data={dashboard.charts.artworkCategories} />
-            </Suspense>
-            <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/60" />}>
-              <EngagementChart data={dashboard.charts.dailyEngagement} />
-            </Suspense>
-          </div>
+      {/* Artworks, Leaderboard, Most Reported Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <LatestArtworks artworks={dashboard.latestArtworks} />
+        </div>
+        <div className="lg:col-span-1">
+          <Leaderboard artists={dashboard.leaderboard} />
+        </div>
+        <div className="lg:col-span-1">
+          <MostReportedArtworks artworks={dashboard.mostReported} />
+        </div>
+      </div>
 
-          {/* Activity & Reports Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ActivityFeed activities={dashboard.recentActivity} />
-            <RecentReportsTable reports={dashboard.recentReports} />
-          </div>
-
-          {/* Artworks, Leaderboard, Most Reported Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <LatestArtworks artworks={dashboard.latestArtworks} />
-            </div>
-            <div className="lg:col-span-1">
-              <Leaderboard artists={dashboard.leaderboard} />
-            </div>
-            <div className="lg:col-span-1">
-              <MostReportedArtworks artworks={dashboard.mostReported} />
-            </div>
-          </div>
-
-          {/* Notifications & System Health Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AdminNotifications notifications={dashboard.notifications} />
-            <SystemHealth services={dashboard.systemHealth} />
-          </div>
-        </main>
+      {/* Notifications & System Health Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <AdminNotifications notifications={dashboard.notifications} />
+        <SystemHealth services={dashboard.systemHealth} />
       </div>
     </div>
   );

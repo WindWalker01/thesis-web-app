@@ -57,12 +57,7 @@ export function PostViewerModal({
     onDownvote,
     onReport,
 }: PostViewerModalProps) {
-    if (!post) return null;
-
-    const upvoteActive = post.currentUserVote === "upvote";
-    const downvoteActive = post.currentUserVote === "downvote";
-    const VisibilityIcon = post.visibility === "private" ? Lock : Globe;
-
+    // Hooks must be called unconditionally. Pass an empty string when post is null
     const {
         deleteModalOpen,
         isDeleting,
@@ -70,12 +65,18 @@ export function PostViewerModal({
         openDeleteModal,
         closeDeleteModal,
     } = useArtPost({
-        postId: post.postId,
+        postId: post?.postId ?? "",
         onDeleted: (deletedPostId) => {
             onOpenChange(false);
             onDeleted?.(deletedPostId);
         },
     });
+
+    if (!post) return null;
+
+    const upvoteActive = post.currentUserVote === "upvote";
+    const downvoteActive = post.currentUserVote === "downvote";
+    const VisibilityIcon = post.visibility === "private" ? Lock : Globe;
 
     return (
         <>

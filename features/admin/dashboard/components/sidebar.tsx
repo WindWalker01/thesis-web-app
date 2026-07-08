@@ -29,7 +29,6 @@ const navItems = [
   { label: "Artworks", href: "/admin/artworks", icon: ImageIcon },
   { label: "Reports", href: "/admin/reports", icon: FileText },
   { label: "Artwork Verification", href: "/admin/artwork-verification", icon: ShieldCheck },
-  { label: "Analytics", href: "#", icon: BarChart3 },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
@@ -42,7 +41,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
       {/* Logo */}
       <div className="border-border flex h-16 items-center gap-2 border-b px-4">
         <ShieldCheck className="h-6 w-6 text-primary" />
-        <span className="text-base font-bold tracking-tight">Admin Panel</span>
+        <span className="text-base font-bold tracking-tight">Admin Dashboard</span>
       </div>
 
       {/* Navigation */}

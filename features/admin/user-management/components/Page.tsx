@@ -566,7 +566,7 @@ export default function UserManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       {/* Top Bar */}
       <div className="border-b border-border bg-card px-4 py-3">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1604,7 +1604,7 @@ export default function UserManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
 

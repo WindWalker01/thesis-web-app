@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   ChevronDown,
@@ -63,6 +64,7 @@ const MORE_LINKS = [
 ];
 
 export default function NavBar() {
+  const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -80,13 +82,17 @@ export default function NavBar() {
   } = useNotifications(user?.id);
 
   const visibleNavLinks = useMemo(() => {
-    const base = NAV_LINKS.filter((link) => {
-      if (link.requiresAuth && !user) return false;
-      return true;
-    });
-    return isAdmin
-      ? [...base, { label: "Reports", href: "/admin/reports" }]
-      : base;
+    return NAV_LINKS
+      .filter((link) => {
+        if (link.requiresAuth && !user) return false;
+        return true;
+      })
+      .map((link) => {
+        if (link.label === "Dashboard" && isAdmin) {
+          return { ...link, href: "/admin/dashboard" };
+        }
+        return link;
+      });
   }, [user, isAdmin]);
 
   const visibleMoreLinks = useMemo(() => {
@@ -97,6 +103,9 @@ export default function NavBar() {
   }, [user]);
 
   const closeMobile = () => setMobileOpen(false);
+
+  // Hide the navbar entirely on admin pages (after all hooks)
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <>
@@ -487,17 +496,6 @@ export default function NavBar() {
                       <p className="px-3 pb-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
                         Account
                       </p>
-
-                      {isAdmin && (
-                        <Link
-                          href="/admin/reports"
-                          onClick={closeMobile}
-                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-muted"
-                        >
-                          <ShieldCheck className="h-4 w-4 text-purple-500" />
-                          <span>Admin Reports</span>
-                        </Link>
-                      )}
 
                       {[
                         {
