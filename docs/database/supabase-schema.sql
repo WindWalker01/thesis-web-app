@@ -680,3 +680,50 @@ create table public.artwork_review_actions (
 create index IF not exists idx_artwork_review_actions_review_id on public.artwork_review_actions using btree (review_id) TABLESPACE pg_default;
 create index IF not exists idx_artwork_review_actions_admin_id on public.artwork_review_actions using btree (admin_id) TABLESPACE pg_default;
 create index IF not exists idx_artwork_review_actions_created_at on public.artwork_review_actions using btree (review_id, created_at desc) TABLESPACE pg_default;
+
+
+
+-- SYSTEM SETTINGS
+-- Stores all configurable platform settings as key-value pairs
+-- with JSONB values for flexible data types
+
+create table public.system_settings (
+  id uuid not null default gen_random_uuid(),
+  key text not null,
+  value jsonb not null default '{}'::jsonb,
+  description text null,
+  updated_by uuid null,
+  updated_at timestamp with time zone not null default now(),
+  constraint system_settings_pkey primary key (id),
+  constraint system_settings_key_key unique (key),
+  constraint system_settings_updated_by_fkey foreign key (updated_by) references users (id) on delete set null
+) TABLESPACE pg_default;
+
+create index IF not exists idx_system_settings_key on public.system_settings using btree (key) TABLESPACE pg_default;
+create index IF not exists idx_system_settings_updated_by on public.system_settings using btree (updated_by) TABLESPACE pg_default;
+create index IF not exists idx_system_settings_updated_at on public.system_settings using btree (updated_at desc) TABLESPACE pg_default;
+
+create trigger trg_system_settings_updated_at BEFORE
+update on system_settings for EACH row
+execute FUNCTION set_updated_at ();
+
+
+
+-- SETTINGS AUDIT LOGS
+-- Tracks all configuration changes for accountability
+
+create table public.settings_audit_logs (
+  id uuid not null default gen_random_uuid(),
+  admin_id uuid not null,
+  setting_key text not null,
+  previous_value jsonb null,
+  new_value jsonb null,
+  reason text null,
+  created_at timestamp with time zone not null default now(),
+  constraint settings_audit_logs_pkey primary key (id),
+  constraint settings_audit_logs_admin_id_fkey foreign key (admin_id) references users (id) on delete cascade
+) TABLESPACE pg_default;
+
+create index IF not exists idx_settings_audit_logs_admin_id on public.settings_audit_logs using btree (admin_id) TABLESPACE pg_default;
+create index IF not exists idx_settings_audit_logs_setting_key on public.settings_audit_logs using btree (setting_key) TABLESPACE pg_default;
+create index IF not exists idx_settings_audit_logs_created_at on public.settings_audit_logs using btree (created_at desc) TABLESPACE pg_default;
