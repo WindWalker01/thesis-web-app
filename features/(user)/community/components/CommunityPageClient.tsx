@@ -18,6 +18,7 @@ import { ArtPost } from "./ArtPost";
 import { LoginRequiredModal } from "./LoginRequiredModal";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
 import { PostViewerModal } from "./PostViewerModal";
+import { FeaturedArtworks } from "./FeaturedArtworks";
 import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
 import { InfoRow } from "./InfoRow";
@@ -138,6 +139,12 @@ export default function CommunityPageClient({
           </div>
         </div>
       </section>
+
+      <FeaturedArtworks
+        posts={feedState.featuredPosts}
+        onOpen={actions.openPostViewer}
+        authed={authed}
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -260,6 +267,16 @@ export default function CommunityPageClient({
                                   active={feedState.sortBy === "oldest"}
                                   onClick={() => feedActions.setSortBy("oldest")}
                                   label="Oldest"
+                                />
+                                <FilterChip
+                                  active={feedState.sortBy === "highest-score"}
+                                  onClick={() => feedActions.setSortBy("highest-score")}
+                                  label="Highest Score"
+                                />
+                                <FilterChip
+                                  active={feedState.sortBy === "most-upvoted"}
+                                  onClick={() => feedActions.setSortBy("most-upvoted")}
+                                  label="Most Upvoted"
                                 />
                               </div>
                             </div>

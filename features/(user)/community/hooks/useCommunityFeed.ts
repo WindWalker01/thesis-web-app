@@ -159,8 +159,21 @@ export function useCommunityFeed({
         result.sort((a, b) => {
             const aTime = new Date(a.createdAt).getTime();
             const bTime = new Date(b.createdAt).getTime();
+            const newestFirst = bTime - aTime;
 
-            return sortBy === "newest" ? bTime - aTime : aTime - bTime;
+            switch (sortBy) {
+                case "highest-score":
+                    // Sort by persisted net score (desc); ties fall back to newest.
+                    return b.score - a.score || newestFirst;
+                case "most-upvoted":
+                    // Sort by upvote count (desc); ties fall back to newest.
+                    return b.upvoteCount - a.upvoteCount || newestFirst;
+                case "oldest":
+                    return aTime - bTime;
+                case "newest":
+                default:
+                    return newestFirst;
+            }
         });
 
         return result;
@@ -174,6 +187,34 @@ export function useCommunityFeed({
         activeFilter,
         sortBy,
     ]);
+
+    // Featured Artworks: the most community-recognized works.
+    // Derived from the same posts array (no extra query, no data duplication).
+    // Pool is public, non-archived, non-NSFW so the band is safe for all viewers,
+    // independent of the user's active feed filters. Ranked by net score, with
+    // ties broken by upvote count, then newest.
+    const FEATURED_LIMIT = 5;
+
+    const featuredPosts = useMemo(() => {
+        return [...posts]
+            .filter(
+                (post) =>
+                    post.visibility === "public" &&
+                    !post.isArchived &&
+                    !post.isNsfw
+            )
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                if (b.upvoteCount !== a.upvoteCount) {
+                    return b.upvoteCount - a.upvoteCount;
+                }
+                return (
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                );
+            })
+            .slice(0, FEATURED_LIMIT);
+    }, [posts]);
 
     const resetFilters = () => {
         setSearch("");
@@ -193,6 +234,7 @@ export function useCommunityFeed({
             visibilityFilter,
             sortBy,
             filteredPosts,
+            featuredPosts,
             availableFilters,
             filtersButtonRef,
             filtersMenuRef,

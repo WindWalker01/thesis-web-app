@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ConfirmActionModal from "../../settings/components/ConfirmActionModal";
 import { useArtPost } from "../hooks/useArtPost";
+import { RecognitionBadge } from "./RecognitionBadge";
 import type { Post } from "../types";
 
 type PostViewerModalProps = {
@@ -141,7 +142,20 @@ export function PostViewerModal({
                         <p className="text-foreground hover:text-primary truncate text-base font-semibold transition">
                           @{post.username}
                         </p>
+                        <RecognitionBadge tier={post.artistBadge} />
                       </div>
+
+                      {post.artistReputation && (
+                        <p
+                          className="text-muted-foreground mt-1 text-xs font-medium"
+                          title={post.artistReputation.summary}
+                        >
+                          Reputation{" "}
+                          <span className="text-foreground font-semibold">
+                            {post.artistReputation.score}/100
+                          </span>
+                        </p>
+                      )}
 
                       <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm">
                         <Link
