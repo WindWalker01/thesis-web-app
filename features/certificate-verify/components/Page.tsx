@@ -1,7 +1,6 @@
 import { CertificateVerifiedBadge } from "./CertificateVerifiedBadge";
 import { CertificateNotFoundState } from "./CertificateNotFoundState";
-import { OwnerVerificationCard } from "./OwnerVerificationCard";
-import { PublicVerificationCard } from "./PublicVerificationCard";
+import { VerificationCard } from "./VerificationCard";
 import type { CertificateVerificationResult } from "../types";
 
 export function CertificateVerifyPage({
@@ -10,30 +9,21 @@ export function CertificateVerifyPage({
   result: CertificateVerificationResult;
 }) {
   return (
-    <main className="mt-15 min-h-screen bg-slate-50 px-4 py-16 dark:bg-slate-950">
-      <div className="mx-auto w-full max-w-lg space-y-8">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 px-4 pb-16 pt-24 sm:pt-28 dark:from-slate-950 dark:to-slate-900">
+      <div className="mx-auto w-full max-w-xl space-y-6 sm:space-y-8">
         {!result.found ? (
           <CertificateNotFoundState />
         ) : (
           <>
-            <CertificateVerifiedBadge valid={result.data.valid} />
+            <CertificateVerifiedBadge
+              valid={result.data.valid}
+              revoked={result.data.revoked}
+            />
 
-            {result.data.isOwner ? (
-              <OwnerVerificationCard data={result.data} />
-            ) : (
-              <PublicVerificationCard
-                certificateStatus={result.data.certificateStatus}
-                artworkRegistration={result.data.artworkRegistration}
-                ownershipStatus={result.data.ownershipStatus}
-                blockchain={`Polygon ${result.data.blockchain}`}
-                transactionHash={result.data.transactionHash}
-                polygonScanUrl={result.data.polygonScanUrl}
-                issuedAt={result.data.issuedAt}
-              />
-            )}
+            <VerificationCard data={result.data} />
 
-            <p className="text-center text-sm text-slate-400 dark:text-slate-500">
-              ArtForgeLab - Digital Artists IPR Management System
+            <p className="text-center text-xs text-slate-400 sm:text-sm dark:text-slate-500">
+              ArtForgeLab — Digital Artists IPR Management System
             </p>
           </>
         )}

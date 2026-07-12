@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthUser } from "@/lib/server-utils";
+import { readOnChainWork } from "./read-onchain-work";
 import type {
     CertificateVerificationResult,
     PublicCertificateVerification,
@@ -18,6 +19,8 @@ type RegisteredArtRow = {
     owner_id: string;
     title: string;
     c_secure_url: string | null;
+    perceptual_hash: string | null;
+    work_id: string | null;
     created_at: string;
     status: string;
     chain: string | null;
@@ -48,6 +51,8 @@ export async function verifyCertificate(
                 owner_id,
                 title,
                 c_secure_url,
+                perceptual_hash,
+                work_id,
                 created_at,
                 status,
                 chain,
@@ -62,13 +67,38 @@ export async function verifyCertificate(
     }
 
     const txHash = data.tx_hash?.trim() ? data.tx_hash : null;
-    const valid = data.status === "active" && txHash !== null;
+    const dbPHash = data.perceptual_hash?.trim() ? data.perceptual_hash : null;
+
+    // Authoritative on-chain read: surfaces the contract's `revoked` flag and
+    // confirms the perceptual fingerprint anchored on-chain matches our record.
+    // Degrades gracefully to database state if the chain is unreachable.
+    const onChain = data.work_id?.trim()
+        ? await readOnChainWork(data.work_id)
+        : null;
+
+    const revoked = onChain?.revoked ?? false;
+    const onChainVerified =
+        onChain !== null &&
+        dbPHash !== null &&
+        onChain.pHash.toLowerCase() === dbPHash.toLowerCase();
+
+    const registered = data.status === "active" && txHash !== null;
+    const valid = registered && !revoked;
+
+    const certificateStatus: PublicCertificateVerification["certificateStatus"] =
+        revoked ? "Revoked" : valid ? "Valid" : "Pending";
 
     const publicPayload: PublicCertificateVerification = {
         valid,
-        certificateStatus: valid ? "Valid" : "Pending",
-        artworkRegistration: valid ? "Confirmed" : "Pending",
+        revoked,
+        onChainVerified,
+        certificateStatus,
+        artworkRegistration: registered ? "Confirmed" : "Pending",
         ownershipStatus: valid ? "Verified" : "Pending",
+        artworkTitle: data.title,
+        artworkImage: data.c_secure_url,
+        perceptualHash: dbPHash,
+        workId: data.work_id?.trim() ? data.work_id : null,
         blockchain: data.chain?.trim() ? data.chain : "N/A",
         transactionHash: txHash,
         polygonScanUrl: txHash ? `${POLYGONSCAN_BASE}/${txHash}` : null,
@@ -104,11 +134,9 @@ export async function verifyCertificate(
         data: {
             ...publicPayload,
             isOwner: true,
-            artworkTitle: data.title,
             artistName: artistName || "N/A",
             artistUsername: owner?.username ?? "N/A",
             registrationDate: data.created_at,
-            artworkImage: data.c_secure_url,
         },
     };
 }
