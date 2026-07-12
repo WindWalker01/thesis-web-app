@@ -38,7 +38,6 @@ import { Leaderboard } from "./leaderboard";
 import { MostReportedArtworks } from "./most-reported-artworks";
 import { AdminNotifications } from "./admin-notifications";
 import { SystemHealth } from "./system-health";
-import { QuickActions } from "./quick-actions";
 
 export default function AdminDashboardPage() {
   const { dashboard, isLoading, error, refetch } = useAdminDashboard();
