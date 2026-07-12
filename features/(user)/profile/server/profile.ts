@@ -26,6 +26,7 @@ export type UserProfile = {
     role: "user" | "admin";
     joinDate: string;
     initials: string;
+    isVerified: boolean;
 };
 
 /**
@@ -83,7 +84,7 @@ export async function fetchUserProfileById(
          */
         const { data, error } = await supabase
             .from("users")
-            .select("id, first_name, middle_name, last_name, username, bio, c_profile_image, role, created_at")
+            .select("id, first_name, middle_name, last_name, username, bio, c_profile_image, role, created_at, is_verified")
             .eq("id", userId)
             .single();
 
@@ -123,7 +124,7 @@ export async function fetchUserProfileByUsername(
 
         const { data, error } = await supabase
             .from("users")
-            .select("id, first_name, middle_name, last_name, username, bio, c_profile_image, role, created_at")
+            .select("id, first_name, middle_name, last_name, username, bio, c_profile_image, role, created_at, is_verified")
             .eq("username", username)
             .single();
 
@@ -163,6 +164,7 @@ type RawUser = {
     c_profile_image: string | null;
     role: string;
     created_at: string;
+    is_verified: boolean;
 };
 
 /**
@@ -184,6 +186,7 @@ function mapToUserProfile(raw: RawUser): UserProfile {
         role: raw.role as UserProfile["role"],
         joinDate: formatJoinDate(raw.created_at),
         initials: deriveInitials(raw.first_name, raw.last_name),
+        isVerified: raw.is_verified,
     };
 }
 

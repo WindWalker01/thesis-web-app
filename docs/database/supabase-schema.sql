@@ -707,6 +707,49 @@ create trigger trg_system_settings_updated_at BEFORE
 update on system_settings for EACH row
 execute FUNCTION set_updated_at ();
 
+-- Enable RLS and create policies for system_settings
+alter table public.system_settings enable row level security;
+
+create policy "Admins can read system_settings"
+  on public.system_settings for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can insert system_settings"
+  on public.system_settings for insert
+  with check (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can update system_settings"
+  on public.system_settings for update
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can delete system_settings"
+  on public.system_settings for delete
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
 
 
 -- SETTINGS AUDIT LOGS
@@ -727,3 +770,26 @@ create table public.settings_audit_logs (
 create index IF not exists idx_settings_audit_logs_admin_id on public.settings_audit_logs using btree (admin_id) TABLESPACE pg_default;
 create index IF not exists idx_settings_audit_logs_setting_key on public.settings_audit_logs using btree (setting_key) TABLESPACE pg_default;
 create index IF not exists idx_settings_audit_logs_created_at on public.settings_audit_logs using btree (created_at desc) TABLESPACE pg_default;
+
+-- Enable RLS and create policies for settings_audit_logs
+alter table public.settings_audit_logs enable row level security;
+
+create policy "Admins can read settings_audit_logs"
+  on public.settings_audit_logs for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can insert settings_audit_logs"
+  on public.settings_audit_logs for insert
+  with check (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );

@@ -1,4 +1,4 @@
-// proxy.ts
+// proxy.ts (Next.js Middleware)
 //
 // Next.js middleware runs in the Edge Runtime (not Node.js), so we cannot use
 // `createSupabaseServerClient` from @/lib/supabase/server.ts here — that helper
@@ -8,10 +8,22 @@
 //
 // This file runs on every request before the page renders, making it the right
 // place to handle auth-based redirects globally (e.g. redirecting logged-in
-// users away from /login or /register).
+// users away from /login or /register) and account status enforcement.
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+
+// Routes that should bypass account status checks
+const STATUS_BYPASS_ROUTES = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+  "/auth/confirm",
+  "/account/suspended",
+  "/account/banned",
+];
 
 export async function proxy(request: NextRequest) {
     // We must create a new response and pass it through so Supabase can
@@ -51,6 +63,66 @@ export async function proxy(request: NextRequest) {
     const authRoutes = ["/login", "/register", "/forgot-password"];
     if (user && authRoutes.some(route => pathname.startsWith(route))) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // ── Account Status Enforcement ──
+    // Only check status for authenticated users on non-public routes
+    if (user) {
+        // Skip status checks for bypass routes
+        const shouldBypass = STATUS_BYPASS_ROUTES.some(route =>
+            pathname.startsWith(route)
+        );
+        if (shouldBypass) {
+            return response;
+        }
+
+        // Fetch user's account status and role
+        const { data: profile } = await supabase
+            .from("users")
+            .select("account_status, role, suspended_until")
+            .eq("id", user.id)
+            .single();
+
+        if (profile) {
+            const isAdmin = profile.role === "admin";
+
+            // Admins bypass account status restrictions
+            if (isAdmin) {
+                return response;
+            }
+
+            // Check if suspension has expired — auto-unsuspend
+            if (
+                profile.account_status === "suspended" &&
+                profile.suspended_until &&
+                new Date(profile.suspended_until) <= new Date()
+            ) {
+                await supabase
+                    .from("users")
+                    .update({
+                        account_status: "active",
+                        suspended_until: null,
+                        suspension_reason: null,
+                    })
+                    .eq("id", user.id);
+
+                return response;
+            }
+
+            // Redirect suspended users to suspension notice page
+            if (profile.account_status === "suspended") {
+                return NextResponse.redirect(
+                    new URL("/account/suspended", request.url)
+                );
+            }
+
+            // Redirect banned users to ban notice page
+            if (profile.account_status === "banned") {
+                return NextResponse.redirect(
+                    new URL("/account/banned", request.url)
+                );
+            }
+        }
     }
 
     // Always return the response so session cookies are forwarded correctly.

@@ -30,34 +30,32 @@ async function verifyAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSer
 // ============================================
 
 export async function getSettings(): Promise<Record<string, SettingValue>> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    await verifyAdmin(supabase);
+  const supabase = await createSupabaseServerClient();
+  await verifyAdmin(supabase);
 
-    const { data, error } = await supabase
-      .from("system_settings")
-      .select("key, value")
-      .order("key");
+  const { data, error } = await supabase
+    .from("system_settings")
+    .select("key, value")
+    .order("key");
 
-    if (error) throw error;
-
-    const settings: Record<string, SettingValue> = {};
-    for (const row of data) {
-      settings[row.key] = row.value as SettingValue;
-    }
-
-    // Merge with defaults for any missing keys
-    for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
-      if (!(key in settings)) {
-        settings[key] = defaultValue;
-      }
-    }
-
-    return settings;
-  } catch (error) {
+  if (error) {
     console.error("Failed to fetch settings:", error);
-    return { ...DEFAULT_SETTINGS };
+    throw new Error(`Failed to fetch settings: ${error.message}`);
   }
+
+  const settings: Record<string, SettingValue> = {};
+  for (const row of data) {
+    settings[row.key] = row.value as SettingValue;
+  }
+
+  // Merge with defaults for any missing keys
+  for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
+    if (!(key in settings)) {
+      settings[key] = defaultValue;
+    }
+  }
+
+  return settings;
 }
 
 // ============================================

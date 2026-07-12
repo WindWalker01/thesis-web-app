@@ -2,6 +2,7 @@
 
 import { reportArtworkSchema, type ReportArtworkInput } from "../schemas/report-artwork-schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account-status";
 
 function buildReportTitle(reason: ReportArtworkInput["reason"]) {
     switch (reason) {
@@ -52,19 +53,17 @@ export async function submitArtworkReport(rawInput: ReportArtworkInput) {
 
     const supabase = await createSupabaseServerClient();
 
-    const {
-        data: { user },
-        error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-        throw new Error("You must be logged in to submit a report.");
+    let userId: string;
+    try {
+        userId = await requireActiveAccount();
+    } catch {
+        throw new Error("Your account is currently suspended or banned. You cannot submit reports.");
     }
 
     const input = parsed.data;
 
     const payload = {
-        reporter_id: user.id,
+        reporter_id: userId,
         reported_art_post_id: input.postId,
         report_type: mapReasonToDbReportType(input.reason),
         title: buildReportTitle(input.reason),

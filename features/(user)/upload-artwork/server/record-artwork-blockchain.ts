@@ -3,6 +3,7 @@
 import { ethers } from "ethers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account-status";
 
 type RecordArtworkOnBlockchainInput = {
   artworkId: string;
@@ -38,33 +39,21 @@ const ABI = [
 ] as const;
 
 export async function recordArtworkOnBlockchain(
-  input: RecordArtworkOnBlockchainInput,
+  input: RecordArtworkOnBlockchainInput
 ): Promise<RecordArtworkOnBlockchainResult> {
-  let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>> | null =
-    null;
-
   try {
-    if (!RPC) {
-      return { success: false, message: "AMOY_RPC_URL missing." };
-    }
+    const supabase = await createSupabaseServerClient();
 
-    if (!PK) {
-      return { success: false, message: "SYSTEM_PRIVATE_KEY missing." };
+    // Verify account is active
+    let userId: string;
+    try {
+      userId = await requireActiveAccount();
+    } catch {
+      return { success: false, message: "Your account is currently suspended or banned. You cannot register artwork on the blockchain." };
     }
 
     if (!ethers.isAddress(REGISTRY_ADDR)) {
       return { success: false, message: "Bad ARTWORK_REGISTRY address." };
-    }
-
-    supabase = await createSupabaseServerClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return { success: false, message: "You must be logged in." };
     }
 
     const { artworkId, authorIdHash, fileHash, perceptualHash, evidenceHash } =
@@ -102,7 +91,7 @@ export async function recordArtworkOnBlockchain(
         .from("registered_arts")
         .update({ status: "blockchain_failed" })
         .eq("id", artworkId)
-        .eq("owner_id", user.id);
+        .eq("owner_id", userId);
 
       return { success: false, message: "No receipt (dropped tx?)." };
     }
@@ -129,7 +118,7 @@ export async function recordArtworkOnBlockchain(
         .from("registered_arts")
         .update({ status: "blockchain_failed" })
         .eq("id", artworkId)
-        .eq("owner_id", user.id);
+        .eq("owner_id", userId);
 
       return { success: false, message: "WorkRegistered event not found." };
     }
@@ -144,7 +133,7 @@ export async function recordArtworkOnBlockchain(
         status: "active",
       })
       .eq("id", artworkId)
-      .eq("owner_id", user.id);
+      .eq("owner_id", userId);
 
     if (updateError) {
       return { success: false, message: updateError.message };
@@ -160,24 +149,6 @@ export async function recordArtworkOnBlockchain(
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Blockchain recording failed.";
-
-    if (supabase && input.artworkId) {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          await supabase
-            .from("registered_arts")
-            .update({ status: "blockchain_failed" })
-            .eq("id", input.artworkId)
-            .eq("owner_id", user.id);
-        }
-      } catch {
-        // ignore secondary failure
-      }
-    }
 
     return {
       success: false,

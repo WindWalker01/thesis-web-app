@@ -3,6 +3,7 @@
 import { ethers } from "ethers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
@@ -47,15 +48,14 @@ export async function recordArtworkInDatabase(
   try {
     const supabase = await createSupabaseServerClient();
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    // Verify account is active
+    let userId: string;
+    try {
+      userId = await requireActiveAccount();
+    } catch {
       return {
         success: false,
-        message: "You must be logged in.",
+        message: "Your account is currently suspended or banned. You cannot upload artwork.",
         similarityReport: null,
         otherMatches: null,
       };
@@ -88,7 +88,7 @@ export async function recordArtworkInDatabase(
     const fileBuffer = Buffer.from(arrayBuffer);
 
     const authorIdHash = ethers.keccak256(
-      ethers.toUtf8Bytes(user.id),
+      ethers.toUtf8Bytes(userId),
     ) as `0x${string}`;
 
     const fileHash = ethers.keccak256(fileBuffer) as `0x${string}`;
@@ -96,7 +96,7 @@ export async function recordArtworkInDatabase(
     const { data: existingArtwork, error: existingError } = await supabase
       .from("registered_arts")
       .select("id")
-      .eq("owner_id", user.id)
+      .eq("owner_id", userId)
       .eq("file_hash", fileHash)
       .maybeSingle();
 
@@ -244,7 +244,7 @@ export async function recordArtworkInDatabase(
     const { data, error } = await supabase
       .from("registered_arts")
       .insert({
-        owner_id: user.id,
+        owner_id: userId,
         title: parsed.data.title,
         description: parsed.data.description || null,
         c_asset_id: uploadedImage.assetId,
@@ -284,7 +284,7 @@ export async function recordArtworkInDatabase(
 
     const similarityScanRow = buildSimilarityScanInsert({
       artId: insertedArtworkId,
-      ownerId: user.id,
+      ownerId: userId,
       result,
       status: "completed",
     });

@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account-status";
 import type { VoteType } from "../types";
 
 type VoteInput = {
@@ -11,19 +12,18 @@ type VoteInput = {
 export async function voteOnPost({ postId, voteType }: VoteInput) {
     const supabase = await createSupabaseServerClient();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-        return { success: false, message: "You must be logged in to vote." };
+    let userId: string;
+    try {
+        userId = await requireActiveAccount();
+    } catch {
+        return { success: false, message: "Your account is currently suspended or banned. You cannot vote." };
     }
 
     const { data: existing, error: existingError } = await supabase
         .from("art_reactions")
         .select("id, reaction_type")
         .eq("post_id", postId)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
     if (existingError) {
@@ -33,7 +33,7 @@ export async function voteOnPost({ postId, voteType }: VoteInput) {
     if (!existing) {
         const { error } = await supabase.from("art_reactions").insert({
             post_id: postId,
-            user_id: user.id,
+            user_id: userId,
             reaction_type: voteType,
         });
 

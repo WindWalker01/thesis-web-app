@@ -56,7 +56,7 @@ export async function fetchUsers({
     if (search) {
       const term = `%${search}%`;
       query = query.or(
-        `username.ilike.${term},first_name.ilike.${term},last_name.ilike.${term},email.ilike.${term},id.ilike.${term}`
+        `username.ilike.${term},first_name.ilike.${term},last_name.ilike.${term},email.ilike.${term}`
       );
     }
 
