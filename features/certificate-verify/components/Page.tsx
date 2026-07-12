@@ -10,9 +10,11 @@ export function CertificateVerifyPage({
 }) {
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 px-4 pb-16 pt-24 sm:pt-28 dark:from-slate-950 dark:to-slate-900">
-      <div className="mx-auto w-full max-w-xl space-y-6 sm:space-y-8">
+      <div className="mx-auto w-full max-w-4xl space-y-6 sm:space-y-8">
         {!result.found ? (
-          <CertificateNotFoundState />
+          <div className="mx-auto max-w-xl">
+            <CertificateNotFoundState />
+          </div>
         ) : (
           <>
             <CertificateVerifiedBadge
