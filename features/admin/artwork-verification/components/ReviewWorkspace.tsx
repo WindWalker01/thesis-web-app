@@ -2,8 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
 import {
   ArrowLeft,
   ShieldCheck,
@@ -12,27 +10,10 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
-  ImageIcon,
-  FileText,
-  Hash,
-  ExternalLink,
-  Database,
-  Globe,
-  Clock,
-  User,
   Loader2,
-  Maximize2,
-  Minimize2,
-  ZoomIn,
-  ZoomOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -42,10 +23,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { useReviewDetail } from "../hooks/useReviewDetail";
 import { ReviewStatusBadge } from "./ReviewStatusBadge";
-import { RiskBadge } from "./RiskBadge";
 import {
   approveArtwork,
   rejectArtwork,
@@ -54,7 +33,15 @@ import {
   assignReviewer,
   unassignReviewer,
 } from "../server/reviews";
-import type { ReviewDetail, ReviewAction } from "../types";
+
+// Sub-components
+import { ArtworkPreviewPanel } from "./workspace/ArtworkPreviewPanel";
+import { MetadataPanel } from "./workspace/MetadataPanel";
+import { SimilarityAnalysisPanel } from "./workspace/SimilarityAnalysisPanel";
+import { ComparisonViewer } from "./workspace/ComparisonViewer";
+import { ReviewActionsPanel } from "./workspace/ReviewActionsPanel";
+import { ReviewNotesSection } from "./workspace/ReviewNotesSection";
+import { ActivityFeedSection } from "./workspace/ActivityFeedSection";
 
 export default function ArtworkReviewWorkspace() {
   const params = useParams();
@@ -80,12 +67,12 @@ export default function ArtworkReviewWorkspace() {
   const [infoDocuments, setInfoDocuments] = useState<string[]>([]);
   const [infoMessage, setInfoMessage] = useState("");
 
-  // Zoom
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  // Autosave notes
+  // Autosave timer
   const autosaveTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Use ref to track reviewNotes for keyboard handler without re-registering effect
+  const reviewNotesRef = useRef(reviewNotes);
+  reviewNotesRef.current = reviewNotes;
 
   // Update notes when detail loads
   useEffect(() => {
@@ -94,7 +81,9 @@ export default function ArtworkReviewWorkspace() {
     }
   }, [detail?.review_notes]);
 
-  // Autosave notes
+  // Derive decision status
+  const isDecided = detail && (detail.status === "approved" || detail.status === "rejected");
+  // Autosave notes with stable callback
   const handleNotesChange = useCallback((value: string) => {
     setReviewNotes(value);
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
@@ -109,6 +98,21 @@ export default function ArtworkReviewWorkspace() {
       }
     }, 2000);
   }, [reviewId]);
+
+  // Dialog open handlers that pre-fill notes
+  const handleOpenApproveDialog = useCallback(() => {
+    setDecisionNotes(reviewNotesRef.current);
+    setApproveDialogOpen(true);
+  }, []);
+
+  const handleOpenRejectDialog = useCallback(() => {
+    setDecisionNotes(reviewNotesRef.current);
+    setRejectDialogOpen(true);
+  }, []);
+
+  const handleOpenInfoDialog = useCallback(() => {
+    setInfoDialogOpen(true);
+  }, []);
 
   // Approve
   const handleApprove = useCallback(async () => {
@@ -219,20 +223,27 @@ export default function ArtworkReviewWorkspace() {
     }
   }, [reviewId, refetch]);
 
-  // Keyboard shortcuts
+  // Info document checkbox handlers
+  const handleDocToggle = useCallback((doc: string) => {
+    setInfoDocuments((prev) =>
+      prev.includes(doc) ? prev.filter((d) => d !== doc) : [...prev, doc]
+    );
+  }, []);
+
+  // Keyboard shortcuts - using ref to avoid re-registering on every keystroke
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === "a" || e.key === "A") {
         e.preventDefault();
         if (detail?.status !== "approved" && detail?.status !== "rejected") {
-          setDecisionNotes(reviewNotes);
+          setDecisionNotes(reviewNotesRef.current);
           setApproveDialogOpen(true);
         }
       } else if (e.key === "r" || e.key === "R") {
         e.preventDefault();
         if (detail?.status !== "approved" && detail?.status !== "rejected") {
-          setDecisionNotes(reviewNotes);
+          setDecisionNotes(reviewNotesRef.current);
           setRejectDialogOpen(true);
         }
       } else if (e.key === "i" || e.key === "I") {
@@ -244,9 +255,9 @@ export default function ArtworkReviewWorkspace() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [detail?.status, reviewNotes]);
+  }, [detail?.status]); // Only depends on status, not reviewNotes
 
-  // Loading
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -258,7 +269,7 @@ export default function ArtworkReviewWorkspace() {
     );
   }
 
-  // Error
+  // Error state
   if (error || !detail) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -282,9 +293,6 @@ export default function ArtworkReviewWorkspace() {
   }
 
   const artwork = detail.artwork;
-  const scan = detail.scan;
-  const isDecided = detail.status === "approved" || detail.status === "rejected";
-  const similarity = scan?.best_similarity_percentage ?? null;
 
   // Guard against missing artwork data
   if (!artwork) {
@@ -337,521 +345,48 @@ export default function ArtworkReviewWorkspace() {
         {/* Left Panel - Artwork Preview */}
         <div className="w-full lg:w-[35%] border-b lg:border-b-0 lg:border-r border-border">
           <div className="p-4 space-y-4">
-            {/* Preview */}
-            <div className="relative overflow-hidden rounded-xl border border-border bg-muted">
-              <div
-                className={cn(
-                  "relative transition-all duration-200",
-                  isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "aspect-[4/3]"
-                )}
-              >
-                {artwork.c_secure_url ? (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    <Image
-                      src={artwork.c_secure_url}
-                      alt={artwork.title}
-                      fill
-                      className="object-contain"
-                      style={{ transform: `scale(${zoomLevel})` }}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <ImageIcon className="h-16 w-16 text-muted-foreground/40" />
-                  </div>
-                )}
-
-                {/* Zoom controls */}
-                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-lg border bg-background/80 p-1 backdrop-blur-sm">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.25))}
-                  >
-                    <ZoomOut className="h-3.5 w-3.5" />
-                  </Button>
-                  <span className="text-xs tabular-nums w-8 text-center">
-                    {Math.round(zoomLevel * 100)}%
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setZoomLevel(Math.min(3, zoomLevel + 0.25))}
-                  >
-                    <ZoomIn className="h-3.5 w-3.5" />
-                  </Button>
-                  <Separator orientation="vertical" className="h-5" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                  >
-                    {isFullscreen ? (
-                      <Minimize2 className="h-3.5 w-3.5" />
-                    ) : (
-                      <Maximize2 className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Metadata */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Artwork Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Title</p>
-                    <p className="font-medium">{artwork.title}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Artist</p>
-                    <p className="font-medium">
-                      {artwork.owner.first_name} {artwork.owner.last_name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Username</p>
-                    <p className="font-medium">@{artwork.owner.username}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Uploaded</p>
-                    <p className="font-medium">{formatTimeAgo(artwork.created_at)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Status</p>
-                    <p className="font-medium capitalize">{artwork.status.replace(/_/g, " ")}</p>
-                  </div>
-                  {artwork.chain && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Blockchain</p>
-                      <p className="font-medium capitalize">{artwork.chain}</p>
-                    </div>
-                  )}
-                </div>
-
-                {artwork.description && (
-                  <div>
-                    <p className="text-xs text-muted-foreground">Description</p>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {artwork.description}
-                    </p>
-                  </div>
-                )}
-
-                <Separator />
-
-                {/* Hashes */}
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Hash className="h-3 w-3" /> Hashes
-                  </p>
-                  <div className="space-y-1.5">
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">File Hash</p>
-                      <p className="font-mono text-[10px] break-all text-muted-foreground">
-                        {artwork.file_hash.substring(0, 32)}...
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">Perceptual Hash</p>
-                      <p className="font-mono text-[10px] break-all text-muted-foreground">
-                        {artwork.perceptual_hash.substring(0, 32)}...
-                      </p>
-                    </div>
-                    {artwork.evidence_hash && (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground">Evidence Hash</p>
-                        <p className="font-mono text-[10px] break-all text-muted-foreground">
-                          {artwork.evidence_hash.substring(0, 32)}...
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {artwork.tx_hash && (
-                  <>
-                    <Separator />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Transaction</p>
-                      <p className="font-mono text-xs break-all text-muted-foreground">
-                        {artwork.tx_hash.substring(0, 20)}...
-                      </p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <ArtworkPreviewPanel
+              c_secure_url={artwork.c_secure_url}
+              title={artwork.title}
+            />
+            <MetadataPanel artwork={artwork} />
           </div>
         </div>
 
         {/* Center Panel - Similarity Analysis */}
         <div className="w-full lg:w-[40%] border-b lg:border-b-0 lg:border-r border-border">
           <div className="p-4 space-y-4">
-            {/* Similarity Summary */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  Similarity Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {scan ? (
-                  <>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-muted-foreground">Overall Similarity</span>
-                          <RiskBadge similarity={similarity} />
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              similarity !== null && similarity >= 95
-                                ? "bg-red-500"
-                                : similarity !== null && similarity >= 85
-                                  ? "bg-orange-500"
-                                  : similarity !== null && similarity >= 75
-                                    ? "bg-yellow-500"
-                                    : "bg-gray-400"
-                            )}
-                            style={{ width: `${similarity ?? 0}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg border p-3">
-                        <p className="text-xs text-muted-foreground">Best Match Source</p>
-                        <p className="text-sm font-semibold capitalize mt-1">
-                          {scan.best_source ?? "Unknown"}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border p-3">
-                        <p className="text-xs text-muted-foreground">Total Matches</p>
-                        <p className="text-sm font-semibold mt-1">{scan.total_matches}</p>
-                      </div>
-                    </div>
-
-                    {scan.best_link && (
-                      <div className="rounded-lg border p-3">
-                        <p className="text-xs text-muted-foreground mb-1">Source URL</p>
-                        <Link
-                          href={scan.best_link}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-primary inline-flex items-center gap-1 text-xs break-all underline underline-offset-4"
-                        >
-                          {scan.best_link}
-                          <ExternalLink className="h-3 w-3 shrink-0" />
-                        </Link>
-                      </div>
-                    )}
-
-                    {/* Matches List */}
-                    {scan.matches && Array.isArray(scan.matches) && scan.matches.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground">All Matches</p>
-                        <ScrollArea className="max-h-64">
-                          <div className="space-y-2">
-                            {(scan.matches as Array<{ rank?: number; similarity_percentage?: number; source?: string; type?: string; link?: string; url?: string }>).map((match, i) => (
-                              <div
-                                key={i}
-                                className="rounded-lg border p-3 hover:bg-muted/50 transition-colors"
-                              >
-                                <div className="flex items-center justify-between mb-1">
-                                  <div className="flex items-center gap-2">
-                                    {match.type === "database" ? (
-                                      <Database className="h-3.5 w-3.5 text-muted-foreground" />
-                                    ) : (
-                                      <Globe className="h-3.5 w-3.5 text-muted-foreground" />
-                                    )}
-                                    <span className="text-sm font-medium">
-                                      Match #{match.rank ?? i + 1}
-                                    </span>
-                                  </div>
-                                  <Badge variant="outline" className="text-xs">
-                                    {match.similarity_percentage?.toFixed(1) ?? "N/A"}%
-                                  </Badge>
-                                </div>
-                                <p className="text-xs text-muted-foreground capitalize">
-                                  {match.source ?? match.type ?? "Unknown source"}
-                                </p>
-                                {match.link && (
-                                  <Link
-                                    href={match.link}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-primary inline-flex items-center gap-1 text-[10px] mt-1 underline underline-offset-4"
-                                  >
-                                    {match.link.substring(0, 60)}...
-                                    <ExternalLink className="h-2.5 w-2.5" />
-                                  </Link>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </ScrollArea>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p className="text-sm">No similarity scan data available</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Side-by-side comparison placeholder */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Side-by-side Comparison</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="split">
-                  <TabsList className="h-8">
-                    <TabsTrigger value="split" className="text-xs">Split View</TabsTrigger>
-                    <TabsTrigger value="slider" className="text-xs">Slider</TabsTrigger>
-                    <TabsTrigger value="overlay" className="text-xs">Overlay</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="split" className="mt-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="aspect-square rounded-lg border bg-muted overflow-hidden relative">
-                        {artwork.c_secure_url ? (
-                          <Image
-                            src={artwork.c_secure_url}
-                            alt="Current artwork"
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-                          </div>
-                        )}
-                        <div className="absolute bottom-1 left-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px]">
-                          Submitted
-                        </div>
-                      </div>
-                      <div className="aspect-square rounded-lg border bg-muted overflow-hidden relative">
-                        {scan?.best_url && (scan.best_url.startsWith("http://") || scan.best_url.startsWith("https://")) ? (
-                          <Image
-                            src={scan.best_url}
-                            alt="Matched artwork"
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-                          </div>
-                        )}
-                        <div className="absolute bottom-1 left-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px]">
-                          Match
-                        </div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="slider" className="mt-3">
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p className="text-sm">Drag the slider to compare</p>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="overlay" className="mt-3">
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p className="text-sm">Opacity overlay comparison</p>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+            <SimilarityAnalysisPanel scan={detail.scan} />
+            <ComparisonViewer
+              c_secure_url={artwork.c_secure_url}
+              best_url={detail.scan?.best_url ?? null}
+              hasScan={!!detail.scan}
+            />
           </div>
         </div>
 
         {/* Right Panel - Review Actions */}
         <div className="w-full lg:w-[25%]">
           <div className="p-4 space-y-4">
-            {/* Status & Actions */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  Review Panel
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <ReviewStatusBadge status={detail.status} />
-                </div>
-
-                {/* Reviewer */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Reviewer</span>
-                  <span className="text-sm font-medium">
-                    {detail.reviewer
-                      ? `${detail.reviewer.first_name} ${detail.reviewer.last_name}`
-                      : "Unassigned"}
-                  </span>
-                </div>
-
-                {!isDecided && (
-                  <div className="space-y-2">
-                    {detail.reviewer ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={handleUnassign}
-                        disabled={isAssigning}
-                      >
-                        {isAssigning ? (
-                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        ) : null}
-                        Unassign Me
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={handleAssignToMe}
-                        disabled={isAssigning}
-                      >
-                        {isAssigning ? (
-                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        ) : (
-                          <User className="mr-2 h-3 w-3" />
-                        )}
-                        Assign to Me
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                <Separator />
-
-                {/* Action Buttons */}
-                {!isDecided ? (
-                  <div className="space-y-2">
-                    <Button
-                      className="w-full gap-2"
-                      onClick={() => {
-                        setDecisionNotes(reviewNotes);
-                        setApproveDialogOpen(true);
-                      }}
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      Approve Registration
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className="w-full gap-2"
-                      onClick={() => {
-                        setDecisionNotes(reviewNotes);
-                        setRejectDialogOpen(true);
-                      }}
-                    >
-                      <XCircle className="h-4 w-4" />
-                      Reject Registration
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full gap-2"
-                      onClick={() => setInfoDialogOpen(true)}
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                      Request More Information
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20 p-3 text-center">
-                    <p className="text-sm font-medium text-green-700 dark:text-green-400">
-                      {detail.status === "approved"
-                        ? "Approved"
-                        : detail.status === "rejected"
-                          ? "Rejected"
-                          : "Decision Made"}
-                    </p>
-                    {detail.decision_reason && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {detail.decision_reason}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Review Notes */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span>Review Notes</span>
-                  {isSavingNotes && (
-                    <span className="text-[10px] text-muted-foreground">Saving...</span>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Add your review notes here..."
-                  value={reviewNotes}
-                  onChange={(e) => handleNotesChange(e.target.value)}
-                  rows={6}
-                  className="text-sm resize-none"
-                  disabled={isDecided}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Activity Feed */}
-            {detail.actions.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="max-h-64">
-                    <div className="space-y-3">
-                      {detail.actions.map((action) => (
-                        <div key={action.id} className="flex items-start gap-2">
-                          <div className="mt-0.5 h-2 w-2 rounded-full bg-muted-foreground/30 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-xs font-medium capitalize">
-                              {action.action.replace(/_/g, " ")}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground">
-                              {action.admin.first_name} {action.admin.last_name} &middot;{" "}
-                              {formatTimeAgo(action.created_at)}
-                            </p>
-                            {action.notes && (
-                              <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
-                                {action.notes}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            )}
+            <ReviewActionsPanel
+              status={detail.status}
+              reviewer={detail.reviewer}
+              isAssigning={isAssigning}
+              isDecided={!!isDecided}
+              decision_reason={detail.decision_reason}
+              onAssignToMe={handleAssignToMe}
+              onUnassign={handleUnassign}
+              onApprove={handleOpenApproveDialog}
+              onReject={handleOpenRejectDialog}
+              onRequestInfo={handleOpenInfoDialog}
+            />
+            <ReviewNotesSection
+              reviewNotes={reviewNotes}
+              isSaving={isSavingNotes}
+              isDisabled={!!isDecided}
+              onChange={handleNotesChange}
+            />
+            <ActivityFeedSection actions={detail.actions} />
           </div>
         </div>
       </div>
@@ -966,13 +501,7 @@ export default function ArtworkReviewWorkspace() {
                     <input
                       type="checkbox"
                       checked={infoDocuments.includes(doc)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setInfoDocuments([...infoDocuments, doc]);
-                        } else {
-                          setInfoDocuments(infoDocuments.filter((d) => d !== doc));
-                        }
-                      }}
+                      onChange={() => handleDocToggle(doc)}
                       className="rounded"
                     />
                     {doc}

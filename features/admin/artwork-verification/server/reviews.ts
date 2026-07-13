@@ -318,8 +318,8 @@ export async function getReviewDetail(
 ): Promise<ReviewDetail | null> {
   const supabase = createSupabaseAdminClient();
 
-  // Fetch review
-  const { data: review, error } = await supabase
+  // Fetch review first (needed to get artwork_id for scan query)
+  const reviewResult = await supabase
     .from("artwork_reviews")
     .select(
       `
@@ -342,14 +342,41 @@ export async function getReviewDetail(
     .eq("id", reviewId)
     .single();
 
-  if (error || !review) return null;
+  const review = reviewResult.data;
+  const reviewError = reviewResult.error;
 
-  const { data: { user } } = await supabase.auth.getUser();
-  const adminId = user?.id;
+  if (reviewError || !review) return null;
 
-  // Record view action
+  // Then fetch scan (needs artwork_id), actions, and user in parallel
+  const artworkId = review.artwork_id;
+  const [scanResult, actionsResult, userResult] = await Promise.all([
+    supabase
+      .from("art_similarity_scans")
+      .select("*")
+      .eq("art_id", artworkId)
+      .maybeSingle(),
+    supabase
+      .from("artwork_review_actions")
+      .select(
+        `
+        *,
+        admin:users!artwork_review_actions_admin_id_fkey (
+          id, first_name, last_name, username
+        )
+      `
+      )
+      .eq("review_id", reviewId)
+      .order("created_at", { ascending: false }),
+    supabase.auth.getUser(),
+  ]);
+
+  const scan = scanResult.data;
+  const actions = actionsResult.data;
+  const adminId = userResult.data?.user?.id;
+
+  // Record view action as fire-and-forget (non-blocking)
   if (adminId) {
-    await createAction(
+    createAction(
       supabase,
       reviewId,
       adminId,
@@ -357,29 +384,10 @@ export async function getReviewDetail(
       review.status,
       review.status,
       null
-    );
+    ).catch(() => {
+      // Silent fail for view tracking
+    });
   }
-
-  // Fetch scan
-  const { data: scan } = await supabase
-    .from("art_similarity_scans")
-    .select("*")
-    .eq("art_id", review.artwork_id)
-    .single();
-
-  // Fetch actions
-  const { data: actions } = await supabase
-    .from("artwork_review_actions")
-    .select(
-      `
-      *,
-      admin:users!artwork_review_actions_admin_id_fkey (
-        id, first_name, last_name, username
-      )
-    `
-    )
-    .eq("review_id", reviewId)
-    .order("created_at", { ascending: false });
 
   return {
     ...(review as any),

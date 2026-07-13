@@ -19,5 +19,11 @@ export function useReviewDetail(reviewId: string | null) {
       return result.data as ReviewDetail;
     },
     enabled: !!reviewId,
+    // Don't refetch on window focus to avoid spamming "viewed" actions
+    refetchOnWindowFocus: false,
+    // Keep data fresh for 5 minutes during a review session
+    staleTime: 1000 * 60 * 5,
+    // Don't refetch on reconnect for the same reason
+    refetchOnReconnect: false,
   });
 }
