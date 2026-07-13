@@ -7,7 +7,7 @@ import { requireActiveAccount } from "@/lib/account-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
-import { checkPlagiarismWeb, SearchMatch } from "@/features/plagiarise-checker";
+import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
   buildSimilarityReport,
   buildSimilarityScanInsert,
@@ -23,7 +23,6 @@ import {
   getArtworkStatusFromSimilarity,
 } from "..";
 import { fetchGenreClassification } from "./fetch-genre";
-import { OtherSearchMatch } from "@/features/plagiarise-checker/types";
 
 const HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD = 100;
 
@@ -32,6 +31,7 @@ async function rollbackArtworkInsert(params: {
   artworkId: string;
 }) {
   const { supabase, artworkId } = params;
+  console.log(`[Artwork Registration] Rolling back artwork insert: ${artworkId}`);
   await supabase.from("registered_arts").delete().eq("id", artworkId);
 }
 
@@ -45,6 +45,8 @@ function isUuidLike(value: string | null | undefined): value is string {
 export async function recordArtworkInDatabase(
   formData: FormData,
 ): Promise<RecordArtworkInDatabaseResult> {
+  console.log("[Artwork Registration] Registration started");
+
   try {
     const supabase = await createSupabaseServerClient();
 
@@ -53,6 +55,7 @@ export async function recordArtworkInDatabase(
     try {
       userId = await requireActiveAccount();
     } catch {
+      console.log("[Artwork Registration] Account is suspended or banned");
       return {
         success: false,
         message: "Your account is currently suspended or banned. You cannot upload artwork.",
@@ -118,10 +121,20 @@ export async function recordArtworkInDatabase(
       };
     }
 
-    const result = await checkPlagiarismWeb(validFile);
-    console.log("Similarity check result:", result);
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 1: Run the plagiarism check FIRST (we need the perceptual hash
+    //          because registered_arts.perceptual_hash is NOT NULL)
+    // ─────────────────────────────────────────────────────────────────────────
+    console.log("[Similarity Scan] Scan started — calling plagiarism API...");
 
+    const result = await checkPlagiarismWeb(validFile);
+    console.log("[Similarity Scan] Scan completed — API response received");
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 2: Process the plagiarism results
+    // ─────────────────────────────────────────────────────────────────────────
     if (!result.success) {
+      console.log("[Similarity Scan] Plagiarism check failed — no artwork created");
       return {
         success: false,
         message: "Unexpected server error during similarity checking.",
@@ -135,7 +148,7 @@ export async function recordArtworkInDatabase(
     let similarityReport = buildSimilarityReport(result);
     const similarity = similarityReport?.similarityPercentage ?? 0;
     const otherMatches = result.other_matches;
-    
+
     if (
       similarityReport &&
       reportMatch?.type === "database" &&
@@ -168,11 +181,13 @@ export async function recordArtworkInDatabase(
       };
     }
 
+    // Check for hard block (100% database match)
     if (
       primaryMatch?.type === "database" &&
       typeof primaryMatch.similarity === "number" &&
       primaryMatch.similarity >= HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD
     ) {
+      console.log("[Similarity Scan] Hard block triggered — 100% database match");
       return {
         success: false,
         message:
@@ -190,16 +205,17 @@ export async function recordArtworkInDatabase(
     const { artworkStatus, moderationMessage, shouldClassify } =
       getArtworkStatusFromSimilarity(similarity, matchSource);
 
+    // Validate perceptual hash
     if (
       typeof result.original_hash !== "string" ||
       result.original_hash.trim().length === 0
     ) {
+      console.log("[Similarity Scan] Missing perceptual hash from API response");
       return {
         success: false,
         message: "Missing perceptual hash from similarity checking service.",
         similarityReport,
         otherMatches,
-
       };
     }
 
@@ -219,6 +235,9 @@ export async function recordArtworkInDatabase(
       };
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 3: Build evidence
+    // ─────────────────────────────────────────────────────────────────────────
     const evidence = {
       v: 1,
       internalUserIdHash: authorIdHash,
@@ -235,11 +254,21 @@ export async function recordArtworkInDatabase(
       ethers.toUtf8Bytes(stableStringify(evidence)),
     ) as `0x${string}`;
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 4: Upload image to Cloudinary
+    // ─────────────────────────────────────────────────────────────────────────
+    console.log("[Artwork Registration] Uploading image to Cloudinary...");
     const uploadedImage = await uploadArtworkImageToCloudinary({
       fileBuffer,
       fileName: validFile.name,
       folder: "registered-arts",
     });
+    console.log("[Artwork Registration] Cloudinary upload complete");
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 5: Insert the registered_arts record
+    // ─────────────────────────────────────────────────────────────────────────
+    console.log("[Artwork Registration] Inserting artwork into database...");
 
     const { data, error } = await supabase
       .from("registered_arts")
@@ -270,6 +299,8 @@ export async function recordArtworkInDatabase(
         error.message.toLowerCase().includes("duplicate") ||
         error.message.toLowerCase().includes("unique");
 
+      console.error("[Artwork Registration] Database insert error:", error);
+
       return {
         success: false,
         message: isDuplicate
@@ -281,8 +312,15 @@ export async function recordArtworkInDatabase(
     }
 
     const insertedArtworkId = data.id;
+    console.log(`[Artwork Registration] Artwork inserted: ${insertedArtworkId}`);
 
-    const similarityScanRow = buildSimilarityScanInsert({
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 6: Create the art_similarity_scans record (status: "completed"
+    //          since the scan already ran successfully)
+    // ─────────────────────────────────────────────────────────────────────────
+    console.log("[Similarity Scan] Creating scan record...");
+
+    const scanInsertPayload = buildSimilarityScanInsert({
       artId: insertedArtworkId,
       ownerId: userId,
       result,
@@ -291,26 +329,49 @@ export async function recordArtworkInDatabase(
 
     const { error: scanInsertError } = await supabase
       .from("art_similarity_scans")
-      .insert(similarityScanRow);
+      .insert(scanInsertPayload);
 
     if (scanInsertError) {
-      await rollbackArtworkInsert({
-        supabase,
-        artworkId: insertedArtworkId,
-      });
-
+      console.error("[Similarity Scan] Failed to create scan record:", scanInsertError);
+      await rollbackArtworkInsert({ supabase, artworkId: insertedArtworkId });
       return {
         success: false,
         message: scanInsertError.message,
         similarityReport,
         otherMatches,
-
       };
     }
 
-    // Fetch genre suggestions from the classifier when the artwork status
-    // warrants classification. Results are returned to the client for the user
-    // to confirm — nothing is inserted into art_genres here.
+    console.log("[Similarity Scan] Scan record created with full results");
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 7: Create artwork_reviews record for admin verification if needed
+    // Artworks with 'flagged' or 'under_review' status require admin review
+    // ─────────────────────────────────────────────────────────────────────────
+    if (artworkStatus === "flagged" || artworkStatus === "under_review") {
+      console.log("[Artwork Verification] Creating review record for admin verification...");
+
+      const { error: reviewInsertError } = await supabase
+        .from("artwork_reviews")
+        .insert({
+          artwork_id: insertedArtworkId,
+          status: "pending",
+          reviewer_id: null,
+          assigned_at: null,
+        });
+
+      if (reviewInsertError) {
+        console.error("[Artwork Verification] Failed to create review record:", reviewInsertError);
+        // Don't rollback the entire upload - the artwork and scan still exist
+        // The review can be created manually by an admin if needed
+      } else {
+        console.log("[Artwork Verification] Review record created successfully");
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 8: Fetch genre suggestions
+    // ─────────────────────────────────────────────────────────────────────────
     let genreSuggestions: GenreScoreLabel[] = [];
 
     if (shouldClassify) {
@@ -318,20 +379,15 @@ export async function recordArtworkInDatabase(
         const genreResult = await fetchGenreClassification(validFile);
 
         if (genreResult.success) {
-          // Return the top 10 genres by rank (API already returns results
-          // sorted by score descending). Score is not used as a filter here —
-          // all top-10 entries are shown regardless of confidence value.
-          // TODO: to filter by score in the future, replace the slice below with:
-          //   genreResult.results.filter((g) => g.score * 100 >= <threshold>)
-          // where <threshold> is a percentage (e.g. 1 for 1%).
           genreSuggestions = genreResult.results.slice(0, 10);
         }
       } catch {
         // Non-fatal: genre suggestions are a convenience, not a hard requirement.
-        // The upload succeeds even if classification fails.
         genreSuggestions = [];
       }
     }
+
+    console.log("[Artwork Registration] Registration completed successfully");
 
     return {
       success: true,
@@ -348,6 +404,8 @@ export async function recordArtworkInDatabase(
       otherMatches,
     };
   } catch (error) {
+    console.error("[Artwork Registration] Unexpected error:", error);
+
     return {
       success: false,
       message:

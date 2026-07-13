@@ -216,6 +216,10 @@ export async function getArtworksList(
       if (params.visibility && params.visibility !== "all" && post) {
         if (post.visibility !== params.visibility) return null;
       }
+
+      // Apply archived filter
+      // Note: artworks without an art_post are treated as "not archived"
+      // because archiving only exists on art_posts, not registered_arts.
       if (params.archived === "true" && (!post || !post.is_archived)) return null;
       if (params.archived === "false" && post?.is_archived) return null;
 

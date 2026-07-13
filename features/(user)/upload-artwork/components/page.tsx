@@ -232,7 +232,7 @@ export default function UploadArtworkPage() {
                         </p>
 
                         <p className="text-muted-foreground text-sm">
-                          Maximum file size: 5MB
+                          Maximum file size: 96MB
                         </p>
                     </div>
                   ) : (

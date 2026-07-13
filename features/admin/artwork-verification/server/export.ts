@@ -1,6 +1,6 @@
 "use server";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ReviewsQueryParams } from "../types";
 import { getReviewQueue } from "./reviews";
 
@@ -8,6 +8,8 @@ export async function exportReviewsCSV(
   params: ReviewsQueryParams
 ): Promise<{ success: boolean; data?: string; message?: string }> {
   try {
+    const supabase = createSupabaseAdminClient();
+
     const result = await getReviewQueue(params);
     const items = result.items;
 
@@ -36,9 +38,14 @@ export async function exportReviewsCSV(
                 ? "Medium"
                 : "Low";
 
+      const artworkTitle = item.artwork?.title ?? "Unknown Artwork";
+      const artistName = item.artwork?.owner
+        ? `${item.artwork.owner.first_name} ${item.artwork.owner.last_name}`
+        : "Unknown Artist";
+
       return [
-        `"${item.artwork.title}"`,
-        `"${item.artwork.owner.first_name} ${item.artwork.owner.last_name}"`,
+        `"${artworkTitle}"`,
+        `"${artistName}"`,
         item.status,
         sim !== null ? sim.toFixed(2) : "N/A",
         riskLevel,

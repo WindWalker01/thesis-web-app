@@ -48,6 +48,6 @@ export function useSettingsPage() {
             handleLogout,
             isLoggingOut,
         }),
-        [activeTab, showLogout, isLoggingOut]
+        [activeTab, showLogout, isLoggingOut, closeLogoutModal]
     );
 }

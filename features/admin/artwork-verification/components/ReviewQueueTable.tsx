@@ -105,9 +105,30 @@ export function ReviewQueueTable({
       {
         id: "artwork",
         header: "Artwork",
-        accessorFn: (row) => row.artwork.title,
+        accessorFn: (row) => row.artwork?.title ?? "Unknown Artwork",
         cell: ({ row }) => {
           const art = row.original.artwork;
+          
+          if (!art) {
+            return (
+              <div className="flex items-center gap-3">
+                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  <div className="flex h-full w-full items-center justify-center">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium max-w-[180px] text-muted-foreground">
+                    Unknown Artwork
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    — Deleted or Unavailable —
+                  </p>
+                </div>
+              </div>
+            );
+          }
+          
           return (
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">

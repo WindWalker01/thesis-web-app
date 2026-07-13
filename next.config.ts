@@ -20,11 +20,23 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "res.cloudinary.com",
       },
+      {
+        protocol: "https",
+        hostname: "i1.sndcdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com",
+      }
     ],
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "5mb",
+      bodySizeLimit: "96mb",
     },
     turbopackFileSystemCacheForDev: true,
   },

@@ -196,11 +196,18 @@ export function buildSimilarityReport(
   };
 }
 
+/**
+ * Builds the insert payload for a new art_similarity_scans record.
+ *
+ * Since the plagiarism scan runs synchronously before the artwork is created,
+ * the scan result is already available when we insert. This function builds
+ * a complete payload with all fields populated at once.
+ */
 export function buildSimilarityScanInsert(params: {
   artId: string;
   ownerId: string;
   result: CheckPlagiarismWebResult;
-  status?: "pending" | "running" | "completed" | "failed" | "cancelled";
+  status?: "completed" | "failed";
   errorMessage?: string | null;
 }) {
   const {
@@ -214,14 +221,22 @@ export function buildSimilarityScanInsert(params: {
   const matches = getSimilarityMatches(result);
   const primary = matches[0] ?? null;
 
+  console.log(
+    `[Similarity Scan] Building scan insert for art ${artId} — status: ${status}, matches: ${matches.length}`,
+  );
+
+  const now = new Date().toISOString();
+
   return {
     art_id: artId,
     owner_id: ownerId,
     status,
+    started_at: now,
+    completed_at: now,
     filename: typeof result.filename === "string" ? result.filename : null,
     original_hash:
       typeof result.original_hash === "string" ? result.original_hash : null,
-    success: Boolean(result.success),
+    success: status === "completed" ? Boolean(result.success) : false,
     total_matches: matches.length,
     best_source: primary?.source ?? null,
     best_link: primary?.link ?? null,
@@ -247,6 +262,5 @@ export function buildSimilarityScanInsert(params: {
     hashes: result.hashes ?? null,
     raw_response: result,
     error_message: errorMessage,
-    completed_at: new Date().toISOString(),
   };
 }

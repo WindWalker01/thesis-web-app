@@ -286,6 +286,24 @@ export default function ArtworkReviewWorkspace() {
   const isDecided = detail.status === "approved" || detail.status === "rejected";
   const similarity = scan?.best_similarity_percentage ?? null;
 
+  // Guard against missing artwork data
+  if (!artwork) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="max-w-md text-center space-y-4">
+          <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+          <h2 className="text-xl font-bold">Artwork Not Found</h2>
+          <p className="text-muted-foreground text-sm">
+            This artwork has been deleted or is no longer available. The review record still exists but the artwork data cannot be found.
+          </p>
+          <Button onClick={() => router.push("/admin/artwork-verification")} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back to Review Queue
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -627,7 +645,7 @@ export default function ArtworkReviewWorkspace() {
                         </div>
                       </div>
                       <div className="aspect-square rounded-lg border bg-muted overflow-hidden relative">
-                        {scan?.best_url ? (
+                        {scan?.best_url && (scan.best_url.startsWith("http://") || scan.best_url.startsWith("https://")) ? (
                           <Image
                             src={scan.best_url}
                             alt="Matched artwork"

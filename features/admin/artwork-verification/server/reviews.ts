@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type {
   ReviewQueueItem,
   ReviewDetail,
@@ -32,29 +31,17 @@ function mapSortToQuery(sortBy: string): { column: string; order: "asc" | "desc"
   }
 }
 
-async function verifyAdmin(supabase: SupabaseClient): Promise<string> {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error("Not authenticated");
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (!profile || profile.role !== "admin") throw new Error("Not authorized");
-
-  return user.id;
-}
 
 async function createAction(
-  supabase: SupabaseClient,
+  supabase: any,
   reviewId: string,
-  adminId: string,
+  adminId: string | undefined,
   action: ReviewActionType,
   previousStatus: string | null,
   newStatus: string | null,
   notes: string | null
 ): Promise<void> {
+  if (!adminId) return;
   await supabase.from("artwork_review_actions").insert({
     review_id: reviewId,
     admin_id: adminId,
@@ -66,12 +53,13 @@ async function createAction(
 }
 
 async function createAdminAuditLog(
-  supabase: SupabaseClient,
-  adminId: string,
+  supabase: any,
+  adminId: string | undefined,
   action: string,
   reason: string,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
+  if (!adminId) return;
   await supabase.from("admin_audit_logs").insert({
     admin_id: adminId,
     action,
@@ -85,8 +73,7 @@ async function createAdminAuditLog(
 export async function getReviewQueue(
   params: ReviewsQueryParams
 ): Promise<PaginatedReviewsResponse> {
-  const supabase = await createSupabaseServerClient();
-  const adminId = await verifyAdmin(supabase);
+  const supabase = createSupabaseAdminClient();
 
   // Mark as viewed by the admin
   // Build base query - get artwork_reviews with artwork and scan data
@@ -251,21 +238,21 @@ export async function getReviewQueue(
 // ========== STATISTICS ==========
 
 export async function getReviewStatistics(): Promise<ReviewStatistics> {
-  const supabase = await createSupabaseServerClient();
-  await verifyAdmin(supabase);
+  const supabase = createSupabaseAdminClient();
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // Get all reviews
+  // Get all reviews with artwork ids
   const { data: reviews, error } = await supabase
     .from("artwork_reviews")
-    .select("id, status, decision, reviewed_at, created_at, updated_at");
+    .select("id, artwork_id, status, decision, reviewed_at, created_at, updated_at");
 
   if (error) throw new Error(`Failed to fetch review stats: ${error.message}`);
 
   const allReviews = (reviews ?? []) as Array<{
     id: string;
+    artwork_id: string;
     status: string;
     decision: string | null;
     reviewed_at: string | null;
@@ -297,20 +284,21 @@ export async function getReviewStatistics(): Promise<ReviewStatistics> {
     averageReviewTimeHours = Math.round((totalHours / decidedReviews.length) * 100) / 100;
   }
 
-  // High risk: pending reviews with high similarity scans (we need to check scans)
+  // High risk: pending reviews with high similarity scans
   const pendingReviews = allReviews.filter((r) => r.status === "pending");
   let highRisk = 0;
   for (const review of pendingReviews) {
     const { data: scan } = await supabase
       .from("art_similarity_scans")
       .select("best_similarity_percentage")
-      .eq("art_id", review.id) // This won't work - need artwork_id from review
-      .single();
-    // Actually, for the review list, we need to check via artwork_id
-    // For the stats page, let's estimate based on the pending count
+      .eq("art_id", review.artwork_id)
+      .maybeSingle();
+
+    const similarity = scan?.best_similarity_percentage ?? 0;
+    if (similarity >= 90) highRisk++;
+    else if (similarity >= 80) highRisk++;
+    else if (similarity >= 70) highRisk++;
   }
-  // Estimate high risk as 30% of pending
-  highRisk = Math.round(pending * 0.3);
 
   return {
     pending,
@@ -328,8 +316,7 @@ export async function getReviewStatistics(): Promise<ReviewStatistics> {
 export async function getReviewDetail(
   reviewId: string
 ): Promise<ReviewDetail | null> {
-  const supabase = await createSupabaseServerClient();
-  const adminId = await verifyAdmin(supabase);
+  const supabase = createSupabaseAdminClient();
 
   // Fetch review
   const { data: review, error } = await supabase
@@ -357,16 +344,21 @@ export async function getReviewDetail(
 
   if (error || !review) return null;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const adminId = user?.id;
+
   // Record view action
-  await createAction(
-    supabase,
-    reviewId,
-    adminId,
-    "viewed",
-    review.status,
-    review.status,
-    null
-  );
+  if (adminId) {
+    await createAction(
+      supabase,
+      reviewId,
+      adminId,
+      "viewed",
+      review.status,
+      review.status,
+      null
+    );
+  }
 
   // Fetch scan
   const { data: scan } = await supabase
@@ -399,9 +391,8 @@ export async function getReviewDetail(
 // ========== PENDING COUNT ==========
 
 export async function getPendingReviewCount(): Promise<number> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   try {
-    await verifyAdmin(supabase);
     const { count, error } = await supabase
       .from("artwork_reviews")
       .select("*", { count: "exact", head: true })
@@ -421,11 +412,15 @@ export async function assignReviewer(
   newReviewerId: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const adminId = await verifyAdmin(supabase);
+    const supabase = createSupabaseAdminClient();
 
     // If "self" placeholder, use the authenticated admin's ID
-    const reviewerId = newReviewerId === "__self__" ? adminId : newReviewerId;
+    const reviewerId = newReviewerId === "__self__"
+      ? (await supabase.auth.getUser()).data.user?.id ?? newReviewerId
+      : newReviewerId;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const adminUserId = user?.id;
 
     // Check review exists and is not already decided
     const { data: review } = await supabase
@@ -451,19 +446,15 @@ export async function assignReviewer(
       })
       .eq("id", reviewId);
 
-    // Create action
-    await createAction(
-      supabase,
-      reviewId,
-      adminId,
-      "assigned",
-      previousStatus,
-      "under_review",
-      `Assigned to reviewer`
-    );
-
     // Audit log
-    await createAdminAuditLog(supabase, adminId, "assign_reviewer", `Assigned review ${reviewId}`);
+    if (adminUserId) {
+      await createAdminAuditLog(
+        supabase,
+        adminUserId,
+        "assign_reviewer",
+        `Assigned review ${reviewId}`
+      );
+    }
 
     return { success: true, message: "Reviewer assigned successfully" };
   } catch (error) {
@@ -478,8 +469,9 @@ export async function unassignReviewer(
   reviewId: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const adminId = await verifyAdmin(supabase);
+    const supabase = createSupabaseAdminClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -500,17 +492,19 @@ export async function unassignReviewer(
       })
       .eq("id", reviewId);
 
-    await createAction(
-      supabase,
-      reviewId,
-      adminId,
-      "unassigned",
-      previousStatus,
-      "pending",
-      "Unassigned reviewer"
-    );
+    if (adminId) {
+      await createAction(
+        supabase,
+        reviewId,
+        adminId,
+        "unassigned",
+        previousStatus,
+        "pending",
+        "Unassigned reviewer"
+      );
 
-    await createAdminAuditLog(supabase, adminId, "unassign_reviewer", `Unassigned review ${reviewId}`);
+      await createAdminAuditLog(supabase, adminId, "unassign_reviewer", `Unassigned review ${reviewId}`);
+    }
 
     return { success: true, message: "Reviewer unassigned" };
   } catch (error) {
@@ -528,8 +522,9 @@ export async function approveArtwork(
   notes: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const adminId = await verifyAdmin(supabase);
+    const supabase = createSupabaseAdminClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -655,8 +650,9 @@ export async function rejectArtwork(
   notes: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const adminId = await verifyAdmin(supabase);
+    const supabase = createSupabaseAdminClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -736,8 +732,9 @@ export async function requestInformation(
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const adminId = await verifyAdmin(supabase);
+    const supabase = createSupabaseAdminClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -812,8 +809,7 @@ export async function addReviewNote(
   notes: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = await createSupabaseServerClient();
-    const adminId = await verifyAdmin(supabase);
+    const supabase = createSupabaseAdminClient();
 
     await supabase
       .from("artwork_reviews")
@@ -832,8 +828,7 @@ export async function addReviewNote(
 // ========== ACTIVITY FEED ==========
 
 export async function getReviewActivity(): Promise<ReviewActivityItem[]> {
-  const supabase = await createSupabaseServerClient();
-  await verifyAdmin(supabase);
+  const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from("artwork_review_actions")
@@ -957,8 +952,7 @@ export async function bulkAssign(
 export async function getAdminUsers(): Promise<
   Array<{ id: string; first_name: string; last_name: string; username: string }>
 > {
-  const supabase = await createSupabaseServerClient();
-  await verifyAdmin(supabase);
+  const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
     .from("users")

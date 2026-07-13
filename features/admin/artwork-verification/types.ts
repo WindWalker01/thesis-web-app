@@ -69,7 +69,7 @@ export type ReviewQueueItem = {
       last_name: string;
       c_profile_image: string | null;
     };
-  };
+  } | null;
   scan: {
     id: string;
     best_similarity_percentage: number | null;
@@ -127,7 +127,7 @@ export type ReviewDetail = {
       email: string | null;
       c_profile_image: string | null;
     };
-  };
+  } | null;
   scan: {
     id: string;
     status: string;
