@@ -3,7 +3,7 @@
 import { ethers } from "ethers";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { requireActiveAccount } from "@/lib/account-status";
+import { requireActiveAccount, isAdminUser } from "@/lib/account-status";
 
 type RecordArtworkOnBlockchainInput = {
   artworkId: string;
@@ -44,7 +44,7 @@ export async function recordArtworkOnBlockchain(
   try {
     const supabase = await createSupabaseServerClient();
 
-    // Verify account is active
+    // Verify account is active (admins bypass suspension/banned checks)
     let userId: string;
     try {
       userId = await requireActiveAccount();
@@ -61,6 +61,25 @@ export async function recordArtworkOnBlockchain(
 
     if (!artworkId) {
       return { success: false, message: "artworkId is required." };
+    }
+
+    // Look up the artwork's actual owner from the database
+    const { data: artworkRecord, error: lookupError } = await supabase
+      .from("registered_arts")
+      .select("owner_id")
+      .eq("id", artworkId)
+      .single();
+
+    if (lookupError || !artworkRecord) {
+      return { success: false, message: "Artwork record not found." };
+    }
+
+    const actualOwnerId = artworkRecord.owner_id;
+
+    // Verify authorization: caller must be the artwork owner OR an admin
+    const isAdmin = await isAdminUser(userId);
+    if (!isAdmin && userId !== actualOwnerId) {
+      return { success: false, message: "You are not authorized to register this artwork on the blockchain." };
     }
 
     const provider = new ethers.JsonRpcProvider(RPC);
@@ -90,8 +109,7 @@ export async function recordArtworkOnBlockchain(
       await supabase
         .from("registered_arts")
         .update({ status: "blockchain_failed" })
-        .eq("id", artworkId)
-        .eq("owner_id", userId);
+        .eq("id", artworkId);
 
       return { success: false, message: "No receipt (dropped tx?)." };
     }
@@ -117,8 +135,7 @@ export async function recordArtworkOnBlockchain(
       await supabase
         .from("registered_arts")
         .update({ status: "blockchain_failed" })
-        .eq("id", artworkId)
-        .eq("owner_id", userId);
+        .eq("id", artworkId);
 
       return { success: false, message: "WorkRegistered event not found." };
     }
@@ -133,7 +150,7 @@ export async function recordArtworkOnBlockchain(
         status: "active",
       })
       .eq("id", artworkId)
-      .eq("owner_id", userId);
+      .eq("owner_id", actualOwnerId);
 
     if (updateError) {
       return { success: false, message: updateError.message };
