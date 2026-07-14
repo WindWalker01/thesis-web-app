@@ -87,6 +87,7 @@ export async function getReviewQueue(
       reviewer_id,
       assigned_at,
       created_at,
+      resubmission_count,
       reviewer:users!artwork_reviews_reviewer_id_fkey (
         id, first_name, last_name, username
       ),
@@ -347,9 +348,9 @@ export async function getReviewDetail(
 
   if (reviewError || !review) return null;
 
-  // Then fetch scan (needs artwork_id), actions, and user in parallel
+  // Then fetch scan (needs artwork_id), actions, evidence, and user in parallel
   const artworkId = review.artwork_id;
-  const [scanResult, actionsResult, userResult] = await Promise.all([
+  const [scanResult, actionsResult, evidenceResult, userResult] = await Promise.all([
     supabase
       .from("art_similarity_scans")
       .select("*")
@@ -367,11 +368,17 @@ export async function getReviewDetail(
       )
       .eq("review_id", reviewId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("artwork_review_evidence")
+      .select("*")
+      .eq("review_id", reviewId)
+      .order("created_at", { ascending: false }),
     supabase.auth.getUser(),
   ]);
 
   const scan = scanResult.data;
   const actions = actionsResult.data;
+  const evidence = evidenceResult.data;
   const adminId = userResult.data?.user?.id;
 
   // Record view action as fire-and-forget (non-blocking)
@@ -392,6 +399,7 @@ export async function getReviewDetail(
   return {
     ...(review as any),
     scan: scan ?? null,
+    evidence: (evidence ?? []) as unknown as ReviewDetail["evidence"],
     actions: (actions ?? []) as unknown as ReviewAction[],
   } as ReviewDetail;
 }
@@ -587,12 +595,12 @@ export async function approveArtwork(
     // Create notification for artist
     await supabase.from("notifications").insert({
       user_id: artwork.owner_id,
-      type: "review_approved",
-      title: "Artwork Registration Approved",
-      message: `Your artwork "${artwork.title}" has been approved after manual review. Registration will now proceed to the blockchain.`,
+      type: "artwork_verified",
+      title: "Artwork Verified",
+      message: `Your artwork "${artwork.title}" has been successfully verified by the administrator.`,
       related_art_id: review.artwork_id,
       action_url: `/profile/artworks/${review.artwork_id}`,
-      metadata: { review_id: reviewId, admin_id: adminId },
+      metadata: { review_id: reviewId, admin_id: adminId, remarks: notes },
     });
 
     // Audit log
@@ -708,12 +716,12 @@ export async function rejectArtwork(
     // Notification
     await supabase.from("notifications").insert({
       user_id: artwork.owner_id,
-      type: "review_rejected",
-      title: "Artwork Registration Rejected",
-      message: `Your artwork "${artwork.title}" has been rejected after manual review.\n\nReason: ${reason}`,
+      type: "artwork_verification_rejected",
+      title: "Artwork Verification Rejected",
+      message: `Your artwork "${artwork.title}" did not pass manual verification. Please review the administrator's remarks.\n\nReason: ${reason}`,
       related_art_id: review.artwork_id,
       action_url: `/profile/artworks/${review.artwork_id}`,
-      metadata: { review_id: reviewId, admin_id: adminId, reason },
+      metadata: { review_id: reviewId, admin_id: adminId, reason, remarks: notes },
     });
 
     // Audit log
@@ -786,12 +794,12 @@ export async function requestInformation(
 
     await supabase.from("notifications").insert({
       user_id: artwork.owner_id,
-      type: "review_info_requested",
-      title: "Additional Evidence Required",
-      message: `Additional proof of ownership is required for "${artwork.title}".${docList}\n\nAdmin note: ${message}`,
+      type: "artwork_verification_info_requested",
+      title: "Additional Information Required",
+      message: `The administrator requires additional information before verifying your artwork "${artwork.title}".${docList}\n\nAdmin note: ${message}`,
       related_art_id: review.artwork_id,
       action_url: `/profile/artworks/${review.artwork_id}`,
-      metadata: { review_id: reviewId, admin_id: adminId, documents },
+      metadata: { review_id: reviewId, admin_id: adminId, documents, remarks: message },
     });
 
     // Audit log

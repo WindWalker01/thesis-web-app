@@ -23,7 +23,8 @@ export type ReviewActionType =
   | "comment_added"
   | "information_requested"
   | "decision_changed"
-  | "blockchain_triggered";
+  | "blockchain_triggered"
+  | "evidence_submitted";
 
 // ── Risk Level ──
 export type RiskLevel = "critical" | "high" | "medium" | "low";
@@ -37,6 +38,24 @@ export interface RiskLevelConfig {
   border: string;
   dot: string;
 }
+
+// ── Review Evidence File ──
+export type ReviewEvidenceFile = {
+  url: string;
+  name: string;
+  type: string;
+  size: number;
+};
+
+// ── Review Evidence ──
+export type ReviewEvidence = {
+  id: string;
+  review_id: string;
+  user_id: string;
+  message: string | null;
+  files: ReviewEvidenceFile[];
+  created_at: string;
+};
 
 // ── Review Queue Item ──
 export type ReviewQueueItem = {
@@ -52,6 +71,7 @@ export type ReviewQueueItem = {
   } | null;
   assigned_at: string | null;
   created_at: string;
+  resubmission_count: number;
   artwork: {
     id: string;
     title: string;
@@ -151,6 +171,7 @@ export type ReviewDetail = {
     completed_at: string | null;
     created_at: string;
   } | null;
+  evidence: ReviewEvidence[];
   actions: ReviewAction[];
 };
 

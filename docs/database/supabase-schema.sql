@@ -233,7 +233,11 @@ create table public.notifications (
           'report_submitted'::text,
           'report_resolved'::text,
           'blockchain_recorded'::text,
-          'system_announcement'::text
+          'system_announcement'::text,
+          'artwork_verified'::text,
+          'artwork_verification_rejected'::text,
+          'artwork_verification_info_requested'::text,
+          'artwork_verification_resubmitted'::text
         ]
       )
     )

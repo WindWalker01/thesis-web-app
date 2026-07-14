@@ -7,11 +7,21 @@ import {
     Award,
     Hash,
     AlertTriangle,
+    XCircle,
+    HelpCircle,
+    RefreshCw,
 } from "lucide-react";
 import { NotificationType, NotifCategory, AppNotification } from "./types";
 
 export function mapNotificationCategory(type: NotificationType): NotifCategory {
-    if (type === "artwork_registered" || type === "blockchain_recorded") {
+    if (
+        type === "artwork_registered" ||
+        type === "blockchain_recorded" ||
+        type === "artwork_verified" ||
+        type === "artwork_verification_rejected" ||
+        type === "artwork_verification_info_requested" ||
+        type === "artwork_verification_resubmitted"
+    ) {
         return "ownership";
     }
 
@@ -80,6 +90,34 @@ export function getNotificationUI(type: NotificationType) {
         case "system_announcement":
             return {
                 icon: Hash,
+                iconColor: "text-blue-400",
+                iconBg: "bg-blue-400/10",
+            };
+
+        case "artwork_verified":
+            return {
+                icon: ShieldCheck,
+                iconColor: "text-green-400",
+                iconBg: "bg-green-400/10",
+            };
+
+        case "artwork_verification_rejected":
+            return {
+                icon: XCircle,
+                iconColor: "text-red-400",
+                iconBg: "bg-red-400/10",
+            };
+
+        case "artwork_verification_info_requested":
+            return {
+                icon: HelpCircle,
+                iconColor: "text-purple-400",
+                iconBg: "bg-purple-400/10",
+            };
+
+        case "artwork_verification_resubmitted":
+            return {
+                icon: RefreshCw,
                 iconColor: "text-blue-400",
                 iconBg: "bg-blue-400/10",
             };

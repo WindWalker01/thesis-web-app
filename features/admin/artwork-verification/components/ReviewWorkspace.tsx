@@ -42,6 +42,7 @@ import { ComparisonViewer } from "./workspace/ComparisonViewer";
 import { ReviewActionsPanel } from "./workspace/ReviewActionsPanel";
 import { ReviewNotesSection } from "./workspace/ReviewNotesSection";
 import { ActivityFeedSection } from "./workspace/ActivityFeedSection";
+import { EvidenceViewerPanel } from "./workspace/EvidenceViewerPanel";
 
 export default function ArtworkReviewWorkspace() {
   const params = useParams();
@@ -390,6 +391,13 @@ export default function ArtworkReviewWorkspace() {
           </div>
         </div>
       </div>
+
+      {/* Full-Width Evidence Section */}
+      {detail.evidence && detail.evidence.length > 0 && (
+        <div className="max-w-[calc(100%-2rem)] mx-auto my-6 px-4">
+          <EvidenceViewerPanel evidence={detail.evidence} />
+        </div>
+      )}
 
       {/* Approve Dialog */}
       <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
