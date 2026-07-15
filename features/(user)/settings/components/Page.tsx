@@ -13,7 +13,9 @@ import {
     ChevronRight,
     Upload,
     Settings,
-    ShieldAlert
+    ShieldAlert,
+    FileText,
+    ExternalLink
 } from "lucide-react";
 
 import { useCurrentUserProfile } from "../../profile/hooks/useFetchProfile";
@@ -71,6 +73,13 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
         icon: Upload,
         group: "Quick Links",
         href: "/upload-artwork",
+    },
+    {
+        id: "my-reports",
+        label: "My Reports",
+        icon: FileText,
+        group: "Quick Links",
+        href: "/my-reports",
     },
 ];
 
@@ -174,10 +183,11 @@ export default function SettingsPage() {
                 <div className="flex gap-6 items-start">
                     <aside className="w-56 shrink-0 sticky top-20">
                         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                            {GROUPS.map((group) => {
+                            {GROUPS.map((group, groupIndex) => {
                                 const items = SIDEBAR_ITEMS.filter(
                                     (item) => item.group === group
                                 );
+                                const isLastGroup = groupIndex === GROUPS.length - 1;
 
                                 return (
                                     <div key={group}>
@@ -198,9 +208,9 @@ export default function SettingsPage() {
                                                     onClick={() =>
                                                         !item.href && setActiveTab(item.id)
                                                     }
-                                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-base font-medium transition-all group
+                                                    className={`w-full flex items-center justify-between px-4 py-2.5 text-base font-medium transition-all group rounded-lg
 ${isActive
-                                                            ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-r-2 border-blue-500"
+                                                            ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-[inset_2px_0_0_0] shadow-blue-500"
                                                             : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                                                         }`}
                                                 >
@@ -210,7 +220,11 @@ ${isActive
                                                             {item.label}
                                                         </span>
                                                     </div>
-                                                    <ChevronRight className="w-3 h-3 opacity-30 group-hover:opacity-70" />
+                                                    {item.href ? (
+                                                        <ExternalLink className="w-3 h-3 opacity-20 group-hover:opacity-60 transition-opacity" />
+                                                    ) : (
+                                                        <ChevronRight className="w-3 h-3 opacity-30 group-hover:opacity-70" />
+                                                    )}
                                                 </button>
                                             );
 
@@ -223,7 +237,9 @@ ${isActive
                                             );
                                         })}
 
-                                        <div className="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-1" />
+                                        {!isLastGroup && (
+                                            <div className="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-1" />
+                                        )}
                                     </div>
                                 );
                             })}

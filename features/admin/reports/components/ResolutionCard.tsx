@@ -4,10 +4,6 @@ import { useState } from "react";
 import {
   CheckCircle2,
   XCircle,
-  AlertTriangle,
-  Clock,
-  Ban,
-  UserX,
   Gavel,
   ChevronDown,
   Upload,
@@ -244,30 +240,44 @@ export function ResolutionCard({
             </>
           )}
 
-          {/* Request Evidence */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium">Request Additional Evidence</label>
-            <Textarea
-              placeholder="Describe what evidence is needed..."
-              value={evidenceMessage}
-              onChange={(e) => setEvidenceMessage(e.target.value)}
-              rows={2}
-            />
-          </div>
-          <Button
-            onClick={handleRequestEvidence}
-            disabled={!evidenceMessage.trim() || isRequestingEvidence}
-            variant="outline"
-            className="w-full gap-2"
-            size="sm"
-          >
-            {isRequestingEvidence ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
-            {isRequestingEvidence ? "Requesting..." : "Request Evidence"}
-          </Button>
+          {/* Request Evidence - only available for under_review or waiting_for_reporter */}
+          {(currentStatus === "under_review" || currentStatus === "waiting_for_reporter") && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <label className="text-xs font-medium">Request Additional Evidence</label>
+                <Textarea
+                  placeholder="Describe what evidence is needed..."
+                  value={evidenceMessage}
+                  onChange={(e) => setEvidenceMessage(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <Button
+                onClick={handleRequestEvidence}
+                disabled={!evidenceMessage.trim() || isRequestingEvidence}
+                variant="outline"
+                className="w-full gap-2"
+                size="sm"
+              >
+                {isRequestingEvidence ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                {isRequestingEvidence ? "Requesting..." : "Request Evidence"}
+              </Button>
+            </>
+          )}
+
+          {/* Hint: must be under review first */}
+          {currentStatus === "open" && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 p-3">
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Move this report to &quot;Under Review&quot; before you can request additional evidence.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

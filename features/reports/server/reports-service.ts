@@ -72,7 +72,7 @@ export async function createReportNotification(
     title: data.title,
     message: data.message,
     related_report_id: data.reportId,
-    action_url: `/profile/issues/${data.reportId}`,
+      action_url: `/my-reports/${data.reportId}`,
     metadata: {},
     is_read: false,
   });
@@ -346,6 +346,13 @@ export async function requestEvidenceWithAudit(
     throw new Error("Cannot request evidence on a report with a final status");
   }
 
+  // Only allow evidence requests on reports that are under_review
+  if (report.status !== "under_review" && report.status !== "waiting_for_reporter") {
+    throw new Error(
+      `Cannot request evidence on a report with status "${report.status}". The report must be under review.`
+    );
+  }
+
   // Add admin comment
   const comment = await repo.insertReportComment(supabase, {
     report_id: data.reportId,
@@ -354,9 +361,9 @@ export async function requestEvidenceWithAudit(
     is_admin: true,
   });
 
-  // Update status to waiting_for_reporter if not already
+  // Update status to waiting_for_reporter if currently under_review
   let updatedReport = report;
-  if (report.status !== "waiting_for_reporter") {
+  if (report.status === "under_review") {
     const previousStatus = report.status;
     await repo.updateReportStatus(supabase, data.reportId, "waiting_for_reporter");
     updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
@@ -382,12 +389,12 @@ export async function requestEvidenceWithAudit(
     notes: data.message.substring(0, 200),
   });
 
-  // Notify reporter
+  // Notify reporter with detailed message
   await createReportNotification(supabase, {
     userId: updatedReport.reporter_id,
     type: "report_submitted",
-    title: "Additional Evidence Requested",
-    message: `An admin has requested additional evidence for your report "${updatedReport.title}".`,
+    title: "Additional Evidence Required",
+    message: `An administrator has reviewed your report "${updatedReport.title}" and requires additional evidence before making a decision. Please visit your report to upload the requested information.\n\nAdmin note: ${data.message}`,
     reportId: data.reportId,
   });
 

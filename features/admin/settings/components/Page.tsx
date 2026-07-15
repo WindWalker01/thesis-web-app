@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { AlertTriangle, RefreshCw, RotateCcw, Download, Settings2 } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { AlertTriangle, RefreshCw, RotateCcw, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { getSettings, updateSettings, resetCategoryDefaults, getStorageMetrics, getSystemInfo } from "../server/settings";
-import type { SettingValue, SettingDefinition, SettingsCategory } from "../types";
-import { SETTINGS_CATEGORIES, DEFAULT_SETTINGS, getSettingByKey, CRITICAL_SETTING_KEYS } from "../constants";
-import { SettingsSidebar } from "./SettingsSidebar";
-import { UnsavedChangesBar } from "./UnsavedChangesBar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getSettings, updateSettings, resetCategoryDefaults } from "../server/settings";
+import type { SettingValue, SettingDefinition } from "../types";
+import { SETTINGS_CATEGORIES, DEFAULT_SETTINGS, getSettingByKey } from "../constants";
 import { SettingsPageSkeleton } from "./page-skeleton";
 import { SettingCard } from "./SettingCard";
 import { SettingInput } from "./SettingInput";
@@ -18,20 +17,15 @@ import { SettingToggle } from "./SettingToggle";
 import { SettingSlider } from "./SettingSlider";
 import { SettingSelect } from "./SettingSelect";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { ImportExportDialog } from "./ImportExportDialog";
-import type { StorageMetrics, SystemInfo } from "../types";
 
 export default function SettingsPage() {
   // Data state
   const [settings, setSettings] = useState<Record<string, SettingValue> | null>(null);
-  const [storageMetrics, setStorageMetrics] = useState<StorageMetrics | null>(null);
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // UI state
-  const [activeCategory, setActiveCategory] = useState("general");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("general");
   const [dirtyChanges, setDirtyChanges] = useState<Map<string, SettingValue>>(new Map());
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -45,22 +39,13 @@ export default function SettingsPage() {
     variant?: "default" | "destructive";
   }>({ open: false, title: "", description: "", onConfirm: () => {} });
 
-  const [importExportOpen, setImportExportOpen] = useState(false);
-  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
-
   // Fetch settings on mount
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [settingsData, metricsData, sysInfoData] = await Promise.all([
-        getSettings(),
-        getStorageMetrics(),
-        getSystemInfo(),
-      ]);
+      const settingsData = await getSettings();
       setSettings(settingsData);
-      setStorageMetrics(metricsData);
-      setSystemInfo(sysInfoData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
@@ -150,9 +135,9 @@ export default function SettingsPage() {
     toast.info("Changes discarded");
   }, []);
 
-  // Handle restore defaults for current category
+  // Handle restore defaults for current tab
   const handleRestoreDefaults = useCallback(() => {
-    const category = SETTINGS_CATEGORIES.find((c) => c.id === activeCategory);
+    const category = SETTINGS_CATEGORIES.find((c) => c.id === activeTab);
     if (!category) return;
 
     setConfirmDialog({
@@ -176,39 +161,10 @@ export default function SettingsPage() {
           toast.error(err instanceof Error ? err.message : "Failed to reset settings");
         } finally {
           setIsResetting(false);
-          setRestoreDialogOpen(false);
         }
       },
     });
-  }, [activeCategory, fetchSettings]);
-
-  // Filter categories based on search
-  const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return SETTINGS_CATEGORIES;
-
-    const query = searchQuery.toLowerCase();
-    return SETTINGS_CATEGORIES.map((cat) => ({
-      ...cat,
-      settings: cat.settings.filter(
-        (s) =>
-          s.label.toLowerCase().includes(query) ||
-          s.description.toLowerCase().includes(query) ||
-          s.key.toLowerCase().includes(query)
-      ),
-    })).filter((cat) => cat.settings.length > 0);
-  }, [searchQuery]);
-
-  // Get active category data
-  const activeCategoryData = useMemo(() => {
-    return filteredCategories.find((c) => c.id === activeCategory) ?? filteredCategories[0];
-  }, [filteredCategories, activeCategory]);
-
-  // Redirect if active category not in filtered
-  useEffect(() => {
-    if (filteredCategories.length > 0 && !filteredCategories.find((c) => c.id === activeCategory)) {
-      setActiveCategory(filteredCategories[0].id);
-    }
-  }, [filteredCategories, activeCategory]);
+  }, [activeTab, fetchSettings]);
 
   // Render a single setting field
   const renderSetting = useCallback(
@@ -250,17 +206,6 @@ export default function SettingsPage() {
                 options={setting.options ?? []}
                 onChange={(v) => handleChange(setting.key, v)}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
-            </div>
-          );
-
-        case "readonly":
-          return (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{setting.label}</span>
-                <span className="text-sm text-muted-foreground">{String(value)}</span>
-              </div>
               <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
@@ -325,6 +270,8 @@ export default function SettingsPage() {
     [getValue, handleChange]
   );
 
+  const totalDirtyCount = dirtyChanges.size;
+
   // Loading state
   if (isLoading) {
     return <SettingsPageSkeleton />;
@@ -348,11 +295,6 @@ export default function SettingsPage() {
     );
   }
 
-  // Override readonly settings with fetched data
-  if (storageMetrics) {
-    // These are display-only
-  }
-
   return (
     <>
       {/* Top Bar */}
@@ -361,7 +303,7 @@ export default function SettingsPage() {
           <Settings2 className="h-5 w-5 text-primary" />
           <h1 className="text-lg font-bold tracking-tight sm:text-xl">System Settings</h1>
           <Badge variant="secondary" className="text-xs">
-            {Object.keys(settings).length} settings
+            4 categories
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-0.5">
@@ -369,109 +311,70 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6">
-        {/* Sidebar - Desktop: visible, Mobile: hidden (uses tabs instead) */}
-        <div className="hidden lg:block w-60 shrink-0">
-          <div className="sticky top-20">
-            <SettingsSidebar
-              categories={filteredCategories}
-              activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onImportExport={() => setImportExportOpen(true)}
-            />
+      <div className="p-4 lg:p-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex items-center justify-between mb-6">
+            <TabsList>
+              {SETTINGS_CATEGORIES.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id}>
+                  {cat.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRestoreDefaults}
+                disabled={isResetting}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">Restore Defaults</span>
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Mobile category selector */}
-        <div className="lg:hidden space-y-4">
-          <SettingsSidebar
-            categories={filteredCategories}
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onImportExport={() => setImportExportOpen(true)}
-          />
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 min-w-0 space-y-6">
-          {/* Category header */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold tracking-tight">
-                {activeCategoryData?.label ?? "Settings"}
-              </h2>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setImportExportOpen(true)}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Import / Export</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRestoreDefaults}
-                  disabled={isResetting}
-                  className="gap-2"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  <span className="hidden sm:inline">Restore Defaults</span>
-                </Button>
+          {SETTINGS_CATEGORIES.map((category) => (
+            <TabsContent key={category.id} value={category.id} className="space-y-6 mt-0">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold tracking-tight">{category.label}</h2>
+                <p className="text-sm text-muted-foreground">{category.description}</p>
               </div>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {activeCategoryData?.description ?? ""}
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Setting cards */}
-          {activeCategoryData?.settings.map((setting) => (
-            <SettingCard
-              key={setting.key}
-              title={setting.label}
-              description={setting.description}
-              badge={setting.badge}
-            >
-              {renderSetting(setting)}
-            </SettingCard>
+              <Separator />
+              {category.settings.map((setting) => (
+                <SettingCard
+                  key={setting.key}
+                  title={setting.label}
+                  description={setting.description}
+                  badge={setting.badge}
+                >
+                  {renderSetting(setting)}
+                </SettingCard>
+              ))}
+            </TabsContent>
           ))}
-
-          {/* No results state */}
-          {activeCategoryData?.settings.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Settings2 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-medium">No settings found</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {searchQuery
-                  ? `No settings match "${searchQuery}" in this category.`
-                  : "This category has no configurable settings."}
-              </p>
-              {searchQuery && (
-                <Button variant="link" onClick={() => setSearchQuery("")} className="mt-2">
-                  Clear search
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
+        </Tabs>
       </div>
 
       {/* Unsaved Changes Bar */}
-      <UnsavedChangesBar
-        count={dirtyChanges.size}
-        onSave={handleSave}
-        onDiscard={handleDiscard}
-        isSaving={isSaving}
-      />
+      {totalDirtyCount > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card px-4 py-3 shadow-lg">
+          <div className="mx-auto flex max-w-5xl items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              You have <span className="font-semibold text-foreground">{totalDirtyCount}</span> unsaved change(s).
+            </p>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleDiscard}>
+                Discard
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Dialog */}
       <ConfirmDialog
@@ -483,15 +386,8 @@ export default function SettingsPage() {
         variant={confirmDialog.variant}
       />
 
-      {/* Import / Export Dialog */}
-      <ImportExportDialog
-        open={importExportOpen}
-        onOpenChange={setImportExportOpen}
-        onSuccess={() => fetchSettings()}
-      />
-
       {/* Padding for sticky save bar */}
-      {dirtyChanges.size > 0 && <div className="h-20" />}
+      {totalDirtyCount > 0 && <div className="h-16" />}
     </>
   );
 }

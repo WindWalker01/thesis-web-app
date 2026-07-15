@@ -114,29 +114,6 @@ export type UpdateSettingsPayload = {
   reason?: string;
 };
 
-export type ImportSettingsPayload = {
-  settings: Record<string, SettingValue>;
-};
-
-export type StorageMetrics = {
-  cloudinaryUsage: string;
-  storageUsed: string;
-  remainingStorage: string;
-  averageArtworkSize: string;
-  totalRegisteredFiles: number;
-  databaseSize: string | null;
-};
-
-export type SystemInfo = {
-  nextJsVersion: string;
-  reactVersion: string;
-  supabaseProject: string;
-  databaseVersion: string;
-  blockchainNetwork: string;
-  environment: string;
-  buildDate: string;
-};
-
 export type SettingsAuditLog = {
   id: string;
   admin_id: string;

@@ -8,9 +8,8 @@ import {
   Users,
   ImageIcon,
   FileText,
-  BarChart3,
-  Settings,
   ChevronLeft,
+  Settings2,
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
@@ -29,7 +28,7 @@ const navItems = [
   { label: "Artworks", href: "/admin/artworks", icon: ImageIcon },
   { label: "Reports", href: "/admin/reports", icon: FileText },
   { label: "Artwork Verification", href: "/admin/artwork-verification", icon: ShieldCheck },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { label: "Settings", href: "/admin/settings", icon: Settings2 },
 ];
 
 export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
