@@ -3,7 +3,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatTimeAgo } from "@/lib/client-utils";
 import { getShowNsfwContentAction } from "@/features/(user)/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
-import type { CommunityPageData, Post, VoteType } from "../types";
+import type { ArtistReputation, CommunityPageData, Post, VoteType } from "../types";
+import {
+    computeArtistReputation,
+    FEATURED_WORTHY_MIN_SCORE,
+    getRecognitionTier,
+} from "./artist-reputation";
 
 export type CommunityPostDetail = {
     post: Post;
@@ -66,11 +71,88 @@ function toSingleObject<T>(value: T | T[] | null): T | null {
     return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
-function mapBadge(score: number): Post["artistBadge"] {
-    if (score >= 20) return "Featured";
-    if (score >= 5) return "Verified";
-    return "Emerging";
+// Community Recognition thresholds and reputation scoring live in
+// `./artist-reputation` so the badge tier and the numeric reputation share a
+// single source of truth.
+
+type ArtistStats = {
+    tier: Post["artistBadge"];
+    reputation: ArtistReputation;
+};
+
+/**
+ * Aggregate each artist's engagement from the public, non-archived, active rows
+ * in a single pass, then derive both the recognition tier and the numeric
+ * reputation. Computed before any NSFW display filtering so results are
+ * identical for every viewer (no viewer-dependent badges or scores).
+ * Private/archived posts are excluded so hidden work never inflates standing.
+ *
+ * Rows are filtered with the same artwork/author guard that `mapPosts` applies,
+ * so standing only reflects posts actually shown in the feed. Without this,
+ * `.eq("registered_arts.status", "active")` nulls the embedded artwork (rather
+ * than dropping the row) for non-active works, which would otherwise let
+ * hidden/non-active posts inflate an artist's standing.
+ */
+function buildArtistStatsMap(
+    publicRows: ArtPostRow[],
+): Map<string, ArtistStats> {
+    const netScoreByArtist = new Map<string, number>();
+    const upvotesByArtist = new Map<string, number>();
+    const featuredWorthyByArtist = new Map<string, number>();
+
+    for (const row of publicRows) {
+        const artwork = toSingleObject(row.registered_arts);
+        const author = toSingleObject(row.users);
+
+        if (!artwork || !author) continue;
+
+        const score = row.score ?? 0;
+
+        netScoreByArtist.set(
+            row.user_id,
+            (netScoreByArtist.get(row.user_id) ?? 0) + score,
+        );
+        upvotesByArtist.set(
+            row.user_id,
+            (upvotesByArtist.get(row.user_id) ?? 0) + (row.upvote_count ?? 0),
+        );
+
+        if (score >= FEATURED_WORTHY_MIN_SCORE) {
+            featuredWorthyByArtist.set(
+                row.user_id,
+                (featuredWorthyByArtist.get(row.user_id) ?? 0) + 1,
+            );
+        }
+    }
+
+    const statsByArtist = new Map<string, ArtistStats>();
+
+    for (const [userId, totalNetScore] of netScoreByArtist) {
+        const totalUpvotes = upvotesByArtist.get(userId) ?? 0;
+        const featuredWorthyCount = featuredWorthyByArtist.get(userId) ?? 0;
+
+        statsByArtist.set(userId, {
+            tier: getRecognitionTier(totalNetScore),
+            reputation: computeArtistReputation({
+                totalNetScore,
+                totalUpvotes,
+                featuredWorthyCount,
+            }),
+        });
+    }
+
+    return statsByArtist;
 }
+
+/**
+ * Neutral reputation for artists with no qualifying public rows (e.g. viewing
+ * their own private-only post), keeping the modal free of undefined access.
+ */
+const EMPTY_REPUTATION: ArtistReputation = computeArtistReputation({
+    totalNetScore: 0,
+    totalUpvotes: 0,
+    featuredWorthyCount: 0,
+});
 
 function getCurrentUserVote(
     reactions: ArtReactionRow[] | null | undefined,
@@ -94,6 +176,7 @@ function mapPosts(
     rows: ArtPostRow[],
     categoryByArtId: Map<string, string>,
     currentUserId: string | null,
+    statsByArtist: Map<string, ArtistStats>,
 ): Post[] {
     const posts: Post[] = [];
 
@@ -106,6 +189,7 @@ function mapPosts(
         const category = categoryByArtId.get(row.art_id) ?? "Uncategorized";
         const currentUserVote = getCurrentUserVote(row.art_reactions, currentUserId);
         const hasReported = getHasReported(row.reports, currentUserId);
+        const stats = statsByArtist.get(row.user_id);
 
         posts.push({
             id: row.id,
@@ -137,7 +221,8 @@ function mapPosts(
 
             category,
             excerpt: artwork.description ?? undefined,
-            artistBadge: mapBadge(row.score),
+            artistBadge: stats?.tier ?? "Emerging",
+            artistReputation: stats?.reputation ?? EMPTY_REPUTATION,
             tags: [],
 
             visibility: row.visibility,
@@ -272,7 +357,12 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
         }
     }
 
-    const allPosts = mapPosts(mergedRows, categoryByArtId, user?.id ?? null);
+    const allPosts = mapPosts(
+        mergedRows,
+        categoryByArtId,
+        user?.id ?? null,
+        buildArtistStatsMap((publicRows ?? []) as ArtPostRow[]),
+    );
 
     // Filter out NSFW posts unless the user has opted in.
     // Always keep the user's own posts regardless of NSFW status.

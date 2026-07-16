@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ConfirmActionModal from "../../settings/components/ConfirmActionModal";
 import { useArtPost } from "../hooks/useArtPost";
+import { RecognitionBadge } from "./RecognitionBadge";
+import type { VoteType, PostVisibility, ArtistBadge } from "../types";
 import type { VoteType, PostVisibility } from "../types";
 import { SharePostButton } from "./SharePostButton";
 
@@ -50,7 +52,7 @@ export type ArtPostProps = {
 
   category?: string;
   excerpt?: string;
-  artistBadge?: "Verified" | "Emerging" | "Featured";
+  artistBadge?: ArtistBadge;
   tags?: string[];
 
   isOwner?: boolean;
@@ -86,6 +88,7 @@ export function ArtPost({
   excerpt,
   visibility,
   isNsfw = false,
+  artistBadge,
   tags = [],
   isOwner = false,
   editHref,
@@ -145,6 +148,7 @@ export function ArtPost({
                 <p className="text-foreground hover:text-primary truncate text-base font-semibold transition">
                   @{username}
                 </p>
+                <RecognitionBadge tier={artistBadge} />
               </div>
 
               <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm">
