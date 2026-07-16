@@ -29,6 +29,8 @@ import { SimilarityReportSection } from "@/features/(user)/profile/components/Si
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
 import { useArtworkReview } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkReview";
+import { ArtworkRecognitionProfile } from "@/features/(user)/community/components/ArtworkRecognitionProfile";
+import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
 
 type Props = {
     id: string;
@@ -59,6 +61,8 @@ function buildChainTxUrl(chain: string, txHash: string) {
 export default function ArtworkDetailPage({ id }: Props) {
     const { artwork: art, isLoading, error, refetch } = useArtworkDetailPage(id);
     const { data: reviewData, refetch: refetchReview } = useArtworkReview(id);
+    const { profile: recognitionProfile, isLoading: recognitionLoading } =
+        useArtworkRecognitionProfile(id);
 
     if (isLoading) {
         return <ArtworkDetailPageSkeleton />;
@@ -319,6 +323,12 @@ export default function ArtworkDetailPage({ id }: Props) {
                         report={art.similarityReport}
                     />
                 </div>
+
+                {recognitionProfile && !recognitionLoading ? (
+                    <div className="mt-6">
+                        <ArtworkRecognitionProfile profile={recognitionProfile} />
+                    </div>
+                ) : null}
 
                 {reviewData && (
                     <div className="mt-6">

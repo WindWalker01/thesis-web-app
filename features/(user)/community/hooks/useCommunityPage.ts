@@ -27,6 +27,7 @@ export function useCommunityPage({
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [reportOpen, setReportOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [postViewerOpen, setPostViewerOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [pendingPostId, setPendingPostId] = useState<string | null>(null);
@@ -34,6 +35,11 @@ export function useCommunityPage({
   useEffect(() => {
     setPosts(initialPosts);
   }, [initialPosts]);
+
+  const openPostViewer = useCallback((post: Post) => {
+    setSelectedPost(post);
+    setPostViewerOpen(true);
+  }, []);
 
   const requireAuth = (nextMessage: string, post: Post) => {
     setSelectedPost(post);
@@ -152,6 +158,7 @@ export function useCommunityPage({
       posts,
       reportOpen,
       loginOpen,
+      postViewerOpen,
       message,
       selectedPost: selectedLivePost,
       isPending: voteMutation.isPending,
@@ -160,7 +167,9 @@ export function useCommunityPage({
     actions: {
       setReportOpen,
       setLoginOpen,
+      setPostViewerOpen,
       openReport,
+      openPostViewer,
       upVote,
       downVote,
       handleSubmitReport,

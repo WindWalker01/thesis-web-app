@@ -284,6 +284,7 @@ export function PostViewerModal({
                   </div>
                 </div>
 
+
                 <div className="border-border/70 border-t px-3 py-2 sm:px-4">
                   <div className="grid grid-cols-3 gap-2">
                     <button

@@ -34,13 +34,9 @@ function toCertificateArtwork(artwork: ArtworkDetail): CertificateArtwork {
         creator: artwork.creator
             ? {
                   id: artwork.creator.id,
-                  fullName: [
-                      artwork.creator.first_name,
-                      artwork.creator.middle_name,
-                      artwork.creator.last_name,
-                  ]
-                      .filter((part) => !!part && part.trim().length > 0)
-                      .join(" "),
+                  first_name: artwork.creator.first_name,
+                  last_name: artwork.creator.last_name,
+                  middle_name: artwork.creator.middle_name,
                   username: artwork.creator.username,
                   profileImage: artwork.creator.profileImage,
               }

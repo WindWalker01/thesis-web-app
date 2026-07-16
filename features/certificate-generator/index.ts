@@ -236,7 +236,11 @@ export async function generateArtworkCertificatePdf(
 
   const title = safeValue(artwork.title);
   const category = safeValue(artwork.category);
-  const creatorName = safeValue(artwork.creator?.fullName);
+  const creatorName = artwork.creator
+    ? [artwork.creator.first_name, artwork.creator.middle_name, artwork.creator.last_name]
+        .filter(Boolean)
+        .join(" ") || artwork.creator.username
+    : "N/A";
   const creatorUsername = artwork.creator?.username
     ? `${artwork.creator.username}`
     : "N/A";

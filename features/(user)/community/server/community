@@ -3,7 +3,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatTimeAgo } from "@/lib/client-utils";
 import { getShowNsfwContentAction } from "@/features/(user)/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
-import type { ArtistReputation, CommunityPageData, Post, VoteType } from "../types";
+import type {
+    ArtistReputation,
+    CommunityPageData,
+    Post,
+    VoteType,
+} from "../types";
 import {
     computeArtistReputation,
     FEATURED_WORTHY_MIN_SCORE,
@@ -26,7 +31,7 @@ type ArtReactionRow = {
     reaction_type: "upvote" | "downvote";
 };
 
-    type ArtPostRow = {
+type ArtPostRow = {
     id: string;
     art_id: string;
     user_id: string;
@@ -44,6 +49,8 @@ type ArtReactionRow = {
             description: string | null;
             c_secure_url: string | null;
             status: string;
+            tx_hash: string | null;
+            chain: string | null;
         }[]
         | null;
     users:
@@ -57,13 +64,18 @@ type ArtReactionRow = {
         }[]
         | null;
     art_reactions?: ArtReactionRow[] | null;
-    reports?: { reporter_id: string }[] | null;
-    };
+    reports?: { reporter_id: string; status: string }[] | null;
+};
 
 type ArtGenreRow = {
     art_id: string;
     genre_id: number;
     genres: { name: string } | { name: string }[] | null;
+};
+
+type SimilarityScanRow = {
+    art_id: string;
+    best_similarity_percentage: number | null;
 };
 
 function toSingleObject<T>(value: T | T[] | null): T | null {
@@ -78,6 +90,20 @@ function toSingleObject<T>(value: T | T[] | null): T | null {
 type ArtistStats = {
     tier: Post["artistBadge"];
     reputation: ArtistReputation;
+};
+
+/**
+ * Artwork-level enrichment data needed to build the Artwork Recognition Profile.
+ * Fetched in batch after the main post query to avoid N+1 queries.
+ * Each value maps to a verifiable database field — no derived scores.
+ */
+type ArtworkEnrichment = {
+    /** Map of art_id → best similarity percentage (or null if no scan). */
+    similarityByArtId: Map<string, number | null>;
+    /** Map of post_id → count of open (unresolved) reports. */
+    openReportCountByPostId: Map<string, number>;
+    /** Set of post_ids that are in the featured (top) band. */
+    featuredPostIds: Set<string>;
 };
 
 /**
@@ -177,6 +203,7 @@ function mapPosts(
     categoryByArtId: Map<string, string>,
     currentUserId: string | null,
     statsByArtist: Map<string, ArtistStats>,
+    enrichment: ArtworkEnrichment,
 ): Post[] {
     const posts: Post[] = [];
 
@@ -223,6 +250,7 @@ function mapPosts(
             excerpt: artwork.description ?? undefined,
             artistBadge: stats?.tier ?? "Emerging",
             artistReputation: stats?.reputation ?? EMPTY_REPUTATION,
+            recognitionProfile: undefined,
             tags: [],
 
             visibility: row.visibility,
@@ -251,7 +279,9 @@ const ART_POST_SELECT = `
     title,
     description,
     c_secure_url,
-    status
+    status,
+    tx_hash,
+    chain
   ),
   users!art_posts_user_id_fkey (
     id,
@@ -266,9 +296,93 @@ const ART_POST_SELECT = `
     reaction_type
   ),
   reports (
-    reporter_id
+    reporter_id,
+    status
   )
 `;
+
+/**
+ * Fetch artwork-level enrichment data (similarity scans and open report
+ * counts) in batch to avoid N+1 queries. Also determines which posts are in
+ * the featured (top) band based on score.
+ */
+async function fetchArtworkEnrichment(
+    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+    rows: ArtPostRow[],
+): Promise<ArtworkEnrichment> {
+    const artIds = Array.from(new Set(rows.map((row) => row.art_id)));
+    const postIds = Array.from(new Set(rows.map((row) => row.id)));
+
+    // --- Batch fetch similarity scans ---
+    const similarityByArtId = new Map<string, number | null>();
+
+    if (artIds.length > 0) {
+        const { data: scanRows, error: scanError } = await supabase
+            .from("art_similarity_scans")
+            .select("art_id, best_similarity_percentage")
+            .in("art_id", artIds);
+
+        if (scanError) {
+            throw new Error(scanError.message);
+        }
+
+        for (const row of (scanRows ?? []) as SimilarityScanRow[]) {
+            // Keep the first (most recent) scan per art_id
+            if (!similarityByArtId.has(row.art_id)) {
+                similarityByArtId.set(row.art_id, row.best_similarity_percentage);
+            }
+        }
+
+        // Ensure all art_ids have an entry (null = no scan)
+        for (const artId of artIds) {
+            if (!similarityByArtId.has(artId)) {
+                similarityByArtId.set(artId, null);
+            }
+        }
+    }
+
+    // --- Batch fetch open report counts ---
+    const openReportCountByPostId = new Map<string, number>();
+
+    if (postIds.length > 0) {
+        const { data: reportRows, error: reportError } = await supabase
+            .from("reports")
+            .select("reported_art_post_id, status")
+            .in("reported_art_post_id", postIds)
+            .eq("status", "open");
+
+        if (reportError) {
+            throw new Error(reportError.message);
+        }
+
+        for (const row of (reportRows ?? []) as {
+            reported_art_post_id: string;
+            status: string;
+        }[]) {
+            const current = openReportCountByPostId.get(row.reported_art_post_id) ?? 0;
+            openReportCountByPostId.set(row.reported_art_post_id, current + 1);
+        }
+    }
+
+    // --- Determine featured posts (top 5 by score among public, non-archived) ---
+    const featuredPostIds = new Set<string>();
+    const eligibleForFeatured = rows
+        .filter((row) => row.visibility === "public" && !row.is_archived)
+        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+        .slice(0, 5);
+
+    for (const row of eligibleForFeatured) {
+        if ((row.score ?? 0) >= FEATURED_WORTHY_MIN_SCORE) {
+            featuredPostIds.add(row.id);
+        }
+    }
+
+    return {
+        similarityByArtId,
+        openReportCountByPostId,
+        featuredPostIds,
+    };
+}
 
 export async function getCommunityFeedData(): Promise<CommunityPageData> {
     const supabase = await createSupabaseServerClient();
@@ -357,11 +471,15 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
         }
     }
 
+    // Fetch artwork enrichment (similarity scans, open reports, featured)
+    const enrichment = await fetchArtworkEnrichment(supabase, mergedRows);
+
     const allPosts = mapPosts(
         mergedRows,
         categoryByArtId,
         user?.id ?? null,
         buildArtistStatsMap((publicRows ?? []) as ArtPostRow[]),
+        enrichment,
     );
 
     // Filter out NSFW posts unless the user has opted in.
@@ -481,7 +599,8 @@ export async function getCommunityPostById(
     }
 
     const categoryByArtId = await getCategoryForArt(supabase, row.art_id);
-    const [post] = mapPosts([row], categoryByArtId, currentUserId, new Map());
+    const enrichment = await fetchArtworkEnrichment(supabase, [row]);
+    const [post] = mapPosts([row], categoryByArtId, currentUserId, new Map(), enrichment);
 
     if (!post) return null;
 

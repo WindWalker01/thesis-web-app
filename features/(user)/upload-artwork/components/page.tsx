@@ -1,9 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CloudUpload } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CloudUpload,
+  FileImage,
+  ImageIcon,
+  X,
+} from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,13 +21,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import {
+  ACCEPT_ATTR,
+  RECOMMENDED_FORMAT_LABELS,
+  SUPPORTED_FORMAT_LABELS,
+} from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import type { OtherSearchMatch } from "@/features/plagiarise-checker/types";
 import { useUploadArtworkForm } from "@/features/(user)/upload-artwork/hooks/use-upload-artwork-form";
 import { useArtworkFilePreview } from "@/features/(user)/upload-artwork/hooks/use-artwork-file-preview";
 import { DB_MATCH_DISPLAY_THRESHOLD } from "@/features/(user)/upload-artwork/lib/similarity-display";
 import { UploadArtworkProgress } from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
 import { UploadHero } from "@/features/(user)/upload-artwork/components/upload-hero";
-import { ArtworkDropzone } from "@/features/(user)/upload-artwork/components/artwork-dropzone";
 import { RegistrationForm } from "@/features/(user)/upload-artwork/components/registration-form";
 import { SimilarityReportDetailed } from "@/features/(user)/upload-artwork/components/similarity-report-detailed";
 import { SimilarityReportSummary } from "@/features/(user)/upload-artwork/components/similarity-report-summary";
@@ -133,7 +151,7 @@ export default function UploadArtworkPage() {
                       : "border-border hover:border-primary/60 hover:bg-muted/40",
                   ].join(" ")}
                 >
-                  {!file ? (
+                  {!watchedFile ? (
                     <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 text-center">
                       <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
                         <CloudUpload className="text-primary h-8 w-8" />
@@ -148,25 +166,33 @@ export default function UploadArtworkPage() {
                         </p>
                       </div>
 
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          {["PNG", "JPG", "JPEG", "WEBP", "GIF", "BMP", "TIFF", "SVG", "AVIF"].map((format) => (
-                            <Badge
-                              key={format}
-                              variant={["PNG", "JPG", "JPEG"].includes(format) ? "default" : "outline"}
-                              className={["PNG", "JPG", "JPEG"].includes(format) ? "opacity-90" : "opacity-60"}
-                            >
-                              {format}
-                            </Badge>
-                          ))}
-                        </div>
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        {SUPPORTED_FORMAT_LABELS.map((format) => (
+                          <Badge
+                            key={format}
+                            variant={
+                              (RECOMMENDED_FORMAT_LABELS as readonly string[]).includes(format)
+                                ? "default"
+                                : "outline"
+                            }
+                            className={
+                              (RECOMMENDED_FORMAT_LABELS as readonly string[]).includes(format)
+                                ? "opacity-90"
+                                : "opacity-60"
+                            }
+                          >
+                            {format}
+                          </Badge>
+                        ))}
+                      </div>
 
-                        <p className="text-muted-foreground text-xs">
-                          <span className="text-foreground font-medium">Recommended:</span> PNG or JPG for best detection accuracy
-                        </p>
+                      <p className="text-muted-foreground text-xs">
+                        <span className="text-foreground font-medium">Recommended:</span> PNG or JPG for best detection accuracy
+                      </p>
 
-                        <p className="text-muted-foreground text-sm">
-                          Maximum file size: 96MB
-                        </p>
+                      <p className="text-muted-foreground text-sm">
+                        Maximum file size: 96MB
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -175,7 +201,7 @@ export default function UploadArtworkPage() {
                           <div className="relative aspect-[4/3] w-full">
                             <Image
                               src={previewUrl}
-                              alt={file.name}
+                              alt={watchedFile.name}
                               fill
                               unoptimized
                               className="object-contain"
@@ -192,10 +218,10 @@ export default function UploadArtworkPage() {
                         <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-base font-medium">
-                            {file.name}
+                            {watchedFile.name}
                           </p>
                           <p className="text-muted-foreground text-sm">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                            {(watchedFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
 
@@ -219,7 +245,7 @@ export default function UploadArtworkPage() {
                   <input
                     ref={inputRef}
                     type="file"
-                    accept={ACCEPT_ATTR ?? "image/png,image/jpeg,image/jpg,image/webp,image/gif,image/bmp,image/tiff,image/svg+xml/avif,image"}
+                    accept={ACCEPT_ATTR}
                     className="hidden"
                     onChange={(e) => handleFileSelect(e.target.files?.[0])}
                     disabled={showProgressView}
@@ -232,19 +258,19 @@ export default function UploadArtworkPage() {
                   </p>
                 )}
 
-                  <Alert>
-                    <FileImage className="h-4 w-4" />
-                    <AlertTitle>Supported formats</AlertTitle>
-                    <AlertDescription className="space-y-1">
-                      <span className="block">
-                        PNG, JPG, JPEG, WEBP, GIF, BMP, TIFF, AVIF, and SVG are all accepted.
-                      </span>
-                      <span className="block text-muted-foreground">
-                        For best similarity detection results, upload in{" "}
-                        <span className="text-foreground font-medium">PNG or JPG</span> — the most widely used formats for digital artwork.
-                      </span>
-                    </AlertDescription>
-                  </Alert>
+                <Alert>
+                  <FileImage className="h-4 w-4" />
+                  <AlertTitle>Supported formats</AlertTitle>
+                  <AlertDescription className="space-y-1">
+                    <span className="block">
+                      PNG, JPG, JPEG, WEBP, GIF, BMP, TIFF, AVIF, and SVG are all accepted.
+                    </span>
+                    <span className="block text-muted-foreground">
+                      For best similarity detection results, upload in{" "}
+                      <span className="text-foreground font-medium">PNG or JPG</span> — the most widely used formats for digital artwork.
+                    </span>
+                  </AlertDescription>
+                </Alert>
 
                 <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100">
                   <AlertTriangle className="h-4 w-4" />
@@ -256,8 +282,9 @@ export default function UploadArtworkPage() {
                       href="/terms-of-use"
                       className="font-medium underline underline-offset-4"
                     >
-                      Terms of Use.features/certificate-generator/index.ts
+                      Terms of Use
                     </Link>
+                    .
                   </AlertDescription>
                 </Alert>
               </CardContent>

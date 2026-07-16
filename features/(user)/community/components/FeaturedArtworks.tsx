@@ -7,8 +7,8 @@ import type { Post } from "../types";
 
 type FeaturedArtworksProps = {
   posts: Post[];
-  onOpen: (post: Post) => void;
   authed: boolean;
+  onNavigate?: (postId: string) => void;
 };
 
 /**
@@ -73,7 +73,7 @@ const RANK_STYLES = [
  * (via `onOpen`) so voting and full details stay in a single source of truth —
  * no vote UI or artwork data is duplicated here.
  */
-export function FeaturedArtworks({ posts, onOpen, authed }: FeaturedArtworksProps) {
+export function FeaturedArtworks({ posts, authed, onNavigate }: FeaturedArtworksProps) {
   if (posts.length === 0) {
     return null;
   }
@@ -144,7 +144,7 @@ export function FeaturedArtworks({ posts, onOpen, authed }: FeaturedArtworksProp
 
                   <button
                     type="button"
-                    onClick={() => onOpen(post)}
+                    onClick={() => onNavigate?.(post.postId ?? post.id)}
                     className={[
                       "relative flex h-full w-full flex-col overflow-hidden rounded-[1.75rem] border border-white/10 text-left",
                       "bg-card/60 backdrop-blur-xl",

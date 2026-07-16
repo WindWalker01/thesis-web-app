@@ -14,6 +14,46 @@ export type ArtistReputation = {
     summary: string;
 };
 
+/**
+ * A single observable fact about an artwork that contributes to its
+ * community recognition. Each fact maps directly to a verifiable database
+ * value — no computed scores, no weighted algorithms.
+ */
+export type RecognitionFact = {
+    /** Unique key for this fact (e.g. "upvotes", "blockchain", "similarity_scan") */
+    key: string;
+    /** Human-readable label (e.g. "Community Upvotes") */
+    label: string;
+    /** Whether this fact is satisfied / positive */
+    satisfied: boolean;
+    /** The actual observed value (e.g. "42 upvotes") */
+    detail: string;
+    /** Short description of what this fact means */
+    description: string;
+};
+
+/**
+ * A named group of related recognition facts.
+ */
+export type RecognitionSection = {
+    /** Section heading (e.g. "Community Recognition", "Protection & Registration") */
+    heading: string;
+    /** Facts belonging to this section */
+    facts: RecognitionFact[];
+};
+
+/**
+ * Artwork-level recognition profile — a collection of observable facts
+ * grouped into meaningful categories. No blended scores, no weighted
+ * formulas, no hidden algorithms. Every value is a verifiable database fact.
+ */
+export type RecognitionProfileData = {
+    /** Grouped recognition facts */
+    sections: RecognitionSection[];
+    /** ISO timestamp of when this profile was generated */
+    generatedAt: string;
+};
+
 export type PostVisibility = "public" | "private";
 
 export type VoteType = "upvote" | "downvote" | null;
@@ -48,6 +88,7 @@ export type Post = {
     excerpt?: string;
     artistBadge?: ArtistBadge;
     artistReputation?: ArtistReputation;
+    recognitionProfile?: RecognitionProfileData;
     tags?: string[];
 
     visibility: PostVisibility;

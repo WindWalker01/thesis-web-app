@@ -18,7 +18,6 @@ import {
 import { ArtPost } from "./ArtPost";
 import { LoginRequiredModal } from "./LoginRequiredModal";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
-import { PostViewerModal } from "./PostViewerModal";
 import { FeaturedArtworks } from "./FeaturedArtworks";
 import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
@@ -49,6 +48,14 @@ export default function CommunityPageClient({
     currentUserId,
     posts: state.posts,
   });
+
+  const handleOpenPost = (postId: string) => {
+    if (!authed) {
+      actions.setLoginOpen(true);
+      return;
+    }
+    router.push(`/community/${postId}`);
+  };
 
   return (
     <main
@@ -145,8 +152,8 @@ export default function CommunityPageClient({
 
       <FeaturedArtworks
         posts={feedState.featuredPosts}
-        onOpen={actions.openPostViewer}
         authed={authed}
+        onNavigate={handleOpenPost}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -349,7 +356,7 @@ export default function CommunityPageClient({
                       isOwner={post.userId === currentUserId}
                       editHref={`/community/edit-post/${post.postId}`}
                       isVoting={state.pendingPostId === post.postId}
-                      onOpen={() => router.push(`/community/${post.postId}`)}
+                      onOpen={() => handleOpenPost(post.postId)}
                       onReport={() => actions.openReport(post)}
                       onUpvote={() => actions.upVote(post)}
                       onDownvote={() => actions.downVote(post)}
