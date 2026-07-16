@@ -58,37 +58,38 @@ export function PostViewerModal({
   onDownvote,
   onReport,
 }: PostViewerModalProps) {
-  const {
-    deleteModalOpen,
-    isDeleting,
-    handleDeletePost,
-    openDeleteModal,
-    closeDeleteModal,
-  } = useArtPost({
-    postId: post?.postId ?? "",
-    onDeleted: (deletedPostId) => {
-      onOpenChange(false);
-      onDeleted?.(deletedPostId);
-    },
-  });
+    // Hooks must be called unconditionally. Pass an empty string when post is null
+    const {
+        deleteModalOpen,
+        isDeleting,
+        handleDeletePost,
+        openDeleteModal,
+        closeDeleteModal,
+    } = useArtPost({
+        postId: post?.postId ?? "",
+        onDeleted: (deletedPostId) => {
+            onOpenChange(false);
+            onDeleted?.(deletedPostId);
+        },
+    });
 
-  if (!post) return null;
+    if (!post) return null;
 
-  const upvoteActive = post.currentUserVote === "upvote";
-  const downvoteActive = post.currentUserVote === "downvote";
-  const VisibilityIcon = post.visibility === "private" ? Lock : Globe;
+    const upvoteActive = post.currentUserVote === "upvote";
+    const downvoteActive = post.currentUserVote === "downvote";
+    const VisibilityIcon = post.visibility === "private" ? Lock : Globe;
 
-  return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          showCloseButton={false}
-          className="border-border/70 bg-background max-h-[92vh] overflow-hidden rounded-3xl border p-0 shadow-2xl sm:max-w-4xl"
-        >
-          <DialogTitle className="sr-only">{post.title}</DialogTitle>
-          <DialogDescription className="sr-only">
-            View this community post in a focused modal.
-          </DialogDescription>
+    return (
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent
+                    showCloseButton={false}
+                    className="max-h-[92vh] overflow-hidden rounded-3xl border border-border/70 bg-background p-0 shadow-2xl sm:max-w-4xl"
+                >
+                    <DialogTitle className="sr-only">{post.title}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        View this community post in a focused modal.
+                    </DialogDescription>
 
           <div className="flex max-h-[92vh] min-h-0 flex-col">
             <div className="border-border/70 bg-background/95 sticky top-0 z-20 flex items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur sm:px-5">

@@ -12,7 +12,8 @@ export type SettingsTab =
     | "artwork-ownership"
     | "plagiarism-history"
     | "plagiarism-checker"
-    | "upload-artwork";
+    | "upload-artwork"
+    | "my-reports";
 
 export function useSettingsPage() {
     const [activeTab, setActiveTab] = useState<SettingsTab>("theme");
@@ -48,6 +49,6 @@ export function useSettingsPage() {
             handleLogout,
             isLoggingOut,
         }),
-        [activeTab, showLogout, isLoggingOut]
+        [activeTab, showLogout, isLoggingOut, closeLogoutModal]
     );
 }

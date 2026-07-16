@@ -46,9 +46,11 @@ export function ProfileBanner({ profile, children }: Props) {
                                 <span>{profile.initials}</span>
                             )}
                         </div>
-                        <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center border-2 border-slate-900">
-                            <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                        </div>
+                        {profile.isVerified && (
+                            <div className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center border-2 border-slate-900">
+                                <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Profile text */}
@@ -59,10 +61,12 @@ export function ProfileBanner({ profile, children }: Props) {
                                     .filter(Boolean)
                                     .join(" ")}
                                 </h1>
-                            <span className="text-[10px] font-bold bg-green-500/15 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                <CheckCircle className="w-2.5 h-2.5" />
-                                Verified Artist
-                            </span>
+                            {profile.isVerified && (
+                                <span className="text-[10px] font-bold bg-green-500/15 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <CheckCircle className="w-2.5 h-2.5" />
+                                    Verified Artist
+                                </span>
+                            )}
                         </div>
 
                         <p className="text-base text-slate-400 mb-1">{profile.username}</p>

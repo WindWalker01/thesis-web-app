@@ -27,6 +27,8 @@ import ArtworkDetailPageSkeleton from "./PageSkeleton";
 import { DownloadCertificateButton } from "./DownloadCertificateButton";
 import { SimilarityReportSection } from "@/features/(user)/profile/components/SimilarityReportSection";
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
+import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
+import { useArtworkReview } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkReview";
 
 type Props = {
     id: string;
@@ -56,6 +58,7 @@ function buildChainTxUrl(chain: string, txHash: string) {
 
 export default function ArtworkDetailPage({ id }: Props) {
     const { artwork: art, isLoading, error, refetch } = useArtworkDetailPage(id);
+    const { data: reviewData, refetch: refetchReview } = useArtworkReview(id);
 
     if (isLoading) {
         return <ArtworkDetailPageSkeleton />;
@@ -316,6 +319,22 @@ export default function ArtworkDetailPage({ id }: Props) {
                         report={art.similarityReport}
                     />
                 </div>
+
+                {reviewData && (
+                    <div className="mt-6">
+                        <VerificationStatusCard
+                            reviewId={reviewData.reviewId}
+                            status={reviewData.status}
+                            decision_reason={reviewData.decision_reason}
+                            review_notes={reviewData.review_notes}
+                            requested_documents={reviewData.requested_documents}
+                            resubmission_count={reviewData.resubmission_count}
+                            actions={reviewData.actions}
+                            evidence={reviewData.evidence}
+                            onEvidenceSubmitted={() => refetchReview()}
+                        />
+                    </div>
+                )}
 
                 <div className="mt-6">
                     <TechnicalDetailsToggle

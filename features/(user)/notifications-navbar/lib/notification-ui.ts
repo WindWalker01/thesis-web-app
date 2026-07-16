@@ -7,6 +7,8 @@ import {
     ShieldCheck,
     Gavel,
     Megaphone,
+    HelpCircle,
+    RefreshCw,
     type LucideIcon,
 } from "lucide-react";
 import type { NotificationType } from "../types";
@@ -58,6 +60,34 @@ export function getNotificationUI(type: NotificationType): {
                 icon: ShieldCheck,
                 color: "text-cyan-500",
                 bg: "bg-cyan-500/10",
+            };
+
+        case "artwork_verified":
+            return {
+                icon: ShieldCheck,
+                color: "text-green-500",
+                bg: "bg-green-500/10",
+            };
+
+        case "artwork_verification_rejected":
+            return {
+                icon: XCircle,
+                color: "text-red-500",
+                bg: "bg-red-500/10",
+            };
+
+        case "artwork_verification_info_requested":
+            return {
+                icon: HelpCircle,
+                color: "text-purple-500",
+                bg: "bg-purple-500/10",
+            };
+
+        case "artwork_verification_resubmitted":
+            return {
+                icon: RefreshCw,
+                color: "text-blue-500",
+                bg: "bg-blue-500/10",
             };
 
         case "system_announcement":

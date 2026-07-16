@@ -233,7 +233,11 @@ create table public.notifications (
           'report_submitted'::text,
           'report_resolved'::text,
           'blockchain_recorded'::text,
-          'system_announcement'::text
+          'system_announcement'::text,
+          'artwork_verified'::text,
+          'artwork_verification_rejected'::text,
+          'artwork_verification_info_requested'::text,
+          'artwork_verification_resubmitted'::text
         ]
       )
     )
@@ -379,12 +383,23 @@ execute FUNCTION notify_report_submitted_to_reporter ();
 
 -- USERS
 
+-- Account status enum for user management
+create type public.account_status as enum ('active', 'suspended', 'banned');
+
 create table public.users (
   id uuid not null,
+  first_name text not null,
+  last_name text not null,
+  middle_name text null,
   username public.citext not null,
   bio text null,
   c_profile_image text null,
+  is_verified boolean not null default false,
   role public.user_role not null default 'user'::user_role,
+  account_status public.account_status not null default 'active'::account_status,
+  suspended_until timestamp with time zone null,
+  suspension_reason text null,
+  country text null,
   last_active timestamp with time zone not null default now(),
   is_online boolean not null default false,
   created_at timestamp with time zone not null default now(),
@@ -408,6 +423,8 @@ create table public.users (
 create index IF not exists idx_users_username on public.users using btree (username) TABLESPACE pg_default;
 
 create index IF not exists idx_users_role on public.users using btree (role) TABLESPACE pg_default;
+
+create index IF not exists idx_users_account_status on public.users using btree (account_status) TABLESPACE pg_default;
 
 create index IF not exists idx_users_last_active on public.users using btree (last_active desc) TABLESPACE pg_default;
 
@@ -555,3 +572,451 @@ create index IF not exists idx_report_decisions_admin_id on public.report_decisi
 create index IF not exists idx_reports_status_created on public.reports using btree (status, created_at desc) TABLESPACE pg_default;
 create index IF not exists idx_reports_reporter_status on public.reports using btree (reporter_id, status) TABLESPACE pg_default;
 create index IF not exists idx_reports_report_type on public.reports using btree (report_type) TABLESPACE pg_default;
+
+
+
+-- ADMIN AUDIT LOGS
+-- Tracks all administrative actions for accountability and audit trail
+
+create table public.admin_audit_logs (
+  id uuid not null default gen_random_uuid(),
+  admin_id uuid not null,
+  target_user_id uuid null,
+  action text not null,
+  reason text null,
+  previous_value text null,
+  new_value text null,
+  metadata jsonb not null default '{}'::jsonb,
+  ip_address text null,
+  created_at timestamp with time zone not null default now(),
+  constraint admin_audit_logs_pkey primary key (id),
+  constraint admin_audit_logs_admin_id_fkey foreign key (admin_id) references users (id) on delete cascade,
+  constraint admin_audit_logs_target_user_id_fkey foreign key (target_user_id) references users (id) on delete set null,
+  constraint admin_audit_logs_action_check check (
+    action = any (array[
+      'suspend_user'::text,
+      'ban_user'::text,
+      'reactivate_user'::text,
+      'verify_artist'::text,
+      'remove_verification'::text,
+      'reset_password'::text,
+      'send_notification'::text,
+      'force_logout'::text,
+      'delete_account'::text,
+      'bulk_suspend'::text,
+      'bulk_ban'::text,
+      'bulk_verify'::text,
+      'export_users'::text
+    ])
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_admin_audit_logs_admin_id on public.admin_audit_logs using btree (admin_id) TABLESPACE pg_default;
+create index IF not exists idx_admin_audit_logs_target_user_id on public.admin_audit_logs using btree (target_user_id) TABLESPACE pg_default;
+create index IF not exists idx_admin_audit_logs_action on public.admin_audit_logs using btree (action) TABLESPACE pg_default;
+create index IF not exists idx_admin_audit_logs_created_at on public.admin_audit_logs using btree (created_at desc) TABLESPACE pg_default;
+
+
+
+-- ARTWORK REVIEWS
+-- Tracks manual review queue for artworks flagged by plagiarism detection
+
+create table public.artwork_reviews (
+  id uuid not null default gen_random_uuid(),
+  artwork_id uuid not null,
+  reviewer_id uuid null,
+  status text not null default 'pending'::text,
+  decision text null,
+  decision_reason text null,
+  review_notes text null,
+  requested_documents jsonb not null default '[]'::jsonb,
+  assigned_at timestamp with time zone null,
+  reviewed_at timestamp with time zone null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  constraint artwork_reviews_pkey primary key (id),
+  constraint artwork_reviews_artwork_id_key unique (artwork_id),
+  constraint artwork_reviews_artwork_id_fkey foreign key (artwork_id) references registered_arts (id) on delete cascade,
+  constraint artwork_reviews_reviewer_id_fkey foreign key (reviewer_id) references users (id) on delete set null,
+  constraint artwork_reviews_status_check check (
+    status = any (array['pending'::text, 'under_review'::text, 'needs_info'::text, 'approved'::text, 'rejected'::text])
+  ),
+  constraint artwork_reviews_decision_check check (
+    decision is null or decision = any (array['approved'::text, 'rejected'::text, 'needs_info'::text])
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_artwork_reviews_status on public.artwork_reviews using btree (status) TABLESPACE pg_default;
+create index IF not exists idx_artwork_reviews_reviewer_id on public.artwork_reviews using btree (reviewer_id) TABLESPACE pg_default;
+create index IF not exists idx_artwork_reviews_created_at on public.artwork_reviews using btree (created_at desc) TABLESPACE pg_default;
+create index IF not exists idx_artwork_reviews_artwork_id on public.artwork_reviews using btree (artwork_id) TABLESPACE pg_default;
+
+create trigger trg_artwork_reviews_updated_at before
+update on artwork_reviews for each row
+execute function set_updated_at ();
+
+
+
+-- ARTWORK REVIEW ACTIONS (Audit Trail)
+
+create table public.artwork_review_actions (
+  id uuid not null default gen_random_uuid(),
+  review_id uuid not null,
+  admin_id uuid not null,
+  action text not null,
+  previous_status text null,
+  new_status text null,
+  notes text null,
+  created_at timestamp with time zone not null default now(),
+  constraint artwork_review_actions_pkey primary key (id),
+  constraint artwork_review_actions_review_id_fkey foreign key (review_id) references artwork_reviews (id) on delete cascade,
+  constraint artwork_review_actions_admin_id_fkey foreign key (admin_id) references users (id) on delete cascade,
+  constraint artwork_review_actions_action_check check (
+    action = any (array[
+      'viewed'::text,
+      'assigned'::text,
+      'unassigned'::text,
+      'approved'::text,
+      'rejected'::text,
+      'comment_added'::text,
+      'information_requested'::text,
+      'decision_changed'::text,
+      'blockchain_triggered'::text
+    ])
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_artwork_review_actions_review_id on public.artwork_review_actions using btree (review_id) TABLESPACE pg_default;
+create index IF not exists idx_artwork_review_actions_admin_id on public.artwork_review_actions using btree (admin_id) TABLESPACE pg_default;
+create index IF not exists idx_artwork_review_actions_created_at on public.artwork_review_actions using btree (review_id, created_at desc) TABLESPACE pg_default;
+
+
+
+-- SYSTEM SETTINGS
+-- Stores all configurable platform settings as key-value pairs
+-- with JSONB values for flexible data types
+
+create table public.system_settings (
+  id uuid not null default gen_random_uuid(),
+  key text not null,
+  value jsonb not null default '{}'::jsonb,
+  description text null,
+  updated_by uuid null,
+  updated_at timestamp with time zone not null default now(),
+  constraint system_settings_pkey primary key (id),
+  constraint system_settings_key_key unique (key),
+  constraint system_settings_updated_by_fkey foreign key (updated_by) references users (id) on delete set null
+) TABLESPACE pg_default;
+
+create index IF not exists idx_system_settings_key on public.system_settings using btree (key) TABLESPACE pg_default;
+create index IF not exists idx_system_settings_updated_by on public.system_settings using btree (updated_by) TABLESPACE pg_default;
+create index IF not exists idx_system_settings_updated_at on public.system_settings using btree (updated_at desc) TABLESPACE pg_default;
+
+create trigger trg_system_settings_updated_at BEFORE
+update on system_settings for EACH row
+execute FUNCTION set_updated_at ();
+
+-- Enable RLS and create policies for system_settings
+alter table public.system_settings enable row level security;
+
+create policy "Admins can read system_settings"
+  on public.system_settings for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can insert system_settings"
+  on public.system_settings for insert
+  with check (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can update system_settings"
+  on public.system_settings for update
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can delete system_settings"
+  on public.system_settings for delete
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+
+
+-- SETTINGS AUDIT LOGS
+-- Tracks all configuration changes for accountability
+
+create table public.settings_audit_logs (
+  id uuid not null default gen_random_uuid(),
+  admin_id uuid not null,
+  setting_key text not null,
+  previous_value jsonb null,
+  new_value jsonb null,
+  reason text null,
+  created_at timestamp with time zone not null default now(),
+  constraint settings_audit_logs_pkey primary key (id),
+  constraint settings_audit_logs_admin_id_fkey foreign key (admin_id) references users (id) on delete cascade
+) TABLESPACE pg_default;
+
+create index IF not exists idx_settings_audit_logs_admin_id on public.settings_audit_logs using btree (admin_id) TABLESPACE pg_default;
+create index IF not exists idx_settings_audit_logs_setting_key on public.settings_audit_logs using btree (setting_key) TABLESPACE pg_default;
+create index IF not exists idx_settings_audit_logs_created_at on public.settings_audit_logs using btree (created_at desc) TABLESPACE pg_default;
+
+-- Enable RLS and create policies for settings_audit_logs
+alter table public.settings_audit_logs enable row level security;
+
+create policy "Admins can read settings_audit_logs"
+  on public.settings_audit_logs for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+create policy "Admins can insert settings_audit_logs"
+  on public.settings_audit_logs for insert
+  with check (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- ============================================
+-- ROW LEVEL SECURITY: Reports & Related Tables
+-- ============================================
+
+-- Enable RLS on reports and related tables
+alter table public.reports enable row level security;
+alter table public.report_comments enable row level security;
+alter table public.report_evidence enable row level security;
+alter table public.report_actions enable row level security;
+alter table public.report_decisions enable row level security;
+
+-- Reports: Allow reporters to read their own reports
+create policy "Reporters can read own reports"
+  on public.reports for select
+  using (reporter_id = auth.uid());
+
+-- Reports: Allow admins to read all reports
+create policy "Admins can read all reports"
+  on public.reports for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Reports: Allow authenticated users to create reports
+create policy "Authenticated users can create reports"
+  on public.reports for insert
+  with check (reporter_id = auth.uid());
+
+-- Reports: Allow admins to update reports
+create policy "Admins can update reports"
+  on public.reports for update
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Reports: Allow admins to delete reports
+create policy "Admins can delete reports"
+  on public.reports for delete
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Comments: Allow reporters to read comments on own reports
+create policy "Reporters can read comments on own reports"
+  on public.report_comments for select
+  using (
+    exists (
+      select 1 from public.reports
+      where reports.id = report_comments.report_id
+      and reports.reporter_id = auth.uid()
+    )
+  );
+
+-- Report Comments: Allow admins to read all comments
+create policy "Admins can read all report comments"
+  on public.report_comments for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Comments: Allow authenticated users to comment on own reports
+create policy "Authenticated users can create comments on own reports"
+  on public.report_comments for insert
+  with check (
+    user_id = auth.uid()
+    and (
+      exists (
+        select 1 from public.reports
+        where reports.id = report_comments.report_id
+        and reports.reporter_id = auth.uid()
+      )
+    )
+  );
+
+-- Report Comments: Allow admins to comment on any report
+create policy "Admins can create comments on any report"
+  on public.report_comments for insert
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Evidence: Allow reporters to read evidence on own reports
+create policy "Reporters can read evidence on own reports"
+  on public.report_evidence for select
+  using (
+    exists (
+      select 1 from public.reports
+      where reports.id = report_evidence.report_id
+      and reports.reporter_id = auth.uid()
+    )
+  );
+
+-- Report Evidence: Allow admins to read all evidence
+create policy "Admins can read all report evidence"
+  on public.report_evidence for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Evidence: Allow authenticated users to upload evidence to own reports
+create policy "Authenticated users can upload evidence to own reports"
+  on public.report_evidence for insert
+  with check (
+    uploaded_by = auth.uid()
+    and (
+      exists (
+        select 1 from public.reports
+        where reports.id = report_evidence.report_id
+        and reports.reporter_id = auth.uid()
+      )
+    )
+  );
+
+-- Report Evidence: Allow admins to upload evidence to any report
+create policy "Admins can upload evidence to any report"
+  on public.report_evidence for insert
+  with check (
+    uploaded_by = auth.uid()
+    and exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Actions: Allow reporters to read actions on own reports
+create policy "Reporters can read actions on own reports"
+  on public.report_actions for select
+  using (
+    exists (
+      select 1 from public.reports
+      where reports.id = report_actions.report_id
+      and reports.reporter_id = auth.uid()
+    )
+  );
+
+-- Report Actions: Allow admins to read all actions
+create policy "Admins can read all report actions"
+  on public.report_actions for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Actions: Allow admins to insert actions
+create policy "Admins can insert report actions"
+  on public.report_actions for insert
+  with check (
+    admin_id = auth.uid()
+    and exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Decisions: Allow reporters to read decisions on own reports
+create policy "Reporters can read decisions on own reports"
+  on public.report_decisions for select
+  using (
+    exists (
+      select 1 from public.reports
+      where reports.id = report_decisions.report_id
+      and reports.reporter_id = auth.uid()
+    )
+  );
+
+-- Report Decisions: Allow admins to read all decisions
+create policy "Admins can read all report decisions"
+  on public.report_decisions for select
+  using (
+    exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );
+
+-- Report Decisions: Allow admins to insert decisions
+create policy "Admins can insert report decisions"
+  on public.report_decisions for insert
+  with check (
+    admin_id = auth.uid()
+    and exists (
+      select 1 from public.users
+      where users.id = auth.uid()
+      and users.role = 'admin'
+    )
+  );

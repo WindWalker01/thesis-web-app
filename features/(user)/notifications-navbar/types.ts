@@ -6,7 +6,11 @@ export type NotificationType =
     | "report_submitted"
     | "report_resolved"
     | "blockchain_recorded"
-    | "system_announcement";
+    | "system_announcement"
+    | "artwork_verified"
+    | "artwork_verification_rejected"
+    | "artwork_verification_info_requested"
+    | "artwork_verification_resubmitted";
 
 export type AppNotification = {
     id: string;

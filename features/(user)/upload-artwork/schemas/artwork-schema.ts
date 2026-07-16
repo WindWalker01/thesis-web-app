@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024;
+export const MAX_FILE_SIZE = 96 * 1024 * 1024;
 
 export const ACCEPTED_TYPES = [
   "image/png",
@@ -49,7 +49,7 @@ export const formSchema = z.object({
         .or(z.literal("")),
     file: z
         .instanceof(File, { message: "Please upload an artwork file." })
-        .refine((file) => file.size <= MAX_FILE_SIZE, "File must be 5MB or smaller.")
+        .refine((file) => file.size <= MAX_FILE_SIZE, "File must be 96MB or smaller.")
         .refine(
             (file) => ACCEPTED_TYPES.includes(file.type as (typeof ACCEPTED_TYPES)[number]),
             "Unsupported format. Please upload a PNG, JPG, WEBP, AVIF, GIF, BMP, TIFF, or SVG file."

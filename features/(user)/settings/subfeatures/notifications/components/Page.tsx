@@ -148,7 +148,7 @@ export default function NotificationsPage() {
                                 <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
                                 <p className="font-bold text-slate-400">No notifications</p>
                                 <p className="text-sm text-slate-400 mt-1">
-                                    You're all caught up!
+                                    You&apos;re all caught up!
                                 </p>
                             </motion.div>
                         ) : (

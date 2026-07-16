@@ -105,18 +105,161 @@ export default function UploadArtworkPage() {
               </CardHeader>
 
               <CardContent className="space-y-6 p-6">
-                <ArtworkDropzone
-                  file={watchedFile}
-                  previewUrl={previewUrl}
-                  dragOver={dragOver}
-                  setDragOver={setDragOver}
-                  inputRef={inputRef}
-                  showProgressView={showProgressView}
-                  fileError={form.formState.errors.file?.message}
-                  onDrop={handleDrop}
-                  onFileSelect={handleFileSelect}
-                  onRemoveFile={handleRemoveFile}
-                />
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => !showProgressView && inputRef.current?.click()}
+                  onDrop={showProgressView ? undefined : handleDrop}
+                  onDragOver={(e) => {
+                    if (showProgressView) return;
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
+                  onDragLeave={() => setDragOver(false)}
+                  onKeyDown={(e) => {
+                    if (showProgressView) return;
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      inputRef.current?.click();
+                    }
+                  }}
+                  className={[
+                    "group rounded-xl border-2 border-dashed p-6 transition-all",
+                    showProgressView
+                      ? "cursor-default"
+                      : "cursor-pointer outline-none",
+                    dragOver
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/60 hover:bg-muted/40",
+                  ].join(" ")}
+                >
+                  {!file ? (
+                    <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 text-center">
+                      <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
+                        <CloudUpload className="text-primary h-8 w-8" />
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold">
+                          Drag and drop your artwork here
+                        </p>
+                        <p className="text-muted-foreground text-base">
+                          Or click to browse from your device
+                        </p>
+                      </div>
+
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          {["PNG", "JPG", "JPEG", "WEBP", "GIF", "BMP", "TIFF", "SVG", "AVIF"].map((format) => (
+                            <Badge
+                              key={format}
+                              variant={["PNG", "JPG", "JPEG"].includes(format) ? "default" : "outline"}
+                              className={["PNG", "JPG", "JPEG"].includes(format) ? "opacity-90" : "opacity-60"}
+                            >
+                              {format}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <p className="text-muted-foreground text-xs">
+                          <span className="text-foreground font-medium">Recommended:</span> PNG or JPG for best detection accuracy
+                        </p>
+
+                        <p className="text-muted-foreground text-sm">
+                          Maximum file size: 96MB
+                        </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-muted overflow-hidden rounded-lg border">
+                        {previewUrl ? (
+                          <div className="relative aspect-[4/3] w-full">
+                            <Image
+                              src={previewUrl}
+                              alt={file.name}
+                              fill
+                              unoptimized
+                              className="object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex aspect-[4/3] items-center justify-center">
+                            <ImageIcon className="text-muted-foreground h-16 w-16" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-start gap-3 rounded-lg border p-4">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 text-green-600" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-base font-medium">
+                            {file.name}
+                          </p>
+                          <p className="text-muted-foreground text-sm">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+
+                        {!showProgressView && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFile();
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <input
+                    ref={inputRef}
+                    type="file"
+                    accept={ACCEPT_ATTR ?? "image/png,image/jpeg,image/jpg,image/webp,image/gif,image/bmp,image/tiff,image/svg+xml/avif,image"}
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e.target.files?.[0])}
+                    disabled={showProgressView}
+                  />
+                </div>
+
+                {form.formState.errors.file && (
+                  <p className="text-destructive text-base font-medium">
+                    {form.formState.errors.file.message}
+                  </p>
+                )}
+
+                  <Alert>
+                    <FileImage className="h-4 w-4" />
+                    <AlertTitle>Supported formats</AlertTitle>
+                    <AlertDescription className="space-y-1">
+                      <span className="block">
+                        PNG, JPG, JPEG, WEBP, GIF, BMP, TIFF, AVIF, and SVG are all accepted.
+                      </span>
+                      <span className="block text-muted-foreground">
+                        For best similarity detection results, upload in{" "}
+                        <span className="text-foreground font-medium">PNG or JPG</span> — the most widely used formats for digital artwork.
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+
+                <Alert className="border-amber-500/30 bg-amber-500/5 text-amber-950 dark:text-amber-100">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Legal notice</AlertTitle>
+                  <AlertDescription>
+                    By continuing, you confirm that this is your original work
+                    or that you are authorized to register it. See our{" "}
+                    <Link
+                      href="/terms-of-use"
+                      className="font-medium underline underline-offset-4"
+                    >
+                      Terms of Use.features/certificate-generator/index.ts
+                    </Link>
+                  </AlertDescription>
+                </Alert>
               </CardContent>
             </Card>
           </motion.div>

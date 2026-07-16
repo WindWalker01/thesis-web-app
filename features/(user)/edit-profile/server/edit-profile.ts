@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account-status";
 import { editProfileSchema } from "../schemas/edit-profile-schema";
 import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
 
@@ -18,13 +19,11 @@ export async function updateUserProfile(
     try {
         const supabase = await createSupabaseServerClient();
 
-        const {
-            data: { user },
-            error: authError,
-        } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return { success: false, message: "Not authenticated." };
+        let userId: string;
+        try {
+            userId = await requireActiveAccount();
+        } catch {
+            return { success: false, message: "Your account is currently suspended or banned. You cannot edit your profile." };
         }
 
         const raw = {
@@ -52,7 +51,7 @@ export async function updateUserProfile(
             .from("users")
             .select("id")
             .eq("username", username)
-            .neq("id", user.id)
+            .neq("id", userId)
             .maybeSingle();
 
         if (existing) {
@@ -68,7 +67,7 @@ export async function updateUserProfile(
                 username,
                 bio: bio || null,
             })
-            .eq("id", user.id);
+            .eq("id", userId);
 
         if (updateError) {
             return { success: false, message: updateError.message };
@@ -89,13 +88,11 @@ export async function updateUserAvatar(
     try {
         const supabase = await createSupabaseServerClient();
 
-        const {
-            data: { user },
-            error: authError,
-        } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            return { success: false, message: "Not authenticated." };
+        let userId: string;
+        try {
+            userId = await requireActiveAccount();
+        } catch {
+            return { success: false, message: "Your account is currently suspended or banned. You cannot update your avatar." };
         }
 
         const file = formData.get("avatar");
@@ -130,7 +127,7 @@ export async function updateUserAvatar(
         const { error: updateError } = await supabase
             .from("users")
             .update({ c_profile_image: uploaded.secureUrl })
-            .eq("id", user.id);
+            .eq("id", userId);
 
         if (updateError) {
             return { success: false, message: updateError.message };
