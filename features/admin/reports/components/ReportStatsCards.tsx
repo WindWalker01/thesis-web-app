@@ -20,8 +20,8 @@ interface ReportStatsCardsProps {
 
 const STAT_CARDS = [
   {
-    key: "open" as const,
-    title: "Pending Reports",
+    key: "pending_review" as const,
+    title: "Pending for Review",
     icon: Clock,
     color: "text-yellow-600",
     bg: "bg-yellow-100",
@@ -42,22 +42,6 @@ const STAT_CARDS = [
     color: "text-green-600",
     bg: "bg-green-100",
     border: "border-green-200/50",
-  },
-  {
-    key: "rejected" as const,
-    title: "Rejected",
-    icon: XCircle,
-    color: "text-red-600",
-    bg: "bg-red-100",
-    border: "border-red-200/50",
-  },
-  {
-    key: "waiting_for_reporter" as const,
-    title: "Escalated",
-    icon: AlertTriangle,
-    color: "text-purple-600",
-    bg: "bg-purple-100",
-    border: "border-purple-200/50",
   },
   {
     key: "avg_time" as const,

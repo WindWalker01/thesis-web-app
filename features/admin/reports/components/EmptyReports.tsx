@@ -1,10 +1,10 @@
 "use client";
 
-import { FileText, SearchX, ImageIcon, MessageSquare, UserX } from "lucide-react";
+import { FileText, SearchX, ImageIcon, MessageSquare, UserX, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/client-utils";
 
 interface EmptyReportsProps {
-  variant?: "no-reports" | "no-results" | "no-evidence" | "no-comments" | "no-notes" | "no-admin";
+  variant?: "no-reports" | "no-results" | "no-evidence" | "no-comments" | "no-notes" | "no-admin" | "all-resolved";
   title?: string;
   description?: string;
   action?: React.ReactNode;
@@ -17,10 +17,15 @@ const VARIANTS = {
     title: "No reports found",
     description: "There are no infringement reports to review at this time.",
   },
+  "all-resolved": {
+    icon: ShieldCheck,
+    title: "All Caught Up",
+    description: "There are no unresolved reports at the moment. New reports will appear here when submitted.",
+  },
   "no-results": {
     icon: SearchX,
     title: "No matching reports",
-    description: "Try adjusting your filters or search terms.",
+    description: "No reports match your current search or filter criteria.",
   },
   "no-evidence": {
     icon: ImageIcon,

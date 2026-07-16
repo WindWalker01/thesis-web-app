@@ -272,7 +272,7 @@ async function getReportsFact(
         .from("reports")
         .select("id", { count: "exact", head: true })
         .eq("reported_art_post_id", postId)
-        .eq("status", "open");
+        .eq("status", "pending_review");
 
     const openCount = count ?? 0;
 

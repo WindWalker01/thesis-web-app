@@ -68,7 +68,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       supabase.from("users").select("*", { count: "exact", head: true }),
       supabase.from("users").select("*", { count: "exact", head: true }).eq("is_verified", true),
       supabase.from("registered_arts").select("*", { count: "exact", head: true }),
-      supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "open"),
+      supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "pending_review"),
       supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "resolved"),
       supabase.from("registered_arts").select("*", { count: "exact", head: true }).not("tx_hash", "is", null),
       supabase.from("art_similarity_scans").select("*", { count: "exact", head: true }).eq("success", true).gt("total_matches", 0),
@@ -184,12 +184,9 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       statusMap.set(row.status, (statusMap.get(row.status) ?? 0) + 1);
     }
     const reportStatuses: ReportStatusData[] = [
-      { name: "Open", value: statusMap.get("open") ?? 0, color: "var(--chart-1)" },
+      { name: "Pending for Review", value: statusMap.get("pending_review") ?? 0, color: "var(--chart-1)" },
       { name: "Under Review", value: statusMap.get("under_review") ?? 0, color: "var(--chart-3)" },
-      { name: "Waiting", value: statusMap.get("waiting_for_reporter") ?? 0, color: "var(--chart-4)" },
       { name: "Resolved", value: statusMap.get("resolved") ?? 0, color: "var(--chart-2)" },
-      { name: "Rejected", value: statusMap.get("rejected") ?? 0, color: "var(--chart-5)" },
-      { name: "Closed", value: statusMap.get("closed") ?? 0, color: "hsl(var(--destructive))" },
     ].filter((s) => s.value > 0);
 
     // ── Chart 4: Artwork Categories (horizontal bar) ──

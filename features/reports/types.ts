@@ -4,12 +4,9 @@
 
 // ---- Report Status ----
 export type ReportStatus =
-  | "open"
+  | "pending_review"
   | "under_review"
-  | "waiting_for_reporter"
-  | "resolved"
-  | "rejected"
-  | "closed";
+  | "resolved";
 
 // ---- Report Type ----
 export type ReportType =
@@ -173,12 +170,9 @@ export type AdminReportDetail = {
 // ---- Report Statistics ----
 export type ReportStatistics = {
   total: number;
-  open: number;
+  pending_review: number;
   under_review: number;
-  waiting_for_reporter: number;
   resolved: number;
-  rejected: number;
-  closed: number;
   average_resolution_time_hours: number | null;
   reports_this_month: number;
   reports_by_type: { type: ReportType; count: number }[];
@@ -192,12 +186,9 @@ export type StatusTransition = {
 };
 
 export const VALID_STATUS_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
-  open: ["under_review", "closed"],
-  under_review: ["waiting_for_reporter", "resolved", "rejected", "open"],
-  waiting_for_reporter: ["under_review", "closed"],
+  pending_review: ["under_review"],
+  under_review: ["resolved", "pending_review"],
   resolved: [],
-  rejected: [],
-  closed: [],
 };
 
 // ---- Report Type Labels ----

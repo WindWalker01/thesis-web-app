@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Loader2,
   ImageIcon,
+  X,
 } from "lucide-react";
 import {
   flexRender,
@@ -60,19 +61,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -1057,9 +1052,9 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {/* ── User Details Drawer ── */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent className="w-full sm:max-w-xl lg:max-w-2xl overflow-y-auto">
+      {/* ── User Details Dialog ── */}
+      <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DialogContent showCloseButton={false} className="flex flex-col p-0 gap-0" style={{ maxWidth: "85vw", maxHeight: "90vh" }}>
           {userLoading ? (
             <div className="space-y-4 p-4">
               <div className="h-8 w-48 animate-pulse rounded bg-muted" />
@@ -1068,9 +1063,9 @@ export default function UserManagementPage() {
             </div>
           ) : selectedUser ? (
             <>
-              <SheetHeader className="pb-4">
+              <div className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">
                 <div className="flex items-center justify-between">
-                  <SheetTitle className="flex items-center gap-3">
+                  <DialogTitle className="flex items-center gap-3 text-lg">
                     <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted">
                       {selectedUser.c_profile_image ? (
                         <img
@@ -1092,91 +1087,18 @@ export default function UserManagementPage() {
                         @{selectedUser.username}
                       </p>
                     </div>
-                  </SheetTitle>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        Actions <ChevronDown className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-52">
-                      <DropdownMenuLabel>Account Actions</DropdownMenuLabel>
-                      {(selectedUser.account_status === "active" || selectedUser.account_status === "suspended") && (
-                        <>
-                          <DropdownMenuItem
-                            onClick={() => openSuspend(selectedUser.id)}
-                          >
-                            <Clock className="mr-2 h-4 w-4" /> Suspend User
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openBan(selectedUser.id)}
-                          >
-                            <Ban className="mr-2 h-4 w-4" /> Ban User
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {selectedUser.account_status !== "active" && (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            actions.reactivate.mutate({
-                              userId: selectedUser.id,
-                              reason: "Reactivated by administrator.",
-                            });
-                          }}
-                        >
-                          <UserCheck className="mr-2 h-4 w-4" /> Reactivate
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      {selectedUser.is_verified ? (
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setConfirmAction({
-                              title: "Remove Verification",
-                              description: `Remove verification from ${selectedUser.first_name} ${selectedUser.last_name}?`,
-                              onConfirm: () => {
-                                actions.removeVerification.mutate({
-                                  userId: selectedUser.id,
-                                });
-                                setConfirmDialogOpen(false);
-                              },
-                            });
-                            setConfirmDialogOpen(true);
-                          }}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" /> Remove Verification
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem
-                          onClick={() => openVerify(selectedUser.id)}
-                        >
-                          <CheckCircle2 className="mr-2 h-4 w-4" /> Verify Artist
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => handleResetPassword(selectedUser.id)}
-                      >
-                        <KeyRound className="mr-2 h-4 w-4" /> Reset Password
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => setNotificationDialogOpen(true)}
-                      >
-                        <Bell className="mr-2 h-4 w-4" /> Send Notification
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteUser(selectedUser.id)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete Account
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  </DialogTitle>
+                  <DialogClose asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Close</span>
+                    </Button>
+                  </DialogClose>
                 </div>
-              </SheetHeader>
+              </div>
 
-              {/* Drawer Tabs */}
+              {/* Dialog Body (scrollable) */}
+              <div className="flex-1 overflow-y-auto px-6 py-4">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full justify-start">
                   <TabsTrigger value="profile" className="text-xs">Profile</TabsTrigger>
@@ -1473,15 +1395,18 @@ export default function UserManagementPage() {
                   )}
                 </TabsContent>
               </Tabs>
+              </div>
             </>
           ) : (
-            <div className="flex flex-col items-center gap-2 py-12 text-center">
-              <Users className="h-8 w-8 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">Select a user to view details.</p>
+            <div className="flex items-center justify-center h-full p-6">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Users className="h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Select a user to view details.</p>
+              </div>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Suspend Dialog ── */}
       <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>

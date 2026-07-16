@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       admin_id: user.id,
       action: "report_created",
       previous_status: null,
-      new_status: "open",
+      new_status: "pending_review",
       notes: "Report submitted",
     });
 

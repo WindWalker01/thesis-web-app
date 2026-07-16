@@ -259,21 +259,21 @@ export type ReviewsQueryParams = {
 // ── Status Color Config ──
 export const REVIEW_STATUS_CONFIG: Record<ReviewStatus, { label: string; color: string; bg: string; border: string; dot: string }> = {
   pending: {
-    label: "Pending",
+    label: "Awaiting Review",
     color: "text-yellow-600",
     bg: "bg-yellow-100",
     border: "border-yellow-200/50",
     dot: "bg-yellow-500",
   },
   under_review: {
-    label: "Under Review",
+    label: "Being Reviewed",
     color: "text-blue-600",
     bg: "bg-blue-100",
     border: "border-blue-200/50",
     dot: "bg-blue-500",
   },
   needs_info: {
-    label: "Needs Info",
+    label: "More Info Needed",
     color: "text-purple-600",
     bg: "bg-purple-100",
     border: "border-purple-200/50",

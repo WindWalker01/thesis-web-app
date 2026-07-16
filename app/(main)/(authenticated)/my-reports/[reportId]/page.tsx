@@ -139,8 +139,8 @@ export default function ReportDetailPage({ params }: PageParams) {
   }
 
   const canReply = !isTerminalStatus(report.status);
-  const showAppeal = report.status === "rejected" || report.status === "closed";
-  const canUploadEvidence = report.status === "waiting_for_reporter";
+  const showAppeal = false; // Appeal flow removed with old statuses
+  const canUploadEvidence = report.status === "under_review";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">

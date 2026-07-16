@@ -480,12 +480,9 @@ export async function getReportStatistics(): Promise<ReportStatistics> {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const total = allReports.length;
-    const open = allReports.filter((r) => r.status === "open").length;
+    const pendingReview = allReports.filter((r) => r.status === "pending_review").length;
     const underReview = allReports.filter((r) => r.status === "under_review").length;
-    const waitingForReporter = allReports.filter((r) => r.status === "waiting_for_reporter").length;
     const resolved = allReports.filter((r) => r.status === "resolved").length;
-    const rejected = allReports.filter((r) => r.status === "rejected").length;
-    const closed = allReports.filter((r) => r.status === "closed").length;
     const reportsThisMonth = allReports.filter(
       (r) => new Date(r.created_at) >= monthStart
     ).length;
@@ -519,12 +516,9 @@ export async function getReportStatistics(): Promise<ReportStatistics> {
 
     return {
       total,
-      open,
+      pending_review: pendingReview,
       under_review: underReview,
-      waiting_for_reporter: waitingForReporter,
       resolved,
-      rejected,
-      closed,
       average_resolution_time_hours: averageResolutionTimeHours,
       reports_this_month: reportsThisMonth,
       reports_by_type: reportsByType,

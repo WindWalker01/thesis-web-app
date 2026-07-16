@@ -18,6 +18,8 @@ import { ReportsTable } from "./ReportsTable";
 import { ReportDrawer } from "./ReportDrawer";
 import { AssignAdminDialog } from "./AssignAdminDialog";
 import { ReportsPageSkeleton } from "./page-skeleton";
+import { ReportsInfoBanner } from "./InfoBanner";
+import { ReportsStatusDescription } from "./StatusDescription";
 import type { ReportFilters as FilterState } from "../types";
 
 const DEFAULT_FILTERS: FilterState = {
@@ -108,9 +110,7 @@ export default function ReportsManagementPage() {
 
   // Action loading states (simplified - using local state for demo)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [isRecordingDecision, setIsRecordingDecision] = useState(false);
   const [isSendingComment, setIsSendingComment] = useState(false);
-  const [isRequestingEvidence, setIsRequestingEvidence] = useState(false);
 
   // Handlers
   const openDrawer = useCallback((reportId: string) => {
@@ -137,25 +137,6 @@ export default function ReportsManagementPage() {
     }
   }, [selectedReportId, refetchDetail, refetchReports]);
 
-  const handleRecordDecision = useCallback(async (decision: string, summary: string) => {
-    if (!selectedReportId) return;
-    setIsRecordingDecision(true);
-    try {
-      const response = await fetch(`/api/admin/reports/${selectedReportId}/decision`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ decision, summary }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        await refetchDetail();
-        await refetchReports();
-      }
-    } finally {
-      setIsRecordingDecision(false);
-    }
-  }, [selectedReportId, refetchDetail, refetchReports]);
-
   const handleAddComment = useCallback(async (message: string) => {
     if (!selectedReportId) return;
     setIsSendingComment(true);
@@ -171,24 +152,6 @@ export default function ReportsManagementPage() {
       }
     } finally {
       setIsSendingComment(false);
-    }
-  }, [selectedReportId, refetchDetail]);
-
-  const handleRequestEvidence = useCallback(async (message: string) => {
-    if (!selectedReportId) return;
-    setIsRequestingEvidence(true);
-    try {
-      const response = await fetch(`/api/admin/reports/${selectedReportId}/request-evidence`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        await refetchDetail();
-      }
-    } finally {
-      setIsRequestingEvidence(false);
     }
   }, [selectedReportId, refetchDetail]);
 
@@ -267,6 +230,14 @@ export default function ReportsManagementPage() {
       </div>
 
       <div className="p-4 lg:p-6 space-y-6">
+        {/* Informational Banner */}
+        <ReportsInfoBanner />
+
+        {/* Status Description */}
+        {filters.status !== "all" && (
+          <ReportsStatusDescription status={filters.status} />
+        )}
+
         {/* Statistics Cards */}
         <ReportStatsCards stats={stats} isLoading={statsLoading} />
 
@@ -342,13 +313,9 @@ export default function ReportsManagementPage() {
         isLoading={detailLoading}
         error={detailError instanceof Error ? detailError.message : null}
         onUpdateStatus={handleUpdateStatus}
-        onRecordDecision={handleRecordDecision}
         onAddComment={handleAddComment}
-        onRequestEvidence={handleRequestEvidence}
         isUpdatingStatus={isUpdatingStatus}
-        isRecordingDecision={isRecordingDecision}
         isSendingComment={isSendingComment}
-        isRequestingEvidence={isRequestingEvidence}
         onRefresh={() => refetchDetail()}
       />
 

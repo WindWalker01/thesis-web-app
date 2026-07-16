@@ -348,7 +348,7 @@ create table public.reports (
   report_type public.report_type not null,
   title text not null,
   description text not null,
-  status public.report_status not null default 'open'::report_status,
+  status public.report_status not null default 'pending_review'::report_status,
   created_at timestamp with time zone not null default now(),
   resolved_at timestamp with time zone null,
   constraint reports_pkey primary key (id),

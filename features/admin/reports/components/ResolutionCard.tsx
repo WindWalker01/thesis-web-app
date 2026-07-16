@@ -6,8 +6,11 @@ import {
   XCircle,
   Gavel,
   ChevronDown,
-  Upload,
   Loader2,
+  ShieldCheck,
+  ShieldX,
+  Trash2,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn, formatTimeAgo } from "@/lib/client-utils";
+import { formatTimeAgo } from "@/lib/client-utils";
 import { DECISION_LABELS } from "../types";
 import { VALID_STATUS_TRANSITIONS } from "@/features/reports/types";
 import type { ReportStatus, ReportDecision } from "@/features/reports/types";
@@ -45,29 +48,37 @@ interface ResolutionCardProps {
   currentStatus: ReportStatus;
   decision: ReportDecision | null;
   onUpdateStatus: (status: string, notes?: string) => Promise<void>;
-  onRecordDecision: (decision: string, summary: string) => Promise<void>;
-  onRequestEvidence: (message: string) => Promise<void>;
+  onModerateArtwork?: (action: string, reason: string) => Promise<void>;
+  hasAssociatedArtwork?: boolean;
+  artworkTitle?: string;
   isUpdatingStatus: boolean;
-  isRecordingDecision: boolean;
-  isRequestingEvidence: boolean;
+  isModeratingArtwork?: boolean;
 }
+
+const ARTWORK_ACTION_HELP: Record<string, string> = {
+  approve_artwork:
+    "No infringement found. The artwork is cleared and the report is closed with no violation.",
+  reject_artwork:
+    "Infringement confirmed. The artwork status will be updated and the report is resolved.",
+  remove_artwork:
+    "Delete the infringing artwork to fully resolve this report. This action removes all associated data and cannot be undone.",
+};
 
 export function ResolutionCard({
   reportId,
   currentStatus,
   decision,
   onUpdateStatus,
-  onRecordDecision,
-  onRequestEvidence,
+  onModerateArtwork,
+  hasAssociatedArtwork = false,
+  artworkTitle = "this artwork",
   isUpdatingStatus,
-  isRecordingDecision,
-  isRequestingEvidence,
+  isModeratingArtwork = false,
 }: ResolutionCardProps) {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [statusNotes, setStatusNotes] = useState("");
-  const [decisionValue, setDecisionValue] = useState("");
-  const [decisionSummary, setDecisionSummary] = useState("");
-  const [evidenceMessage, setEvidenceMessage] = useState("");
+  const [moderationAction, setModerationAction] = useState("");
+  const [moderationReason, setModerationReason] = useState("");
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -93,30 +104,24 @@ export function ResolutionCard({
     });
   };
 
-  const handleRecordDecision = () => {
-    if (!decisionValue || !decisionSummary.trim()) return;
+  const handleModerateArtwork = () => {
+    if (!moderationAction || !moderationReason.trim()) return;
+    const actionLabels: Record<string, string> = {
+      approve_artwork: "Dismiss Report",
+      reject_artwork: "Uphold Report",
+      remove_artwork: "Remove & Resolve",
+    };
     setConfirmDialog({
       open: true,
-      title: "Record Final Decision",
-      description: `This will record "${DECISION_LABELS[decisionValue] ?? decisionValue}" as the final decision. This action cannot be undone.`,
+      title: actionLabels[moderationAction] ?? moderationAction,
+      description: `This will ${actionLabels[moderationAction]?.toLowerCase() ?? moderationAction} "${artworkTitle}" and resolve the associated report.`,
+      variant: moderationAction === "remove_artwork" ? "destructive" : "default",
       onConfirm: async () => {
-        await onRecordDecision(decisionValue, decisionSummary);
-        setDecisionValue("");
-        setDecisionSummary("");
-        setConfirmDialog((prev) => ({ ...prev, open: false }));
-      },
-    });
-  };
-
-  const handleRequestEvidence = () => {
-    if (!evidenceMessage.trim()) return;
-    setConfirmDialog({
-      open: true,
-      title: "Request Additional Evidence",
-      description: `Send a request for additional evidence to the reporter.`,
-      onConfirm: async () => {
-        await onRequestEvidence(evidenceMessage);
-        setEvidenceMessage("");
+        if (onModerateArtwork) {
+          await onModerateArtwork(moderationAction, moderationReason);
+        }
+        setModerationAction("");
+        setModerationReason("");
         setConfirmDialog((prev) => ({ ...prev, open: false }));
       },
     });
@@ -164,7 +169,9 @@ export function ResolutionCard({
                   <SelectContent>
                     {validNextStatuses.map((status) => (
                       <SelectItem key={status} value={status}>
-                        {status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                        {status
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (c) => c.toUpperCase())}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -195,103 +202,180 @@ export function ResolutionCard({
             </>
           )}
 
-          <Separator />
-
-          {/* Record Decision */}
-          {currentStatus === "under_review" && !decision && (
-            <>
-              <div className="space-y-2">
-                <label className="text-xs font-medium">Record Decision</label>
-                <Select value={decisionValue} onValueChange={setDecisionValue}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select decision" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="infringement_confirmed">Infringement Confirmed</SelectItem>
-                    <SelectItem value="no_violation">No Violation</SelectItem>
-                    <SelectItem value="insufficient_evidence">Insufficient Evidence</SelectItem>
-                    <SelectItem value="duplicate_report">Duplicate Report</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-medium">Summary</label>
-                <Textarea
-                  placeholder="Explain the decision..."
-                  value={decisionSummary}
-                  onChange={(e) => setDecisionSummary(e.target.value)}
-                  rows={3}
-                />
-              </div>
-              <Button
-                onClick={handleRecordDecision}
-                disabled={!decisionValue || !decisionSummary.trim() || isRecordingDecision}
-                className="w-full gap-2"
-                size="sm"
-              >
-                {isRecordingDecision ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Gavel className="h-4 w-4" />
-                )}
-                {isRecordingDecision ? "Recording..." : "Record Final Decision"}
-              </Button>
-            </>
-          )}
-
-          {/* Request Evidence - only available for under_review or waiting_for_reporter */}
-          {(currentStatus === "under_review" || currentStatus === "waiting_for_reporter") && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <label className="text-xs font-medium">Request Additional Evidence</label>
-                <Textarea
-                  placeholder="Describe what evidence is needed..."
-                  value={evidenceMessage}
-                  onChange={(e) => setEvidenceMessage(e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <Button
-                onClick={handleRequestEvidence}
-                disabled={!evidenceMessage.trim() || isRequestingEvidence}
-                variant="outline"
-                className="w-full gap-2"
-                size="sm"
-              >
-                {isRequestingEvidence ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-                {isRequestingEvidence ? "Requesting..." : "Request Evidence"}
-              </Button>
-            </>
-          )}
-
           {/* Hint: must be under review first */}
-          {currentStatus === "open" && (
+          {currentStatus === "pending_review" && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 p-3">
               <p className="text-xs text-amber-700 dark:text-amber-400">
-                Move this report to &quot;Under Review&quot; before you can request additional evidence.
+                Move this report to &apos;Under Review&apos; before you can take
+                moderation actions.
               </p>
             </div>
           )}
+
+          {/* ===== ARTWORK MODERATION ACTIONS ===== */}
+          {hasAssociatedArtwork &&
+            currentStatus === "under_review" &&
+            !decision && (
+              <>
+                <Separator className="my-2" />
+                <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:border-orange-900 dark:bg-orange-950/10 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className="h-4 w-4 text-orange-600" />
+                    <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">
+                      Artwork Moderation Actions
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mb-3">
+                    Take action on &quot;{artworkTitle}&quot; directly from this
+                    report. The report will be resolved automatically.
+                  </p>
+
+                  <div className="space-y-2">
+                    {/* Dismiss Report */}
+                    <div className="rounded-lg border border-green-200 bg-green-50/50 p-2">
+                      <Button
+                        onClick={() => {
+                          setModerationAction("approve_artwork");
+                          setModerationReason(
+                            "Report dismissed — no infringement found after investigation"
+                          );
+                        }}
+                        disabled={isModeratingArtwork}
+                        className="w-full gap-2 h-8 text-xs"
+                        size="sm"
+                      >
+                        {isModeratingArtwork &&
+                        moderationAction === "approve_artwork" ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="h-3 w-3" />
+                        )}
+                        Dismiss Report
+                      </Button>
+                      <p className="mt-1 text-[9px] leading-tight text-green-700 dark:text-green-400">
+                        <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
+                        {ARTWORK_ACTION_HELP.approve_artwork}
+                      </p>
+                    </div>
+
+                    {/* Uphold Report */}
+                    <div className="rounded-lg border border-red-200 bg-red-50/50 p-2">
+                      <Button
+                        onClick={() => {
+                          setModerationAction("reject_artwork");
+                          setModerationReason(
+                            "Report upheld — infringement confirmed after investigation"
+                          );
+                        }}
+                        disabled={isModeratingArtwork}
+                        variant="destructive"
+                        className="w-full gap-2 h-8 text-xs"
+                        size="sm"
+                      >
+                        {isModeratingArtwork &&
+                        moderationAction === "reject_artwork" ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <ShieldX className="h-3 w-3" />
+                        )}
+                        Uphold Report
+                      </Button>
+                      <p className="mt-1 text-[9px] leading-tight text-red-700 dark:text-red-400">
+                        <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
+                        {ARTWORK_ACTION_HELP.reject_artwork}
+                      </p>
+                    </div>
+
+                    {/* Remove & Resolve */}
+                    <div className="rounded-lg border border-red-300 bg-red-100/50 dark:border-red-900 dark:bg-red-950/10 p-2">
+                      <Button
+                        onClick={() => {
+                          setModerationAction("remove_artwork");
+                          setModerationReason(
+                            "Artwork removed to resolve infringement report"
+                          );
+                        }}
+                        disabled={isModeratingArtwork}
+                        variant="destructive"
+                        className="w-full gap-2 h-8 text-xs"
+                        size="sm"
+                      >
+                        {isModeratingArtwork &&
+                        moderationAction === "remove_artwork" ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3 w-3" />
+                        )}
+                        Remove & Resolve
+                      </Button>
+                      <p className="mt-1 text-[9px] leading-tight text-red-700 dark:text-red-400">
+                        <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
+                        {ARTWORK_ACTION_HELP.remove_artwork}
+                      </p>
+                    </div>
+
+  </div>
+
+                  {/* Reason input for moderation */}
+                  {moderationAction && (
+                    <div className="mt-3 space-y-2">
+                      <label className="text-xs font-medium">Reason</label>
+                      <Textarea
+                        placeholder={`Explain why you want to ${moderationAction.replace(/_/g, " ")}...`}
+                        value={moderationReason}
+                        onChange={(e) => setModerationReason(e.target.value)}
+                        rows={2}
+                      />
+                      <Button
+                        onClick={handleModerateArtwork}
+                        disabled={
+                          !moderationReason.trim() || isModeratingArtwork
+                        }
+                        className="w-full gap-2"
+                        size="sm"
+                        variant={
+                          moderationAction === "remove_artwork"
+                            ? "destructive"
+                            : "default"
+                        }
+                      >
+                        {isModeratingArtwork ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="h-4 w-4" />
+                        )}
+                        {isModeratingArtwork
+                          ? "Processing..."
+                          : `Confirm ${moderationAction.replace(/_/g, " ")}`}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
         </CardContent>
       </Card>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}>
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) =>
+          setConfirmDialog((prev) => ({ ...prev, open }))
+        }
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{confirmDialog.title}</DialogTitle>
-            <DialogDescription>{confirmDialog.description}</DialogDescription>
+            <DialogDescription>
+              {confirmDialog.description}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+              onClick={() =>
+                setConfirmDialog((prev) => ({ ...prev, open: false }))
+              }
             >
               Cancel
             </Button>

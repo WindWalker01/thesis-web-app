@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReportStatus } from "@/features/reports/types";
-import { STATUS_LABELS, STATUS_COLORS } from "@/features/reports/lib/report-utils";
+import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT_COLORS } from "@/features/reports/lib/report-utils";
 import { cn } from "@/lib/client-utils";
 
 type StatusBadgeProps = {
@@ -21,14 +21,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       <span
         className={cn(
           "h-1.5 w-1.5 rounded-full",
-          {
-            "bg-blue-500": status === "open",
-            "bg-amber-500": status === "under_review",
-            "bg-purple-500": status === "waiting_for_reporter",
-            "bg-emerald-500": status === "resolved",
-            "bg-red-500": status === "rejected",
-            "bg-gray-500": status === "closed",
-          }
+          STATUS_DOT_COLORS[status]
         )}
         aria-hidden="true"
       />

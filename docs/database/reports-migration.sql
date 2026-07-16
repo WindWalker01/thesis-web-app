@@ -6,7 +6,7 @@
 -- REPORTS CUSTOM ENUM TYPES
 -- These enums are already defined in the database:
 -- report_type: 'plagiarism' | 'repost' | 'tracing' | 'commercial_use' | 'counterfeit' | 'ownership_dispute' | 'other'
--- report_status: 'open' | 'under_review' | 'waiting_for_reporter' | 'resolved' | 'rejected' | 'closed'
+-- report_status: 'pending_review' | 'under_review' | 'resolved'
 
 -- ============================================
 -- 1. REPORT COMMENTS

@@ -38,12 +38,9 @@ export function ReportsFilters({ filters, onFiltersChange, onClear }: ReportsFil
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="pending_review">Pending for Review</SelectItem>
               <SelectItem value="under_review">Under Review</SelectItem>
-              <SelectItem value="waiting_for_reporter">Waiting</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
             </SelectContent>
           </Select>
         </div>

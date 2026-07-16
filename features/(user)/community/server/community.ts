@@ -349,7 +349,7 @@ async function fetchArtworkEnrichment(
             .from("reports")
             .select("reported_art_post_id, status")
             .in("reported_art_post_id", postIds)
-            .eq("status", "open");
+            .eq("status", "pending_review");
 
         if (reportError) {
             throw new Error(reportError.message);

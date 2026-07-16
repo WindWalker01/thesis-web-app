@@ -52,27 +52,16 @@ const STATUS_CONFIG: Record<
   ReportStatus,
   { label: string; color: string; bg: string }
 > = {
-  open: { label: "Open", color: "text-blue-600", bg: "bg-blue-100" },
+  pending_review: { label: "Pending for Review", color: "text-blue-600", bg: "bg-blue-100" },
   under_review: {
     label: "Under Review",
     color: "text-yellow-600",
     bg: "bg-yellow-100",
   },
-  waiting_for_reporter: {
-    label: "Waiting for Reporter",
-    color: "text-purple-600",
-    bg: "bg-purple-100",
-  },
   resolved: {
     label: "Resolved",
     color: "text-green-600",
     bg: "bg-green-100",
-  },
-  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-100" },
-  closed: {
-    label: "Closed",
-    color: "text-gray-600",
-    bg: "bg-gray-100",
   },
 };
 
@@ -210,14 +199,9 @@ export default function ReportsDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Statuses</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="pending_review">Pending for Review</SelectItem>
                   <SelectItem value="under_review">Under Review</SelectItem>
-                  <SelectItem value="waiting_for_reporter">
-                    Waiting for Reporter
-                  </SelectItem>
                   <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
                 </SelectContent>
               </Select>
             </div>

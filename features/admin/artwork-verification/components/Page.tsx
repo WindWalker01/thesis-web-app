@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useReviews, useReviewStatistics } from "../hooks/useReviews";
+import { useReviewDetail } from "../hooks/useReviewDetail";
 import { ReviewStatsCards } from "./ReviewStatsCards";
 import { ReviewToolbar } from "./ReviewToolbar";
 import { ReviewFilters } from "./ReviewFilters";
 import { ReviewQueueTable } from "./ReviewQueueTable";
 import { ArtworkVerificationSkeleton } from "./page-skeleton";
+import { ArtworkVerificationInfoBanner } from "./InfoBanner";
+import { ReviewStatusDescription } from "./StatusDescription";
+import { ReviewQuickViewDialog } from "./ReviewQuickViewDialog";
 import { exportReviewsCSV } from "../server/export";
 import { assignReviewer, unassignReviewer } from "../server/reviews";
 import type { ReviewFilters as FilterState } from "../types";
@@ -81,15 +85,25 @@ export default function ArtworkVerificationPage() {
 
   const { data: stats, isLoading: statsLoading } = useReviewStatistics();
 
+  // Quick view dialog
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const {
+    data: reviewDetail,
+    isLoading: detailLoading,
+    error: detailError,
+    refetch: refetchDetail,
+  } = useReviewDetail(dialogOpen ? selectedReviewId : null);
+
   // Handlers
   const handleViewReview = useCallback((reviewId: string) => {
-    router.push(`/admin/artwork-verification/${reviewId}`);
-  }, [router]);
+    setSelectedReviewId(reviewId);
+    setDialogOpen(true);
+  }, []);
 
   const handleAssign = useCallback(async (reviewId: string) => {
     try {
-      // Get current admin user - we need to get the admin ID
-      // For simplicity, we call the server action which will use the authenticated user
       const result = await assignReviewer(reviewId, "__self__");
       if (result.success) {
         toast.success(result.message);
@@ -203,6 +217,14 @@ export default function ArtworkVerificationPage() {
       </div>
 
       <div className="p-4 lg:p-6 space-y-6">
+        {/* Informational Banner */}
+        <ArtworkVerificationInfoBanner />
+
+        {/* Status Description */}
+        {filters.status !== "all" && (
+          <ReviewStatusDescription status={filters.status} />
+        )}
+
         {/* Statistics Cards */}
         <ReviewStatsCards stats={stats} isLoading={statsLoading} />
 
@@ -243,6 +265,19 @@ export default function ArtworkVerificationPage() {
           onClearFilters={clearFilters}
         />
       </div>
+
+      {/* Review Quick View Dialog */}
+      <ReviewQuickViewDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setSelectedReviewId(null);
+        }}
+        detail={reviewDetail}
+        isLoading={detailLoading}
+        error={detailError instanceof Error ? detailError.message : null}
+        onRefresh={() => refetchDetail()}
+      />
     </>
   );
 }

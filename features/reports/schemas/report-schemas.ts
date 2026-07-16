@@ -6,12 +6,9 @@ import { z } from "zod";
 
 // ---- Report Status ----
 export const reportStatusSchema = z.enum([
-  "open",
+  "pending_review",
   "under_review",
-  "waiting_for_reporter",
   "resolved",
-  "rejected",
-  "closed",
 ]);
 
 // ---- Report Type ----

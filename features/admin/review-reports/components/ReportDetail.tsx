@@ -234,7 +234,7 @@ export default function ReportDetail({ reportId }: { reportId: string }) {
 
   const { report, reporter, reported_art_post, evidence, comments, decision, actions } =
     detail;
-  const validNextStatuses = VALID_STATUS_TRANSITIONS[report.status];
+  const validNextStatuses = VALID_STATUS_TRANSITIONS[report.status] ?? [];
 
   return (
     <div className="space-y-6">

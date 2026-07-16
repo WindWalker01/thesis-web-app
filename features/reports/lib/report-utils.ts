@@ -7,35 +7,24 @@ import type { ReportStatus, ReportType, ReportDecisionValue } from "@/features/r
 // ---- Status Display & Colors ----
 
 export const STATUS_LABELS: Record<ReportStatus, string> = {
-  open: "Open",
+  pending_review: "Pending for Review",
   under_review: "Under Review",
-  waiting_for_reporter: "Waiting for Reporter",
   resolved: "Resolved",
-  rejected: "Rejected",
-  closed: "Closed",
 };
 
 export const STATUS_COLORS: Record<ReportStatus, string> = {
-  open: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  pending_review:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   under_review:
     "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  waiting_for_reporter:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
   resolved:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
-  rejected:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  closed:
-    "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
 };
 
 export const STATUS_DOT_COLORS: Record<ReportStatus, string> = {
-  open: "bg-blue-500",
+  pending_review: "bg-blue-500",
   under_review: "bg-amber-500",
-  waiting_for_reporter: "bg-purple-500",
   resolved: "bg-emerald-500",
-  rejected: "bg-red-500",
-  closed: "bg-gray-500",
 };
 
 // ---- Type Labels ----
@@ -76,7 +65,7 @@ export const DECISION_COLORS: Record<ReportDecisionValue, string> = {
 // ---- Terminal Status Check ----
 
 export function isTerminalStatus(status: ReportStatus): boolean {
-  return ["resolved", "rejected", "closed"].includes(status);
+  return ["resolved"].includes(status);
 }
 
 // ---- Formatting Helpers ----

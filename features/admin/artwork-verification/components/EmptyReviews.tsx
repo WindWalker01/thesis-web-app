@@ -16,10 +16,10 @@ export function EmptyReviews({ variant = "no-results", onClearFilters, onRetry }
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
           <ShieldCheck className="h-8 w-8 text-green-600" />
         </div>
-        <h3 className="text-lg font-semibold">No Pending Reviews</h3>
+        <h3 className="text-lg font-semibold">All Caught Up</h3>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          All flagged artworks have been reviewed. New submissions requiring
-          manual review will appear here automatically.
+          No artworks currently require manual verification. New submissions
+          needing administrator review will appear here automatically.
         </p>
       </div>
     );
@@ -52,7 +52,7 @@ export function EmptyReviews({ variant = "no-results", onClearFilters, onRetry }
       </div>
       <h3 className="text-lg font-semibold">No Reviews Found</h3>
       <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        No artwork reviews match your current filter criteria.
+        No results match your current search or filter criteria.
       </p>
       {onClearFilters && (
         <Button variant="link" size="sm" className="mt-2" onClick={onClearFilters}>

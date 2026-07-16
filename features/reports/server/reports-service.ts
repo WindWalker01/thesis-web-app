@@ -35,7 +35,7 @@ export function getValidNextStatuses(
 }
 
 function isTerminalStatus(status: ReportStatus): boolean {
-  return ["resolved", "rejected", "closed"].includes(status);
+  return ["resolved"].includes(status);
 }
 
 // ========== AUDIT LOGGING ==========
@@ -346,8 +346,8 @@ export async function requestEvidenceWithAudit(
     throw new Error("Cannot request evidence on a report with a final status");
   }
 
-  // Only allow evidence requests on reports that are under_review
-  if (report.status !== "under_review" && report.status !== "waiting_for_reporter") {
+  // Only allow evidence requests on reports that are under review
+  if (report.status !== "under_review") {
     throw new Error(
       `Cannot request evidence on a report with status "${report.status}". The report must be under review.`
     );
@@ -361,23 +361,7 @@ export async function requestEvidenceWithAudit(
     is_admin: true,
   });
 
-  // Update status to waiting_for_reporter if currently under_review
-  let updatedReport = report;
-  if (report.status === "under_review") {
-    const previousStatus = report.status;
-    await repo.updateReportStatus(supabase, data.reportId, "waiting_for_reporter");
-    updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
-
-    // Create audit record for status change
-    await createAuditRecord(supabase, {
-      report_id: data.reportId,
-      admin_id: data.adminId,
-      action: "status_change",
-      previous_status: previousStatus,
-      new_status: "waiting_for_reporter",
-      notes: "Evidence requested",
-    });
-  }
+  const updatedReport = report;
 
   // Create audit record for evidence request
   const action = await createAuditRecord(supabase, {
@@ -485,19 +469,6 @@ export async function uploadEvidence(
       notes: `Uploaded: ${data.fileName}`,
     });
 
-    // Automatically move back to under_review if waiting_for_reporter
-    if (report.status === "waiting_for_reporter") {
-      await repo.updateReportStatus(supabase, data.reportId, "under_review");
-
-      await createAuditRecord(supabase, {
-        report_id: data.reportId,
-        admin_id: data.userId,
-        action: "status_change",
-        previous_status: "waiting_for_reporter",
-        new_status: "under_review",
-        notes: "Evidence uploaded by reporter",
-      });
-    }
 
     await createAdminNotification(supabase, {
       type: "report_submitted",
