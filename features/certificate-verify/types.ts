@@ -1,11 +1,25 @@
-export type CertificateVerificationStatus = "Valid" | "Pending";
+export type CertificateVerificationStatus = "Valid" | "Pending" | "Revoked";
 
-/** Public verification payload — safe to expose to anyone who scans the QR. */
+/**
+ * Public verification payload — safe to expose to anyone who scans the QR.
+ *
+ * Includes claim-binding fields (title, image, perceptual fingerprint, on-chain
+ * work id) so a QR copied onto a different artwork is detectable: the scanned
+ * page shows the real registered work, its content fingerprint, and a link to
+ * the immutable on-chain record. Personal/legal identity stays owner-only.
+ */
 export type PublicCertificateVerification = {
     valid: boolean;
+    revoked: boolean;
+    /** True when the on-chain perceptual hash was read and matches our record. */
+    onChainVerified: boolean;
     certificateStatus: CertificateVerificationStatus;
     artworkRegistration: "Confirmed" | "Pending";
     ownershipStatus: "Verified" | "Pending";
+    artworkTitle: string;
+    artworkImage: string | null;
+    perceptualHash: string | null;
+    workId: string | null;
     blockchain: string;
     transactionHash: string | null;
     polygonScanUrl: string | null;
@@ -13,17 +27,15 @@ export type PublicCertificateVerification = {
     isOwner: false;
 };
 
-/** Owner-only payload — extends the public payload with private artwork details. */
+/** Owner-only payload — extends the public payload with private identity details. */
 export type OwnerCertificateVerification = Omit<
     PublicCertificateVerification,
     "isOwner"
 > & {
     isOwner: true;
-    artworkTitle: string;
     artistName: string;
     artistUsername: string;
     registrationDate: string;
-    artworkImage: string | null;
 };
 
 export type CertificateVerification =
