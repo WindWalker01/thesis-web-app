@@ -27,7 +27,7 @@ export function useDashboard() {
 
     return {
         dashboard: query.data ?? null,
-        isLoading: query.isLoading,
+        isLoading: query.isPending || (query.isFetching && !query.data),
         error: query.error instanceof Error ? query.error.message : null,
         refetch: query.refetch,
     };

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import type { CommunityPageData, Post, VoteType } from "../types";
 import type { ReportPayload } from "../subfeatures/report-artwork/types";
 import { voteOnPost } from "../server/vote-on-post";
+import { applyOptimisticVote } from "../lib/optimistic-vote";
 import { submitArtworkReport } from "../subfeatures/report-artwork/server/report-artwork";
 
 type UseCommunityPageParams = Pick<CommunityPageData, "authed" | "posts">;
@@ -15,67 +16,6 @@ type VoteMutationInput = {
   postId: string;
   voteType: Exclude<VoteType, null>;
 };
-
-function applyOptimisticVote(
-  post: Post,
-  voteType: Exclude<VoteType, null>
-): Post {
-  const currentVote = post.currentUserVote;
-
-  if (currentVote === voteType) {
-    if (voteType === "upvote") {
-      return {
-        ...post,
-        currentUserVote: null,
-        upvoteCount: Math.max(0, post.upvoteCount - 1),
-        score: post.score - 1,
-      };
-    }
-
-    return {
-      ...post,
-      currentUserVote: null,
-      downvoteCount: Math.max(0, post.downvoteCount - 1),
-      score: post.score + 1,
-    };
-  }
-
-  if (currentVote === null) {
-    if (voteType === "upvote") {
-      return {
-        ...post,
-        currentUserVote: "upvote",
-        upvoteCount: post.upvoteCount + 1,
-        score: post.score + 1,
-      };
-    }
-
-    return {
-      ...post,
-      currentUserVote: "downvote",
-      downvoteCount: post.downvoteCount + 1,
-      score: post.score - 1,
-    };
-  }
-
-  if (currentVote === "downvote" && voteType === "upvote") {
-    return {
-      ...post,
-      currentUserVote: "upvote",
-      upvoteCount: post.upvoteCount + 1,
-      downvoteCount: Math.max(0, post.downvoteCount - 1),
-      score: post.score + 2,
-    };
-  }
-
-  return {
-    ...post,
-    currentUserVote: "downvote",
-    upvoteCount: Math.max(0, post.upvoteCount - 1),
-    downvoteCount: post.downvoteCount + 1,
-    score: post.score - 2,
-  };
-}
 
 export function useCommunityPage({
   authed,
@@ -87,7 +27,6 @@ export function useCommunityPage({
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [reportOpen, setReportOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [viewerOpen, setViewerOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [pendingPostId, setPendingPostId] = useState<string | null>(null);
@@ -159,11 +98,6 @@ export function useCommunityPage({
     },
   });
 
-  const openPostViewer = (post: Post) => {
-    setSelectedPost(post);
-    setViewerOpen(true);
-  };
-
   const openReport = (post: Post) => {
     if (!requireAuth("You must be logged in to report an artwork.", post)) {
       return;
@@ -195,6 +129,15 @@ export function useCommunityPage({
 
   const handleSubmitReport = useCallback(async (payload: ReportPayload) => {
     const result = await submitArtworkReport(payload);
+    
+    if (result.success) {
+      setPosts((current) => 
+        current.map((item) => 
+          item.postId === payload.postId ? { ...item, hasReported: true } : item
+        )
+      );
+    }
+
     toast.success(result.message);
     return result;
   }, []);
@@ -209,7 +152,6 @@ export function useCommunityPage({
       posts,
       reportOpen,
       loginOpen,
-      viewerOpen,
       message,
       selectedPost: selectedLivePost,
       isPending: voteMutation.isPending,
@@ -218,8 +160,6 @@ export function useCommunityPage({
     actions: {
       setReportOpen,
       setLoginOpen,
-      setViewerOpen,
-      openPostViewer,
       openReport,
       upVote,
       downVote,

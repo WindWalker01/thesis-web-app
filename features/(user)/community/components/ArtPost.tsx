@@ -9,7 +9,6 @@ import {
   Loader2,
   MoreHorizontal,
   Pencil,
-  Share2,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -23,7 +22,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ConfirmActionModal from "../../settings/components/ConfirmActionModal";
 import { useArtPost } from "../hooks/useArtPost";
+import { RecognitionBadge } from "./RecognitionBadge";
+import type { VoteType, PostVisibility, ArtistBadge } from "../types";
 import type { VoteType, PostVisibility } from "../types";
+import { SharePostButton } from "./SharePostButton";
 
 export type ArtPostProps = {
   postId: string;
@@ -46,10 +48,11 @@ export type ArtPostProps = {
   downvoteCount: number;
   currentUserVote: VoteType;
   visibility: PostVisibility;
+  isNsfw?: boolean;
 
   category?: string;
   excerpt?: string;
-  artistBadge?: "Verified" | "Emerging" | "Featured";
+  artistBadge?: ArtistBadge;
   tags?: string[];
 
   isOwner?: boolean;
@@ -59,8 +62,8 @@ export type ArtPostProps = {
 
   onUpvote?: () => void;
   onDownvote?: () => void;
-  onShare?: () => void;
   onReport?: () => void;
+  hasReported?: boolean;
 
   isVoting?: boolean;
   className?: string;
@@ -84,6 +87,8 @@ export function ArtPost({
   category,
   excerpt,
   visibility,
+  isNsfw = false,
+  artistBadge,
   tags = [],
   isOwner = false,
   editHref,
@@ -92,6 +97,7 @@ export function ArtPost({
   onUpvote,
   onDownvote,
   onReport,
+  hasReported = false,
   isVoting = false,
   className = "",
 }: ArtPostProps) {
@@ -114,13 +120,13 @@ export function ArtPost({
     <>
       <article
         className={[
-          "overflow-hidden rounded-3xl border border-border/70 bg-card/90 shadow-sm backdrop-blur-sm transition-all hover:border-primary/20 hover:shadow-md",
+          "border-border/70 bg-card/90 hover:border-primary/20 overflow-hidden rounded-3xl border shadow-sm backdrop-blur-sm transition-all hover:shadow-md",
           className,
         ].join(" ")}
       >
         <div className="flex items-start justify-between gap-4 p-4 sm:p-5">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
+            <div className="border-border bg-muted relative h-11 w-11 shrink-0 overflow-hidden rounded-full border">
               {profileImage ? (
                 <Image
                   src={profileImage}
@@ -131,25 +137,24 @@ export function ArtPost({
                   unoptimized
                 />
               ) : (
-                <div className="bg-linear-to-br from-blue-500 to-orange-500 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_32px_rgba(59,130,246,0.4)] border-slate-900 relative h-full w-full">
+                <div className="relative flex h-full w-full items-center justify-center border-slate-900 bg-linear-to-br from-blue-500 to-orange-500 text-3xl font-black text-white shadow-[0_0_32px_rgba(59,130,246,0.4)]">
                   {(fullName ?? username).trim().charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
 
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <p
-                  className="truncate text-base font-semibold text-foreground transition hover:text-primary"
-                >
+              <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
+                <p className="text-foreground hover:text-primary truncate text-base font-semibold transition">
                   @{username}
                 </p>
+                <RecognitionBadge tier={artistBadge} />
               </div>
 
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm">
                 <Link
                   href={subredditHref}
-                  className="font-medium transition hover:text-primary"
+                  className="hover:text-primary font-medium transition"
                 >
                   {subredditName}
                 </Link>
@@ -157,6 +162,11 @@ export function ArtPost({
                 <span>{timeAgo}</span>
                 <span>•</span>
                 <VisibilityIcon className="h-3.5 w-3.5" />
+                {isNsfw && (
+                  <span className="inline-flex shrink-0 items-center rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-red-500 uppercase">
+                    NSFW
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -165,7 +175,7 @@ export function ArtPost({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="shrink-0 rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground shrink-0 rounded-full p-2 transition"
                 aria-label="More options"
               >
                 <MoreHorizontal className="h-5 w-5" />
@@ -198,11 +208,12 @@ export function ArtPost({
                 </>
               ) : (
                 <DropdownMenuItem
-                  onClick={onReport}
+                  onClick={hasReported ? undefined : onReport}
+                  disabled={hasReported}
                   className="flex cursor-pointer items-center gap-2"
                 >
                   <Flag className="h-4 w-4" />
-                  Report artwork
+                  {hasReported ? "Reported" : "Report artwork"}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -212,35 +223,35 @@ export function ArtPost({
         <button
           type="button"
           onClick={onOpen}
-          className="block w-full text-left cursor-pointer"
+          className="block w-full cursor-pointer text-left"
         >
           <div className="px-4 pb-3 sm:px-5">
             {category && (
-              <div className="mb-3 inline-flex rounded-full border border-primary/15 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+              <div className="border-primary/15 bg-primary/10 text-primary mb-3 inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide uppercase">
                 {category}
               </div>
             )}
 
-            <h2 className="text-lg font-black leading-snug text-foreground transition hover:text-primary sm:text-xl">
+            <h2 className="text-foreground hover:text-primary text-lg leading-snug font-black transition sm:text-xl">
               {title}
             </h2>
 
             {excerpt && (
-              <p className="mt-2 text-base leading-6 text-muted-foreground">
+              <p className="text-muted-foreground mt-2 text-base leading-6">
                 {excerpt}
               </p>
             )}
 
             {tags[0] && (
               <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                <span className="border-border bg-background text-muted-foreground rounded-full border px-2.5 py-1 text-[11px] font-medium">
                   #{tags[0]}
                 </span>
               </div>
             )}
           </div>
 
-          <div className="border-y border-border/70 bg-muted/30">
+          <div className="border-border/70 bg-muted/30 border-y">
             <div className="relative aspect-[4/3] w-full sm:aspect-[16/10] md:aspect-[16/9]">
               <Image
                 src={imageSrc}
@@ -253,24 +264,25 @@ export function ArtPost({
           </div>
         </button>
 
-        <div className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-muted-foreground sm:px-5">
+        <div className="text-muted-foreground flex items-center justify-between gap-3 px-4 py-3 text-sm sm:px-5">
           <div className="flex items-center gap-3">
-            <div className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-primary/10 px-2 font-semibold text-primary">
+            <div className="bg-primary/10 text-primary inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 font-semibold">
               {score}
             </div>
             <span>
-              {upvoteCount} upvote{upvoteCount > 1 ? "s" : ""} • {downvoteCount} downvote{downvoteCount > 1 ? "s" : ""}
+              {upvoteCount} upvote{upvoteCount > 1 ? "s" : ""} • {downvoteCount}{" "}
+              downvote{downvoteCount > 1 ? "s" : ""}
             </span>
           </div>
         </div>
 
-        <div className="border-t border-border/70 px-3 py-2 sm:px-4">
+        <div className="border-border/70 border-t px-3 py-2 sm:px-4">
           <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={onUpvote}
               className={[
-                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
+                "inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
                 upvoteActive
                   ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
                   : "text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400",
@@ -289,7 +301,7 @@ export function ArtPost({
               type="button"
               onClick={onDownvote}
               className={[
-                "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
+                "inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-base font-medium transition",
                 downvoteActive
                   ? "bg-red-500/15 text-red-600 dark:text-red-400"
                   : "text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400",
@@ -303,6 +315,12 @@ export function ArtPost({
               )}
               Downvote
             </button>
+
+            <SharePostButton
+              postId={postId}
+              title={title}
+              className="text-sm"
+            />
           </div>
         </div>
       </article>

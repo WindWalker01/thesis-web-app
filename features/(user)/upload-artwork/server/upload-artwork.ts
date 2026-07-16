@@ -20,8 +20,8 @@ import {
   sha256Hex,
   normalizePerceptualHashToBytes32,
   stableStringify,
-  getArtworkStatusFromSimilarity,
-} from "..";
+} from "@/features/(user)/upload-artwork/lib/artwork-hashing";
+import { getArtworkStatusFromSimilarity } from "@/features/(user)/upload-artwork/lib/moderation-policy";
 import { fetchGenreClassification } from "./fetch-genre";
 
 const HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD = 100;

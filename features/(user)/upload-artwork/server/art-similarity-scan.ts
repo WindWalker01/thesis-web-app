@@ -1,33 +1,7 @@
-type SearchMatch = {
-  type?: string;
-  source?: string;
-  link?: string;
-  url?: string;
-  similarity?: number;
-};
-
-type HashSet = {
-  phash?: string;
-  dhash?: string;
-  whash?: string;
-};
-
-type CheckPlagiarismWebResult = {
-  success: boolean;
-  filename?: string;
-  original_hash?: string;
-  hashes?:
-  | {
-    transforms?: Record<string, HashSet>;
-    blocks?: Record<string, HashSet>;
-  }
-  | Record<string, unknown>
-  | null;
-  db?: SearchMatch | null;
-  web?: SearchMatch | null;
-  best_match?: SearchMatch | null;
-  other_matches: SearchMatch[] | null;
-};
+import type {
+  SearchMatch,
+  CheckPlagiarismWebResult,
+} from "@/features/plagiarise-checker/types";
 
 export type SimilarityReport = {
   similarityPercentage: number | null;
@@ -54,6 +28,13 @@ export type NormalizedSimilarityMatch = {
 };
 
 const REPORT_DATABASE_RENDER_THRESHOLD = 70;
+
+/**
+ * Minimum similarity (percentage) any match must reach before it is shown in the
+ * report card. If the best match to display is below this, no report is rendered
+ * at all — regardless of whether it came from the database or the internet.
+ */
+const REPORT_MIN_RENDER_THRESHOLD = 70;
 
 function toNullableString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
@@ -139,10 +120,11 @@ export function getPrimarySimilarityMatch(
 /**
  * Display-only selector for the similarity report shown to the user.
  *
- * Rule:
- * - If the strongest overall match is from the database but is below 75%,
- *   do not render that database match in the report.
- * - Fallback to the best internet match instead, when available.
+ * Rules (in order):
+ * - If the strongest overall match is from the database but is below 70%,
+ *   prefer the best internet match instead, when available.
+ * - If the match that would be displayed is still below 70% — whether it came
+ *   from the database or the internet — do not render any report at all.
  *
  * This does NOT affect moderation/blocking logic. It only affects what
  * the similarity report card displays after upload.
@@ -157,6 +139,8 @@ export function getSimilarityReportMatch(
 
   const primarySimilarity = primary.similarity ?? 0;
 
+  let selected = primary;
+
   if (
     primary.type === "database" &&
     primarySimilarity < REPORT_DATABASE_RENDER_THRESHOLD
@@ -165,11 +149,17 @@ export function getSimilarityReportMatch(
       matches.find((match) => match.type === "internet") ?? null;
 
     if (internetFallback) {
-      return internetFallback;
+      selected = internetFallback;
     }
   }
 
-  return primary;
+  // Suppress the report entirely when the match to display is below the minimum
+  // render threshold, regardless of its source.
+  if ((selected.similarity ?? 0) < REPORT_MIN_RENDER_THRESHOLD) {
+    return null;
+  }
+
+  return selected;
 }
 
 export function buildSimilarityReport(

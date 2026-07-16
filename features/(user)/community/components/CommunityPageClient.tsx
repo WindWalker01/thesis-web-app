@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Brush,
   ChevronDown,
@@ -18,6 +19,7 @@ import { ArtPost } from "./ArtPost";
 import { LoginRequiredModal } from "./LoginRequiredModal";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
 import { PostViewerModal } from "./PostViewerModal";
+import { FeaturedArtworks } from "./FeaturedArtworks";
 import { useCommunityPage } from "../hooks/useCommunityPage";
 import { useCommunityFeed } from "../hooks/useCommunityFeed";
 import { InfoRow } from "./InfoRow";
@@ -32,6 +34,8 @@ export default function CommunityPageClient({
   posts,
   stats,
 }: CommunityPageData) {
+  const router = useRouter();
+
   const { state, actions } = useCommunityPage({
     authed,
     posts,
@@ -138,6 +142,12 @@ export default function CommunityPageClient({
           </div>
         </div>
       </section>
+
+      <FeaturedArtworks
+        posts={feedState.featuredPosts}
+        onOpen={actions.openPostViewer}
+        authed={authed}
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -261,6 +271,16 @@ export default function CommunityPageClient({
                                   onClick={() => feedActions.setSortBy("oldest")}
                                   label="Oldest"
                                 />
+                                <FilterChip
+                                  active={feedState.sortBy === "highest-score"}
+                                  onClick={() => feedActions.setSortBy("highest-score")}
+                                  label="Highest Score"
+                                />
+                                <FilterChip
+                                  active={feedState.sortBy === "most-upvoted"}
+                                  onClick={() => feedActions.setSortBy("most-upvoted")}
+                                  label="Most Upvoted"
+                                />
                               </div>
                             </div>
 
@@ -329,7 +349,7 @@ export default function CommunityPageClient({
                       isOwner={post.userId === currentUserId}
                       editHref={`/community/edit-post/${post.postId}`}
                       isVoting={state.pendingPostId === post.postId}
-                      onOpen={() => actions.openPostViewer(post)}
+                      onOpen={() => router.push(`/community/${post.postId}`)}
                       onReport={() => actions.openReport(post)}
                       onUpvote={() => actions.upVote(post)}
                       onDownvote={() => actions.downVote(post)}
@@ -434,29 +454,6 @@ export default function CommunityPageClient({
         title={state.selectedPost?.title}
         username={state.selectedPost?.username}
         onSubmit={actions.handleSubmitReport}
-      />
-
-      <PostViewerModal
-        open={state.viewerOpen}
-        onOpenChange={actions.setViewerOpen}
-        post={state.selectedPost}
-        isOwner={state.selectedPost?.userId === currentUserId}
-        editHref={
-          state.selectedPost ? `/community/edit-post/${state.selectedPost.postId}` : undefined
-        }
-        onDeleted={() => {
-          actions.setViewerOpen(false);
-        }}
-        isVoting={state.pendingPostId === state.selectedPost?.postId}
-        onReport={
-          state.selectedPost ? () => actions.openReport(state.selectedPost!) : undefined
-        }
-        onUpvote={
-          state.selectedPost ? () => actions.upVote(state.selectedPost!) : undefined
-        }
-        onDownvote={
-          state.selectedPost ? () => actions.downVote(state.selectedPost!) : undefined
-        }
       />
     </main>
   );

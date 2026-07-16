@@ -364,6 +364,8 @@ create index IF not exists idx_reports_reporter_id on public.reports using btree
 
 create index IF not exists idx_reports_created_at on public.reports using btree (created_at desc) TABLESPACE pg_default;
 
+create unique INDEX IF not exists uq_reports_reporter_post on public.reports using btree (reporter_id, reported_art_post_id) TABLESPACE pg_default;
+
 create trigger trg_notify_report_resolved
 after
 update on reports for EACH row
@@ -403,6 +405,9 @@ create table public.users (
   created_at timestamp with time zone not null default now(),
   updated_at timestamp with time zone not null default now(),
   email text null,
+  first_name text null,
+  last_name text null,
+  middle_name text null,
   constraint users_pkey primary key (id),
   constraint users_email_key unique (email),
   constraint users_username_key unique (username),
