@@ -4,7 +4,7 @@ import { CertificateVerifyPage } from "@/features/certificate-verify/components/
 import { verifyCertificate } from "@/features/certificate-verify/server/verify-certificate";
 
 export const metadata: Metadata = {
-  title: "Certificate Verification — ArtForgeLab",
+  title: "Certificate Verification - ArtForgeLab",
   description:
     "Verify the authenticity of an ArtForgeLab artwork registration certificate.",
 };

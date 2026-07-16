@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Brush,
   ChevronDown,
@@ -33,6 +34,8 @@ export default function CommunityPageClient({
   posts,
   stats,
 }: CommunityPageData) {
+  const router = useRouter();
+
   const { state, actions } = useCommunityPage({
     authed,
     posts,
@@ -346,7 +349,7 @@ export default function CommunityPageClient({
                       isOwner={post.userId === currentUserId}
                       editHref={`/community/edit-post/${post.postId}`}
                       isVoting={state.pendingPostId === post.postId}
-                      onOpen={() => actions.openPostViewer(post)}
+                      onOpen={() => router.push(`/community/${post.postId}`)}
                       onReport={() => actions.openReport(post)}
                       onUpvote={() => actions.upVote(post)}
                       onDownvote={() => actions.downVote(post)}
@@ -451,29 +454,6 @@ export default function CommunityPageClient({
         title={state.selectedPost?.title}
         username={state.selectedPost?.username}
         onSubmit={actions.handleSubmitReport}
-      />
-
-      <PostViewerModal
-        open={state.viewerOpen}
-        onOpenChange={actions.setViewerOpen}
-        post={state.selectedPost}
-        isOwner={state.selectedPost?.userId === currentUserId}
-        editHref={
-          state.selectedPost ? `/community/edit-post/${state.selectedPost.postId}` : undefined
-        }
-        onDeleted={() => {
-          actions.setViewerOpen(false);
-        }}
-        isVoting={state.pendingPostId === state.selectedPost?.postId}
-        onReport={
-          state.selectedPost ? () => actions.openReport(state.selectedPost!) : undefined
-        }
-        onUpvote={
-          state.selectedPost ? () => actions.upVote(state.selectedPost!) : undefined
-        }
-        onDownvote={
-          state.selectedPost ? () => actions.downVote(state.selectedPost!) : undefined
-        }
       />
     </main>
   );
