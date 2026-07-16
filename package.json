@@ -62,5 +62,12 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.9"
+  },
+  "allowScripts": {
+    "sharp@0.34.5": true,
+    "@swc/core@1.15.43": true,
+    "msw@2.12.10": true,
+    "core-js@3.48.0": true,
+    "unrs-resolver@1.11.1": true
   }
 }
