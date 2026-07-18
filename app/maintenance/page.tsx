@@ -7,6 +7,7 @@
 import { redirect } from "next/navigation";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 import { MaintenanceCountdown } from "@/components/blocks/MaintenanceCountdown";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export default async function MaintenancePage() {
       <div className="mx-auto max-w-md text-center space-y-8">
         {/* Logo */}
         <div className="flex justify-center">
-          <img
+          <Image
             src={settings.platform_logo_url}
             alt={settings.platform_name}
             className="h-16 w-auto"
