@@ -5,6 +5,7 @@ import "@/app/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryClientProvider } from "@/providers/react-query-provider";
+import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,30 +17,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "ArtForgeLab",
-  description:
-    "Web-based Intellectual Property Rights Management System for Digital Artists using Perceptual Hashing and Blockchain Technology.",
-  keywords: [
-    "digital art",
-    "IP protection",
-    "blockchain",
-    "perceptual hashing",
-    "copyright",
-    "Philippines",
-  ],
-  icons: {
-    icon: "/landing-page-elements/AFL_logoWeb.png",
-    shortcut: "/landing-page-elements/AFL_logoWeb.png",
-    apple: "/landing-page-elements/AFL_logoWeb.png",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getRuntimeSettings();
 
-export default function RootLayout({
+  return {
+    title: settings.platform_name,
+    description: settings.platform_description,
+    keywords: [
+      "digital art",
+      "IP protection",
+      "blockchain",
+      "perceptual hashing",
+      "copyright",
+      "Philippines",
+    ],
+    icons: {
+      icon: "/landing-page-elements/AFL_logoWeb.png",
+      shortcut: "/landing-page-elements/AFL_logoWeb.png",
+      apple: "/landing-page-elements/AFL_logoWeb.png",
+    },
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { default_language } = await getRuntimeSettings();
+  
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={default_language} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

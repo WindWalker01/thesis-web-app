@@ -1,10 +1,17 @@
+import {
+  DB_MATCH_DISPLAY_THRESHOLD,
+  DISPLAY_LABEL_VERY_SIMILAR,
+  DISPLAY_LABEL_SIMILAR,
+} from "@/features/shared/similarity-thresholds";
+
 /**
- * Minimum similarity (percentage) a database match must reach before it is shown
- * in the "Other matches" report. Web/internet matches are never filtered — an
- * online match is treated as an automatic document-submission review since
- * internet ownership cannot be established, so every web match is always shown.
+ * Similarity % below which a database match in the "Other matches" report is
+ * replaced by the best internet match (when available).
+ * Web/internet matches are never filtered — an online match is treated as an
+ * automatic document-submission review since internet ownership cannot be
+ * established, so every web match is always shown.
  */
-export const DB_MATCH_DISPLAY_THRESHOLD = 70;
+export { DB_MATCH_DISPLAY_THRESHOLD };
 
 /** Formats a similarity percentage for display, or "N/A" when unavailable. */
 export function formatSimilarityValue(
@@ -22,10 +29,22 @@ export function getMatchTypeLabel(type: string | null | undefined): string {
 
 /**
  * Thumbnail-level similarity qualifier used in the "Other matches" grid:
- * >= 90 "Very Similar", >= 75 "Similar", otherwise "Potential Match".
+ * >= verySimilarThreshold "Very Similar",
+ * >= similarThreshold "Similar",
+ * otherwise "Potential Match".
+ *
+ * @param verySimilarThreshold - Override for the "Very Similar" threshold (defaults to shared config).
+ * @param similarThreshold - Override for the "Similar" threshold (defaults to shared config).
  */
-export function getSimilarityLabel(similarity: number): string {
-  if (similarity >= 90) return "Very Similar";
-  if (similarity >= 75) return "Similar";
+export function getSimilarityLabel(
+  similarity: number,
+  verySimilarThreshold?: number,
+  similarThreshold?: number,
+): string {
+  const verySimilar = verySimilarThreshold ?? DISPLAY_LABEL_VERY_SIMILAR;
+  const similar = similarThreshold ?? DISPLAY_LABEL_SIMILAR;
+
+  if (similarity >= verySimilar) return "Very Similar";
+  if (similarity >= similar) return "Similar";
   return "Potential Match";
 }

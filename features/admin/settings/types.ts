@@ -39,6 +39,27 @@ export type SettingOption = {
   value: string;
 };
 
+/**
+ * Group identifier for sub-section organisation within a category.
+ * Used to visually cluster related settings (e.g. detection-rules, scan-behavior).
+ */
+export type SettingGroupId =
+  | "detection-rules"
+  | "scan-behavior"
+  | "duplicate-prevention"
+  | "report-display"
+  | "pdf-report"
+  | "general";
+
+export type SettingGroup = {
+  id: SettingGroupId;
+  label: string;
+  description?: string;
+  icon?: string;
+  /** If true the group is collapsed by default (useful for advanced settings). */
+  isAdvanced?: boolean;
+};
+
 export type SettingDefinition = {
   key: string;
   label: string;
@@ -55,6 +76,25 @@ export type SettingDefinition = {
   requiresConfirmation?: boolean;
   confirmationMessage?: string;
   isReadonly?: boolean;
+
+  // ── New UX fields ──────────────────────────────────────────────
+  /** Sub-section group ID for visual clustering. */
+  group?: SettingGroupId;
+  /**
+   * Concise helper text that explains the effect of the setting.
+   * Shown below the description in a muted, smaller font.
+   */
+  helpText?: string;
+  /**
+   * Short string displayed as an ⓘ tooltip next to the label.
+   * Use this for the most distilled "what does this do" explanation.
+   */
+  tooltip?: string;
+  /**
+   * A subtle recommendation shown below the input, e.g.
+   * "Recommended: 80% for most digital artwork collections"
+   */
+  recommendedValue?: string;
 };
 
 export type SettingsCategory = {
@@ -64,6 +104,42 @@ export type SettingsCategory = {
   description: string;
   settings: SettingDefinition[];
 };
+
+// Sub-section groups that categories can reference
+export const SETTING_GROUPS: SettingGroup[] = [
+  {
+    id: "detection-rules",
+    label: "Detection Rules",
+    description: "Thresholds that control how the system identifies and handles similar artworks",
+    icon: "🔍",
+  },
+  {
+    id: "scan-behavior",
+    label: "Scan Behavior",
+    description: "How similarity scans are performed, including retries and timeouts",
+    icon: "⚡",
+  },
+  {
+    id: "duplicate-prevention",
+    label: "Duplicate Prevention",
+    description: "Block exact-file duplicates before similarity analysis begins",
+    icon: "🛡️",
+  },
+  {
+    id: "report-display",
+    label: "Report Display",
+    description: "Controls which matches are visible in similarity reports (cosmetic only)",
+    icon: "📊",
+    isAdvanced: true,
+  },
+  {
+    id: "pdf-report",
+    label: "PDF Report",
+    description: "Severity badges shown in exported PDF reports (cosmetic only)",
+    icon: "📄",
+    isAdvanced: true,
+  },
+];
 
 // ============================================
 // Zod Validation Schemas

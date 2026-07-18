@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SettingValue, SettingsActionResult } from "../types";
 import { DEFAULT_SETTINGS } from "../constants";
+import { getRuntimeSettings, clearRuntimeSettingsCache } from "@/features/admin/settings/lib/runtime-settings";
 
 // ============================================
 // Helper: Verify admin access
@@ -23,6 +24,19 @@ async function verifyAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSer
   }
 
   return user;
+}
+
+// ============================================
+// Check if audit logging is enabled
+// ============================================
+
+async function isAuditLoggingEnabled(): Promise<boolean> {
+  try {
+    const settings = await getRuntimeSettings();
+    return settings.enable_audit_logs;
+  } catch {
+    return true; // default to enabled if we can't check
+  }
 }
 
 // ============================================
@@ -83,6 +97,8 @@ export async function updateSettings(
 
     // Upsert each changed setting
     const now = new Date().toISOString();
+    const auditEnabled = await isAuditLoggingEnabled();
+
     for (const [key, newValue] of Object.entries(changes)) {
       const previousValue = currentMap.get(key) ?? null;
 
@@ -99,19 +115,24 @@ export async function updateSettings(
 
       if (upsertError) throw upsertError;
 
-      // Create audit log entry
-      const { error: auditError } = await supabase.from("settings_audit_logs").insert({
-        admin_id: admin.id,
-        setting_key: key,
-        previous_value: previousValue ? JSON.parse(JSON.stringify(previousValue)) : null,
-        new_value: JSON.parse(JSON.stringify(newValue)),
-        reason: reason ?? null,
-      });
+      // Create audit log entry (only if audit logging is enabled)
+      if (auditEnabled) {
+        const { error: auditError } = await supabase.from("settings_audit_logs").insert({
+          admin_id: admin.id,
+          setting_key: key,
+          previous_value: previousValue ? JSON.parse(JSON.stringify(previousValue)) : null,
+          new_value: JSON.parse(JSON.stringify(newValue)),
+          reason: reason ?? null,
+        });
 
-      if (auditError) {
-        console.error("Failed to create settings audit log:", auditError);
+        if (auditError) {
+          console.error("Failed to create settings audit log:", auditError);
+        }
       }
     }
+
+    // Clear the in-memory cache so subsequent reads pick up the new values
+    clearRuntimeSettingsCache();
 
     return {
       success: true,

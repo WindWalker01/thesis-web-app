@@ -22,9 +22,8 @@ import {
   stableStringify,
 } from "@/features/(user)/upload-artwork/lib/artwork-hashing";
 import { getArtworkStatusFromSimilarity } from "@/features/(user)/upload-artwork/lib/moderation-policy";
+import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 import { fetchGenreClassification } from "./fetch-genre";
-
-const HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD = 100;
 
 async function rollbackArtworkInsert(params: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
@@ -121,118 +120,176 @@ export async function recordArtworkInDatabase(
       };
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Step 1: Run the plagiarism check FIRST (we need the perceptual hash
-    //          because registered_arts.perceptual_hash is NOT NULL)
-    // ─────────────────────────────────────────────────────────────────────────
-    console.log("[Similarity Scan] Scan started — calling plagiarism API...");
-
-    const result = await checkPlagiarismWeb(validFile);
-    console.log("[Similarity Scan] Scan completed — API response received");
+    // ── Load runtime settings for similarity thresholds ──────────────
+    const settings = await getRuntimeSettings();
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Step 2: Process the plagiarism results
+    // Step 1: Check for duplicate file (only if enabled in settings)
     // ─────────────────────────────────────────────────────────────────────────
-    if (!result.success) {
-      console.log("[Similarity Scan] Plagiarism check failed — no artwork created");
-      return {
-        success: false,
-        message: "Unexpected server error during similarity checking.",
-        similarityReport: null,
-        otherMatches: null,
-      };
-    }
+    if (settings.enable_duplicate_file_detection) {
+      const { data: existingArtwork, error: existingError } = await supabase
+        .from("registered_arts")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("file_hash", fileHash)
+        .maybeSingle();
 
-    const primaryMatch = getPrimarySimilarityMatch(result);
-    const reportMatch = getSimilarityReportMatch(result);
-    let similarityReport = buildSimilarityReport(result);
-    const similarity = similarityReport?.similarityPercentage ?? 0;
-    const otherMatches = result.other_matches;
-
-    if (
-      similarityReport &&
-      reportMatch?.type === "database" &&
-      isUuidLike(reportMatch.url)
-    ) {
-      const adminSupabase = createSupabaseAdminClient();
-
-      const { data: matchedArtwork, error: matchedArtworkError } =
-        await adminSupabase
-          .from("registered_arts")
-          .select("id, title, c_secure_url")
-          .eq("id", reportMatch.url)
-          .maybeSingle();
-
-      if (matchedArtworkError) {
+      if (existingError) {
         return {
           success: false,
-          message: matchedArtworkError.message,
+          message: existingError.message,
+          similarityReport: null,
+          otherMatches: null,
+        };
+      }
+
+      if (existingArtwork) {
+        return {
+          success: false,
+          message: "This artwork has already been registered by your account.",
+          similarityReport: null,
+          otherMatches: null,
+        };
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 2: Run the plagiarism/similarity scan (only if automatic scanning
+    //          is enabled in settings)
+    // ─────────────────────────────────────────────────────────────────────────
+    let result;
+    let primaryMatch;
+    let reportMatch;
+    let similarityReport = null;
+    let similarity = 0;
+    let otherMatches = null;
+    let matchSource: "database" | "internet" | null = null;
+
+    if (settings.enable_automatic_scanning) {
+      console.log("[Similarity Scan] Scan started — calling plagiarism API...");
+
+      result = await checkPlagiarismWeb(validFile);
+      console.log("[Similarity Scan] Scan completed — API response received");
+
+      if (!result.success) {
+        console.log("[Similarity Scan] Plagiarism check failed — no artwork created");
+        return {
+          success: false,
+          message: "Unexpected server error during similarity checking.",
+          similarityReport: null,
+          otherMatches: null,
+        };
+      }
+
+      primaryMatch = getPrimarySimilarityMatch(result);
+      reportMatch = getSimilarityReportMatch(result, {
+        databaseRenderThreshold: settings.db_match_display_threshold,
+        minRenderThreshold: settings.min_render_threshold,
+      });
+      similarityReport = buildSimilarityReport(result);
+      similarity = similarityReport?.similarityPercentage ?? 0;
+      otherMatches = result.other_matches;
+
+      if (
+        similarityReport &&
+        reportMatch?.type === "database" &&
+        isUuidLike(reportMatch.url)
+      ) {
+        const adminSupabase = createSupabaseAdminClient();
+
+        const { data: matchedArtwork, error: matchedArtworkError } =
+          await adminSupabase
+            .from("registered_arts")
+            .select("id, title, c_secure_url")
+            .eq("id", reportMatch.url)
+            .maybeSingle();
+
+        if (matchedArtworkError) {
+          return {
+            success: false,
+            message: matchedArtworkError.message,
+            similarityReport,
+            otherMatches,
+          };
+        }
+
+        similarityReport = {
+          ...similarityReport,
+          matchedArtworkId: matchedArtwork?.id ?? reportMatch.url,
+          matchedArtworkTitle: matchedArtwork?.title ?? null,
+          matchedArtworkImageUrl: matchedArtwork?.c_secure_url ?? null,
+          previewImageUrl: matchedArtwork?.c_secure_url ?? null,
+        };
+      }
+
+      // Hard block: any database match at 100% is an exact duplicate
+      if (
+        primaryMatch?.type === "database" &&
+        typeof primaryMatch.similarity === "number" &&
+        primaryMatch.similarity >= 100
+      ) {
+        console.log("[Similarity Scan] Hard block triggered — 100% database match");
+        return {
+          success: false,
+          message:
+            "Upload blocked. An exact 100% match was detected against a registered artwork in the database.",
           similarityReport,
           otherMatches,
         };
       }
 
-      similarityReport = {
-        ...similarityReport,
-        matchedArtworkId: matchedArtwork?.id ?? reportMatch.url,
-        matchedArtworkTitle: matchedArtwork?.title ?? null,
-        matchedArtworkImageUrl: matchedArtwork?.c_secure_url ?? null,
-        previewImageUrl: matchedArtwork?.c_secure_url ?? null,
-      };
+      matchSource =
+        primaryMatch?.type === "database" || primaryMatch?.type === "internet"
+          ? primaryMatch.type
+          : null;
     }
 
-    // Check for hard block (100% database match)
-    if (
-      primaryMatch?.type === "database" &&
-      typeof primaryMatch.similarity === "number" &&
-      primaryMatch.similarity >= HARD_BLOCK_DATABASE_SIMILARITY_THRESHOLD
-    ) {
-      console.log("[Similarity Scan] Hard block triggered — 100% database match");
-      return {
-        success: false,
-        message:
-          "Upload blocked. An exact 100% match was detected against a registered artwork in the database.",
-        similarityReport,
-        otherMatches,
-      };
-    }
-
-    const matchSource =
-      primaryMatch?.type === "database" || primaryMatch?.type === "internet"
-        ? primaryMatch.type
-        : null;
-
+    // Use admin-configured thresholds; fall back to existing hardcoded defaults
     const { artworkStatus, moderationMessage, shouldClassify } =
-      getArtworkStatusFromSimilarity(similarity, matchSource);
+      settings.enable_automatic_scanning
+        ? getArtworkStatusFromSimilarity(similarity, matchSource, {
+            flaggedThreshold: settings.similarity_threshold,
+            manualReviewThreshold: settings.manual_review_threshold,
+          })
+        : {
+            artworkStatus: "pending_blockchain" as const,
+            moderationMessage:
+              "Artwork uploaded successfully and is ready for protection.",
+            shouldClassify: true,
+          };
 
-    // Validate perceptual hash
-    if (
-      typeof result.original_hash !== "string" ||
-      result.original_hash.trim().length === 0
-    ) {
-      console.log("[Similarity Scan] Missing perceptual hash from API response");
-      return {
-        success: false,
-        message: "Missing perceptual hash from similarity checking service.",
-        similarityReport,
-        otherMatches,
-      };
-    }
-
+    // Validate perceptual hash (from scan result, or compute from file if scanning disabled)
     let perceptualHash: `0x${string}`;
+    if (result && settings.enable_automatic_scanning) {
+      if (
+        typeof result.original_hash !== "string" ||
+        result.original_hash.trim().length === 0
+      ) {
+        console.log("[Similarity Scan] Missing perceptual hash from API response");
+        return {
+          success: false,
+          message: "Missing perceptual hash from similarity checking service.",
+          similarityReport,
+          otherMatches,
+        };
+      }
 
-    try {
-      perceptualHash = normalizePerceptualHashToBytes32(result.original_hash);
-    } catch (error) {
-      return {
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Invalid perceptual hash format.",
-        similarityReport,
-        otherMatches,
-      };
+      try {
+        perceptualHash = normalizePerceptualHashToBytes32(result.original_hash);
+      } catch (error) {
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Invalid perceptual hash format.",
+          similarityReport,
+          otherMatches,
+        };
+      }
+    } else {
+      // When scanning is disabled, compute a hash from the file buffer
+      perceptualHash = ethers.keccak256(fileBuffer) as `0x${string}`;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -288,7 +345,7 @@ export async function recordArtworkInDatabase(
         block_number: null,
         work_id: null,
         status: artworkStatus,
-        plagiarism_hashes: result.hashes,
+        plagiarism_hashes: result?.hashes ?? null,
       })
       .select("id")
       .single();
@@ -315,34 +372,35 @@ export async function recordArtworkInDatabase(
     console.log(`[Artwork Registration] Artwork inserted: ${insertedArtworkId}`);
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Step 6: Create the art_similarity_scans record (status: "completed"
-    //          since the scan already ran successfully)
+    // Step 6: Create the art_similarity_scans record (only when scanning ran)
     // ─────────────────────────────────────────────────────────────────────────
-    console.log("[Similarity Scan] Creating scan record...");
+    if (result && settings.enable_automatic_scanning) {
+      console.log("[Similarity Scan] Creating scan record...");
 
-    const scanInsertPayload = buildSimilarityScanInsert({
-      artId: insertedArtworkId,
-      ownerId: userId,
-      result,
-      status: "completed",
-    });
+      const scanInsertPayload = buildSimilarityScanInsert({
+        artId: insertedArtworkId,
+        ownerId: userId,
+        result,
+        status: "completed",
+      });
 
-    const { error: scanInsertError } = await supabase
-      .from("art_similarity_scans")
-      .insert(scanInsertPayload);
+      const { error: scanInsertError } = await supabase
+        .from("art_similarity_scans")
+        .insert(scanInsertPayload);
 
-    if (scanInsertError) {
-      console.error("[Similarity Scan] Failed to create scan record:", scanInsertError);
-      await rollbackArtworkInsert({ supabase, artworkId: insertedArtworkId });
-      return {
-        success: false,
-        message: scanInsertError.message,
-        similarityReport,
-        otherMatches,
-      };
+      if (scanInsertError) {
+        console.error("[Similarity Scan] Failed to create scan record:", scanInsertError);
+        await rollbackArtworkInsert({ supabase, artworkId: insertedArtworkId });
+        return {
+          success: false,
+          message: scanInsertError.message,
+          similarityReport,
+          otherMatches,
+        };
+      }
+
+      console.log("[Similarity Scan] Scan record created with full results");
     }
-
-    console.log("[Similarity Scan] Scan record created with full results");
 
     // ─────────────────────────────────────────────────────────────────────────
     // Step 7: Create artwork_reviews record for admin verification if needed

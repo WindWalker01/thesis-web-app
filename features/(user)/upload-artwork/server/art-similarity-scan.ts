@@ -2,6 +2,10 @@ import type {
   SearchMatch,
   CheckPlagiarismWebResult,
 } from "@/features/plagiarise-checker/types";
+import {
+  DB_MATCH_DISPLAY_THRESHOLD,
+  MIN_RENDER_THRESHOLD,
+} from "@/features/shared/similarity-thresholds";
 
 export type SimilarityReport = {
   similarityPercentage: number | null;
@@ -26,15 +30,6 @@ export type NormalizedSimilarityMatch = {
   url: string | null;
   similarity: number | null;
 };
-
-const REPORT_DATABASE_RENDER_THRESHOLD = 70;
-
-/**
- * Minimum similarity (percentage) any match must reach before it is shown in the
- * report card. If the best match to display is below this, no report is rendered
- * at all — regardless of whether it came from the database or the internet.
- */
-const REPORT_MIN_RENDER_THRESHOLD = 70;
 
 function toNullableString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
@@ -121,17 +116,31 @@ export function getPrimarySimilarityMatch(
  * Display-only selector for the similarity report shown to the user.
  *
  * Rules (in order):
- * - If the strongest overall match is from the database but is below 70%,
- *   prefer the best internet match instead, when available.
- * - If the match that would be displayed is still below 70% — whether it came
- *   from the database or the internet — do not render any report at all.
+ * - If the strongest overall match is from the database but is below the
+ *   database render threshold, prefer the best internet match instead,
+ *   when available.
+ * - If the match that would be displayed is still below the minimum render
+ *   threshold — whether it came from the database or the internet — do not
+ *   render any report at all.
+ *
+ * Thresholds default to the shared config values and can be overridden from
+ * Admin Settings.
  *
  * This does NOT affect moderation/blocking logic. It only affects what
  * the similarity report card displays after upload.
  */
 export function getSimilarityReportMatch(
   result: CheckPlagiarismWebResult,
+  options?: {
+    /** Similarity % below which a database match is replaced by an internet fallback. */
+    databaseRenderThreshold?: number;
+    /** Minimum similarity % required to show any report. */
+    minRenderThreshold?: number;
+  },
 ): NormalizedSimilarityMatch | null {
+  const databaseRenderThreshold = options?.databaseRenderThreshold ?? DB_MATCH_DISPLAY_THRESHOLD;
+  const minRenderThreshold = options?.minRenderThreshold ?? MIN_RENDER_THRESHOLD;
+
   const matches = getSimilarityMatches(result);
   const primary = matches[0] ?? null;
 
@@ -143,7 +152,7 @@ export function getSimilarityReportMatch(
 
   if (
     primary.type === "database" &&
-    primarySimilarity < REPORT_DATABASE_RENDER_THRESHOLD
+    primarySimilarity < databaseRenderThreshold
   ) {
     const internetFallback =
       matches.find((match) => match.type === "internet") ?? null;
@@ -155,7 +164,7 @@ export function getSimilarityReportMatch(
 
   // Suppress the report entirely when the match to display is below the minimum
   // render threshold, regardless of its source.
-  if ((selected.similarity ?? 0) < REPORT_MIN_RENDER_THRESHOLD) {
+  if ((selected.similarity ?? 0) < minRenderThreshold) {
     return null;
   }
 

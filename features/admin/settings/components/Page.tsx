@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { AlertTriangle, RefreshCw, RotateCcw, Settings2 } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  Info,
+  RefreshCw,
+  RotateCcw,
+  Settings2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +17,8 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSettings, updateSettings, resetCategoryDefaults } from "../server/settings";
 import type { SettingValue, SettingDefinition } from "../types";
-import { SETTINGS_CATEGORIES, DEFAULT_SETTINGS, getSettingByKey } from "../constants";
+import { SETTINGS_CATEGORIES, DEFAULT_SETTINGS, getSettingByKey, getGroupsForCategory } from "../constants";
+import { SETTING_GROUPS } from "../types";
 import { SettingsPageSkeleton } from "./page-skeleton";
 import { SettingCard } from "./SettingCard";
 import { SettingInput } from "./SettingInput";
@@ -29,6 +38,7 @@ export default function SettingsPage() {
   const [dirtyChanges, setDirtyChanges] = useState<Map<string, SettingValue>>(new Map());
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -166,7 +176,114 @@ export default function SettingsPage() {
     });
   }, [activeTab, fetchSettings]);
 
-  // Render a single setting field
+  // ── Validation warnings for threshold relationships ──────────────
+
+  const getValidationWarnings = useCallback(
+    (setting: SettingDefinition): string | undefined => {
+      if (activeTab !== "similarity") return undefined;
+
+      const autoApproval = Number(getValue("automatic_approval_threshold"));
+      const manualReview = Number(getValue("manual_review_threshold"));
+      const similarity = Number(getValue("similarity_threshold"));
+
+      switch (setting.key) {
+        case "automatic_approval_threshold":
+          if (autoApproval >= manualReview) {
+            return "Automatic Approval Threshold should be lower than Manual Review Threshold. Otherwise, artworks that should be reviewed may be automatically approved.";
+          }
+          return undefined;
+        case "manual_review_threshold":
+          if (manualReview <= autoApproval) {
+            return "Manual Review Threshold must be higher than Automatic Approval Threshold. Otherwise, no artworks will enter the manual review zone.";
+          }
+          if (manualReview >= similarity) {
+            return "Manual Review Threshold should be lower than Similarity Threshold. Otherwise, artworks flagged as highly similar may bypass manual review.";
+          }
+          return undefined;
+        case "similarity_threshold":
+          if (similarity <= manualReview) {
+            return "Similarity Threshold should be greater than Manual Review Threshold. Otherwise, the 'highly similar' label may never be applied before manual review triggers.";
+          }
+          return undefined;
+        default:
+          return undefined;
+      }
+    },
+    [activeTab, getValue]
+  );
+
+  // ── Workflow info card for similarity tab ────────────────────────
+
+  const WorkflowInfoCard = () => {
+    const autoApproval = Number(getValue("automatic_approval_threshold"));
+    const manualReview = Number(getValue("manual_review_threshold"));
+    const similarity = Number(getValue("similarity_threshold"));
+
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="space-y-3 min-w-0">
+            <div>
+              <h3 className="text-sm font-semibold">How Similarity Detection Works</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                When an artwork is uploaded, the system scans it and calculates a similarity score. The score determines what happens next:
+              </p>
+            </div>
+
+            <div className="space-y-1.5 text-xs">
+              {/* Auto-approve zone */}
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 text-[10px] font-bold">
+                  ✔
+                </span>
+                <span>
+                  <strong>Score {'<'}{autoApproval}%</strong> — Artwork is automatically approved. No review needed.
+                </span>
+              </div>
+
+              {/* Warning zone */}
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-[10px] font-bold">
+                  !
+                </span>
+                <span>
+                  <strong>{autoApproval}% – {manualReview}%</strong> — Artwork proceeds with registration. Similarity is shown to the uploader as a warning.
+                </span>
+              </div>
+
+              {/* Manual review zone */}
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 text-[10px] font-bold">
+                  👁
+                </span>
+                <span>
+                  <strong>{manualReview}% – {similarity}%</strong> — Artwork is sent to an administrator for manual review.
+                </span>
+              </div>
+
+              {/* Highly similar zone */}
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 text-[10px] font-bold">
+                  🚩
+                </span>
+                <span>
+                  <strong>Score ≥ {similarity}%</strong> — Artwork is flagged as highly similar and sent for admin review.
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground/70">
+              Adjust the thresholds below to control where each boundary sits. Changes affect future uploads only.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Render a single setting field ─────────────────────────────────
+
   const renderSetting = useCallback(
     (setting: SettingDefinition) => {
       const value = getValue(setting.key);
@@ -193,7 +310,6 @@ export default function SettingsPage() {
                 unit={setting.unit}
                 onChange={(v) => handleChange(setting.key, Number(v))}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
 
@@ -206,7 +322,6 @@ export default function SettingsPage() {
                 options={setting.options ?? []}
                 onChange={(v) => handleChange(setting.key, v)}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
 
@@ -220,7 +335,6 @@ export default function SettingsPage() {
                 placeholder={setting.placeholder}
                 onChange={(v) => handleChange(setting.key, v)}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
 
@@ -234,7 +348,6 @@ export default function SettingsPage() {
                 placeholder={setting.placeholder}
                 onChange={(v) => handleChange(setting.key, Number(v))}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
 
@@ -248,7 +361,6 @@ export default function SettingsPage() {
                 placeholder={setting.placeholder}
                 onChange={(v) => handleChange(setting.key, String(v))}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
 
@@ -262,12 +374,150 @@ export default function SettingsPage() {
                 placeholder={setting.placeholder}
                 onChange={(v) => handleChange(setting.key, String(v))}
               />
-              <p className="text-xs text-muted-foreground">{setting.description}</p>
             </div>
           );
       }
     },
     [getValue, handleChange]
+  );
+
+  // ── Render a single setting card with all new props ──────────────
+
+  const renderSettingCard = useCallback(
+    (setting: SettingDefinition) => {
+      const isThreshold =
+        setting.key === "similarity_threshold" ||
+        setting.key === "manual_review_threshold" ||
+        setting.key === "automatic_approval_threshold";
+
+      return (
+        <SettingCard
+          key={setting.key}
+          title={setting.label}
+          description={setting.description}
+          badge={setting.badge}
+          helpText={setting.helpText}
+          recommendedValue={setting.recommendedValue}
+          tooltip={setting.tooltip}
+          validationWarning={getValidationWarnings(setting)}
+          isHighlighted={isThreshold}
+        >
+          {renderSetting(setting)}
+        </SettingCard>
+      );
+    },
+    [renderSetting, getValidationWarnings]
+  );
+
+  // ── Render settings grouped by their `group` field ───────────────
+
+  const renderGroupedSettings = useCallback(
+    (categoryId: string) => {
+      const category = SETTINGS_CATEGORIES.find((c) => c.id === categoryId);
+      if (!category) return null;
+
+      const groupIds = getGroupsForCategory(categoryId);
+
+      // If no groups, render flat (for non-similarity categories)
+      if (groupIds.length === 0) {
+        return (
+          <div className="space-y-4">
+            {category.settings.map((setting) => (
+              <SettingCard
+                key={setting.key}
+                title={setting.label}
+                description={setting.description}
+                badge={setting.badge}
+                helpText={setting.helpText}
+                recommendedValue={setting.recommendedValue}
+                tooltip={setting.tooltip}
+              >
+                {renderSetting(setting)}
+              </SettingCard>
+            ))}
+          </div>
+        );
+      }
+
+      // Render grouped
+      return (
+        <div className="space-y-6">
+          {groupIds.map((groupId) => {
+            const groupDef = SETTING_GROUPS.find((g) => g.id === groupId);
+            const groupSettings = category.settings.filter((s) => s.group === groupId);
+            if (groupSettings.length === 0) return null;
+
+            const isAdvanced = groupDef?.isAdvanced ?? false;
+            const isExpanded = expandedGroups.has(groupId);
+
+            // For advanced groups, wrap in collapsible section
+            if (isAdvanced) {
+              return (
+                <div key={groupId} className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpandedGroups((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(groupId)) {
+                          next.delete(groupId);
+                        } else {
+                          next.add(groupId);
+                        }
+                        return next;
+                      });
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-left text-sm font-medium hover:bg-muted/50 transition-colors"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="text-base">{groupDef?.icon ?? "📋"}</span>
+                    <span>{groupDef?.label ?? groupId}</span>
+                    <Badge variant="secondary" className="ml-auto text-[10px]">
+                      {groupSettings.length} settings
+                    </Badge>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="space-y-4 pl-2 border-l-2 border-muted">
+                      {groupDef?.description && (
+                        <p className="text-xs text-muted-foreground pl-2">
+                          {groupDef.description}
+                        </p>
+                      )}
+                      {groupSettings.map((setting) => renderSettingCard(setting))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // Non-advanced groups
+            return (
+              <div key={groupId} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{groupDef?.icon ?? "📋"}</span>
+                  <h3 className="text-sm font-semibold">{groupDef?.label ?? groupId}</h3>
+                  {groupDef?.description && (
+                    <span className="text-xs text-muted-foreground hidden sm:inline">
+                      — {groupDef.description}
+                    </span>
+                  )}
+                </div>
+                <Separator />
+                <div className="space-y-4">
+                  {groupSettings.map((setting) => renderSettingCard(setting))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    },
+    [renderSetting, renderSettingCard, expandedGroups]
   );
 
   const totalDirtyCount = dirtyChanges.size;
@@ -303,7 +553,7 @@ export default function SettingsPage() {
           <Settings2 className="h-5 w-5 text-primary" />
           <h1 className="text-lg font-bold tracking-tight sm:text-xl">System Settings</h1>
           <Badge variant="secondary" className="text-xs">
-            4 categories
+            {SETTINGS_CATEGORIES.length} categories
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-0.5">
@@ -342,16 +592,12 @@ export default function SettingsPage() {
                 <p className="text-sm text-muted-foreground">{category.description}</p>
               </div>
               <Separator />
-              {category.settings.map((setting) => (
-                <SettingCard
-                  key={setting.key}
-                  title={setting.label}
-                  description={setting.description}
-                  badge={setting.badge}
-                >
-                  {renderSetting(setting)}
-                </SettingCard>
-              ))}
+
+              {/* Workflow info card — only for similarity tab */}
+              {category.id === "similarity" && <WorkflowInfoCard />}
+
+              {/* Grouped or flat settings */}
+              {renderGroupedSettings(category.id)}
             </TabsContent>
           ))}
         </Tabs>

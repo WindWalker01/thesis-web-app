@@ -3,25 +3,24 @@ import { ArtworkStatus } from "@/features/(user)/upload-artwork/types";
 /**
  * Centralizes the moderation decision derived from the similarity score and match source.
  *
+ * Thresholds MUST be provided by the caller — they should come from the Admin Settings
+ * (system_settings) table via `getRuntimeSettings()` so that an administrator can tune
+ * them without code changes.
+ *
  * Policy rules (evaluated top-to-bottom, first match wins):
  *
- *  1. 100% database match       → hard-blocked upstream, never reaches this function.
- *
- *  2. 100% internet match       → under_review, no blockchain.
+ *  1. 100% internet match       → under_review, no blockchain.
  *     We cannot trust an internet result as authoritative proof of duplication, so
  *     we hold it for admin review rather than blocking or approving outright.
  *
- *  3. 87.5 – 99.99% (any src)  → flagged, no genre classification.
+ *  2. >= flaggedThreshold       → flagged, no genre classification.
  *     High enough to warrant admin attention regardless of source.
  *
- *  4. 75 – 87.49% (any src)    → under_review, genre classified, pending blockchain.
+ *  3. >= manualReviewThreshold  → under_review, genre classified.
  *     Moderate risk; genre tagging helps admins assess context.
  *
- *  5. < 75%, database source   → pending_blockchain, genre classified.
- *     Low similarity from a trusted source — safe to proceed to chain registration.
- *
- *  6. < 75%, internet source   → under_review, genre classified, pending blockchain.
- *     Low similarity but internet provenance is untrusted; hold for confirmation.
+ *  4. < manualReviewThreshold   → pending_blockchain, genre classified.
+ *     Low similarity; safe to proceed to chain registration.
  *
  * We also return shouldClassify so downstream logic does not need to duplicate
  * threshold rules elsewhere in the pipeline.
@@ -29,12 +28,20 @@ import { ArtworkStatus } from "@/features/(user)/upload-artwork/types";
 export function getArtworkStatusFromSimilarity(
     similarity: number,
     source: "database" | "internet" | null,
+    options: {
+        /** Similarity threshold above which artworks are flagged for admin review (maps to similarity_threshold setting). */
+        flaggedThreshold: number;
+        /** Similarity threshold above which artworks enter manual review (maps to manual_review_threshold setting). */
+        manualReviewThreshold: number;
+    },
 ): {
     artworkStatus: ArtworkStatus;
     moderationMessage: string;
     shouldClassify: boolean;
 } {
-    // Rule 2: exact internet match — hold for review, do not auto-block
+    const { flaggedThreshold, manualReviewThreshold } = options;
+
+    // Rule 1: exact internet match — hold for review, do not auto-block
     if (similarity >= 100 && source === "internet") {
         return {
             artworkStatus: "under_review",
@@ -44,8 +51,8 @@ export function getArtworkStatusFromSimilarity(
         };
     }
 
-    // Rule 3: high similarity from any source — flag for admin
-    if (similarity >= 87.5) {
+    // Rule 2: high similarity from any source — flag for admin
+    if (similarity >= flaggedThreshold) {
         return {
             artworkStatus: "flagged",
             moderationMessage:
@@ -54,8 +61,8 @@ export function getArtworkStatusFromSimilarity(
         };
     }
 
-    // Rule 4: moderate similarity from any source — review + genre
-    if (similarity >= 70) {
+    // Rule 3: moderate similarity from any source — review + genre
+    if (similarity >= manualReviewThreshold) {
         return {
             artworkStatus: "under_review",
             moderationMessage:
@@ -64,7 +71,7 @@ export function getArtworkStatusFromSimilarity(
         };
     }
 
-    // Rule 5: low similarity from database (trusted) — ready for chain
+    // Rule 4: low similarity — ready for chain
     return {
         artworkStatus: "pending_blockchain",
         moderationMessage:

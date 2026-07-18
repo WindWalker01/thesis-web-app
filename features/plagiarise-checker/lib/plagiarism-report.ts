@@ -1,5 +1,10 @@
 import { jsPDF } from "jspdf";
 import type { SearchResponse, SearchMatch } from "@/features/plagiarise-checker";
+import {
+  PDF_REPORT_CRITICAL,
+  PDF_REPORT_HIGH,
+  PDF_REPORT_MODERATE,
+} from "@/features/shared/similarity-thresholds";
 
 export type PlagiarismReportData = {
     result: SearchResponse;
@@ -159,7 +164,14 @@ function drawInfoRow(
     return y + 6.5;
 }
 
-function getSimilarityStatus(similarity: number | null): {
+function getSimilarityStatus(
+    similarity: number | null,
+    options?: {
+        criticalThreshold?: number;
+        highThreshold?: number;
+        moderateThreshold?: number;
+    },
+): {
     label: string;
     dot: [number, number, number];
     bg: [number, number, number];
@@ -167,8 +179,11 @@ function getSimilarityStatus(similarity: number | null): {
     accent: [number, number, number];
 } {
     const s = similarity ?? 0;
+    const critical = options?.criticalThreshold ?? PDF_REPORT_CRITICAL;
+    const high = options?.highThreshold ?? PDF_REPORT_HIGH;
+    const moderate = options?.moderateThreshold ?? PDF_REPORT_MODERATE;
 
-    if (s >= 90) {
+    if (s >= critical) {
         return {
             label: "CRITICAL SIMILARITY",
             dot: [220, 38, 38],
@@ -178,7 +193,7 @@ function getSimilarityStatus(similarity: number | null): {
         };
     }
 
-    if (s >= 70) {
+    if (s >= high) {
         return {
             label: "HIGH SIMILARITY",
             dot: [234, 88, 12],
@@ -188,7 +203,7 @@ function getSimilarityStatus(similarity: number | null): {
         };
     }
 
-    if (s >= 50) {
+    if (s >= moderate) {
         return {
             label: "MODERATE SIMILARITY",
             dot: [245, 158, 11],

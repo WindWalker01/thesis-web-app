@@ -5,8 +5,11 @@ import {
     Mail, Share2Icon, Globe, BookOpen, ShieldCheck,
     FileText, Users, Blocks, MapPin, BrainCircuit, Link2,
 } from "lucide-react";
+import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 
-export default function Footer() {
+export default async function Footer() {
+    const settings = await getRuntimeSettings();
+    
     return (
         <footer className="bg-slate-900 dark:bg-background text-white mt-10">
 
@@ -119,9 +122,9 @@ export default function Footer() {
 
                 <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400 dark:text-slate-500">
                     <p className="text-center md:text-left leading-relaxed">
-                        © 2026 ArtForgeLab &mdash; A Thesis Project on{" "}
-                        <span className="text-slate-200 dark:text-slate-300">Intellectual Property Rights Management for Digital Artists</span>{" "}
-                        Using Perceptual Hashing &amp; Blockchain Technology.
+                        {settings.footer_copyright}{" "}
+                        <span className="text-slate-200 dark:text-slate-300">{settings.platform_description}</span>{" "}
+                        Using Perceptual Hashing & Blockchain Technology.
                     </p>
                     <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
                         {[
