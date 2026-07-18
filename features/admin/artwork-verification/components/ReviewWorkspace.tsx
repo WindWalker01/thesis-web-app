@@ -378,6 +378,13 @@ export default function ArtworkReviewWorkspace() {
               c_secure_url={artwork.c_secure_url}
               best_url={detail.scan?.best_url ?? null}
               hasScan={!!detail.scan}
+              originalTitle={artwork.title}
+              originalArtist={`${artwork.owner.first_name} ${artwork.owner.last_name}`}
+              originalUploadedAt={artwork.created_at}
+              originalHash={artwork.file_hash}
+              originalStatus={artwork.status}
+              comparedTitle={detail.scan?.best_source ?? "Potential Match"}
+              comparedSimilarity={detail.scan?.best_similarity_percentage ?? null}
             />
           </div>
         </div>
