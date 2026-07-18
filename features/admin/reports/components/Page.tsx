@@ -7,6 +7,7 @@ import {
   RefreshCw,
   ShieldAlert,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useReports, useReportStatistics } from "../hooks/useReports";
@@ -152,6 +153,30 @@ export default function ReportsManagementPage() {
       }
     } finally {
       setIsSendingComment(false);
+    }
+  }, [selectedReportId, refetchDetail]);
+
+  const handleUploadEvidence = useCallback(async (file: File, description?: string) => {
+    if (!selectedReportId) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    if (description) {
+      formData.append("description", description);
+    }
+    try {
+      const response = await fetch(`/api/reports/${selectedReportId}/evidence`, {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast.success("Evidence uploaded successfully");
+        await refetchDetail();
+      } else {
+        toast.error(result.error?.message ?? "Failed to upload evidence");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to upload evidence");
     }
   }, [selectedReportId, refetchDetail]);
 
@@ -314,6 +339,7 @@ export default function ReportsManagementPage() {
         error={detailError instanceof Error ? detailError.message : null}
         onUpdateStatus={handleUpdateStatus}
         onAddComment={handleAddComment}
+        onUploadEvidence={handleUploadEvidence}
         isUpdatingStatus={isUpdatingStatus}
         isSendingComment={isSendingComment}
         onRefresh={() => refetchDetail()}

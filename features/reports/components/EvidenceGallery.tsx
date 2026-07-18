@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import type { ReportEvidence } from "@/features/reports/types";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, getFileIcon } from "@/features/reports/lib/report-utils";
-import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES } from "@/features/reports/schemas/report-schemas";
+import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES, isAllowedFileType } from "@/features/reports/schemas/report-schemas";
 import { toast } from "sonner";
 import { cn } from "@/lib/client-utils";
 
@@ -35,8 +35,7 @@ export function EvidenceGallery({
     }
 
     // Validate file type
-    const allowedTypes = ALLOWED_EVIDENCE_MIME_TYPES as readonly string[];
-    if (!allowedTypes.includes(file.type as (typeof ALLOWED_EVIDENCE_MIME_TYPES)[number])) {
+    if (!isAllowedFileType(file.type, file.name)) {
       toast.error("Unsupported file type");
       return;
     }

@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/client-utils";
-import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES } from "@/features/reports/schemas/report-schemas";
+import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES, isAllowedFileType } from "@/features/reports/schemas/report-schemas";
 import { toast } from "sonner";
 
 type ReplyBoxProps = {
@@ -61,8 +61,7 @@ export function ReplyBox({
     }
 
     // Validate file type
-    const allowedTypes = ALLOWED_EVIDENCE_MIME_TYPES as readonly string[];
-    if (!allowedTypes.includes(file.type as (typeof ALLOWED_EVIDENCE_MIME_TYPES)[number])) {
+    if (!isAllowedFileType(file.type, file.name)) {
       toast.error("Unsupported file type");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;

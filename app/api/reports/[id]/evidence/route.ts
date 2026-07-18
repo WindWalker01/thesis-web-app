@@ -11,6 +11,7 @@ import * as service from "@/features/reports/server/reports-service";
 import {
   MAX_EVIDENCE_FILE_SIZE,
   ALLOWED_EVIDENCE_MIME_TYPES,
+  isAllowedFileType,
 } from "@/features/reports/schemas/report-schemas";
 
 export async function GET(
@@ -87,8 +88,7 @@ export async function POST(
       );
     }
 
-    const allowedTypes = ALLOWED_EVIDENCE_MIME_TYPES as readonly string[];
-    if (!allowedTypes.includes(file.type)) {
+    if (!isAllowedFileType(file.type, file.name)) {
       return NextResponse.json(
         {
           success: false,
@@ -111,8 +111,8 @@ export async function POST(
 
     const supabase = await createSupabaseServerClient();
 
-    // Verify ownership
-    const report = await repo.getUserReportById(supabase, user.id, id);
+    // Verify the report exists (authorization is handled by the service layer)
+    const report = await repo.getReportById(supabase, id);
     if (!report) {
       return NextResponse.json(
         { success: false, error: { code: "NOT_FOUND", message: "Report not found" } },

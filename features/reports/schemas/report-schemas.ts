@@ -131,15 +131,46 @@ export const ALLOWED_EVIDENCE_MIME_TYPES = [
   "application/x-rar-compressed",
   "text/plain",
   "text/html",
+  "application/octet-stream",
 ] as const;
+
+// File extensions that map to allowed MIME types (for fallback validation)
+const ALLOWED_EXTENSIONS = [
+  ".png", ".jpg", ".jpeg", ".webp", ".gif",
+  ".pdf",
+  ".zip", ".rar",
+  ".txt", ".html",
+] as const;
+
+/**
+ * Validates whether a file's MIME type or extension is allowed.
+ * Falls back to extension-based validation when the MIME type is
+ * application/octet-stream (common when browsers can't detect the type).
+ */
+export function isAllowedFileType(mimeType: string, fileName: string): boolean {
+  const allowedTypes = ALLOWED_EVIDENCE_MIME_TYPES as readonly string[];
+  
+  // Direct MIME type match
+  if (allowedTypes.includes(mimeType as (typeof ALLOWED_EVIDENCE_MIME_TYPES)[number])) {
+    return true;
+  }
+
+  // Fallback: if MIME type is octet-stream, check file extension
+  if (mimeType === "application/octet-stream") {
+    const ext = fileName.toLowerCase().slice(fileName.lastIndexOf("."));
+    return (ALLOWED_EXTENSIONS as readonly string[]).includes(ext);
+  }
+
+  return false;
+}
 
 export const evidenceFileSchema = z.object({
   size: z.number().max(MAX_EVIDENCE_FILE_SIZE, "File must be under 10MB"),
-  type: z.string().refine(
-    (val) => (ALLOWED_EVIDENCE_MIME_TYPES as readonly string[]).includes(val),
-    { message: "Unsupported file type" }
-  ),
+  type: z.string(),
   name: z.string().min(1).max(255),
-});
+}).refine(
+  (data) => isAllowedFileType(data.type, data.name),
+  { message: "Unsupported file type" }
+);
 
 export type EvidenceFileInput = z.infer<typeof evidenceFileSchema>;

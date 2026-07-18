@@ -15,7 +15,13 @@ import {
   ChevronUp,
   ChevronDownIcon,
   FileText,
+  Upload,
 } from "lucide-react";
+import {
+  MAX_EVIDENCE_FILE_SIZE,
+  ALLOWED_EVIDENCE_MIME_TYPES,
+  isAllowedFileType,
+} from "@/features/reports/schemas/report-schemas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -57,6 +63,7 @@ interface ReportDrawerProps {
   error: string | null;
   onUpdateStatus: (status: string, notes?: string) => Promise<void>;
   onAddComment: (message: string) => Promise<void>;
+  onUploadEvidence?: (file: File, description?: string) => Promise<void>;
   isUpdatingStatus: boolean;
   isSendingComment: boolean;
   onRefresh: () => void;
@@ -70,17 +77,20 @@ export function ReportDrawer({
   error,
   onUpdateStatus,
   onAddComment,
+  onUploadEvidence,
   isUpdatingStatus,
   isSendingComment,
   onRefresh,
 }: ReportDrawerProps) {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showResolution, setShowResolution] = useState(false);
   const [isModeratingArtwork, setIsModeratingArtwork] = useState(false);
   const [activeLeftTab, setActiveLeftTab] = useState<"chat" | "evidence">("chat");
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when new comments arrive
   useEffect(() => {
@@ -103,6 +113,35 @@ export function ReportDrawer({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onUploadEvidence) return;
+
+    // Validate file size
+    if (file.size > MAX_EVIDENCE_FILE_SIZE) {
+      toast.error("File must be under 10MB");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Validate file type
+    if (!isAllowedFileType(file.type, file.name)) {
+      toast.error("Unsupported file type");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      await onUploadEvidence(file);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to upload evidence");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -323,13 +362,38 @@ export function ReportDrawer({
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            disabled={isSending || isSendingComment}
+                            disabled={isSending || isSendingComment || isUploading}
                             rows={2}
                             className="min-h-[50px] resize-none text-sm"
                             aria-label="Message"
                           />
                         </div>
-                        <div className="mt-2 flex justify-end">
+                        <div className="mt-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isUploading || !onUploadEvidence}
+                              onClick={() => fileInputRef.current?.click()}
+                              className="gap-1.5 text-xs"
+                            >
+                              {isUploading ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Upload className="h-3 w-3" />
+                              )}
+                              {isUploading ? "Uploading..." : "Attach File"}
+                            </Button>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept={ALLOWED_EVIDENCE_MIME_TYPES.join(",")}
+                              className="hidden"
+                              onChange={handleFileChange}
+                              aria-label="Upload evidence file"
+                            />
+                          </div>
                           <Button
                             onClick={handleSendMessage}
                             disabled={!message.trim() || isSending || isSendingComment}
