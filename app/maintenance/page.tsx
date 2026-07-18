@@ -4,6 +4,7 @@
  * This is a Server Component that reads the current maintenance_message from
  * system_settings and renders a clean, branded page.
  */
+import { redirect } from "next/navigation";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 import { MaintenanceCountdown } from "@/components/blocks/MaintenanceCountdown";
 
@@ -11,6 +12,20 @@ export const dynamic = "force-dynamic";
 
 export default async function MaintenancePage() {
   const settings = await getRuntimeSettings();
+
+  // ── Redirect to home if maintenance mode is not active ──
+  // Prevents users from accessing /maintenance by typing the URL
+  // when maintenance is not enabled (manually or via scheduled window).
+  const isInMaintenance = settings.maintenance_mode ||
+    (settings.scheduled_maintenance &&
+     settings.scheduled_maintenance_start &&
+     settings.scheduled_maintenance_end &&
+     new Date() >= new Date(settings.scheduled_maintenance_start) &&
+     new Date() <= new Date(settings.scheduled_maintenance_end));
+
+  if (!isInMaintenance) {
+    redirect("/");
+  }
 
   const message = settings.maintenance_message;
   const displayCountdown = settings.display_countdown;

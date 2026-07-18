@@ -131,6 +131,46 @@ export async function updateSettings(
       }
     }
 
+    // ── Cascading: if maintenance_mode is being turned OFF, also disable scheduled_maintenance ──
+    // This ensures that when an admin manually disables maintenance mode, any active or
+    // future scheduled maintenance window is also deactivated, so users can access the site.
+    if ("maintenance_mode" in changes && changes.maintenance_mode === false) {
+      // Check if scheduled_maintenance is currently enabled
+      const { data: scheduledData } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "scheduled_maintenance")
+        .maybeSingle();
+
+      const scheduledEnabled = scheduledData?.value === true || scheduledData?.value === "true";
+
+      if (scheduledEnabled) {
+        // Turn off scheduled_maintenance
+        const { error: upsertError } = await supabase.from("system_settings").upsert(
+          {
+            key: "scheduled_maintenance",
+            value: false,
+            updated_by: admin.id,
+            updated_at: now,
+          },
+          { onConflict: "key", ignoreDuplicates: false }
+        );
+
+        if (upsertError) throw upsertError;
+
+        // Create audit log for the cascaded change
+        if (auditEnabled) {
+          await supabase.from("settings_audit_logs").insert({
+            admin_id: admin.id,
+            setting_key: "scheduled_maintenance",
+            previous_value: true,
+            new_value: false,
+            reason: reason ? `${reason}; cascaded from maintenance_mode toggle` : "Cascaded from maintenance_mode toggle",
+          });
+        }
+      }
+    }
+
     // Clear the in-memory cache so subsequent reads pick up the new values
     clearRuntimeSettingsCache();
 
