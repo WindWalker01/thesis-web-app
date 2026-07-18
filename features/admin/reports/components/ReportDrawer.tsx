@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "@/lib/supabase/client";
 import Image from "next/image";
 import {
   User,
@@ -9,19 +10,12 @@ import {
   AlertCircle,
   MessageSquare,
   Paperclip,
-  Send,
   Clock,
   ShieldAlert,
   ChevronUp,
   ChevronDownIcon,
   FileText,
-  Upload,
 } from "lucide-react";
-import {
-  MAX_EVIDENCE_FILE_SIZE,
-  ALLOWED_EVIDENCE_MIME_TYPES,
-  isAllowedFileType,
-} from "@/features/reports/schemas/report-schemas";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,19 +32,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { cn, formatDate, formatTimeAgo } from "@/lib/client-utils";
+import { cn, formatDate } from "@/lib/client-utils";
 import { ReportStatusBadge } from "./ReportStatusBadge";
 import { EvidenceViewer } from "./EvidenceViewer";
 import { ResolutionCard } from "./ResolutionCard";
 import { Timeline } from "@/features/reports/components/Timeline";
+import { ChatContainer } from "@/features/reports/components/ChatContainer";
+import { useRealtimeMessages } from "@/features/reports/hooks/useRealtimeMessages";
 import type {
   AdminReportDetail,
   ReportStatus,
-  ReportComment,
   ReportAction,
 } from "@/features/reports/types";
 import { REPORT_TYPE_LABELS } from "@/features/reports/types";
@@ -82,68 +74,34 @@ export function ReportDrawer({
   isSendingComment,
   onRefresh,
 }: ReportDrawerProps) {
-  const [message, setMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [showResolution, setShowResolution] = useState(false);
   const [isModeratingArtwork, setIsModeratingArtwork] = useState(false);
   const [activeLeftTab, setActiveLeftTab] = useState<"chat" | "evidence">("chat");
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
 
-  // Auto-scroll to bottom when new comments arrive
+  // Get current user ID from Supabase session
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [detail?.comments]);
+    const getUserId = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        setCurrentUserId(session.user.id);
+      }
+    };
+    getUserId();
+  }, []);
 
-  const handleSendMessage = async () => {
-    const trimmed = message.trim();
-    if (!trimmed || isSending) return;
-    setIsSending(true);
-    try {
-      await onAddComment(trimmed);
-      setMessage("");
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !onUploadEvidence) return;
-
-    // Validate file size
-    if (file.size > MAX_EVIDENCE_FILE_SIZE) {
-      toast.error("File must be under 10MB");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    // Validate file type
-    if (!isAllowedFileType(file.type, file.name)) {
-      toast.error("Unsupported file type");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      await onUploadEvidence(file);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to upload evidence");
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
+  // Realtime messages for this report
+  const {
+    messages,
+    sendMessage,
+    connectionStatus,
+  } = useRealtimeMessages({
+    reportId: detail?.report.id ?? "",
+    currentUserId,
+    initialMessages: detail?.comments ?? [],
+    enabled: open && !!detail && !!currentUserId,
+  });
 
   // Handle artwork moderation from the report drawer
   const handleModerateArtwork = async (action: string, reason: string) => {
@@ -191,13 +149,6 @@ export function ReportDrawer({
   const hasAssociatedArtwork = !!detail?.reported_art_post?.registered_arts;
   const artworkTitle =
     detail?.reported_art_post?.registered_arts?.title ?? "this artwork";
-
-  // Sort comments chronologically (oldest first)
-  const sortedComments = detail
-    ? [...detail.comments].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      )
-    : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -283,7 +234,7 @@ export function ReportDrawer({
                     )}
                   >
                     <MessageSquare className="h-3 w-3 inline mr-1.5" />
-                    Discussion
+                    Live Chat
                   </button>
                   <button
                     onClick={() => setActiveLeftTab("evidence")}
@@ -300,119 +251,26 @@ export function ReportDrawer({
                 </div>
 
                 {/* Left content area */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-hidden">
                   {activeLeftTab === "chat" ? (
-                    <>
-                      {/* Reporter Info Banner */}
-                      <div className="mb-4 rounded-lg border bg-muted/30 p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
-                            {detail.reporter.c_profile_image ? (
-                              <Image
-                                src={detail.reporter.c_profile_image}
-                                alt={reporterName}
-                                fill
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center">
-                                <User className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">{reporterName}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {detail.report.description
-                                ? detail.report.description.substring(0, 150) +
-                                  (detail.report.description.length > 150 ? "..." : "")
-                                : "No description"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Chat Messages */}
-                      {sortedComments.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-center">
-                          <MessageSquare className="h-8 w-8 text-muted-foreground/40 mb-2" />
-                          <p className="text-sm text-muted-foreground">No messages yet.</p>
-                          <p className="text-xs text-muted-foreground/60 mt-1">
-                            Send a message to start the investigation.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {sortedComments.map((comment) => (
-                            <ChatBubble
-                              key={comment.id}
-                              comment={comment}
-                              reporterName={reporterName}
-                            />
-                          ))}
-                          <div ref={chatEndRef} />
-                        </div>
-                      )}
-
-                      {/* Reply Box */}
-                      <div className="mt-4 pt-3 border-t border-border">
-                        <div className="flex gap-2">
-                          <Textarea
-                            placeholder="Type your message..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            disabled={isSending || isSendingComment || isUploading}
-                            rows={2}
-                            className="min-h-[50px] resize-none text-sm"
-                            aria-label="Message"
-                          />
-                        </div>
-                        <div className="mt-2 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              disabled={isUploading || !onUploadEvidence}
-                              onClick={() => fileInputRef.current?.click()}
-                              className="gap-1.5 text-xs"
-                            >
-                              {isUploading ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Upload className="h-3 w-3" />
-                              )}
-                              {isUploading ? "Uploading..." : "Attach File"}
-                            </Button>
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept={ALLOWED_EVIDENCE_MIME_TYPES.join(",")}
-                              className="hidden"
-                              onChange={handleFileChange}
-                              aria-label="Upload evidence file"
-                            />
-                          </div>
-                          <Button
-                            onClick={handleSendMessage}
-                            disabled={!message.trim() || isSending || isSendingComment}
-                            size="sm"
-                            className="gap-2 text-xs"
-                          >
-                            {isSending || isSendingComment ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Send className="h-3 w-3" />
-                            )}
-                            Send Message
-                          </Button>
-                        </div>
-                      </div>
-                    </>
+                    <div className="h-full relative">
+                      <ChatContainer
+                        reportId={detail.report.id}
+                        currentUserId={currentUserId}
+                        currentUserName="You"
+                        messages={messages}
+                        onSendMessage={onAddComment}
+                        onUploadEvidence={onUploadEvidence}
+                        connectionStatus={connectionStatus}
+                        reportTitle={detail.report.title}
+                        disabled={false}
+                        reporterName={reporterName}
+                        adminName="You"
+                        reporterAvatar={detail.reporter.c_profile_image}
+                      />
+                    </div>
                   ) : (
-                    /* Evidence Tab */
-                    <div>
+                    <div className="overflow-y-auto p-4 h-full">
                       {detail.evidence.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center">
                           <Paperclip className="h-8 w-8 text-muted-foreground/40 mb-2" />
@@ -566,78 +424,5 @@ export function ReportDrawer({
         )}
       </DialogContent>
     </Dialog>
-  );
-}
-
-// ===== Inline Chat Bubble Component =====
-function ChatBubble({
-  comment,
-  reporterName,
-}: {
-  comment: ReportComment;
-  reporterName: string;
-}) {
-  const isAdmin = comment.is_admin;
-
-  return (
-    <div
-      className={cn("flex gap-2", isAdmin ? "justify-end" : "justify-start")}
-    >
-      {/* Reporter avatar (only for non-admin messages) */}
-      {!isAdmin && (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
-          {reporterName.charAt(0)?.toUpperCase() ?? "R"}
-        </div>
-      )}
-
-      <div
-        className={cn(
-          "max-w-[85%] space-y-0.5",
-          isAdmin && "flex flex-col items-end"
-        )}
-      >
-        {/* Sender label */}
-        <div
-          className={cn(
-            "flex items-center gap-1.5 text-[10px]",
-            isAdmin && "flex-row-reverse"
-          )}
-        >
-          <span className="font-medium text-muted-foreground">
-            {isAdmin ? "You" : reporterName}
-          </span>
-          {isAdmin && (
-            <span className="rounded bg-primary/10 px-1 py-0.5 text-[9px] font-medium text-primary">
-              Admin
-            </span>
-          )}
-          <time
-            className="text-muted-foreground/50"
-            dateTime={comment.created_at}
-          >
-            {formatTimeAgo(comment.created_at)}
-          </time>
-        </div>
-
-        {/* Message bubble */}
-        <div
-          className={cn(
-            "rounded-xl px-3 py-1.5 text-xs",
-            isAdmin
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-foreground"
-          )}
-        >
-          <p className="whitespace-pre-wrap break-words">{comment.message}</p>
-        </div>
-      </div>
-
-      {/* Admin avatar (only for admin messages) */}
-      {isAdmin && (
-        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary">
-          A
-        </div>
-      )}
-    </div>
   );
 }

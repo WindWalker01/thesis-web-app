@@ -94,7 +94,14 @@ export async function POST(
       isAdmin: false,
     });
 
-    return NextResponse.json({ success: true, data: comment }, { status: 201 });
+    // Return the full comment with all chat fields
+    const { data: fullComment } = await supabase
+      .from("report_comments")
+      .select("*")
+      .eq("id", comment.id)
+      .single();
+
+    return NextResponse.json({ success: true, data: fullComment ?? comment }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to add comment";
     return NextResponse.json(

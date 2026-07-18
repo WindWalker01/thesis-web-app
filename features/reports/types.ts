@@ -48,7 +48,7 @@ export type Report = {
   resolved_at: string | null;
 };
 
-// ---- Report Comment ----
+// ---- Report Comment (enhanced for live chat) ----
 export type ReportComment = {
   id: string;
   report_id: string;
@@ -56,6 +56,47 @@ export type ReportComment = {
   message: string;
   is_admin: boolean;
   created_at: string;
+  read_at: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  mime_type: string | null;
+  message_type: "text" | "image" | "document";
+  parent_id: string | null;
+};
+
+// ---- Message Delivery Status ----
+export type MessageStatus = "sending" | "sent" | "delivered" | "seen";
+
+// ---- Extended Chat Message with UI state ----
+export type ChatMessage = ReportComment & {
+  status: MessageStatus;
+  temp_id?: string;
+};
+
+// ---- Typing Indicator ----
+export type TypingUser = {
+  user_id: string;
+  started_typing_at: string;
+  display_name: string;
+  is_admin: boolean;
+};
+
+// ---- Connection Status ----
+export type RealtimeConnectionStatus = "connected" | "connecting" | "disconnected";
+
+// ---- Online Status ----
+export type OnlineStatus = {
+  is_online: boolean;
+  last_active: string | null;
+};
+
+// ---- Unread Counts ----
+export type ReportUnreadCounts = Record<string, number>; // reportId -> count
+
+// ---- Read Receipt State ----
+export type ReadReceiptState = {
+  last_read_at: string | null;
+  unread_count: number;
 };
 
 // ---- Report Evidence ----

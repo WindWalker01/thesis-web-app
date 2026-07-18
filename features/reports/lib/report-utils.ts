@@ -123,6 +123,42 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// ---- Chat Timestamp Formatting ----
+// Like modern chat apps: "11:42 AM", "Yesterday", "July 18, 2026"
+
+export function formatChatTimestamp(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Today: show time only
+  if (diffDays === 0) {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }
+
+  // Yesterday
+  if (diffDays === 1) {
+    return "Yesterday";
+  }
+
+  // Within the last week: show day name
+  if (diffDays < 7) {
+    return date.toLocaleDateString("en-US", { weekday: "short" });
+  }
+
+  // Older: show full date
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 // ---- Truncate ----
 
 export function truncate(str: string, length: number): string {
