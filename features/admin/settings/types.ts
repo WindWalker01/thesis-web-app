@@ -30,7 +30,8 @@ export type SettingFieldType =
   | "slider"
   | "select"
   | "tags"
-  | "readonly";
+  | "readonly"
+  | "datetime";
 
 export type SettingBadgeType = "recommended" | "advanced" | "experimental" | "critical";
 
@@ -165,8 +166,6 @@ export const emailSchema = z
   .or(z.literal(""));
 
 export const timezoneSchema = z.string().min(1, "Timezone is required");
-
-export const languageSchema = z.string().min(1, "Language is required");
 
 export const visibilitySchema = z.enum(["public", "private", "unlisted"]);
 

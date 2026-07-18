@@ -75,6 +75,16 @@ create policy "Admins can delete system_settings"
     )
   );
 
+-- Allow PUBLIC read access to maintenance_mode only.
+-- This is necessary so the Next.js middleware (which uses the anon key) can
+-- read maintenance_mode and redirect users to the maintenance page when active.
+-- The value is a non-sensitive boolean, so public read is safe.
+create policy "Public can read maintenance_mode"
+  on public.system_settings for select
+  using (
+    key = 'maintenance_mode'
+  );
+
 
 -- ============================================================
 -- 2. SETTINGS AUDIT LOGS TABLE
@@ -466,6 +476,14 @@ begin
   if not exists (select 1 from public.system_settings where key = 'scheduled_maintenance') then
     insert into public.system_settings (key, value, description) values
       ('scheduled_maintenance', 'false', 'Whether scheduled maintenance is active');
+  end if;
+  if not exists (select 1 from public.system_settings where key = 'scheduled_maintenance_start') then
+    insert into public.system_settings (key, value, description) values
+      ('scheduled_maintenance_start', '""', 'ISO 8601 datetime when scheduled maintenance should begin');
+  end if;
+  if not exists (select 1 from public.system_settings where key = 'scheduled_maintenance_end') then
+    insert into public.system_settings (key, value, description) values
+      ('scheduled_maintenance_end', '""', 'ISO 8601 datetime when scheduled maintenance should end');
   end if;
   if not exists (select 1 from public.system_settings where key = 'allow_admin_login_during_maintenance') then
     insert into public.system_settings (key, value, description) values

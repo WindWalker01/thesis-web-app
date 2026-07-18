@@ -7,37 +7,39 @@ import {
   InfoIcon, ShieldCheck,
   Users, Blocks, AlertTriangle, Plus, Upload
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
-
-const faqs = [
-  {
-    q: "How does the protection process work?",
-    a: "When you upload a file, we generate a unique cryptographic hash that acts as a digital fingerprint. This fingerprint is then timestamped and recorded on our private blockchain network.",
-    open: true,
-  },
-  {
-    q: "Is this legally binding?",
-    a: "ArtForgeLab provides evidentiary documentation that can be used in legal proceedings to prove you had possession of the specific file at a specific time, supporting your copyright claims.",
-  },
-  {
-    q: "What file types do you support?",
-    a: "We support all standard digital media formats including PNG, JPG, TIFF, SVG, AI, and PSD.",
-  },
-  {
-    q: "Do I need a crypto wallet?",
-    a: "No. ArtForgeLab handles all blockchain interactions on your behalf. You simply upload your artwork and we take care of the rest no crypto knowledge required.",
-  },
-  {
-    q: "How long does verification take?",
-    a: "Proof of ownership is generated in under 60 seconds. Blockchain confirmation typically takes a few minutes depending on network conditions.",
-  },
-];
+import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  const { settings } = useSiteSettings();
+
+  const faqs = useMemo(() => [
+    {
+      q: "How does the protection process work?",
+      a: "When you upload a file, we generate a unique cryptographic hash that acts as a digital fingerprint. This fingerprint is then timestamped and recorded on our private blockchain network.",
+      open: true,
+    },
+    {
+      q: "Is this legally binding?",
+      a: `${settings.platform_name} provides evidentiary documentation that can be used in legal proceedings to prove you had possession of the specific file at a specific time, supporting your copyright claims.`,
+    },
+    {
+      q: "What file types do you support?",
+      a: "We support all standard digital media formats including PNG, JPG, TIFF, SVG, AI, and PSD.",
+    },
+    {
+      q: "Do I need a crypto wallet?",
+      a: `No. ${settings.platform_name} handles all blockchain interactions on your behalf. You simply upload your artwork and we take care of the rest — no crypto knowledge required.`,
+    },
+    {
+      q: "How long does verification take?",
+      a: "Proof of ownership is generated in under 60 seconds. Blockchain confirmation typically takes a few minutes depending on network conditions.",
+    },
+  ], [settings.platform_name]);
 
   const [collectorsRef, collectorsInView] = useInView({
     threshold: 0.3,
@@ -113,8 +115,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              A thesis project dedicated to digital IP protection, ensuring transparency
-              and authenticity for every creator in the evolving digital landscape.
+              {settings.platform_description}
             </motion.p>
 
             <motion.div
@@ -326,10 +327,10 @@ export default function Home() {
                 animate={collectorsInView ? { y: 0, opacity: 1 } : { y: 30, opacity: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
               >
-                Buying digital art shouldn&apos;t be a gamble. ArtForgeLab provides
+                Buying digital art shouldn&lsquo;t be a gamble. {settings.platform_name} provides
                 collectors with a clear, immutable file-clock of ownership and
                 authenticity, ensuring that your investments are legitimate and
-                protected by the creator&apos;s direct authorization.
+                protected by the creator&lsquo;s direct authorization.
               </motion.p>
               <div className="flex flex-col sm:flex-row gap-4">
                 {[
@@ -406,7 +407,7 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.05 }}
               viewport={{ once: true, amount: 0.5 }}
             >
-              Why Choose ArtForgeLab?
+              Why Choose {settings.platform_name}?
             </motion.h2>
             <motion.p
               className="text-base md:text-base text-slate-400"

@@ -759,6 +759,16 @@ create policy "Admins can delete system_settings"
     )
   );
 
+-- Allow PUBLIC read access to maintenance_mode only.
+-- This is necessary so the Next.js middleware (which uses the anon key) can
+-- read maintenance_mode and redirect users to the maintenance page when active.
+-- The value is a non-sensitive boolean, so public read is safe.
+create policy "Public can read maintenance_mode"
+  on public.system_settings for select
+  using (
+    key = 'maintenance_mode'
+  );
+
 
 
 -- SETTINGS AUDIT LOGS

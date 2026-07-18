@@ -6,6 +6,7 @@ import {
     FileText, Users, Blocks, MapPin, BrainCircuit, Link2,
 } from "lucide-react";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
+import { BrandNameDisplay } from "@/features/admin/settings/lib/split-brand-name";
 
 export default async function Footer() {
     const settings = await getRuntimeSettings();
@@ -20,11 +21,9 @@ export default async function Footer() {
                     {/* Brand */}
                     <div className="sm:col-span-2 lg:col-span-1 space-y-5">
                         <div className="flex items-center gap-2">
-                            <Image src="/landing-page-elements/AFL_logoWeb.png" alt="Logo" width={60} height={70} className="shrink-0" />
+                            <Image src={settings.platform_logo_url} alt="Logo" width={60} height={70} className="shrink-0" />
                             <span className="text-lg font-bold tracking-tight">
-                                <span className="text-blue-400">Art</span>
-                                <span className="text-orange-500">Forge</span>
-                                <span className="text-white">Lab</span>
+                                <BrandNameDisplay name={settings.platform_name} variant="light" />
                             </span>
                         </div>
                         <p className="text-sm font-semibold uppercase tracking-widest text-blue-400 border-l-2 border-blue-500 pl-3">
@@ -102,7 +101,7 @@ export default async function Footer() {
                         <ul className="space-y-3 text-base text-slate-300 dark:text-slate-300">
                             <li className="flex items-start gap-3">
                                 <Mail className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                                <span className="break-all">artforgelab@thesis.edu.ph</span>
+                                <a href={`mailto:${settings.support_email}`} className="break-all hover:text-blue-400 transition-colors">{settings.support_email}</a>
                             </li>
                             <li className="flex items-start gap-3">
                                 <MapPin className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />

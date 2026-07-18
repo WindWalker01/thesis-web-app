@@ -25,6 +25,7 @@ import { SettingInput } from "./SettingInput";
 import { SettingToggle } from "./SettingToggle";
 import { SettingSlider } from "./SettingSlider";
 import { SettingSelect } from "./SettingSelect";
+import { SettingDateTime } from "./SettingDateTime";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 export default function SettingsPage() {
@@ -364,6 +365,16 @@ export default function SettingsPage() {
             </div>
           );
 
+        case "datetime":
+          return (
+            <SettingDateTime
+              label={setting.label}
+              value={String(value)}
+              placeholder={setting.placeholder}
+              onChange={(v) => handleChange(setting.key, v)}
+            />
+          );
+
         default:
           return (
             <div className="space-y-1">
@@ -379,6 +390,37 @@ export default function SettingsPage() {
       }
     },
     [getValue, handleChange]
+  );
+
+  // ── Helper: determine if a setting should be visible ────────────
+  // Hides all maintenance child settings when maintenance_mode is OFF,
+  // so only the main toggle is visible. When maintenance_mode is ON,
+  // all configuration fields appear (with scheduled datetime fields
+  // further gated by scheduled_maintenance).
+  const MAINTENANCE_CHILD_KEYS = new Set([
+    "maintenance_message",
+    "scheduled_maintenance",
+    "scheduled_maintenance_start",
+    "scheduled_maintenance_end",
+    "allow_admin_login_during_maintenance",
+    "display_countdown",
+  ]);
+
+  const isSettingVisible = useCallback(
+    (setting: SettingDefinition): boolean => {
+      // Gate scheduled datetime fields by BOTH maintenance_mode AND scheduled_maintenance.
+      // This prevents the edge case where scheduled_maintenance was saved as ON
+      // but maintenance_mode was later turned OFF.
+      if (setting.key === "scheduled_maintenance_start" || setting.key === "scheduled_maintenance_end") {
+        return Boolean(getValue("maintenance_mode")) && Boolean(getValue("scheduled_maintenance"));
+      }
+      // Gate all other child settings by the maintenance_mode toggle
+      if (MAINTENANCE_CHILD_KEYS.has(setting.key)) {
+        return Boolean(getValue("maintenance_mode"));
+      }
+      return true;
+    },
+    [getValue]
   );
 
   // ── Render a single setting card with all new props ──────────────
@@ -422,7 +464,7 @@ export default function SettingsPage() {
       if (groupIds.length === 0) {
         return (
           <div className="space-y-4">
-            {category.settings.map((setting) => (
+            {category.settings.filter(isSettingVisible).map((setting) => (
               <SettingCard
                 key={setting.key}
                 title={setting.label}
@@ -444,7 +486,7 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {groupIds.map((groupId) => {
             const groupDef = SETTING_GROUPS.find((g) => g.id === groupId);
-            const groupSettings = category.settings.filter((s) => s.group === groupId);
+            const groupSettings = category.settings.filter((s) => s.group === groupId).filter(isSettingVisible);
             if (groupSettings.length === 0) return null;
 
             const isAdvanced = groupDef?.isAdvanced ?? false;

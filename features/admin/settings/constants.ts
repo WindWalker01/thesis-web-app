@@ -8,9 +8,9 @@ export const DEFAULT_SETTINGS: Record<string, SettingValue> = {
   // General
   platform_name: "ArtForgeLab",
   platform_description: "Intellectual Property Rights Management System for Digital Art",
+  platform_logo_url: "/landing-page-elements/AFL_logoWeb.png",
   support_email: "support@artforgelab.com",
   default_timezone: "UTC",
-  default_language: "en",
   footer_copyright: "© 2026 ArtForgeLab. All rights reserved.",
 
   // Similarity Detection
@@ -45,6 +45,8 @@ export const DEFAULT_SETTINGS: Record<string, SettingValue> = {
   maintenance_mode: false,
   maintenance_message: "We are currently performing scheduled maintenance. Please check back shortly.",
   scheduled_maintenance: false,
+  scheduled_maintenance_start: "",
+  scheduled_maintenance_end: "",
   allow_admin_login_during_maintenance: true,
   display_countdown: false,
 };
@@ -75,6 +77,14 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         defaultValue: "Intellectual Property Rights Management System for Digital Art",
       },
       {
+        key: "platform_logo_url",
+        label: "Platform Logo URL",
+        description: "URL or path to the platform logo image displayed throughout the application",
+        type: "text",
+        defaultValue: "/landing-page-elements/AFL_logoWeb.png",
+        placeholder: "/path/to/logo.png",
+      },
+      {
         key: "support_email",
         label: "Support Email",
         description: "Email address displayed to users for support inquiries",
@@ -100,22 +110,6 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
           { label: "Asia/Shanghai (CST)", value: "Asia/Shanghai" },
           { label: "Asia/Manila (PST)", value: "Asia/Manila" },
           { label: "Australia/Sydney (AEST)", value: "Australia/Sydney" },
-        ],
-      },
-      {
-        key: "default_language",
-        label: "Default Language",
-        description: "Default language locale for the platform interface",
-        type: "select",
-        defaultValue: "en",
-        options: [
-          { label: "English", value: "en" },
-          { label: "Spanish", value: "es" },
-          { label: "French", value: "fr" },
-          { label: "German", value: "de" },
-          { label: "Japanese", value: "ja" },
-          { label: "Chinese", value: "zh" },
-          { label: "Filipino", value: "fil" },
         ],
       },
       {
@@ -526,9 +520,25 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "scheduled_maintenance",
         label: "Scheduled Maintenance",
-        description: "Whether scheduled maintenance is planned",
+        description: "When enabled, the platform will automatically enter maintenance mode at the specified start time and exit at the end time",
         type: "toggle",
         defaultValue: false,
+      },
+      {
+        key: "scheduled_maintenance_start",
+        label: "Scheduled Start Time",
+        description: "The date and time when scheduled maintenance should begin (ISO 8601 format)",
+        type: "datetime",
+        defaultValue: "",
+        placeholder: "e.g. 2026-07-20T02:00:00Z",
+      },
+      {
+        key: "scheduled_maintenance_end",
+        label: "Scheduled End Time",
+        description: "The date and time when scheduled maintenance should end (ISO 8601 format)",
+        type: "datetime",
+        defaultValue: "",
+        placeholder: "e.g. 2026-07-20T06:00:00Z",
       },
       {
         key: "allow_admin_login_during_maintenance",

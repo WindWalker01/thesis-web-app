@@ -1,7 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
+import { BrandNameDisplay } from "@/features/admin/settings/lib/split-brand-name";
 
-export default function NotFound() {
+export default async function NotFound() {
+    const settings = await getRuntimeSettings();
+
     return (
         <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 text-foreground">
             {/* Background grid */}
@@ -22,17 +26,14 @@ export default function NotFound() {
                 {/* Logo */}
                 <Link href="/" className="mb-10 flex items-center gap-2 transition-opacity hover:opacity-80">
                     <Image
-                        src="/landing-page-elements/AFL_logoWeb.png"
-                        alt="ArtForgeLab Logo"
+                        src={settings.platform_logo_url}
+                        alt={`${settings.platform_name} Logo`}
                         width={40}
                         height={48}
                         className="shrink-0"
                     />
-                    <span className="text-base font-bold tracking-tight text-blue-500">
-                        Art
-                        <span className="text-orange-600">
-                            Forge<span className="text-foreground">Lab</span>
-                        </span>
+                    <span className="text-base font-bold tracking-tight">
+                        <BrandNameDisplay name={settings.platform_name} />
                     </span>
                 </Link>
 
@@ -49,7 +50,7 @@ export default function NotFound() {
                     Page not found
                 </h1>
                 <p className="mb-8 max-w-sm text-base leading-relaxed text-muted-foreground">
-                    The page you're looking for doesn't exist or has been moved.
+                    The page you&lsquo;re looking for doesn&lsquo;t exist or has been moved.
                     It may have been removed or the URL might be incorrect.
                 </p>
 

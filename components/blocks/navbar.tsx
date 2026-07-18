@@ -28,6 +28,8 @@ import { useNotifications } from "@/features/(user)/notifications-navbar/hooks/u
 import { getNotificationUI } from "@/features/(user)/notifications-navbar/lib/notification-ui";
 import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
 import { useCurrentUserProfile } from "@/features/(user)/profile/hooks/useFetchProfile";
+import { Logo } from "@/components/blocks/Logo";
+import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 
 /* ── Types ── */
 interface Notification {
@@ -71,6 +73,7 @@ export default function NavBar() {
 
   const { user } = useAuth();
   const { profile } = useCurrentUserProfile();
+  const { settings } = useSiteSettings();
   const isAdmin = profile?.role === "admin";
 
   const {
@@ -112,24 +115,7 @@ export default function NavBar() {
       <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* ── Logo ── */}
-          <Link
-            href="/"
-            className="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80"
-          >
-            <Image
-              src="/landing-page-elements/AFL_logoWeb.png"
-              alt="Logo"
-              width={44}
-              height={52}
-              className="shrink-0"
-            />
-            <span className="text-base font-bold tracking-tight text-blue-500">
-              Art
-              <span className="text-orange-600">
-                Forge<span className="text-primary">Lab</span>
-              </span>
-            </span>
-          </Link>
+          <Logo href="/" />
 
           {/* ── Desktop center nav (lg+) ── */}
           <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 text-base font-medium lg:flex">
@@ -430,12 +416,7 @@ export default function NavBar() {
             >
               {/* Panel header */}
               <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-5">
-                <span className="text-base font-bold text-blue-500">
-                  Art
-                  <span className="text-orange-600">
-                    Forge<span className="text-primary">Lab</span>
-                  </span>
-                </span>
+                <Logo href="/" />
 
                 <div className="flex items-center gap-1">
                   <ThemeToggle />

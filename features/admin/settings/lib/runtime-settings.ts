@@ -21,9 +21,9 @@ export type RuntimeSettings = {
   // General
   platform_name: string;
   platform_description: string;
+  platform_logo_url: string;
   support_email: string;
   default_timezone: string;
-  default_language: string;
   footer_copyright: string;
 
   // Similarity Detection
@@ -58,6 +58,8 @@ export type RuntimeSettings = {
   maintenance_mode: boolean;
   maintenance_message: string;
   scheduled_maintenance: boolean;
+  scheduled_maintenance_start: string;
+  scheduled_maintenance_end: string;
   allow_admin_login_during_maintenance: boolean;
   display_countdown: boolean;
 };

@@ -10,10 +10,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import GoogleIcon from "@/components/google-icon";
 import { useLoginForm } from "../hooks/useLoginForm";
+import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 /* import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { useRef } from "react"; */
 
 export function LoginForm() {
+  const { settings } = useSiteSettings();
   const {
     showPassword,
     setShowPassword,
@@ -49,7 +51,7 @@ export function LoginForm() {
               Welcome back
             </h1>
             <p className="text-base text-slate-500 dark:text-slate-300">
-              Sign in to your ArtForgeLab account
+              Sign in to your {settings.platform_name} account
             </p>
           </div>
 

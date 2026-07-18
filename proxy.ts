@@ -25,6 +25,18 @@ const STATUS_BYPASS_ROUTES = [
   "/account/banned",
 ];
 
+// Routes that should bypass maintenance mode checks
+const MAINTENANCE_BYPASS_ROUTES = [
+  "/maintenance",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+  "/auth/confirm",
+  "/_next",
+];
+
 export async function proxy(request: NextRequest) {
     // We must create a new response and pass it through so Supabase can
     // refresh the session cookie if it has expired (via Set-Cookie header).
@@ -125,6 +137,98 @@ export async function proxy(request: NextRequest) {
             if (profile.account_status === "banned") {
                 return NextResponse.redirect(
                     new URL("/account/banned", request.url)
+                );
+            }
+        }
+    }
+
+    // ── Maintenance Mode Enforcement ──
+    // Check if maintenance mode is active. This runs for ALL requests (authenticated
+    // or not) to ensure the site is locked down when maintenance is enabled.
+    // Maintenance bypass routes (login, auth callbacks, etc.) are excluded so
+    // admins can still authenticate and access the admin panel.
+    const isMaintenanceBypass = MAINTENANCE_BYPASS_ROUTES.some(route =>
+        pathname.startsWith(route)
+    );
+
+    if (!isMaintenanceBypass) {
+        // Fetch maintenance_mode from system_settings.
+        // Note: system_settings has RLS requiring admin role, so this query may
+        // return empty for non-admin users. We handle that gracefully — if the
+        // query fails or returns no data, we assume maintenance mode is OFF
+        // (safe default) and allow access. The server-side layout check in
+        // app/layout.tsx provides a secondary enforcement layer using the
+        // service-role admin client which bypasses RLS.
+        let maintenanceMode = false;
+
+        try {
+            const { data: maintenanceData } = await supabase
+                .from("system_settings")
+                .select("value")
+                .eq("key", "maintenance_mode")
+                .maybeSingle();
+
+            if (maintenanceData?.value !== undefined && maintenanceData?.value !== null) {
+                maintenanceMode = maintenanceData.value === true || maintenanceData.value === "true";
+            }
+        } catch {
+            // If the query fails (e.g. RLS blocks non-admin reads), assume
+            // maintenance is OFF so we don't accidentally lock everyone out.
+            maintenanceMode = false;
+        }
+
+        // ── Scheduled Maintenance Check ──
+        // If maintenance_mode is OFF, check if scheduled maintenance window is active.
+        // This allows admins to set a future start/end time and have the system
+        // automatically enter maintenance mode during that window.
+        if (!maintenanceMode) {
+            try {
+                // Fetch scheduled_maintenance flag and start/end times
+                const { data: scheduledData } = await supabase
+                    .from("system_settings")
+                    .select("key, value")
+                    .in("key", ["scheduled_maintenance", "scheduled_maintenance_start", "scheduled_maintenance_end"]);
+
+                const settingsMap = new Map<string, unknown>();
+                for (const row of scheduledData ?? []) {
+                    settingsMap.set(row.key, row.value);
+                }
+
+                const scheduledEnabled = settingsMap.get("scheduled_maintenance") === true || settingsMap.get("scheduled_maintenance") === "true";
+                const startStr = settingsMap.get("scheduled_maintenance_start") as string | undefined;
+                const endStr = settingsMap.get("scheduled_maintenance_end") as string | undefined;
+
+                if (scheduledEnabled && startStr && endStr) {
+                    const now = new Date();
+                    const start = new Date(startStr);
+                    const end = new Date(endStr);
+
+                    // If current time is within the scheduled window, activate maintenance mode
+                    if (now >= start && now <= end) {
+                        maintenanceMode = true;
+                    }
+                }
+            } catch {
+                // If the query fails, ignore scheduled maintenance check
+            }
+        }
+
+        if (maintenanceMode) {
+            // Check if user is an admin (admins can bypass maintenance mode)
+            let isAdmin = false;
+            if (user) {
+                const { data: profile } = await supabase
+                    .from("users")
+                    .select("role")
+                    .eq("id", user.id)
+                    .single();
+                isAdmin = profile?.role === "admin";
+            }
+
+            // If user is not an admin, redirect to maintenance page
+            if (!isAdmin) {
+                return NextResponse.redirect(
+                    new URL("/maintenance", request.url)
                 );
             }
         }
