@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +97,15 @@ export default function ArtworkVerificationPage() {
     refetch: refetchDetail,
   } = useReviewDetail(dialogOpen ? selectedReviewId : null);
 
+  const queryClient = useQueryClient();
+
+  // Helper to invalidate all review-related queries
+  const invalidateAll = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-reviews"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-stats"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-pending-count"] });
+  }, [queryClient]);
+
   // Handlers
   const handleViewReview = useCallback((reviewId: string) => {
     setSelectedReviewId(reviewId);
@@ -107,28 +117,28 @@ export default function ArtworkVerificationPage() {
       const result = await assignReviewer(reviewId, "__self__");
       if (result.success) {
         toast.success(result.message);
-        refetchReviews();
+        invalidateAll();
       } else {
         toast.error(result.message);
       }
     } catch {
       toast.error("Failed to assign review");
     }
-  }, [refetchReviews]);
+  }, [invalidateAll]);
 
   const handleUnassign = useCallback(async (reviewId: string) => {
     try {
       const result = await unassignReviewer(reviewId);
       if (result.success) {
         toast.success(result.message);
-        refetchReviews();
+        invalidateAll();
       } else {
         toast.error(result.message);
       }
     } catch {
       toast.error("Failed to unassign review");
     }
-  }, [refetchReviews]);
+  }, [invalidateAll]);
 
   const handleExport = useCallback(async () => {
     try {
@@ -259,8 +269,6 @@ export default function ArtworkVerificationPage() {
           onPageChange={setPage}
           onPerPageChange={setPerPage}
           onViewReview={handleViewReview}
-          onAssign={handleAssign}
-          onUnassign={handleUnassign}
           isLoading={reviewsLoading}
           onClearFilters={clearFilters}
         />

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ShieldCheck,
@@ -115,6 +116,16 @@ export default function ArtworkReviewWorkspace() {
     setInfoDialogOpen(true);
   }, []);
 
+  const queryClient = useQueryClient();
+
+  // Helper to invalidate the review queue cache so the list stays in sync
+  const invalidateQueue = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-reviews"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-stats"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-pending-count"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-activity"] });
+  }, [queryClient]);
+
   // Approve
   const handleApprove = useCallback(async () => {
     if (!decisionNotes.trim()) {
@@ -128,6 +139,7 @@ export default function ArtworkReviewWorkspace() {
         toast.success(result.message);
         setApproveDialogOpen(false);
         refetch();
+        invalidateQueue();
       } else {
         toast.error(result.message);
       }
@@ -136,7 +148,7 @@ export default function ArtworkReviewWorkspace() {
     } finally {
       setIsApproving(false);
     }
-  }, [reviewId, decisionNotes, refetch]);
+  }, [reviewId, decisionNotes, refetch, invalidateQueue]);
 
   // Reject
   const handleReject = useCallback(async () => {
@@ -155,6 +167,7 @@ export default function ArtworkReviewWorkspace() {
         toast.success(result.message);
         setRejectDialogOpen(false);
         refetch();
+        invalidateQueue();
       } else {
         toast.error(result.message);
       }
@@ -163,7 +176,7 @@ export default function ArtworkReviewWorkspace() {
     } finally {
       setIsRejecting(false);
     }
-  }, [reviewId, rejectReason, decisionNotes, refetch]);
+  }, [reviewId, rejectReason, decisionNotes, refetch, invalidateQueue]);
 
   // Request Info
   const handleRequestInfo = useCallback(async () => {
@@ -178,6 +191,7 @@ export default function ArtworkReviewWorkspace() {
         toast.success(result.message);
         setInfoDialogOpen(false);
         refetch();
+        invalidateQueue();
       } else {
         toast.error(result.message);
       }
@@ -186,7 +200,7 @@ export default function ArtworkReviewWorkspace() {
     } finally {
       setIsRequestingInfo(false);
     }
-  }, [reviewId, infoDocuments, infoMessage, refetch]);
+  }, [reviewId, infoDocuments, infoMessage, refetch, invalidateQueue]);
 
   // Assign to self
   const handleAssignToMe = useCallback(async () => {
@@ -196,6 +210,7 @@ export default function ArtworkReviewWorkspace() {
       if (result.success) {
         toast.success(result.message);
         refetch();
+        invalidateQueue();
       } else {
         toast.error(result.message);
       }
@@ -204,7 +219,7 @@ export default function ArtworkReviewWorkspace() {
     } finally {
       setIsAssigning(false);
     }
-  }, [reviewId, refetch]);
+  }, [reviewId, refetch, invalidateQueue]);
 
   // Unassign
   const handleUnassign = useCallback(async () => {
@@ -214,6 +229,7 @@ export default function ArtworkReviewWorkspace() {
       if (result.success) {
         toast.success(result.message);
         refetch();
+        invalidateQueue();
       } else {
         toast.error(result.message);
       }
@@ -222,7 +238,7 @@ export default function ArtworkReviewWorkspace() {
     } finally {
       setIsAssigning(false);
     }
-  }, [reviewId, refetch]);
+  }, [reviewId, refetch, invalidateQueue]);
 
   // Info document checkbox handlers
   const handleDocToggle = useCallback((doc: string) => {

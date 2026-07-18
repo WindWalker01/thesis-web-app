@@ -49,7 +49,6 @@ export function useReviews(params: UseReviewsParams) {
 
       return result.data as ReviewsResponse;
     },
-    placeholderData: (prev) => prev,
   });
 }
 

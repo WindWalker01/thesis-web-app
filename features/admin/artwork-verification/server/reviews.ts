@@ -2,19 +2,44 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   ReviewQueueItem,
   ReviewDetail,
   ReviewStatistics,
   ReviewAction,
   ReviewActivityItem,
-  ReviewStatus,
   ReviewActionType,
   PaginatedReviewsResponse,
   ReviewsQueryParams,
 } from "../types";
 
 // ========== HELPERS ==========
+
+/**
+ * Gets the currently authenticated admin's user ID.
+ * Uses the server client (which has cookie-based auth context)
+ * rather than the admin client (service role, no session).
+ */
+async function getAuthenticatedAdminId(): Promise<string | null> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    // Verify the user is an admin
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.role !== "admin") return null;
+    return user.id;
+  } catch {
+    return null;
+  }
+}
 
 function mapSortToQuery(sortBy: string): { column: string; order: "asc" | "desc" } {
   switch (sortBy) {
@@ -35,14 +60,17 @@ function mapSortToQuery(sortBy: string): { column: string; order: "asc" | "desc"
 async function createAction(
   supabase: any,
   reviewId: string,
-  adminId: string | undefined,
+  adminId: string | null,
   action: ReviewActionType,
   previousStatus: string | null,
   newStatus: string | null,
   notes: string | null
 ): Promise<void> {
-  if (!adminId) return;
-  await supabase.from("artwork_review_actions").insert({
+  if (!adminId) {
+    console.warn(`[createAction] No adminId provided for action "${action}" on review ${reviewId}`);
+    return;
+  }
+  const { error } = await supabase.from("artwork_review_actions").insert({
     review_id: reviewId,
     admin_id: adminId,
     action,
@@ -50,22 +78,31 @@ async function createAction(
     new_status: newStatus,
     notes,
   });
+  if (error) {
+    console.error(`[createAction] Failed to insert action "${action}":`, error.message);
+  }
 }
 
 async function createAdminAuditLog(
   supabase: any,
-  adminId: string | undefined,
+  adminId: string | null,
   action: string,
   reason: string,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
-  if (!adminId) return;
-  await supabase.from("admin_audit_logs").insert({
+  if (!adminId) {
+    console.warn(`[createAdminAuditLog] No adminId provided for action "${action}"`);
+    return;
+  }
+  const { error } = await supabase.from("admin_audit_logs").insert({
     admin_id: adminId,
     action,
     reason,
     metadata,
   });
+  if (error) {
+    console.error(`[createAdminAuditLog] Failed to insert audit log:`, error.message);
+  }
 }
 
 // ========== QUEUE LIST ==========
@@ -348,9 +385,9 @@ export async function getReviewDetail(
 
   if (reviewError || !review) return null;
 
-  // Then fetch scan (needs artwork_id), actions, evidence, and user in parallel
+  // Then fetch scan (needs artwork_id), actions, evidence
   const artworkId = review.artwork_id;
-  const [scanResult, actionsResult, evidenceResult, userResult] = await Promise.all([
+  const [scanResult, actionsResult, evidenceResult] = await Promise.all([
     supabase
       .from("art_similarity_scans")
       .select("*")
@@ -373,28 +410,28 @@ export async function getReviewDetail(
       .select("*")
       .eq("review_id", reviewId)
       .order("created_at", { ascending: false }),
-    supabase.auth.getUser(),
   ]);
 
   const scan = scanResult.data;
   const actions = actionsResult.data;
   const evidence = evidenceResult.data;
-  const adminId = userResult.data?.user?.id;
 
-  // Record view action as fire-and-forget (non-blocking)
-  if (adminId) {
-    createAction(
-      supabase,
-      reviewId,
-      adminId,
-      "viewed",
-      review.status,
-      review.status,
-      null
-    ).catch(() => {
-      // Silent fail for view tracking
-    });
-  }
+  // Get the current admin for view tracking (fire-and-forget)
+  getAuthenticatedAdminId().then((adminId) => {
+    if (adminId) {
+      createAction(
+        supabase,
+        reviewId,
+        adminId,
+        "viewed",
+        review.status,
+        review.status,
+        null
+      ).catch(() => {
+        // Silent fail for view tracking
+      });
+    }
+  });
 
   return {
     ...(review as any),
@@ -428,15 +465,23 @@ export async function assignReviewer(
   newReviewerId: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const supabase = createSupabaseAdminClient();
-
-    // If "self" placeholder, use the authenticated admin's ID
-    const reviewerId = newReviewerId === "__self__"
-      ? (await supabase.auth.getUser()).data.user?.id ?? newReviewerId
-      : newReviewerId;
-
-    const { data: { user } } = await supabase.auth.getUser();
+    // Use server client to get the authenticated admin — admin client has no session
+    const authSupabase = await createSupabaseServerClient();
+    const { data: { user } } = await authSupabase.auth.getUser();
     const adminUserId = user?.id;
+
+    // Resolve reviewer ID: if "__self__", use the authenticated admin's ID
+    let reviewerId: string;
+    if (newReviewerId === "__self__") {
+      if (!adminUserId) {
+        return { success: false, message: "Not authenticated. Please log in again." };
+      }
+      reviewerId = adminUserId;
+    } else {
+      reviewerId = newReviewerId;
+    }
+
+    const supabase = createSupabaseAdminClient();
 
     // Check review exists and is not already decided
     const { data: review } = await supabase
@@ -453,13 +498,14 @@ export async function assignReviewer(
     const previousStatus = review.status;
 
     // Update review
+    const updatePayload: Record<string, any> = {
+      reviewer_id: reviewerId,
+      assigned_at: new Date().toISOString(),
+      status: "under_review",
+    };
     await supabase
       .from("artwork_reviews")
-      .update({
-        reviewer_id: reviewerId,
-        assigned_at: new Date().toISOString(),
-        status: "under_review",
-      })
+      .update(updatePayload)
       .eq("id", reviewId);
 
     // Audit log
@@ -485,9 +531,9 @@ export async function unassignReviewer(
   reviewId: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // Get admin ID via server client (has auth context)
+    const adminId = await getAuthenticatedAdminId();
     const supabase = createSupabaseAdminClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -538,9 +584,13 @@ export async function approveArtwork(
   notes: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // Get authenticated admin via server client (has cookie-based auth session)
+    const adminId = await getAuthenticatedAdminId();
+    if (!adminId) {
+      return { success: false, message: "Not authenticated. Please log in again." };
+    }
+
     const supabase = createSupabaseAdminClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -562,7 +612,7 @@ export async function approveArtwork(
 
     const previousStatus = review.status;
 
-    // Update review
+    // Update review — also set reviewer_id to the admin who made the decision
     const now = new Date().toISOString();
     await supabase
       .from("artwork_reviews")
@@ -572,6 +622,7 @@ export async function approveArtwork(
         decision_reason: notes,
         review_notes: notes,
         reviewed_at: now,
+        reviewer_id: adminId, // Record who made the decision
       })
       .eq("id", reviewId);
 
@@ -666,9 +717,13 @@ export async function rejectArtwork(
   notes: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // Get authenticated admin via server client
+    const adminId = await getAuthenticatedAdminId();
+    if (!adminId) {
+      return { success: false, message: "Not authenticated. Please log in again." };
+    }
+
     const supabase = createSupabaseAdminClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -684,7 +739,7 @@ export async function rejectArtwork(
     const previousStatus = review.status;
     const now = new Date().toISOString();
 
-    // Update review
+    // Update review — also set reviewer_id to the admin who made the decision
     await supabase
       .from("artwork_reviews")
       .update({
@@ -693,6 +748,7 @@ export async function rejectArtwork(
         decision_reason: reason,
         review_notes: notes,
         reviewed_at: now,
+        reviewer_id: adminId, // Record who made the decision
       })
       .eq("id", reviewId);
 
@@ -748,9 +804,13 @@ export async function requestInformation(
   message: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    // Get authenticated admin via server client
+    const adminId = await getAuthenticatedAdminId();
+    if (!adminId) {
+      return { success: false, message: "Not authenticated. Please log in again." };
+    }
+
     const supabase = createSupabaseAdminClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const adminId = user?.id;
 
     const { data: review } = await supabase
       .from("artwork_reviews")
@@ -766,13 +826,14 @@ export async function requestInformation(
     const artwork = (review as any).artwork;
     const previousStatus = review.status;
 
-    // Update review
+    // Update review — also set reviewer_id to the admin who made the decision
     await supabase
       .from("artwork_reviews")
       .update({
         status: "needs_info",
         requested_documents: documents,
         review_notes: message,
+        reviewer_id: adminId, // Record who requested the information
       })
       .eq("id", reviewId);
 

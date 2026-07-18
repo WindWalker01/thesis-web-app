@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   flexRender,
   getCoreRowModel,
@@ -17,14 +16,9 @@ import {
   ChevronRight,
   ImageIcon,
   ShieldCheck,
-  MoreHorizontal,
-  Eye,
-  UserPlus,
-  UserX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -32,14 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { ReviewStatusBadge } from "./ReviewStatusBadge";
 import { RiskBadge } from "./RiskBadge";
@@ -55,8 +41,6 @@ interface ReviewQueueTableProps {
   onPageChange: (page: number) => void;
   onPerPageChange: (perPage: number) => void;
   onViewReview: (id: string) => void;
-  onAssign: (id: string) => void;
-  onUnassign: (id: string) => void;
   isLoading: boolean;
   onClearFilters?: () => void;
 }
@@ -70,8 +54,6 @@ export function ReviewQueueTable({
   onPageChange,
   onPerPageChange,
   onViewReview,
-  onAssign,
-  onUnassign,
   isLoading,
   onClearFilters,
 }: ReviewQueueTableProps) {
@@ -229,43 +211,8 @@ export function ReviewQueueTable({
         },
         enableSorting: false,
       },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => {
-          const reviewId = row.original.id;
-          const hasReviewer = !!row.original.reviewer;
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onViewReview(reviewId)}>
-                  <Eye className="mr-2 h-4 w-4" /> Review
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {hasReviewer ? (
-                  <DropdownMenuItem onClick={() => onUnassign(reviewId)}>
-                    <UserX className="mr-2 h-4 w-4" /> Unassign
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onClick={() => onAssign(reviewId)}>
-                    <UserPlus className="mr-2 h-4 w-4" /> Assign to Me
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-        enableSorting: false,
-        size: 60,
-      },
     ],
-    [onViewReview, onAssign, onUnassign]
+    []
   );
 
   const table = useReactTable({
