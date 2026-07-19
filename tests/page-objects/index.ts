@@ -1,0 +1,12 @@
+export { LoginPage } from "./login.page";
+export { RegisterPage } from "./register.page";
+export { UploadArtworkPage } from "./upload-artwork.page";
+export { ReportInfringementPage } from "./report-infringement.page";
+export { DashboardPage } from "./dashboard.page";
+export { AdminDashboardPage } from "./admin-dashboard.page";
+export { AdminVerificationPage } from "./admin-verification.page";
+export { AdminReportsPage } from "./admin-reports.page";
+export { AdminUsersPage } from "./admin-users.page";
+export { ProfilePage } from "./profile.page";
+export { SettingsPage } from "./settings.page";
+export { NotificationsPage } from "./notifications.page";

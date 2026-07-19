@@ -1,0 +1,31 @@
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await page.goto('http://localhost:3000/');
+  await page.getByRole('link', { name: 'Register' }).click();
+  await page.getByRole('textbox', { name: 'John' }).click();
+  await page.getByRole('textbox', { name: 'John' }).fill('John');
+  await page.getByRole('textbox', { name: 'John' }).press('Tab');
+  await page.getByRole('textbox', { name: 'Michael' }).click();
+  await page.getByRole('textbox', { name: 'Michael' }).fill('Marston');
+  await page.getByRole('textbox', { name: 'Michael' }).press('ArrowLeft');
+  await page.getByRole('textbox', { name: 'Michael' }).press('ArrowLeft');
+  await page.getByRole('textbox', { name: 'Michael' }).press('ArrowLeft');
+  await page.getByRole('textbox', { name: 'Michael' }).press('ArrowLeft');
+  await page.getByRole('textbox', { name: 'Michael' }).fill('Maston');
+  await page.getByRole('textbox', { name: 'Doe' }).click();
+  await page.getByRole('textbox', { name: 'Doe' }).fill('Marshton');
+  await page.getByRole('textbox', { name: 'you@example.com' }).click();
+  await page.getByRole('textbox', { name: 'you@example.com' }).fill('windWalker104556@gmail.com');
+  await page.getByRole('textbox', { name: 'Enter your password' }).click();
+  await page.getByRole('textbox', { name: 'Enter your password' }).click();
+  await page.getByRole('textbox', { name: 'Enter your password' }).fill('helloWorld');
+  await page.getByRole('button').nth(2).click();
+  await page.getByRole('textbox', { name: 'Enter your password' }).click();
+  await page.getByRole('textbox', { name: 'Enter your password' }).click();
+  await page.getByRole('textbox', { name: 'Enter your password' }).fill('helloWorld123');
+  await page.getByRole('textbox', { name: 'Confirm your password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm your password' }).click();
+  await page.getByRole('textbox', { name: 'Confirm your password' }).fill('helloWorld123');
+  await page.getByRole('button', { name: 'Sign Up' }).click();
+});
