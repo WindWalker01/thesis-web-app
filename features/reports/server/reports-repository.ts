@@ -103,6 +103,43 @@ export async function updateReportStatus(
   if (error) throw new Error(`Failed to update report status: ${error.message}`);
 }
 
+export async function assignAdminToReport(
+  supabase: SupabaseClient,
+  reportId: string,
+  adminId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("reports")
+    .update({
+      assigned_admin_id: adminId,
+      status: "under_review" as ReportStatus,
+    })
+    .eq("id", reportId);
+
+  if (error) throw new Error(`Failed to assign admin: ${error.message}`);
+}
+
+export async function getReportAssignedAdmin(
+  supabase: SupabaseClient,
+  reportId: string
+): Promise<{ id: string; first_name: string; last_name: string; username: string } | null> {
+  const { data: report } = await supabase
+    .from("reports")
+    .select("assigned_admin_id")
+    .eq("id", reportId)
+    .single();
+
+  if (!report?.assigned_admin_id) return null;
+
+  const { data: admin } = await supabase
+    .from("users")
+    .select("id, first_name, last_name, username")
+    .eq("id", report.assigned_admin_id)
+    .single();
+
+  return admin as { id: string; first_name: string; last_name: string; username: string } | null;
+}
+
 // ========== REPORT COMMENTS ==========
 
 export async function insertReportComment(

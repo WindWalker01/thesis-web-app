@@ -1,11 +1,11 @@
 // ============================================
-// POST /api/admin/reports/[id]/decision - Record final decision
+// POST /api/admin/reports/[id]/close - Close report
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
-import { recordDecisionSchema } from "@/features/reports/schemas/report-schemas";
+import { closeReportSchema } from "@/features/reports/schemas/report-schemas";
 import * as service from "@/features/reports/server/reports-service";
 
 export async function POST(
@@ -21,7 +21,6 @@ export async function POST(
       );
     }
 
-    // Verify admin
     const isAdmin = await service.isAdminUser(user.id);
     if (!isAdmin) {
       return NextResponse.json(
@@ -32,7 +31,7 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const validation = recordDecisionSchema.safeParse(body);
+    const validation = closeReportSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json(
@@ -49,19 +48,18 @@ export async function POST(
 
     const supabase = await createSupabaseServerClient();
 
-    const result = await service.recordDecisionWithAudit(supabase, {
+    const result = await service.closeReport(supabase, {
       reportId: id,
       adminId: user.id,
-      decision: validation.data.decision,
-      summary: validation.data.summary,
+      notes: validation.data.notes,
     });
 
-    return NextResponse.json({ success: true, data: result }, { status: 201 });
+    return NextResponse.json({ success: true, data: result });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to record decision";
+    const message = error instanceof Error ? error.message : "Failed to close report";
     const statusCode = message.includes("not found")
       ? 404
-      : message.includes("already been recorded") || message.includes("can only be recorded")
+      : message.includes("already resolved")
         ? 400
         : 500;
 

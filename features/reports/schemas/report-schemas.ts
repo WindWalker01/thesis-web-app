@@ -106,6 +106,41 @@ export const requestEvidenceSchema = z.object({
 
 export type RequestEvidenceInput = z.infer<typeof requestEvidenceSchema>;
 
+// ---- Assign Admin ----
+export const assignAdminSchema = z.object({
+  admin_id: z.string().uuid("Invalid admin ID"),
+});
+
+export type AssignAdminInput = z.infer<typeof assignAdminSchema>;
+
+// ---- Approve Report ----
+export const approveReportSchema = z.object({
+  summary: z
+    .string()
+    .min(10, "Summary must be at least 10 characters")
+    .max(3000, "Summary must be at most 3000 characters"),
+});
+
+export type ApproveReportInput = z.infer<typeof approveReportSchema>;
+
+// ---- Reject Report ----
+export const rejectReportSchema = z.object({
+  reason: z.enum(["false_report", "duplicate", "insufficient_evidence", "other"]),
+  summary: z
+    .string()
+    .min(10, "Summary must be at least 10 characters")
+    .max(3000, "Summary must be at most 3000 characters"),
+});
+
+export type RejectReportInput = z.infer<typeof rejectReportSchema>;
+
+// ---- Close Report ----
+export const closeReportSchema = z.object({
+  notes: z.string().max(2000, "Notes must be at most 2000 characters").optional(),
+});
+
+export type CloseReportInput = z.infer<typeof closeReportSchema>;
+
 // ---- Admin Reports Query ----
 export const adminReportsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),

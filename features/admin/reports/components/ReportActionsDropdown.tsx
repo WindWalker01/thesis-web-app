@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Eye, Clock, CheckCircle2, XCircle, AlertTriangle, Ban, UserX, MessageSquare } from "lucide-react";
+import { MoreHorizontal, Eye, Clock, CheckCircle2, XCircle, MessageSquare, AlertTriangle, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -49,7 +49,7 @@ export function ReportActionsDropdown({
           <Eye className="mr-2 h-4 w-4" /> View Details
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onAssign(reportId)}>
-          <UserX className="mr-2 h-4 w-4" /> Assign Admin
+          <Clock className="mr-2 h-4 w-4" /> Assign Admin
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Resolution</DropdownMenuLabel>
@@ -63,7 +63,7 @@ export function ReportActionsDropdown({
           <MessageSquare className="mr-2 h-4 w-4" /> Request Evidence
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>User Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>User Moderation</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => onWarnUser(reportId)}>
           <AlertTriangle className="mr-2 h-4 w-4" /> Warn User
         </DropdownMenuItem>

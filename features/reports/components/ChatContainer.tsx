@@ -123,21 +123,26 @@ export function ChatContainer({
   );
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-gradient-to-b from-background to-background/95">
       {/* Connection Status Banner */}
-      <ConnectionStatus status={connectionStatus} />
+      <div className="flex-shrink-0">
+        <ConnectionStatus status={connectionStatus} />
+      </div>
 
       {/* Messages Area */}
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scroll-smooth"
+        className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scroll-smooth"
+        role="log"
+        aria-label="Conversation messages"
+        aria-live="polite"
       >
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-900/30 shadow-sm">
               <svg
-                className="h-6 w-6 text-muted-foreground/60"
+                className="h-8 w-8 text-blue-500 dark:text-blue-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -150,9 +155,9 @@ export function ChatContainer({
                 />
               </svg>
             </div>
-            <p className="text-sm font-medium text-muted-foreground">No messages yet</p>
-            <p className="mt-1 text-xs text-muted-foreground/60">
-              Start the conversation by sending a message.
+            <p className="text-sm font-semibold text-foreground">No messages yet</p>
+            <p className="mt-1.5 text-xs text-muted-foreground/70 max-w-[240px]">
+              Start the conversation by sending a message below.
             </p>
           </div>
         )}
@@ -162,22 +167,36 @@ export function ChatContainer({
           const isAdmin = msg.is_admin;
           const prevMsg = index > 0 ? messages[index - 1] : null;
           const showSender = !prevMsg || prevMsg.user_id !== msg.user_id;
+          const isNewDay = index === 0 || (prevMsg && new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString());
 
           return (
-            <ChatMessage
-              key={msg.id}
-              message={msg}
-              isOwn={isOwn}
-              senderName={getDisplayName(msg.user_id, isAdmin)}
-              senderAvatar={getAvatar(msg.user_id, isAdmin)}
-              showSender={showSender}
-            />
+            <div key={msg.id}>
+              {/* Date separator */}
+              {isNewDay && messages.length > 1 && (
+                <div className="flex items-center gap-3 py-3" role="separator" aria-label={`Messages from ${new Date(msg.created_at).toLocaleDateString()}`}>
+                  <div className="flex-1 h-px bg-border/50" />
+                  <span className="text-[10px] font-medium text-muted-foreground/60 shrink-0">
+                    {new Date(msg.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                  <div className="flex-1 h-px bg-border/50" />
+                </div>
+              )}
+              <ChatMessage
+                message={msg}
+                isOwn={isOwn}
+                senderName={getDisplayName(msg.user_id, isAdmin)}
+                senderAvatar={getAvatar(msg.user_id, isAdmin)}
+                showSender={showSender}
+              />
+            </div>
           );
         })}
 
         {/* Typing indicator */}
         {typingDisplayNames.length > 0 && (
-          <TypingIndicator displayName={typingDisplayNames.join(", ")} />
+          <div className="py-1">
+            <TypingIndicator displayName={typingDisplayNames.join(", ")} />
+          </div>
         )}
 
         <div ref={bottomRef} />
@@ -185,21 +204,30 @@ export function ChatContainer({
 
       {/* New Messages Button */}
       {showNewMessagesButton && (
-        <div className="absolute bottom-20 left-0 right-0 z-10 flex justify-center">
-          <NewMessagesButton onClick={scrollToBottom} />
+        <div className="absolute bottom-20 left-0 right-0 z-10 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto">
+            <NewMessagesButton onClick={scrollToBottom} />
+          </div>
         </div>
       )}
 
       {/* Chat Input */}
-      <div className="shrink-0 border-t border-border px-4 py-3">
-        <ChatInput
-          onSend={onSendMessage}
-          onUploadEvidence={onUploadEvidence}
-          onTyping={startTyping}
-          onStopTyping={stopTyping}
-          disabled={disabled}
-          placeholder={disabled ? "This report is closed" : "Type a message..."}
-        />
+      <div className="shrink-0 border-t border-border/60 bg-background/90 backdrop-blur-sm px-3 py-3 sm:px-4">
+        <div id="chat-input">
+          <ChatInput
+            onSend={onSendMessage}
+            onUploadEvidence={onUploadEvidence}
+            onTyping={startTyping}
+            onStopTyping={stopTyping}
+            disabled={disabled}
+            placeholder={disabled ? "This report is closed" : "Type a message..."}
+          />
+        </div>
+        {disabled && (
+          <p className="mt-1.5 text-center text-[10px] text-muted-foreground/60">
+            This report is closed. You cannot send new messages.
+          </p>
+        )}
       </div>
     </div>
   );

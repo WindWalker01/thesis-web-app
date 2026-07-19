@@ -349,11 +349,13 @@ create table public.reports (
   title text not null,
   description text not null,
   status public.report_status not null default 'pending_review'::report_status,
+  assigned_admin_id uuid null,
   created_at timestamp with time zone not null default now(),
   resolved_at timestamp with time zone null,
   constraint reports_pkey primary key (id),
   constraint reports_reported_art_post_id_fkey foreign KEY (reported_art_post_id) references art_posts (id),
-  constraint reports_reporter_id_fkey foreign KEY (reporter_id) references users (id) on delete CASCADE
+  constraint reports_reporter_id_fkey foreign KEY (reporter_id) references users (id) on delete CASCADE,
+  constraint reports_assigned_admin_id_fkey foreign KEY (assigned_admin_id) references users (id) on delete SET NULL
 ) TABLESPACE pg_default;
 
 create index IF not exists idx_reports_status on public.reports using btree (status) TABLESPACE pg_default;

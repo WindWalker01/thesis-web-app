@@ -252,80 +252,6 @@ export async function addCommentWithAudit(
   return comment;
 }
 
-// ========== RECORD DECISION ==========
-
-export async function recordDecisionWithAudit(
-  supabase: SupabaseClient,
-  data: {
-    reportId: string;
-    adminId: string;
-    decision: string;
-    summary: string;
-  }
-): Promise<{
-  decision: ReportDecision;
-  report: Report;
-  action: ReportAction;
-}> {
-  // Verify report exists and is not already resolved
-  const report = await repo.getReportById(supabase, data.reportId);
-  if (!report) {
-    throw new Error("Report not found");
-  }
-
-  // Check if decision already exists
-  const existingDecision = await repo.getReportDecision(supabase, data.reportId);
-  if (existingDecision) {
-    throw new Error("A decision has already been recorded for this report");
-  }
-
-  // Only allow decisions on reports that are under_review
-  if (report.status !== "under_review") {
-    throw new Error(
-      "Decision can only be recorded on reports that are under review"
-    );
-  }
-
-  // Record decision
-  const decision = await repo.insertReportDecision(supabase, {
-    report_id: data.reportId,
-    admin_id: data.adminId,
-    decision: data.decision,
-    summary: data.summary,
-  });
-
-  // Update report status to resolved
-  const resolvedAt = new Date().toISOString();
-  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
-
-  // Create audit record
-  const action = await createAuditRecord(supabase, {
-    report_id: data.reportId,
-    admin_id: data.adminId,
-    action: "decision_recorded",
-    previous_status: report.status,
-    new_status: "resolved",
-    notes: `Decision: ${data.decision}. ${data.summary.substring(0, 200)}`,
-  });
-
-  // Get updated report
-  const updatedReport = (await repo.getReportById(
-    supabase,
-    data.reportId
-  )) as Report;
-
-  // Notify reporter
-  await createReportNotification(supabase, {
-    userId: updatedReport.reporter_id,
-    type: "report_resolved",
-    title: "Report Decision Made",
-    message: `Your report "${updatedReport.title}" has been resolved. Decision: ${data.decision.replace(/_/g, " ")}.`,
-    reportId: data.reportId,
-  });
-
-  return { decision, report: updatedReport, action };
-}
-
 // ========== REQUEST EVIDENCE ==========
 
 export async function requestEvidenceWithAudit(
@@ -492,6 +418,240 @@ export async function isAdminUser(userId: string): Promise<boolean> {
     .single();
 
   return profile?.role === "admin";
+}
+
+// ========== ASSIGN ADMIN ==========
+
+export async function assignAdminToReport(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    adminId: string;
+    currentUserId: string;
+  }
+): Promise<{ report: Report; action: ReportAction }> {
+  // Verify report exists
+  const report = await repo.getReportById(supabase, data.reportId);
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  if (report.status === "resolved") {
+    throw new Error("Cannot assign admin to a resolved report");
+  }
+
+  const previousStatus = report.status;
+
+  // Assign admin and update status
+  await repo.assignAdminToReport(supabase, data.reportId, data.adminId);
+
+  // Get the assigned admin's name for the audit log
+  const assignedAdmin = await repo.getReportAssignedAdmin(supabase, data.reportId);
+  const adminName = assignedAdmin
+    ? `${assignedAdmin.first_name} ${assignedAdmin.last_name} (@${assignedAdmin.username})`
+    : data.adminId;
+
+  // Create audit record
+  const action = await createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.currentUserId,
+    action: "status_change",
+    previous_status: previousStatus,
+    new_status: "under_review",
+    notes: `Assigned to admin: ${adminName}`,
+  });
+
+  // Notify reporter
+  await createReportNotification(supabase, {
+    userId: report.reporter_id,
+    type: "report_resolved",
+    title: "Report Under Review",
+    message: `Your report "${report.title}" has been assigned to an administrator for investigation.`,
+    reportId: data.reportId,
+  });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+
+  return { report: updatedReport, action };
+}
+
+// ========== APPROVE REPORT (resolve with no_violation) ==========
+
+export async function approveReport(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    adminId: string;
+    summary: string;
+  }
+): Promise<{ report: Report; action: ReportAction; decision: ReportDecision }> {
+  // Verify report exists
+  const report = await repo.getReportById(supabase, data.reportId);
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  if (report.status === "resolved") {
+    throw new Error("Report is already resolved");
+  }
+
+  // Record decision
+  const decision = await repo.insertReportDecision(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    decision: "no_violation",
+    summary: data.summary,
+  });
+
+  // Update report status
+  const resolvedAt = new Date().toISOString();
+  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+
+  // Create audit record
+  const action = await createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    action: "decision_recorded",
+    previous_status: report.status,
+    new_status: "resolved",
+    notes: `Report approved. Decision: no_violation. Summary: ${data.summary.substring(0, 200)}`,
+  });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+
+  // Notify reporter
+  await createReportNotification(supabase, {
+    userId: updatedReport.reporter_id,
+    type: "report_resolved",
+    title: "Report Resolved",
+    message: `Your report "${updatedReport.title}" has been reviewed. No violation was found.`,
+    reportId: data.reportId,
+  });
+
+  return { report: updatedReport, action, decision };
+}
+
+// ========== REJECT REPORT (resolve with reason) ==========
+
+export async function rejectReport(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    adminId: string;
+    reason: string;
+    summary: string;
+  }
+): Promise<{ report: Report; action: ReportAction; decision: ReportDecision }> {
+  // Verify report exists
+  const report = await repo.getReportById(supabase, data.reportId);
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  if (report.status === "resolved") {
+    throw new Error("Report is already resolved");
+  }
+
+  // Map frontend reason to decision value
+  const decisionValue = data.reason === "false_report"
+    ? "no_violation"
+    : data.reason === "duplicate"
+      ? "duplicate_report"
+      : data.reason === "insufficient_evidence"
+        ? "insufficient_evidence"
+        : "other";
+
+  // Record decision
+  const decision = await repo.insertReportDecision(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    decision: decisionValue,
+    summary: `[${data.reason.replace(/_/g, " ")}] ${data.summary}`,
+  });
+
+  // Update report status
+  const resolvedAt = new Date().toISOString();
+  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+
+  // Create audit record
+  const action = await createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    action: "decision_recorded",
+    previous_status: report.status,
+    new_status: "resolved",
+    notes: `Report rejected. Reason: ${data.reason}. Summary: ${data.summary.substring(0, 200)}`,
+  });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+
+  // Notify reporter
+  const reasonLabels: Record<string, string> = {
+    false_report: "determined to be a false report",
+    duplicate: "identified as a duplicate",
+    insufficient_evidence: "found to have insufficient evidence",
+    other: "closed after review",
+  };
+
+  await createReportNotification(supabase, {
+    userId: updatedReport.reporter_id,
+    type: "report_resolved",
+    title: "Report Resolved",
+    message: `Your report "${updatedReport.title}" has been reviewed and ${reasonLabels[data.reason] ?? "resolved"}.`,
+    reportId: data.reportId,
+  });
+
+  return { report: updatedReport, action, decision };
+}
+
+// ========== CLOSE REPORT ==========
+
+export async function closeReport(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    adminId: string;
+    notes?: string;
+  }
+): Promise<{ report: Report; action: ReportAction }> {
+  // Verify report exists
+  const report = await repo.getReportById(supabase, data.reportId);
+  if (!report) {
+    throw new Error("Report not found");
+  }
+
+  if (report.status === "resolved") {
+    throw new Error("Report is already resolved");
+  }
+
+  const previousStatus = report.status;
+
+  // Update report status
+  const resolvedAt = new Date().toISOString();
+  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+
+  // Create audit record
+  const action = await createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    action: "status_change",
+    previous_status: previousStatus,
+    new_status: "resolved",
+    notes: data.notes ?? "Report closed by administrator",
+  });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+
+  // Notify reporter
+  await createReportNotification(supabase, {
+    userId: updatedReport.reporter_id,
+    type: "report_resolved",
+    title: "Report Closed",
+    message: `Your report "${updatedReport.title}" has been closed by an administrator.`,
+    reportId: data.reportId,
+  });
+
+  return { report: updatedReport, action };
 }
 
 // ========== VERIFY REPORT OWNERSHIP ==========

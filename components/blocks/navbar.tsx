@@ -17,6 +17,7 @@ import {
   FileCheck,
   MessageCircle,
   Award,
+  Flag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -25,6 +26,7 @@ import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
 import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
 
 import { useNotifications } from "@/features/(user)/notifications-navbar/hooks/useNotification";
+import { useUnreadCount } from "@/features/reports/hooks/useUnreadCount";
 import { getNotificationUI } from "@/features/(user)/notifications-navbar/lib/notification-ui";
 import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
 import { useCurrentUserProfile } from "@/features/(user)/profile/hooks/useFetchProfile";
@@ -57,6 +59,7 @@ const NAV_LINKS: NavLink[] = [
 ];
 
 const MORE_LINKS = [
+  { label: "My Reports", href: "/my-reports", requiresAuth: true },
   { label: "Verify Artwork", href: "/verify-artwork", requiresAuth: true },
   { label: "Blockchain Transactions", href: "/txs" },
   { label: "About", href: "/about" },
@@ -83,6 +86,11 @@ export default function NavBar() {
     markAsRead,
     markAllAsRead,
   } = useNotifications(user?.id);
+
+  const { totalUnread: reportUnreadCount } = useUnreadCount({
+    userId: user?.id ?? "",
+    enabled: !!user,
+  });
 
   const visibleNavLinks = useMemo(() => {
     return NAV_LINKS
@@ -123,7 +131,7 @@ export default function NavBar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="whitespace-nowrap transition-colors hover:text-blue-500"
+                className="relative whitespace-nowrap transition-colors hover:text-blue-500"
               >
                 {link.label}
               </Link>
@@ -164,9 +172,14 @@ export default function NavBar() {
                         <Link
                           href={item.href}
                           onClick={() => setMoreOpen(false)}
-                          className="block px-4 py-2.5 text-base transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+                          className="relative block px-4 py-2.5 text-base transition-colors hover:bg-blue-500/10 hover:text-blue-500"
                         >
                           {item.label}
+                          {item.label === "My Reports" && reportUnreadCount > 0 && (
+                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold leading-none text-white">
+                              {reportUnreadCount > 9 ? "9+" : reportUnreadCount}
+                            </span>
+                          )}
                         </Link>
                       </motion.div>
                     ))}
@@ -442,7 +455,7 @@ export default function NavBar() {
                       key={link.href}
                       href={link.href}
                       onClick={closeMobile}
-                      className="flex items-center rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-blue-500/10 hover:text-blue-500"
+                      className="relative flex items-center rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-blue-500/10 hover:text-blue-500"
                     >
                       {link.label}
                     </Link>
@@ -479,6 +492,12 @@ export default function NavBar() {
                       </p>
 
                       {[
+                        {
+                          icon: Flag,
+                          label: "My Reports",
+                          href: "/my-reports",
+                          color: "text-orange-500",
+                        },
                         {
                           icon: Upload,
                           label: "Upload Artwork",

@@ -1,4 +1,4 @@
-import ReportDetail from "@/features/admin/review-reports/components/ReportDetail";
+import { redirect } from "next/navigation";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -6,10 +6,6 @@ type Props = {
 
 export default async function AdminReportDetailPage({ params }: Props) {
   const { id } = await params;
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <ReportDetail reportId={id} />
-    </div>
-  );
+  // Redirect to the main reports management page which uses the drawer-based detail view
+  redirect(`/admin/reports?selected=${id}`);
 }

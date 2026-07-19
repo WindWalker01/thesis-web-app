@@ -18,6 +18,13 @@ import { ReportsFilters } from "./ReportsFilters";
 import { ReportsTable } from "./ReportsTable";
 import { ReportDrawer } from "./ReportDrawer";
 import { AssignAdminDialog } from "./AssignAdminDialog";
+import { ApproveReportDialog } from "./ApproveReportDialog";
+import { RejectReportDialog } from "./RejectReportDialog";
+import { RequestEvidenceDialog } from "./RequestEvidenceDialog";
+import { CloseReportDialog } from "./CloseReportDialog";
+import { WarnUserDialog } from "./WarnUserDialog";
+import { SuspendUserDialog } from "./SuspendUserDialog";
+import { BanUserDialog } from "./BanUserDialog";
 import { ReportsPageSkeleton } from "./page-skeleton";
 import { ReportsInfoBanner } from "./InfoBanner";
 import { ReportsStatusDescription } from "./StatusDescription";
@@ -56,9 +63,23 @@ export default function ReportsManagementPage() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Dialogs
+  // Action dialogs
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignReportId, setAssignReportId] = useState("");
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [approveReportId, setApproveReportId] = useState("");
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReportId, setRejectReportId] = useState("");
+  const [evidenceDialogOpen, setEvidenceDialogOpen] = useState(false);
+  const [evidenceReportId, setEvidenceReportId] = useState("");
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [closeReportId, setCloseReportId] = useState("");
+  const [warnDialogOpen, setWarnDialogOpen] = useState(false);
+  const [warnReportId, setWarnReportId] = useState("");
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
+  const [suspendReportId, setSuspendReportId] = useState("");
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [banReportId, setBanReportId] = useState("");
 
   // Debounce search
   useEffect(() => {
@@ -109,7 +130,7 @@ export default function ReportsManagementPage() {
     refetch: refetchDetail,
   } = useReportDetail(drawerOpen ? selectedReportId : null);
 
-  // Action loading states (simplified - using local state for demo)
+  // Action loading states
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isSendingComment, setIsSendingComment] = useState(false);
 
@@ -118,6 +139,11 @@ export default function ReportsManagementPage() {
     setSelectedReportId(reportId);
     setDrawerOpen(true);
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    refetchReports();
+    if (selectedReportId) refetchDetail();
+  }, [refetchReports, refetchDetail, selectedReportId]);
 
   const handleUpdateStatus = useCallback(async (status: string, notes?: string) => {
     if (!selectedReportId) return;
@@ -181,12 +207,25 @@ export default function ReportsManagementPage() {
   }, [selectedReportId, refetchDetail]);
 
   const handleAssign = useCallback(async (reportId: string, adminId: string) => {
-    // Assign admin logic - calling status update with admin assignment note
-    await handleUpdateStatus("under_review", `Assigned to admin: ${adminId}`);
-  }, [handleUpdateStatus]);
+    try {
+      const response = await fetch(`/api/admin/reports/${reportId}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_id: adminId }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        toast.success("Admin assigned successfully");
+        await refetchReports();
+      } else {
+        toast.error(result.error?.message ?? "Failed to assign admin");
+      }
+    } catch {
+      toast.error("Failed to assign admin");
+    }
+  }, [refetchReports]);
 
   const handleExport = useCallback(async () => {
-    // Simple CSV export of current view
     if (!reportsData) return;
     const headers = ["ID,Title,Type,Status,Reporter,Created"];
     const rows = reportsData.items.map((r) =>
@@ -302,48 +341,54 @@ export default function ReportsManagementPage() {
             setAssignDialogOpen(true);
           }}
           onApprove={(id) => {
-            openDrawer(id);
-            // Will handle in drawer
+            setApproveReportId(id);
+            setApproveDialogOpen(true);
           }}
           onReject={(id) => {
-            openDrawer(id);
+            setRejectReportId(id);
+            setRejectDialogOpen(true);
           }}
           onRequestEvidence={(id) => {
-            openDrawer(id);
+            setEvidenceReportId(id);
+            setEvidenceDialogOpen(true);
           }}
           onWarnUser={(id) => {
-            openDrawer(id);
+            setWarnReportId(id);
+            setWarnDialogOpen(true);
           }}
           onSuspendUser={(id) => {
-            openDrawer(id);
+            setSuspendReportId(id);
+            setSuspendDialogOpen(true);
           }}
           onBanUser={(id) => {
-            openDrawer(id);
+            setBanReportId(id);
+            setBanDialogOpen(true);
           }}
           onClose={(id) => {
-            openDrawer(id);
+            setCloseReportId(id);
+            setCloseDialogOpen(true);
           }}
           isLoading={reportsLoading}
         />
-      </div>
 
-      {/* Report Detail Drawer */}
-      <ReportDrawer
-        open={drawerOpen}
-        onOpenChange={(open) => {
-          setDrawerOpen(open);
-          if (!open) setSelectedReportId(null);
-        }}
-        detail={reportDetail}
-        isLoading={detailLoading}
-        error={detailError instanceof Error ? detailError.message : null}
-        onUpdateStatus={handleUpdateStatus}
-        onAddComment={handleAddComment}
-        onUploadEvidence={handleUploadEvidence}
-        isUpdatingStatus={isUpdatingStatus}
-        isSendingComment={isSendingComment}
-        onRefresh={() => refetchDetail()}
-      />
+        {/* Report Detail Drawer */}
+        <ReportDrawer
+          open={drawerOpen}
+          onOpenChange={(open) => {
+            setDrawerOpen(open);
+            if (!open) setSelectedReportId(null);
+          }}
+          detail={reportDetail}
+          isLoading={detailLoading}
+          error={detailError instanceof Error ? detailError.message : null}
+          onUpdateStatus={handleUpdateStatus}
+          onAddComment={handleAddComment}
+          onUploadEvidence={handleUploadEvidence}
+          isUpdatingStatus={isUpdatingStatus}
+          isSendingComment={isSendingComment}
+          onRefresh={() => refetchDetail()}
+        />
+      </div>
 
       {/* Assign Admin Dialog */}
       <AssignAdminDialog
@@ -351,6 +396,62 @@ export default function ReportsManagementPage() {
         onOpenChange={setAssignDialogOpen}
         reportId={assignReportId}
         onAssign={handleAssign}
+      />
+
+      {/* Approve Report Dialog */}
+      <ApproveReportDialog
+        open={approveDialogOpen}
+        onOpenChange={setApproveDialogOpen}
+        reportId={approveReportId}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Reject Report Dialog */}
+      <RejectReportDialog
+        open={rejectDialogOpen}
+        onOpenChange={setRejectDialogOpen}
+        reportId={rejectReportId}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Request Evidence Dialog */}
+      <RequestEvidenceDialog
+        open={evidenceDialogOpen}
+        onOpenChange={setEvidenceDialogOpen}
+        reportId={evidenceReportId}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Warn User Dialog */}
+      <WarnUserDialog
+        open={warnDialogOpen}
+        onOpenChange={setWarnDialogOpen}
+        reportId={warnReportId}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Suspend User Dialog */}
+      <SuspendUserDialog
+        open={suspendDialogOpen}
+        onOpenChange={setSuspendDialogOpen}
+        reportId={suspendReportId}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Ban User Dialog */}
+      <BanUserDialog
+        open={banDialogOpen}
+        onOpenChange={setBanDialogOpen}
+        reportId={banReportId}
+        onSuccess={handleRefresh}
+      />
+
+      {/* Close Report Dialog */}
+      <CloseReportDialog
+        open={closeDialogOpen}
+        onOpenChange={setCloseDialogOpen}
+        reportId={closeReportId}
+        onSuccess={handleRefresh}
       />
     </>
   );

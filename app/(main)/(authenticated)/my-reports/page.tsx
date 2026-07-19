@@ -2,21 +2,31 @@
 
 import { useState, useMemo } from "react";
 import { useUserReports } from "@/features/reports/hooks/useUserReports";
+import { useUnreadCount } from "@/features/reports/hooks/useUnreadCount";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import { ReportCardSkeleton } from "@/features/reports/components/ReportCardSkeleton";
 import { ReportFilters, type FiltersState } from "@/features/reports/components/ReportFilters";
+import { DashboardStatsCards } from "@/features/reports/components/DashboardStatsCards";
 import { EmptyState } from "@/features/reports/components/EmptyState";
-import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import { Flag, RefreshCw, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const DEFAULT_FILTERS: FiltersState = {
   search: "",
   status: "all",
   reportType: "all",
   sort: "newest",
+  unreadOnly: false,
 };
 
 export default function MyReportsPage() {
+  const { user } = useAuth();
   const { reports, isLoading, isError, error, refetch } = useUserReports();
+  const { getReportUnread, totalUnread } = useUnreadCount({
+    userId: user?.id ?? "",
+    enabled: !!user,
+  });
   const [filters, setFilters] = useState<FiltersState>(DEFAULT_FILTERS);
 
   const filteredAndSorted = useMemo(() => {
@@ -43,6 +53,11 @@ export default function MyReportsPage() {
       result = result.filter((r) => r.report_type === filters.reportType);
     }
 
+    // Unread only filter
+    if (filters.unreadOnly) {
+      result = result.filter((r) => getReportUnread(r.id) > 0);
+    }
+
     // Sort
     switch (filters.sort) {
       case "newest":
@@ -67,94 +82,127 @@ export default function MyReportsPage() {
     }
 
     return result;
-  }, [reports, filters]);
+  }, [reports, filters, getReportUnread]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">My Reports</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Monitor and manage your submitted infringement reports.
-        </p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30">
+            <Flag className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">My Reports</h1>
+            <p className="text-sm text-muted-foreground">
+              Monitor and manage your submitted infringement reports.
+            </p>
+          </div>
+        </div>
+        {!isLoading && !isError && reports.length > 0 && (
+          <div className="mt-2 sm:mt-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refetch()}
+              className="gap-1.5 text-xs"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Refresh
+            </Button>
+          </div>
+        )}
       </div>
 
-      <Separator />
+      {/* Dashboard Stats */}
+      {!isLoading && !isError && reports.length > 0 && (
+        <DashboardStatsCards reports={reports} />
+      )}
 
       {/* Filters */}
-      <ReportFilters filters={filters} onFiltersChange={setFilters} />
+      {!isLoading && !isError && reports.length > 0 && (
+        <div className="rounded-lg border bg-card p-4">
+          <ReportFilters filters={filters} onFiltersChange={setFilters} />
+        </div>
+      )}
 
       {/* Content */}
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <ReportCardSkeleton key={i} />
-          ))}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
+            ))}
+          </div>
+          <div className="space-y-3 pt-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <ReportCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       ) : isError ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-            <svg
-              className="h-6 w-6 text-destructive"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
+        <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+            <AlertCircle className="h-7 w-7 text-destructive" />
           </div>
           <h3 className="mb-2 text-lg font-semibold">Failed to load reports</h3>
-          <p className="mb-4 text-sm text-muted-foreground">
+          <p className="mb-6 max-w-sm text-sm text-muted-foreground">
             {error ?? "An unexpected error occurred. Please try again."}
           </p>
-          <button
-            onClick={() => refetch()}
-            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-          >
-            Try again
-          </button>
+          <Button onClick={() => refetch()} variant="outline" className="gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Try Again
+          </Button>
         </div>
       ) : filteredAndSorted.length === 0 ? (
         reports.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <svg
-                className="h-6 w-6 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                />
-              </svg>
+          <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-16 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+              <AlertCircle className="h-7 w-7 text-muted-foreground" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">No matching reports</h3>
-            <p className="text-sm text-muted-foreground">
-              Try adjusting your search or filter criteria.
+            <p className="mb-2 text-sm text-muted-foreground">
+              {filters.unreadOnly
+                ? "You have no unread messages in any reports."
+                : "Try adjusting your search or filter criteria."}
             </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setFilters({
+                  search: "",
+                  status: "all",
+                  reportType: "all",
+                  sort: "newest",
+                  unreadOnly: false,
+                })
+              }
+            >
+              Clear Filters
+            </Button>
           </div>
         )
       ) : (
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">
-            Showing {filteredAndSorted.length} of {reports.length} report
-            {reports.length !== 1 ? "s" : ""}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Showing {filteredAndSorted.length} of {reports.length} report
+              {reports.length !== 1 ? "s" : ""}
+              {totalUnread > 0 && (
+                <span className="ml-2 text-blue-500">
+                  · {totalUnread} unread
+                </span>
+              )}
+            </p>
+          </div>
           {filteredAndSorted.map((report) => (
             <ReportCard
               key={report.id}
               report={report}
+              unreadCount={getReportUnread(report.id)}
             />
           ))}
         </div>

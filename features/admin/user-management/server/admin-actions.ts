@@ -706,6 +706,77 @@ export async function bulkBanUsers(
   }
 }
 
+export async function warnUser(payload: {
+  user_id: string;
+  reason: string;
+  report_id?: string;
+}): Promise<AdminActionResult> {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, message: "Not authenticated." };
+
+    const { data: profile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (!profile || profile.role !== "admin") {
+      return { success: false, message: "Unauthorized." };
+    }
+
+    // Insert warning record
+    const { error: insertError } = await supabase
+      .from("user_warnings")
+      .insert({
+        user_id: payload.user_id,
+        admin_id: user.id,
+        report_id: payload.report_id ?? null,
+        reason: payload.reason,
+      });
+
+    if (insertError) {
+      return { success: false, message: insertError.message };
+    }
+
+    // Create audit log
+    await supabase.from("admin_audit_logs").insert({
+      admin_id: user.id,
+      target_user_id: payload.user_id,
+      action: "send_notification" as const,
+      reason: payload.reason,
+      metadata: {
+        action_type: "warn_user",
+        report_id: payload.report_id ?? null,
+      },
+    });
+
+    // Send notification
+    await supabase.from("notifications").insert({
+      user_id: payload.user_id,
+      type: "system_announcement",
+      title: "Warning Received",
+      message: `You have received a warning from an administrator.\n\nReason: ${payload.reason}`,
+      metadata: {
+        action: "warn_user",
+        report_id: payload.report_id ?? null,
+      },
+    });
+
+    return {
+      success: true,
+      message: "User has been warned.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to warn user.",
+    };
+  }
+}
+
 export async function bulkVerifyUsers(
   userIds: string[]
 ): Promise<AdminActionResult> {

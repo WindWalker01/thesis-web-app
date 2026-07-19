@@ -11,7 +11,7 @@ import { Timeline } from "@/features/reports/components/Timeline";
 import { ChatContainer } from "@/features/reports/components/ChatContainer";
 import { EvidenceGallery } from "@/features/reports/components/EvidenceGallery";
 import { DecisionCard } from "@/features/reports/components/DecisionCard";
-import { AppealDialog } from "@/features/reports/components/AppealDialog";
+
 import {
   REPORT_TYPE_LABELS,
   formatDateTime,
@@ -21,6 +21,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import {
+  ArrowLeft,
+  Flag,
+  Clock,
+  MessageSquare,
+  Paperclip,
+  Copy,
+  History,
+  AlertCircle,
+  ChevronRight,
+  FileText,
+  Shield,
+  Calendar,
+} from "lucide-react";
 
 type PageParams = {
   params: Promise<{ reportId: string }>;
@@ -76,16 +90,16 @@ export default function ReportDetailPage({ params }: PageParams) {
 
   const handleSendMessage = useCallback(async (message: string) => {
     await sendMessage(message);
-    toast.success("Message sent");
   }, [sendMessage]);
 
   const handleUploadEvidence = useCallback(async (file: File, description?: string) => {
     await uploadEvidenceMutation.mutateAsync({ reportId, file, description });
   }, [reportId, uploadEvidenceMutation]);
 
-  const handleAppeal = useCallback(async (reason: string) => {
-    await appealMutation.mutateAsync({ reportId, reason });
-  }, [reportId, appealMutation]);
+  const handleCopyId = useCallback(() => {
+    navigator.clipboard.writeText(reportId);
+    toast.success("Report ID copied to clipboard");
+  }, [reportId]);
 
   // ---- Loading State ----
   if (isLoading) {
@@ -114,18 +128,19 @@ export default function ReportDetailPage({ params }: PageParams) {
   if (isError || !report) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-            <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
+        <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+            <AlertCircle className="h-7 w-7 text-destructive" />
           </div>
           <h3 className="mb-2 text-lg font-semibold">Report not found</h3>
-          <p className="mb-4 text-sm text-muted-foreground">
+          <p className="mb-6 max-w-sm text-sm text-muted-foreground">
             {error ?? "This report could not be found or you don't have permission to view it."}
           </p>
           <Button asChild variant="outline">
-            <Link href="/my-reports">Back to My Reports</Link>
+            <Link href="/my-reports" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to My Reports
+            </Link>
           </Button>
         </div>
       </div>
@@ -133,7 +148,6 @@ export default function ReportDetailPage({ params }: PageParams) {
   }
 
   const canUploadEvidence = !isTerminalStatus(report.status);
-  const showAppeal = false;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -141,28 +155,88 @@ export default function ReportDetailPage({ params }: PageParams) {
       <nav className="mb-6" aria-label="Breadcrumb">
         <ol className="flex items-center gap-2 text-sm text-muted-foreground">
           <li>
-            <Link href="/my-reports" className="transition-colors hover:text-foreground">
+            <Link href="/my-reports" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
+              <ArrowLeft className="h-3.5 w-3.5" />
               My Reports
             </Link>
           </li>
-          <li aria-hidden="true">/</li>
-          <li className="truncate text-foreground" aria-current="page">
+          <li className="text-muted-foreground/40" aria-hidden="true">
+            <ChevronRight className="h-3.5 w-3.5" />
+          </li>
+          <li className="truncate text-foreground font-medium" aria-current="page">
             {report.title}
           </li>
         </ol>
       </nav>
 
-      {/* Page Header */}
+      {/* Page Header with Quick Actions */}
       <div className="mb-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">{report.title}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Report ID: {report.id}</p>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                <Flag className="h-4.5 w-4.5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight">{report.title}</h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <StatusBadge status={report.status} className="text-sm" />
+              <span className="text-muted-foreground/30" aria-hidden="true">·</span>
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {formatDateTime(report.created_at)}
+              </span>
+              <span className="text-muted-foreground/30" aria-hidden="true">·</span>
+              <span className="flex items-center gap-1 font-mono text-xs">
+                <FileText className="h-3.5 w-3.5" />
+                ID: {report.id.slice(0, 8)}...
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <StatusBadge status={report.status} />
-            {showAppeal && <AppealDialog reportId={reportId} onSubmit={handleAppeal} />}
-          </div>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => document.getElementById("chat-input")?.focus()}
+            className="gap-1.5"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Reply
+          </Button>
+          {canUploadEvidence && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => document.getElementById("evidence-section")?.scrollIntoView({ behavior: "smooth" })}
+              className="gap-1.5"
+            >
+              <Paperclip className="h-4 w-4" />
+              Upload Evidence
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleCopyId}
+            className="gap-1.5"
+          >
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </Button>
+          {actions.length > 0 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => document.getElementById("timeline-section")?.scrollIntoView({ behavior: "smooth" })}
+              className="gap-1.5"
+            >
+              <History className="h-4 w-4" />
+              View History
+            </Button>
+          )}
         </div>
       </div>
 
@@ -171,61 +245,72 @@ export default function ReportDetailPage({ params }: PageParams) {
         {/* ===== LEFT COLUMN ===== */}
         <div className="space-y-6">
           {/* Overview */}
-          <section aria-labelledby="overview-heading">
-            <div className="rounded-lg border bg-card">
-              <div className="border-b bg-muted/50 px-4 py-3">
-                <h2 id="overview-heading" className="text-sm font-semibold">Overview</h2>
-              </div>
-              <dl className="divide-y divide-border">
-                <div className="flex items-center justify-between px-4 py-3">
-                  <dt className="text-xs font-medium text-muted-foreground">Report Type</dt>
-                  <dd className="text-sm">{REPORT_TYPE_LABELS[report.report_type]}</dd>
-                </div>
-                <div className="flex items-center justify-between px-4 py-3">
-                  <dt className="text-xs font-medium text-muted-foreground">Submitted</dt>
-                  <dd className="text-sm">{formatDateTime(report.created_at)}</dd>
-                </div>
-                <div className="flex items-center justify-between px-4 py-3">
-                  <dt className="text-xs font-medium text-muted-foreground">Last Updated</dt>
-                  <dd className="text-sm">{formatTimeAgo(report.resolved_at ?? report.created_at)}</dd>
-                </div>
-                {report.resolved_at && (
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <dt className="text-xs font-medium text-muted-foreground">Resolution Date</dt>
-                    <dd className="text-sm">{formatDateTime(report.resolved_at)}</dd>
-                  </div>
-                )}
-              </dl>
+          <section aria-labelledby="overview-heading" className="rounded-xl border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 border-b bg-muted/30 px-5 py-3.5">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <h2 id="overview-heading" className="text-sm font-semibold">Overview</h2>
             </div>
+            <dl className="divide-y divide-border">
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <Flag className="h-3.5 w-3.5" />
+                  Report Type
+                </dt>
+                <dd className="text-sm font-medium">{REPORT_TYPE_LABELS[report.report_type]}</dd>
+              </div>
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Submitted
+                </dt>
+                <dd className="text-sm">{formatDateTime(report.created_at)}</dd>
+              </div>
+              <div className="flex items-center justify-between px-5 py-3.5">
+                <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  Last Updated
+                </dt>
+                <dd className="text-sm">{formatTimeAgo(report.resolved_at ?? report.created_at)}</dd>
+              </div>
+              {report.resolved_at && (
+                <div className="flex items-center justify-between px-5 py-3.5">
+                  <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <Shield className="h-3.5 w-3.5" />
+                    Resolution Date
+                  </dt>
+                  <dd className="text-sm">{formatDateTime(report.resolved_at)}</dd>
+                </div>
+              )}
+            </dl>
           </section>
 
           {/* Description */}
-          <section aria-labelledby="description-heading">
-            <div className="rounded-lg border bg-card">
-              <div className="border-b bg-muted/50 px-4 py-3">
-                <h2 id="description-heading" className="text-sm font-semibold">Description</h2>
-              </div>
-              <div className="px-4 py-3">
-                <p className="whitespace-pre-wrap text-sm">{report.description}</p>
-              </div>
+          <section aria-labelledby="description-heading" className="rounded-xl border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 border-b bg-muted/30 px-5 py-3.5">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <h2 id="description-heading" className="text-sm font-semibold">Description</h2>
+            </div>
+            <div className="px-5 py-4">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+                {report.description}
+              </p>
             </div>
           </section>
 
           {/* Status Timeline */}
-          <section aria-labelledby="timeline-heading">
-            <div className="rounded-lg border bg-card">
-              <div className="border-b bg-muted/50 px-4 py-3">
-                <h2 id="timeline-heading" className="text-sm font-semibold">Status Timeline</h2>
-              </div>
-              <div className="px-4 py-4">
-                <Timeline actions={actions} />
-              </div>
+          <section id="timeline-section" aria-labelledby="timeline-heading" className="rounded-xl border bg-card overflow-hidden">
+            <div className="flex items-center gap-2 border-b bg-muted/30 px-5 py-3.5">
+              <History className="h-4 w-4 text-muted-foreground" />
+              <h2 id="timeline-heading" className="text-sm font-semibold">Investigation Timeline</h2>
+            </div>
+            <div className="px-5 py-4">
+              <Timeline actions={actions} />
             </div>
           </section>
 
           {/* Admin Decision */}
           {decision && (
-            <section aria-labelledby="decision-heading">
+            <section aria-labelledby="decision-heading" className="rounded-xl border bg-card overflow-hidden">
               <DecisionCard decision={decision} />
             </section>
           )}
@@ -234,12 +319,22 @@ export default function ReportDetailPage({ params }: PageParams) {
         {/* ===== RIGHT COLUMN ===== */}
         <div className="space-y-6">
           {/* Live Chat Conversation */}
-          <section aria-labelledby="conversation-heading" className="flex flex-col">
-            <div className="rounded-lg border bg-card overflow-hidden flex flex-col">
-              <div className="border-b bg-muted/50 px-4 py-3">
+          <section id="conversation-section" aria-labelledby="conversation-heading" className="flex flex-col">
+            <div className="rounded-xl border bg-card overflow-hidden flex flex-col">
+              <div className="flex items-center gap-2 border-b bg-muted/30 px-5 py-3.5">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
                 <h2 id="conversation-heading" className="text-sm font-semibold">
-                  Live Conversation
+                  Conversation
                 </h2>
+                <div className="ml-auto flex items-center gap-1.5">
+                  <span className={`h-2 w-2 rounded-full ${
+                    connectionStatus === "connected" ? "bg-emerald-500" :
+                    connectionStatus === "connecting" ? "bg-amber-500" : "bg-destructive"
+                  }`} />
+                  <span className="text-[10px] text-muted-foreground capitalize">
+                    {connectionStatus}
+                  </span>
+                </div>
               </div>
               <div className="relative h-[500px] flex flex-col">
                 <ChatContainer
@@ -260,12 +355,18 @@ export default function ReportDetailPage({ params }: PageParams) {
           </section>
 
           {/* Evidence */}
-          <section aria-labelledby="evidence-heading">
-            <div className="rounded-lg border bg-card">
-              <div className="border-b bg-muted/50 px-4 py-3">
+          <section id="evidence-section" aria-labelledby="evidence-heading">
+            <div className="rounded-xl border bg-card overflow-hidden">
+              <div className="flex items-center gap-2 border-b bg-muted/30 px-5 py-3.5">
+                <Paperclip className="h-4 w-4 text-muted-foreground" />
                 <h2 id="evidence-heading" className="text-sm font-semibold">Evidence</h2>
+                {evidence.length > 0 && (
+                  <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    {evidence.length} file{evidence.length !== 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
-              <div className="px-4 py-4">
+              <div className="px-5 py-4">
                 <EvidenceGallery
                   evidence={evidence}
                   reportId={reportId}

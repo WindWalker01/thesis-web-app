@@ -9,6 +9,7 @@ import {
   getReviewForArtwork,
 } from "@/features/admin/shared/moderation-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getAuthUser } from "@/lib/server-utils";
 
 export async function POST(
   request: NextRequest,
@@ -26,17 +27,18 @@ export async function POST(
       );
     }
 
-    // Get the current admin user
-    const supabase = createSupabaseAdminClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    const adminId = user?.id;
-
-    if (!adminId) {
+    // Get the current admin user using cookie-based auth (server client)
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: { message: "Not authenticated" } },
+        { success: false, error: { message: "Authentication required" } },
         { status: 401 }
       );
     }
+    const adminId = user.id;
+
+    // Use admin client for service-role DB operations (bypasses RLS)
+    const supabase = createSupabaseAdminClient();
 
     let result;
 
@@ -131,18 +133,14 @@ export async function POST(
         );
 
         if (result.success) {
-          // Update report status to waiting for reporter
-          await supabase
-            .from("reports")
-            .update({ status: "waiting_for_reporter" })
-            .eq("id", reportId);
-
+          // The artwork review is already set to "needs_info" by requestArtworkInformation().
+          // Keep the report at "under_review" and record the information request in the audit log.
           await supabase.from("report_actions").insert({
             report_id: reportId,
             admin_id: adminId,
-            action: "status_change",
+            action: "evidence_requested",
             previous_status: "under_review",
-            new_status: "waiting_for_reporter",
+            new_status: "under_review",
             notes: `Information requested from artist for artwork moderation. ${notes ?? ""}`,
           });
         }

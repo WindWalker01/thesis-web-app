@@ -13,6 +13,5 @@ export {
   isAdminUser,
   updateReportStatusWithAudit,
   addCommentWithAudit,
-  recordDecisionWithAudit,
   requestEvidenceWithAudit,
 } from "@/features/reports/server/reports-service";
