@@ -93,7 +93,7 @@ export default async function RootLayout({
           >
             <ThemeProvider
               attribute="class"
-              defaultTheme="system"
+              defaultTheme="light"
               enableSystem
             >
               <MaintenancePage />
@@ -111,7 +111,7 @@ export default async function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
         >
           <ReactQueryClientProvider>
