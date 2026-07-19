@@ -77,7 +77,7 @@ export default function Home() {
           <div
             className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{
-              backgroundImage: "radial-linear(rgba(96,165,250,1) 1px, transparent 1px)",
+              backgroundImage: "radial-gradient(rgba(96,165,250,1) 1px, transparent 1px)",
               backgroundSize: "28px 28px",
             }}
           />
@@ -128,7 +128,7 @@ export default function Home() {
                 href={isAuthenticated ? "/upload-artwork" : "/register"}
                 className="bg-blue-500 text-white px-8 py-4 rounded-xl font-bold text-base hover:bg-blue-600 hover:scale-105 transition-all shadow-[0_0_28px_rgba(59,130,246,0.35)]"
               >
-                {isAuthenticated ? "Start Registration" : "Sign Up"}
+                {isAuthenticated ? "Upload Artwork" : "Sign Up"}
               </Link>
               <Link
                 href="/about"
@@ -353,7 +353,7 @@ export default function Home() {
 
             <div className="w-full lg:w-1/2">
               <motion.div
-                className="rounded-3xl overflow-hidden shadow-[0_8px_60px_rgba(59,130,246,0.2)] relative w-full h-65 sm:h-95 lg:h-125"
+                className="rounded-3xl overflow-hidden shadow-[0_8px_60px_rgba(59,130,246,0.2)] relative w-full aspect-[4/3] sm:aspect-[4/3] lg:aspect-[4/3]"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={collectorsInView ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -379,14 +379,14 @@ export default function Home() {
         <div className="absolute top-0 left-0 w-72 h-72 bg-blue-400/5 rounded-full blur-3xl pointer-events-none -translate-x-1/3" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-blue-400/5 rounded-full blur-3xl pointer-events-none translate-x-1/3" />
 
-        {/* Dot-grid texture */}
-        <div
-          className="absolute inset-0 opacity-[0.025] pointer-events-none"
-          style={{
-            backgroundImage: "radial-linear(rgba(148,163,184,1) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
+          {/* Dot-grid texture */}
+          <div
+            className="absolute inset-0 opacity-[0.025] pointer-events-none"
+            style={{
+              backgroundImage: "radial-gradient(rgba(148,163,184,1) 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
+            }}
+          />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-16">
@@ -465,7 +465,7 @@ export default function Home() {
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl"
                     style={{
-                      background: `radial-linear(ellipse at 30% 30%, ${item.glow}, transparent 70%)`,
+                      background: `radial-gradient(ellipse at 30% 30%, ${item.glow}, transparent 70%)`,
                     }}
                   />
                   {/* Border glow */}
@@ -670,10 +670,10 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                href={isAuthenticated ? "upload-artwork" : "/register"}
+                href={isAuthenticated ? "/upload-artwork" : "/register"}
                 className="bg-white text-orange-500 px-8 md:px-10 py-4 rounded-xl font-black text-base hover:scale-105 transition-transform shadow-lg"
               >
-                {isAuthenticated ? "Start Registration" : "Get Started"}
+                {isAuthenticated ? "Upload Artwork" : "Get Started"}
               </Link>
               <Link
                 href="/about"
@@ -686,11 +686,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Floating Upload Button ── */}
+      {/* ── Floating Upload Button (hidden on mobile to avoid overlap) ── */}
       <Link
         href="/upload-artwork"
         aria-label="Upload artwork"
-        className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-orange-500 text-white shadow-[0_4px_24px_rgba(249,115,22,0.45)] flex items-center justify-center hover:bg-orange-600 hover:scale-110 hover:shadow-[0_8px_32px_rgba(249,115,22,0.6)] transition-all duration-300"
+        className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full bg-orange-500 text-white shadow-[0_4px_24px_rgba(249,115,22,0.45)] hidden sm:flex items-center justify-center hover:bg-orange-600 hover:scale-110 hover:shadow-[0_8px_32px_rgba(249,115,22,0.6)] transition-all duration-300"
       >
         <Upload className="w-6 h-6" />
       </Link>

@@ -74,7 +74,7 @@ export default function TermsOfUsePage() {
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
-            backgroundImage: "radial-linear(rgba(96,165,250,1) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(rgba(96,165,250,1) 1px, transparent 1px)",
             backgroundSize: "28px 28px",
           }}
         />

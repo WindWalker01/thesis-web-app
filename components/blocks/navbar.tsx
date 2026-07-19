@@ -377,6 +377,8 @@ export default function NavBar() {
             <button
               onClick={() => setMobileOpen((prev) => !prev)}
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu-drawer"
               className="ml-0.5 flex h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-muted lg:hidden"
             >
               <AnimatePresence mode="wait">
@@ -418,14 +420,19 @@ export default function NavBar() {
               transition={{ duration: 0.22 }}
               className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
               onClick={closeMobile}
+              aria-hidden="true"
             />
 
             <motion.div
+              id="mobile-menu-drawer"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Mobile navigation menu"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 340, damping: 34 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col border-l border-border bg-background lg:hidden"
+              className="fixed right-0 top-0 z-50 flex h-full w-72 max-w-[calc(100vw-3rem)] flex-col border-l border-border bg-background lg:hidden"
             >
               {/* Panel header */}
               <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-5">
@@ -538,12 +545,12 @@ export default function NavBar() {
                 ) : (
                   <>
                     <Link href="/login" onClick={closeMobile}>
-                      <button className="w-full cursor-pointer rounded-xl border border-border py-2.5 text-base font-semibold transition-colors hover:bg-muted">
+                      <button className="w-full cursor-pointer rounded-xl border border-border py-3 text-base font-semibold transition-colors hover:bg-muted min-h-[44px]">
                         Login
                       </button>
                     </Link>
                     <Link href="/register" onClick={closeMobile}>
-                      <button className="w-full cursor-pointer rounded-xl bg-primary py-2.5 text-base font-semibold text-primary-foreground transition hover:opacity-90">
+                      <button className="w-full cursor-pointer rounded-xl bg-primary py-3 text-base font-semibold text-primary-foreground transition hover:opacity-90 min-h-[44px]">
                         Register
                       </button>
                     </Link>

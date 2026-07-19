@@ -134,7 +134,7 @@ export function LoginForm() {
           <Button
             type="submit"
             disabled={isSubmitting || oauthLoading /* || !captchaToken */}
-            className="h-11 w-full bg-blue-600 font-semibold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all duration-200 cursor-pointer"
+            className="h-11 w-full font-semibold transition-all duration-200 cursor-pointer"
           >
             {isSubmitting
               ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in…</>

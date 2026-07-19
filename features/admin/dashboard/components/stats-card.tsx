@@ -49,15 +49,15 @@ export function StatsCard({
       >
         <Icon className={cn("h-5 w-5", color)} />
       </div>
-      <p className="text-muted-foreground text-sm font-medium">{title}</p>
+      <p className="text-muted-foreground text-sm font-medium truncate">{title}</p>
       <div className="mt-1 flex items-baseline gap-2">
-        <p className="text-foreground text-3xl font-black">
+        <p className="text-foreground text-3xl font-black break-words">
           {value.toLocaleString()}
         </p>
         {trend && (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 text-xs font-semibold",
+              "inline-flex items-center gap-0.5 text-xs font-semibold shrink-0",
               trend.isPositive ? "text-green-500" : "text-red-500"
             )}
           >
@@ -66,7 +66,7 @@ export function StatsCard({
         )}
       </div>
       {trend && (
-        <p className="text-muted-foreground mt-1 text-xs">{trend.label}</p>
+        <p className="text-muted-foreground mt-1 text-xs truncate">{trend.label}</p>
       )}
     </motion.div>
   );

@@ -46,13 +46,13 @@ export function ActivityFeed({ activities }: Props) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-base">Recent Activity</CardTitle>
         <p className="text-muted-foreground text-xs">Latest platform events</p>
       </CardHeader>
       <CardContent>
-        <div className="space-y-1">
+        <div className="max-h-[50vh] overflow-y-auto space-y-1">
           {activities.map((activity, i) => {
             const config = activityConfig[activity.type] ?? activityConfig.system;
             const Icon = config.icon;
@@ -73,17 +73,17 @@ export function ActivityFeed({ activities }: Props) {
                   <Icon className={cn("h-4 w-4", config.color)} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium leading-snug">
+                  <p className="text-sm font-medium leading-snug line-clamp-2">
                     {activity.description}
                   </p>
                   <div className="mt-0.5 flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {activity.timestamp}
                     </span>
                     {activity.link && (
                       <Link
                         href={activity.link}
-                        className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
+                        className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline shrink-0"
                       >
                         View <ExternalLink className="h-3 w-3" />
                       </Link>

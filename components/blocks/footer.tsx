@@ -1,16 +1,23 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
     FileClockIcon, Scale,
     Mail, Share2Icon, Globe, BookOpen, ShieldCheck,
     FileText, Users, Blocks, MapPin, BrainCircuit, Link2,
 } from "lucide-react";
-import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
+import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 import { BrandNameDisplay } from "@/features/admin/settings/lib/split-brand-name";
 
-export default async function Footer() {
-    const settings = await getRuntimeSettings();
-    
+export default function Footer() {
+    const pathname = usePathname();
+    const { settings } = useSiteSettings();
+
+    // Hide footer on admin pages
+    if (pathname.startsWith("/admin")) return null;
+
     return (
         <footer className="bg-slate-900 dark:bg-background text-white mt-10">
 
@@ -75,18 +82,18 @@ export default async function Footer() {
                             Resources
                         </h4>
                         <ul className="space-y-3 text-base text-slate-300 dark:text-slate-300">
-                            {[
-                                { icon: BookOpen, label: "Intellectual Property Guide" },
-                                { icon: BrainCircuit, label: "How Perceptual Hashing Works" },
-                                { icon: Scale, label: "Research Documentation" },
-                            ].map(({ icon: Icon, label }) => (
-                                <li key={label}>
-                                    <a href="#" className="flex items-center gap-2 hover:text-blue-400 transition-colors group">
-                                        <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-blue-400 shrink-0" />
-                                        <span>{label}</span>
-                                    </a>
-                                </li>
-                            ))}
+                    {[
+                        { icon: BookOpen, label: "Intellectual Property Guide", href: "/about" },
+                        { icon: BrainCircuit, label: "How Perceptual Hashing Works", href: "/about" },
+                        { icon: Scale, label: "Research Documentation", href: "/about" },
+                    ].map(({ icon: Icon, label, href }) => (
+                        <li key={label}>
+                            <Link href={href} className="flex items-center gap-2 hover:text-blue-400 transition-colors group">
+                                <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-blue-400 shrink-0" />
+                                <span>{label}</span>
+                            </Link>
+                        </li>
+                    ))}
                         </ul>
                     </div>
 
@@ -109,11 +116,11 @@ export default async function Footer() {
                             </li>
                         </ul>
                         <div className="flex gap-3 pt-1">
-                            {[{ icon: Globe, label: "Website" }, { icon: Share2Icon, label: "Share" }, { icon: Mail, label: "Email" }].map(({ icon: Icon, label }) => (
-                                <a key={label} href="#" aria-label={label}
+                            {[{ icon: Globe, label: "Website", href: "/" }, { icon: Share2Icon, label: "Share", href: "/about" }, { icon: Mail, label: "Email", href: `mailto:${settings.support_email}` }].map(({ icon: Icon, label, href }) => (
+                                <Link key={label} href={href} aria-label={label}
                                     className="w-9 h-9 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center hover:bg-blue-500/20 hover:border-blue-500/40 transition-all">
                                     <Icon className="w-4 h-4 text-blue-400" />
-                                </a>
+                                </Link>
                             ))}
                         </div>
                     </div>

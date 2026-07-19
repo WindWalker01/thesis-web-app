@@ -39,8 +39,10 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="border-border flex h-16 items-center gap-2 border-b px-4">
-        <ShieldCheck className="h-6 w-6 text-primary" />
-        <span className="text-base font-bold tracking-tight">Admin Dashboard</span>
+        <ShieldCheck className="h-6 w-6 text-primary shrink-0" />
+        <span className={cn("text-base font-bold tracking-tight transition-opacity duration-200", !isOpen && "opacity-0 w-0 overflow-hidden")}>
+          Admin Dashboard
+        </span>
       </div>
 
       {/* Navigation */}
@@ -56,22 +58,25 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               onClick={onClose}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                !isOpen && "justify-center px-2",
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span className="flex-1">{item.label}</span>
+              <span className={cn("flex-1 transition-opacity duration-200", !isOpen && "opacity-0 w-0 overflow-hidden")}>
+                {item.label}
+              </span>
               {showBadge && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                <span className={cn("flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground transition-opacity duration-200", !isOpen && "opacity-0 w-0 overflow-hidden")}>
                   {pendingCount}
                 </span>
               )}
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="bg-primary ml-auto h-1.5 w-1.5 rounded-full"
+                  className={cn("bg-primary h-1.5 w-1.5 rounded-full transition-opacity duration-200", !isOpen && "hidden")}
                 />
               )}
             </Link>
@@ -85,15 +90,17 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           variant="ghost"
           size="sm"
           onClick={onToggle}
-          className="w-full justify-start gap-2 text-muted-foreground"
+          className={cn("w-full gap-2 text-muted-foreground", isOpen ? "justify-start" : "justify-center")}
         >
           <ChevronLeft
             className={cn(
-              "h-4 w-4 transition-transform",
+              "h-4 w-4 transition-transform shrink-0",
               !isOpen && "rotate-180"
             )}
           />
-          <span className="text-xs">{isOpen ? "Collapse" : "Expand"}</span>
+          <span className={cn("text-xs transition-opacity duration-200", !isOpen && "opacity-0 w-0 overflow-hidden")}>
+            {isOpen ? "Collapse" : "Expand"}
+          </span>
         </Button>
       </div>
     </div>
