@@ -149,7 +149,7 @@ export function ArtworkDrawer({
                 </TabsContent>
 
                 <TabsContent value="blockchain" className="pt-4">
-                  <BlockchainCard artwork={detail} />
+                  <BlockchainCard artwork={detail} onRefresh={onRefresh} />
                 </TabsContent>
 
                 <TabsContent value="similarity" className="pt-4">

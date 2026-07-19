@@ -10,6 +10,7 @@ import {
   requestMoreEvidence,
   requestArtistExplanation,
   escalateArtwork,
+  registerArtworkBlockchain,
   removeArtwork,
 } from "@/features/admin/artwork-management/server/admin-actions";
 
@@ -76,6 +77,9 @@ export async function POST(
         break;
       case "escalate":
         result = await escalateArtwork(id, notes ?? "");
+        break;
+      case "register_blockchain":
+        result = await registerArtworkBlockchain(id);
         break;
       case "remove":
         result = await removeArtwork(id, reason ?? notes ?? "");

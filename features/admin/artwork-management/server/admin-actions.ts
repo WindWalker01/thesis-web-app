@@ -451,6 +451,76 @@ export async function escalateArtwork(
   }
 }
 
+// ========== REGISTER ON BLOCKCHAIN ==========
+
+export async function registerArtworkBlockchain(
+  artworkId: string
+): Promise<AdminActionResult> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const adminId = await verifyAdmin(supabase);
+
+    // Use admin client to bypass RLS when reading artwork data for blockchain registration
+    const { createSupabaseAdminClient } = await import("@/lib/supabase/admin");
+    const adminSupabase = createSupabaseAdminClient();
+
+    const { data: artwork, error: fetchError } = await adminSupabase
+      .from("registered_arts")
+      .select("id, owner_id, author_id_hash, file_hash, perceptual_hash, evidence_hash, tx_hash, status")
+      .eq("id", artworkId)
+      .single();
+
+    if (fetchError || !artwork) {
+      return { success: false, message: "Artwork record not found." };
+    }
+
+    // Idempotency check: skip if already registered
+    if (artwork.tx_hash) {
+      return { success: false, message: "Artwork already has a blockchain transaction hash." };
+    }
+
+    if (artwork.status === "active") {
+      return { success: false, message: "Artwork is already active on the blockchain." };
+    }
+
+    // Validate that required hashes exist
+    if (!artwork.author_id_hash || !artwork.file_hash || !artwork.perceptual_hash || !artwork.evidence_hash) {
+      return { success: false, message: "Missing blockchain hashes. The artwork may not have been fully processed." };
+    }
+
+    // Delegate to the shared blockchain service
+    const { registerArtworkOnBlockchain } = await import("@/features/txs/server/register-artwork-service");
+    const result = await registerArtworkOnBlockchain({
+      artworkId: artwork.id,
+      ownerId: artwork.owner_id,
+      authorIdHash: artwork.author_id_hash as `0x${string}`,
+      fileHash: artwork.file_hash as `0x${string}`,
+      perceptualHash: artwork.perceptual_hash as `0x${string}`,
+      evidenceHash: artwork.evidence_hash as `0x${string}`,
+    });
+
+    if (!result.success) {
+      await createAdminAuditLog(supabase, adminId, "register_blockchain", `Blockchain registration failed for artwork ${artworkId}: ${result.message}`, {
+        artwork_id: artworkId,
+      });
+      return { success: false, message: `Blockchain registration failed: ${result.message}` };
+    }
+
+    await createAdminAuditLog(supabase, adminId, "register_blockchain", `Blockchain registration successful for artwork ${artworkId}`, {
+      artwork_id: artworkId,
+      tx_hash: result.txHash,
+      work_id: result.workId,
+    });
+
+    return { success: true, message: `Artwork registered on blockchain. TX: ${result.txHash}` };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to register artwork on blockchain",
+    };
+  }
+}
+
 // ========== REMOVE ARTWORK ==========
 
 export async function removeArtwork(
