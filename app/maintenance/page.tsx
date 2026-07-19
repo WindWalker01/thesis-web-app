@@ -41,6 +41,8 @@ export default async function MaintenancePage() {
           <Image
             src={settings.platform_logo_url}
             alt={settings.platform_name}
+            width={64}
+            height={64}
             className="h-16 w-auto"
           />
         </div>
