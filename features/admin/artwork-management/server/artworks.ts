@@ -2,6 +2,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ArtworkListItem,
@@ -92,8 +93,14 @@ export async function getArtworksList(
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
 
+  // Use admin client for related data queries to bypass RLS
+  // This ensures admins can see ALL registered artworks, even those
+  // not yet posted to the community (which may not have art_posts records)
+  const adminSupabase = createSupabaseAdminClient();
+
   // Build query for registered_arts with related data
-  let query = supabase
+  // Use admin client to bypass RLS — ensures admins see ALL registered artworks
+  let query = adminSupabase
     .from("registered_arts")
     .select(
       `
@@ -166,46 +173,46 @@ export async function getArtworksList(
     artworks.map(async (art: any) => {
       const artworkId = art.id;
 
-      // Fetch art_post
-      const { data: post } = await supabase
+      // Fetch art_post (use admin client to bypass RLS)
+      const { data: post } = await adminSupabase
         .from("art_posts")
         .select("id, visibility, is_archived, is_nsfw, upvote_count, downvote_count, score")
         .eq("art_id", artworkId)
         .maybeSingle();
 
-      // Fetch similarity scan
-      const { data: scan } = await supabase
+      // Fetch similarity scan (use admin client to bypass RLS)
+      const { data: scan } = await adminSupabase
         .from("art_similarity_scans")
         .select("id, status, best_similarity_percentage, total_matches, success")
         .eq("art_id", artworkId)
         .maybeSingle();
 
-      // Fetch review
-      const { data: review } = await supabase
+      // Fetch review (use admin client to bypass RLS)
+      const { data: review } = await adminSupabase
         .from("artwork_reviews")
         .select("id, status")
         .eq("artwork_id", artworkId)
         .maybeSingle();
 
-      // Fetch genres
-      const { data: artGenres } = await supabase
+      // Fetch genres (use admin client to bypass RLS)
+      const { data: artGenres } = await adminSupabase
         .from("art_genres")
         .select("genre_id")
         .eq("art_id", artworkId);
       let genres: Array<{ id: number; name: string }> = [];
       if (artGenres && artGenres.length > 0) {
         const genreIds = artGenres.map((g: any) => g.genre_id);
-        const { data: genreNames } = await supabase
+        const { data: genreNames } = await adminSupabase
           .from("genres")
           .select("id, name")
           .in("id", genreIds);
         genres = (genreNames ?? []).map((g: any) => ({ id: g.id, name: g.name }));
       }
 
-      // Count reports via art_posts
+      // Count reports via art_posts (use admin client to bypass RLS)
       let reportCount = 0;
       if (post) {
-        const { count: rc } = await supabase
+        const { count: rc } = await adminSupabase
           .from("reports")
           .select("*", { count: "exact", head: true })
           .eq("reported_art_post_id", post.id);
@@ -334,7 +341,9 @@ export async function getArtworksList(
 
   return {
     items: filteredItems,
-    total: count ?? 0,
+    total: filteredItems.length < params.limit && filteredItems.length > 0
+      ? (params.page - 1) * params.limit + filteredItems.length
+      : count ?? 0,
     page: params.page,
     limit: params.limit,
     totalPages: Math.ceil((count ?? 0) / params.limit),
@@ -349,8 +358,11 @@ export async function getArtworkDetail(
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
 
-  // Fetch artwork
-  const { data: artwork, error } = await supabase
+  // Use admin client to bypass RLS — ensures admins see ALL registered artworks
+  const adminSupabase = createSupabaseAdminClient();
+
+  // Fetch artwork (use admin client to bypass RLS)
+  const { data: artwork, error } = await adminSupabase
     .from("registered_arts")
     .select(
       `
@@ -368,22 +380,22 @@ export async function getArtworkDetail(
   if (error || !artwork) return null;
   const art = artwork as any;
 
-  // Fetch art_post
-  const { data: post } = await supabase
+  // Fetch art_post (use admin client to bypass RLS)
+  const { data: post } = await adminSupabase
     .from("art_posts")
     .select("id, visibility, is_archived, is_nsfw, upvote_count, downvote_count, score, created_at")
     .eq("art_id", artworkId)
     .maybeSingle();
 
-  // Fetch similarity scan
-  const { data: scan } = await supabase
+  // Fetch similarity scan (use admin client to bypass RLS)
+  const { data: scan } = await adminSupabase
     .from("art_similarity_scans")
     .select("*")
     .eq("art_id", artworkId)
     .maybeSingle();
 
-  // Fetch review with actions
-  const { data: review } = await supabase
+  // Fetch review with actions (use admin client to bypass RLS)
+  const { data: review } = await adminSupabase
     .from("artwork_reviews")
     .select(
       `
@@ -400,7 +412,7 @@ export async function getArtworkDetail(
 
   let reviewWithActions = null;
   if (review) {
-    const { data: actions } = await supabase
+    const { data: actions } = await adminSupabase
       .from("artwork_review_actions")
       .select(
         `
@@ -419,25 +431,25 @@ export async function getArtworkDetail(
     };
   }
 
-  // Fetch genres
-  const { data: artGenres } = await supabase
+  // Fetch genres (use admin client to bypass RLS)
+  const { data: artGenres } = await adminSupabase
     .from("art_genres")
     .select("genre_id")
     .eq("art_id", artworkId);
   let genres: Array<{ id: number; name: string }> = [];
   if (artGenres && artGenres.length > 0) {
     const genreIds = artGenres.map((g: any) => g.genre_id);
-    const { data: genreNames } = await supabase
+    const { data: genreNames } = await adminSupabase
       .from("genres")
       .select("id, name")
       .in("id", genreIds);
     genres = (genreNames ?? []).map((g: any) => ({ id: g.id, name: g.name }));
   }
 
-  // Fetch reports
+  // Fetch reports (use admin client to bypass RLS)
   let reports: Array<any> = [];
   if (post) {
-    const { data: reportData } = await supabase
+    const { data: reportData } = await adminSupabase
       .from("reports")
       .select(
         `
@@ -452,8 +464,8 @@ export async function getArtworkDetail(
     reports = (reportData ?? []) as any[];
   }
 
-  // Fetch notifications
-  const { data: notifications } = await supabase
+  // Fetch notifications (use admin client to bypass RLS)
+  const { data: notifications } = await adminSupabase
     .from("notifications")
     .select("id, type, title, message, is_read, created_at")
     .eq("related_art_id", artworkId)
@@ -507,48 +519,51 @@ export async function getArtworkStats(): Promise<ArtworkStats> {
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
 
+  // Use admin client to bypass RLS for accurate stats
+  const adminSupabase = createSupabaseAdminClient();
+
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   // Total registered
-  const { count: totalRegistered } = await supabase
+  const { count: totalRegistered } = await adminSupabase
     .from("registered_arts")
     .select("*", { count: "exact", head: true });
 
   // Pending blockchain
-  const { count: pendingBlockchain } = await supabase
+  const { count: pendingBlockchain } = await adminSupabase
     .from("registered_arts")
     .select("*", { count: "exact", head: true })
     .eq("status", "pending_blockchain");
 
   // Blockchain registered (active + has tx_hash)
-  const { count: blockchainRegistered } = await supabase
+  const { count: blockchainRegistered } = await adminSupabase
     .from("registered_arts")
     .select("*", { count: "exact", head: true })
     .eq("status", "active")
     .not("tx_hash", "is", null);
 
   // Flagged for review
-  const { count: flaggedForReview } = await supabase
+  const { count: flaggedForReview } = await adminSupabase
     .from("artwork_reviews")
     .select("*", { count: "exact", head: true })
     .in("status", ["pending", "needs_info"]);
 
   // Public posts
-  const { count: publicPosts } = await supabase
+  const { count: publicPosts } = await adminSupabase
     .from("art_posts")
     .select("*", { count: "exact", head: true })
     .eq("visibility", "public")
     .eq("is_archived", false);
 
   // Archived posts
-  const { count: archivedPosts } = await supabase
+  const { count: archivedPosts } = await adminSupabase
     .from("art_posts")
     .select("*", { count: "exact", head: true })
     .eq("is_archived", true);
 
   // Reported artworks (distinct art posts with reports)
-  const { data: reportedArtData } = await supabase
+  const { data: reportedArtData } = await adminSupabase
     .from("reports")
     .select("reported_art_post_id");
   const uniqueReportedPosts = new Set(
@@ -556,19 +571,19 @@ export async function getArtworkStats(): Promise<ArtworkStats> {
   );
 
   // Similarity matches (scans with matches)
-  const { count: similarityMatches } = await supabase
+  const { count: similarityMatches } = await adminSupabase
     .from("art_similarity_scans")
     .select("*", { count: "exact", head: true })
     .gt("total_matches", 0);
 
   // Today's uploads
-  const { count: todaysUploads } = await supabase
+  const { count: todaysUploads } = await adminSupabase
     .from("registered_arts")
     .select("*", { count: "exact", head: true })
     .gte("created_at", todayStart.toISOString());
 
   // Highest similarity today
-  const { data: highestSimData } = await supabase
+  const { data: highestSimData } = await adminSupabase
     .from("art_similarity_scans")
     .select("best_similarity_percentage")
     .not("best_similarity_percentage", "is", null)

@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type {
-  ArtworkListItem,
   ArtworkStats,
   ArtworksQueryParams,
   PaginatedArtworksResponse,
@@ -43,6 +42,9 @@ export function useArtworks(params: ArtworksQueryParams) {
       return result.data as PaginatedArtworksResponse;
     },
     placeholderData: (prev) => prev,
+    staleTime: 1000 * 30, // 30 seconds — refresh quickly so admins see latest
+    refetchInterval: 1000 * 30, // auto-refresh every 30 seconds
+    meta: { persist: false }, // don't cache in IndexedDB — always fetch fresh
   });
 }
 

@@ -3,6 +3,11 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  registerArtworkOnBlockchain as sharedRegisterArtwork,
+  createBlockchainSuccessNotification,
+  createBlockchainFailureNotification,
+} from "@/features/txs/server/register-artwork-service";
 import type {
   ReviewQueueItem,
   ReviewDetail,
@@ -660,47 +665,67 @@ export async function approveArtwork(
       artwork_id: review.artwork_id,
     });
 
-    // Trigger blockchain registration (fire and forget)
-    try {
-      const { recordArtworkOnBlockchain } = await import(
-        "@/features/(user)/upload-artwork/server/record-artwork-blockchain"
-      );
-      recordArtworkOnBlockchain({
-        artworkId: review.artwork_id,
-        authorIdHash: artwork.author_id_hash ?? ("0x" + "0".repeat(64)),
-        fileHash: artwork.file_hash,
-        perceptualHash: artwork.perceptual_hash,
-        evidenceHash: artwork.evidence_hash ?? ("0x" + "0".repeat(64)),
-      }).then((result) => {
-        if (result.success) {
-          // Update review with blockchain trigger action
-          supabase.from("artwork_review_actions").insert({
-            review_id: reviewId,
-            admin_id: adminId,
-            action: "blockchain_triggered",
-            previous_status: "approved",
-            new_status: "blockchain_recorded",
-            notes: `Blockchain registration completed. TX: ${result.txHash}`,
-          });
-          // Create notification
-          supabase.from("notifications").insert({
-            user_id: artwork.owner_id,
-            type: "blockchain_recorded",
-            title: "Artwork Registered on Blockchain",
-            message: `Your artwork "${artwork.title}" has been successfully registered on the blockchain. Transaction: ${result.txHash}`,
-            related_art_id: review.artwork_id,
-            action_url: `/profile/artworks/${review.artwork_id}`,
-            metadata: { tx_hash: result.txHash, work_id: result.workId },
-          });
-        }
-      }).catch(() => {
-        // Blockchain recording failed silently - artwork stays as pending_blockchain for retry
-      });
-    } catch {
-      // Import failed, artwork will be picked up by the existing retry mechanism
-    }
+    // ── Blockchain registration (awaited, same request context) ──
+    const blockchainResult = await sharedRegisterArtwork({
+      artworkId: review.artwork_id,
+      ownerId: artwork.owner_id,
+      authorIdHash: artwork.author_id_hash ?? ("0x" + "0".repeat(64)),
+      fileHash: artwork.file_hash,
+      perceptualHash: artwork.perceptual_hash,
+      evidenceHash: artwork.evidence_hash ?? ("0x" + "0".repeat(64)),
+    });
 
-    return { success: true, message: "Artwork approved. Blockchain registration initiated." };
+    if (blockchainResult.success) {
+      // Log blockchain trigger action
+      await createAction(
+        supabase,
+        reviewId,
+        adminId,
+        "blockchain_triggered",
+        "approved",
+        "blockchain_recorded",
+        `Blockchain registration completed. TX: ${blockchainResult.txHash}`
+      );
+
+      // Notify artist of success
+      await createBlockchainSuccessNotification(
+        review.artwork_id,
+        artwork.owner_id,
+        artwork.title,
+        blockchainResult.txHash,
+        blockchainResult.workId
+      );
+
+      return {
+        success: true,
+        message: `Artwork approved and registered on blockchain. TX: ${blockchainResult.txHash}`,
+      };
+    } else {
+      // Blockchain registration failed — artwork status is now "blockchain_failed"
+      // Log the failure action
+      await createAction(
+        supabase,
+        reviewId,
+        adminId,
+        "blockchain_triggered",
+        "approved",
+        "blockchain_failed",
+        `Blockchain registration failed: ${blockchainResult.message}`
+      );
+
+      // Notify artist of failure
+      await createBlockchainFailureNotification(
+        review.artwork_id,
+        artwork.owner_id,
+        artwork.title,
+        blockchainResult.message
+      );
+
+      return {
+        success: true,
+        message: `Artwork approved but blockchain registration failed: ${blockchainResult.message}. You can retry from the admin panel.`,
+      };
+    }
   } catch (error) {
     return {
       success: false,
