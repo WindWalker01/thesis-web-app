@@ -158,7 +158,11 @@ export default function ReportsManagementPage() {
       if (result.success) {
         await refetchDetail();
         await refetchReports();
+      } else {
+        toast.error(result.error?.message ?? "Failed to update report status");
       }
+    } catch {
+      toast.error("Failed to update report status");
     } finally {
       setIsUpdatingStatus(false);
     }

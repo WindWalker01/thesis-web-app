@@ -89,49 +89,60 @@ export async function requestArtworkInformation(
 }
 
 /**
- * Remove an artwork entirely.
- * Calls the removeArtwork from admin-actions module.
- * Also resolves associated reports.
+ * Remove an artwork from public view (soft-delete).
+ * 
+ * Instead of hard-deleting the artwork (which would cause FK violations on the
+ * reports table), this performs a soft-delete:
+ * 1. Archives and hides the art post from public visibility
+ * 2. Preserves the registered_arts record (blockchain evidence remains intact)
+ * 3. Does NOT delete from registered_arts, avoiding FK cascade issues
+ * 
+ * The blockchain registration record is preserved as historical evidence,
+ * which aligns with the thesis objective of maintaining immutable ownership proof.
  */
 export async function removeArtworkFromReports(
   artworkId: string,
   reason: string
 ): Promise<ModerationActionResult> {
   try {
-    const { removeArtwork } = await import(
-      "@/features/admin/artwork-management/server/admin-actions"
-    );
-    const result = await removeArtwork(artworkId, reason);
+    const supabase = createSupabaseAdminClient();
 
-    if (result.success) {
-      // Resolve all open reports for this artwork
-      const supabase = createSupabaseAdminClient();
-      const { data: posts } = await supabase
+    // Soft-delete: archive and hide the art post instead of deleting
+    const { data: posts, error: postsError } = await supabase
+      .from("art_posts")
+      .select("id")
+      .eq("art_id", artworkId);
+
+    if (postsError) {
+      return { success: false, message: `Failed to find artwork posts: ${postsError.message}` };
+    }
+
+    if (posts && posts.length > 0) {
+      const postIds = posts.map((p: any) => p.id);
+
+      // Archive and hide all posts for this artwork
+      const { error: updateError } = await supabase
         .from("art_posts")
-        .select("id")
-        .eq("art_id", artworkId);
+        .update({
+          visibility: "private",
+          is_archived: true,
+        })
+        .in("id", postIds);
 
-      if (posts && posts.length > 0) {
-        const postIds = posts.map((p: any) => p.id);
-        const { data: openReports } = await supabase
-          .from("reports")
-          .select("id")
-          .in("reported_art_post_id", postIds)
-          .in("status", ["pending_review", "under_review"]);
-
-        if (openReports && openReports.length > 0) {
-          await supabase
-            .from("reports")
-            .update({
-              status: "resolved",
-              resolved_at: new Date().toISOString(),
-            })
-            .in("id", openReports.map((r: any) => r.id));
-        }
+      if (updateError) {
+        return { success: false, message: `Failed to archive artwork: ${updateError.message}` };
       }
     }
 
-    return result;
+    // Log the removal in admin_audit_logs
+    await supabase.from("admin_audit_logs").insert({
+      admin_id: "", // Will be set by caller if needed
+      action: "remove_artwork",
+      reason: reason,
+      metadata: { artwork_id: artworkId },
+    });
+
+    return { success: true, message: "Artwork has been removed from public view. The blockchain registration record is preserved for evidence." };
   } catch (error) {
     return {
       success: false,
@@ -227,6 +238,7 @@ export async function getReviewForArtwork(
 /**
  * Resolve a report after a moderation action.
  * Updates the report status and creates a decision record.
+ * Each step is individually checked and logged to prevent silent partial failures.
  */
 export async function resolveReportAfterModeration(
   reportId: string,
@@ -237,8 +249,8 @@ export async function resolveReportAfterModeration(
   try {
     const supabase = createSupabaseAdminClient();
 
-    // Update report status
-    await supabase
+    // 1. Update report status
+    const { error: updateError } = await supabase
       .from("reports")
       .update({
         status: "resolved",
@@ -246,16 +258,26 @@ export async function resolveReportAfterModeration(
       })
       .eq("id", reportId);
 
-    // Record decision
-    await supabase.from("report_decisions").insert({
+    if (updateError) {
+      console.error("[resolveReportAfterModeration] Failed to update report status:", updateError.message);
+      return { success: false, message: `Failed to update report status: ${updateError.message}` };
+    }
+
+    // 2. Record decision
+    const { error: decisionError } = await supabase.from("report_decisions").insert({
       report_id: reportId,
       admin_id: adminId,
       decision: decisionValue,
       summary: summary,
     });
 
-    // Create audit action
-    await supabase.from("report_actions").insert({
+    if (decisionError) {
+      console.error("[resolveReportAfterModeration] Failed to record decision:", decisionError.message);
+      // Continue — report is already resolved, this is a secondary concern
+    }
+
+    // 3. Create audit action
+    const { error: auditError } = await supabase.from("report_actions").insert({
       report_id: reportId,
       admin_id: adminId,
       action: "decision_recorded",
@@ -264,27 +286,17 @@ export async function resolveReportAfterModeration(
       notes: `Moderation action resolved report. Decision: ${decisionValue}`,
     });
 
-    // Notify reporter
-    const { data: report } = await supabase
-      .from("reports")
-      .select("reporter_id, title")
-      .eq("id", reportId)
-      .single();
-
-    if (report) {
-      await supabase.from("notifications").insert({
-        user_id: (report as any).reporter_id,
-        type: "report_resolved",
-        title: "Report Resolved",
-        message: `Your report "${(report as any).title}" has been resolved after moderation action was taken.`,
-        related_report_id: reportId,
-        action_url: `/my-reports/${reportId}`,
-        metadata: {},
-      });
+    if (auditError) {
+      console.error("[resolveReportAfterModeration] Failed to create audit action:", auditError.message);
+      // Continue — audit trail is important but not blocking
     }
+
+    // 4. Notify reporter — handled by the database trigger notify_report_resolved()
+    // No need to insert the notification here; the trigger fires after the UPDATE above.
 
     return { success: true, message: "Report resolved after moderation" };
   } catch (error) {
+    console.error("[resolveReportAfterModeration] Unexpected error:", error);
     return {
       success: false,
       message: error instanceof Error ? error.message : "Failed to resolve report",

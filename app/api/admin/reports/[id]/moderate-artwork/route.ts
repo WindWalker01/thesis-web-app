@@ -44,56 +44,94 @@ export async function POST(
 
     switch (action) {
       case "approve_artwork": {
-        // Get or ensure a review exists for this artwork
-        const reviewResult = await ensureReviewForArtwork(artworkId);
-        if (!reviewResult.success || !reviewResult.reviewId) {
-          return NextResponse.json(
-            { success: false, error: { message: reviewResult.message } },
-            { status: 500 }
-          );
-        }
+        // Check if artwork is already blockchain-registered
+        const { data: artwork } = await supabase
+          .from("registered_arts")
+          .select("tx_hash, status")
+          .eq("id", artworkId)
+          .single();
 
-        result = await approveArtworkFromReview(
-          artworkId,
-          reviewResult.reviewId,
-          notes ?? "Approved via report moderation"
-        );
-
-        if (result.success) {
-          // Resolve the report as infringement confirmed
-          await resolveReportAfterModeration(
+        if (artwork?.tx_hash && artwork?.status === "active") {
+          // Artwork already registered on blockchain — skip review, resolve report directly
+          result = await resolveReportAfterModeration(
             reportId,
             adminId,
-            "infringement_confirmed",
-            reason ?? "Artwork was reviewed and approved during report investigation."
+            "no_violation",
+            reason ?? "Report dismissed — no infringement found after investigation."
           );
+        } else {
+          // Normal flow: ensure review exists, then approve artwork
+          const reviewResult = await ensureReviewForArtwork(artworkId);
+          if (!reviewResult.success || !reviewResult.reviewId) {
+            return NextResponse.json(
+              { success: false, error: { message: reviewResult.message } },
+              { status: 500 }
+            );
+          }
+
+          const approveResult = await approveArtworkFromReview(
+            artworkId,
+            reviewResult.reviewId,
+            notes ?? "Approved via report moderation"
+          );
+
+          if (approveResult.success) {
+            result = await resolveReportAfterModeration(
+              reportId,
+              adminId,
+              "no_violation",
+              reason ?? "Artwork was reviewed and cleared during report investigation."
+            );
+          } else {
+            result = approveResult;
+          }
         }
         break;
       }
 
       case "reject_artwork": {
-        const reviewResult = await ensureReviewForArtwork(artworkId);
-        if (!reviewResult.success || !reviewResult.reviewId) {
-          return NextResponse.json(
-            { success: false, error: { message: reviewResult.message } },
-            { status: 500 }
-          );
-        }
+        // Check if artwork is already blockchain-registered
+        const { data: artworkForReject } = await supabase
+          .from("registered_arts")
+          .select("tx_hash, status")
+          .eq("id", artworkId)
+          .single();
 
-        result = await rejectArtworkFromReview(
-          artworkId,
-          reviewResult.reviewId,
-          reason ?? "Rejected via report moderation",
-          notes ?? ""
-        );
-
-        if (result.success) {
-          await resolveReportAfterModeration(
+        if (artworkForReject?.tx_hash && artworkForReject?.status === "active") {
+          // Artwork already registered — skip review, resolve report directly
+          result = await resolveReportAfterModeration(
             reportId,
             adminId,
             "infringement_confirmed",
-            reason ?? "Artwork was rejected during report investigation."
+            reason ?? "Report upheld — infringement confirmed after investigation."
           );
+        } else {
+          // Normal flow: ensure review exists, then reject artwork
+          const reviewResult = await ensureReviewForArtwork(artworkId);
+          if (!reviewResult.success || !reviewResult.reviewId) {
+            return NextResponse.json(
+              { success: false, error: { message: reviewResult.message } },
+              { status: 500 }
+            );
+          }
+
+          const rejectResult = await rejectArtworkFromReview(
+            artworkId,
+            reviewResult.reviewId,
+            reason ?? "Rejected via report moderation",
+            notes ?? ""
+          );
+
+          if (rejectResult.success) {
+            result = await resolveReportAfterModeration(
+              reportId,
+              adminId,
+              "infringement_confirmed",
+              reason ?? "Artwork was flagged during report investigation."
+            );
+          } else {
+            result = rejectResult;
+          }
         }
         break;
       }
@@ -105,7 +143,7 @@ export async function POST(
         );
 
         if (result.success) {
-          await resolveReportAfterModeration(
+          result = await resolveReportAfterModeration(
             reportId,
             adminId,
             "infringement_confirmed",
@@ -154,6 +192,14 @@ export async function POST(
         );
     }
 
+    // Normalize response: convert { success: false, message } to { success: false, error: { message } }
+    // because the frontend (ReportDrawer) expects result.error?.message
+    if (result && !result.success && "message" in result) {
+      return NextResponse.json(
+        { success: false, error: { message: result.message } },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(
