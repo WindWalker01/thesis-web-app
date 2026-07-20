@@ -13,6 +13,8 @@ import type {
   ReportEvidence,
   ReportDecision,
   AdminReportsQuery,
+  ModerationSummary,
+  ActionRecommendation,
 } from "@/features/reports/types";
 
 // Re-export shared types for convenience
@@ -27,6 +29,8 @@ export type {
   ReportEvidence,
   ReportDecision,
   AdminReportsQuery,
+  ModerationSummary,
+  ActionRecommendation,
 };
 
 // Extended query params for the reports list
@@ -79,11 +83,14 @@ export type ReportDetailTab =
 
 // Decision labels
 export const DECISION_LABELS: Record<string, string> = {
-  infringement_confirmed: "Infringement Confirmed",
   no_violation: "No Violation",
+  copyright_confirmed: "Copyright Confirmed",
+  guideline_violation: "Community Guideline Violation",
   insufficient_evidence: "Insufficient Evidence",
-  duplicate_report: "Duplicate Report",
-  other: "Other",
+  false_report: "False Report",
+  infringement_confirmed: "Infringement Confirmed (Legacy)",
+  duplicate_report: "Duplicate Report (Legacy)",
+  other: "Other (Legacy)",
 };
 
 // Action labels
@@ -94,6 +101,14 @@ export const ACTION_LABELS: Record<string, string> = {
   comment_added: "Comment Added",
   decision_recorded: "Decision Recorded",
   report_created: "Report Created",
+  user_warned: "Warning Issued",
+  user_suspended: "Account Suspended",
+  user_banned: "Account Banned",
+  artwork_removed: "Artwork Removed",
+  artwork_restored: "Artwork Restored",
+  artwork_nsfw: "Marked NSFW",
+  plagiarism_scan_rerun: "Plagiarism Scan Re-run",
+  evidence_reviewed: "Evidence Reviewed",
 };
 
 // Report type labels (re-exporting from shared)

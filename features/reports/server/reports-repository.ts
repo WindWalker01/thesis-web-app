@@ -478,6 +478,19 @@ export async function getAdminReportDetail(
     getReportActions(supabase, reportId),
   ]);
 
+  // Fetch moderation summary for user and artwork context
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const registeredArts = artPost?.registered_arts as any;
+  const artworkOwnerId = registeredArts?.owner_id ?? null;
+  const moderationSummary = await getModerationSummary(
+    supabase,
+    report.reported_art_post_id,
+    artworkOwnerId
+  );
+
+  // Fetch actions with admin names (join users)
+  const actionsWithNames = await getReportActionsWithAdminNames(supabase, reportId);
+
   return {
     report,
     reporter: reporter as AdminReportDetail["reporter"],
@@ -485,8 +498,174 @@ export async function getAdminReportDetail(
     evidence,
     comments,
     decision,
-    actions,
+    actions: actionsWithNames.length > 0 ? actionsWithNames : actions,
+    moderationSummary,
   };
+}
+
+// ========== MODERATION SUMMARY ==========
+
+export async function getModerationSummary(
+  supabase: SupabaseClient,
+  reportedArtPostId: string,
+  artworkOwnerId: string | null
+): Promise<import("@/features/reports/types").ModerationSummary> {
+  // Fetch user stats and artwork stats in parallel
+  const [userStats, artworkStats] = await Promise.all([
+    artworkOwnerId
+      ? getModerationUserStats(supabase, artworkOwnerId)
+      : Promise.resolve({ warnings: 0, suspensions: 0, bans: 0, previousReports: 0, resolvedReports: 0 }),
+    getModerationArtworkStats(supabase, reportedArtPostId),
+  ]);
+
+  return {
+    user: userStats,
+    artwork: artworkStats,
+  };
+}
+
+async function getModerationUserStats(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{
+  warnings: number;
+  suspensions: number;
+  bans: number;
+  previousReports: number;
+  resolvedReports: number;
+}> {
+  const [warningsRes, suspensionsRes, bansRes, reportsRes] = await Promise.all([
+    supabase.from("user_warnings").select("*", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("admin_audit_logs").select("*", { count: "exact", head: true }).eq("target_user_id", userId).eq("action", "suspend_user"),
+    supabase.from("admin_audit_logs").select("*", { count: "exact", head: true }).eq("target_user_id", userId).eq("action", "ban_user"),
+    supabase.rpc("get_user_report_counts", { p_user_id: userId }),
+  ]);
+
+  // Fallback for reports count if RPC doesn't exist
+  let previousReports = 0;
+  let resolvedReports = 0;
+  if (reportsRes.error) {
+    // Manual query fallback
+    const { data: userArtworks } = await supabase
+      .from("registered_arts")
+      .select("id")
+      .eq("owner_id", userId);
+
+    if (userArtworks && userArtworks.length > 0) {
+      const artIds = userArtworks.map((a) => a.id);
+      const { data: artPosts } = await supabase
+        .from("art_posts")
+        .select("id")
+        .in("art_id", artIds);
+
+      if (artPosts && artPosts.length > 0) {
+        const postIds = artPosts.map((p) => p.id);
+        const { count: totalCount } = await supabase
+          .from("reports")
+          .select("*", { count: "exact", head: true })
+          .in("reported_art_post_id", postIds);
+        const { count: resolvedCount } = await supabase
+          .from("reports")
+          .select("*", { count: "exact", head: true })
+          .in("reported_art_post_id", postIds)
+          .eq("status", "resolved");
+
+        previousReports = totalCount ?? 0;
+        resolvedReports = resolvedCount ?? 0;
+      }
+    }
+  } else if (reportsRes.data && typeof reportsRes.data === "object") {
+    const data = reportsRes.data as Record<string, number>;
+    previousReports = data.total ?? 0;
+    resolvedReports = data.resolved ?? 0;
+  }
+
+  return {
+    warnings: warningsRes.count ?? 0,
+    suspensions: suspensionsRes.count ?? 0,
+    bans: bansRes.count ?? 0,
+    previousReports,
+    resolvedReports,
+  };
+}
+
+async function getModerationArtworkStats(
+  supabase: SupabaseClient,
+  artPostId: string
+): Promise<{
+  previousReports: number;
+  copyrightReports: number;
+  wasRemoved: boolean;
+}> {
+  const [allRes, copyrightRes, removedRes] = await Promise.all([
+    supabase.from("reports").select("*", { count: "exact", head: true }).eq("reported_art_post_id", artPostId),
+    supabase.from("reports").select("*", { count: "exact", head: true }).eq("reported_art_post_id", artPostId).eq("report_type", "copyright"),
+    supabase.from("report_actions")
+      .select("*", { count: "exact", head: true })
+      .eq("action", "artwork_removed")
+      .in("report_id", (await supabase.from("reports").select("id").eq("reported_art_post_id", artPostId)).data?.map((r: { id: string }) => r.id) ?? []),
+  ]);
+
+  // Simpler fallback for wasRemoved: check art_posts is_archived
+  const { data: artPost } = await supabase
+    .from("art_posts")
+    .select("is_archived")
+    .eq("id", artPostId)
+    .single();
+
+  return {
+    previousReports: allRes.count ?? 0,
+    copyrightReports: copyrightRes.count ?? 0,
+    wasRemoved: artPost?.is_archived ?? false,
+  };
+}
+
+// ========== REPORT ACTIONS WITH ADMIN NAMES ==========
+
+export async function getReportActionsWithAdminNames(
+  supabase: SupabaseClient,
+  reportId: string
+): Promise<import("@/features/reports/types").ReportAction[]> {
+  const { data, error } = await supabase
+    .from("report_actions")
+    .select(`
+      id,
+      report_id,
+      admin_id,
+      action,
+      previous_status,
+      new_status,
+      notes,
+      created_at,
+      admin:users!report_actions_admin_id_fkey (
+        first_name,
+        last_name
+      )
+    `)
+    .eq("report_id", reportId)
+    .order("created_at", { ascending: false });
+
+  if (error) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ((data ?? []) as any[]).map((row: any) => {
+    const admin = row.admin;
+    const adminName = admin
+      ? `${admin.first_name} ${admin.last_name ?? ""}`.trim()
+      : undefined;
+
+    return {
+      id: row.id,
+      report_id: row.report_id,
+      admin_id: row.admin_id,
+      action: row.action as import("@/features/reports/types").ReportActionType,
+      previous_status: row.previous_status as import("@/features/reports/types").ReportStatus | null,
+      new_status: row.new_status as import("@/features/reports/types").ReportStatus | null,
+      notes: row.notes,
+      created_at: row.created_at,
+      admin_name: adminName,
+    };
+  });
 }
 
 // ========== STATISTICS ==========
@@ -519,6 +698,7 @@ export async function getReportStatistics(): Promise<ReportStatistics> {
     const total = allReports.length;
     const pendingReview = allReports.filter((r) => r.status === "pending_review").length;
     const underReview = allReports.filter((r) => r.status === "under_review").length;
+    const awaitingEvidence = allReports.filter((r) => r.status === "awaiting_evidence").length;
     const resolved = allReports.filter((r) => r.status === "resolved").length;
     const reportsThisMonth = allReports.filter(
       (r) => new Date(r.created_at) >= monthStart
@@ -555,6 +735,7 @@ export async function getReportStatistics(): Promise<ReportStatistics> {
       total,
       pending_review: pendingReview,
       under_review: underReview,
+      awaiting_evidence: awaitingEvidence,
       resolved,
       average_resolution_time_hours: averageResolutionTimeHours,
       reports_this_month: reportsThisMonth,

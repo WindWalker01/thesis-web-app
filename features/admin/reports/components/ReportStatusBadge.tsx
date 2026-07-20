@@ -4,8 +4,9 @@ import { cn } from "@/lib/client-utils";
 import type { ReportStatus } from "@/features/reports/types";
 
 const STATUS_CONFIG: Record<ReportStatus, { label: string; color: string; bg: string; border: string; dot: string }> = {
-  pending_review: { label: "Pending for Review", color: "text-yellow-700", bg: "bg-yellow-100", border: "border-yellow-200", dot: "bg-yellow-500" },
+  pending_review: { label: "Pending Review", color: "text-yellow-700", bg: "bg-yellow-100", border: "border-yellow-200", dot: "bg-yellow-500" },
   under_review: { label: "Under Review", color: "text-blue-700", bg: "bg-blue-100", border: "border-blue-200", dot: "bg-blue-500" },
+  awaiting_evidence: { label: "Awaiting Evidence", color: "text-orange-700", bg: "bg-orange-100", border: "border-orange-200", dot: "bg-orange-500" },
   resolved: { label: "Resolved", color: "text-green-700", bg: "bg-green-100", border: "border-green-200", dot: "bg-green-500" },
 };
 

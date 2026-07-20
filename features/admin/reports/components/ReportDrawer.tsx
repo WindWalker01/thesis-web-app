@@ -405,14 +405,15 @@ export function ReportDrawer({
                       <div className="px-3 pb-3">
                         <ResolutionCard
                           reportId={detail.report.id}
+                          reportType={detail.report.report_type}
                           currentStatus={detail.report.status as ReportStatus}
                           decision={detail.decision}
-                          onUpdateStatus={onUpdateStatus}
-                          onModerateArtwork={handleModerateArtwork}
                           hasAssociatedArtwork={hasAssociatedArtwork}
+                          artworkIsArchived={false}
+                          artworkId={detail.reported_art_post?.registered_arts?.id}
                           artworkTitle={artworkTitle}
                           isUpdatingStatus={isUpdatingStatus}
-                          isModeratingArtwork={isModeratingArtwork}
+                          onResolved={onRefresh}
                         />
                       </div>
                     )}

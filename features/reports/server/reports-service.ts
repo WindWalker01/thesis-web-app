@@ -287,22 +287,25 @@ export async function requestEvidenceWithAudit(
     is_admin: true,
   });
 
-  const updatedReport = report;
+  // Transition to awaiting_evidence
+  await repo.updateReportStatus(supabase, data.reportId, "awaiting_evidence");
 
   // Create audit record for evidence request
   const action = await createAuditRecord(supabase, {
     report_id: data.reportId,
     admin_id: data.adminId,
     action: "evidence_requested",
-    previous_status: null,
-    new_status: null,
+    previous_status: "under_review",
+    new_status: "awaiting_evidence",
     notes: data.message.substring(0, 200),
   });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
 
   // Notify reporter with detailed message
   await createReportNotification(supabase, {
     userId: updatedReport.reporter_id,
-    type: "report_submitted",
+    type: "report_awaiting_evidence",
     title: "Additional Evidence Required",
     message: `An administrator has reviewed your report "${updatedReport.title}" and requires additional evidence before making a decision. Please visit your report to upload the requested information.\n\nAdmin note: ${data.message}`,
     reportId: data.reportId,
@@ -663,4 +666,146 @@ export async function verifyReportOwnership(
 ): Promise<boolean> {
   const report = await repo.getReportById(supabase, reportId);
   return report?.reporter_id === userId;
+}
+
+// ========== UNIFIED RESOLVE REPORT ==========
+
+export async function resolveReport(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    adminId: string;
+    decision: "no_violation" | "guideline_violation" | "copyright_confirmed" | "insufficient_evidence" | "false_report";
+    summary: string;
+  }
+): Promise<{ report: Report; action: ReportAction; decision: ReportDecision }> {
+  const report = await repo.getReportById(supabase, data.reportId);
+  if (!report) throw new Error("Report not found");
+  if (report.status === "resolved") throw new Error("Report is already resolved");
+
+  const previousStatus = report.status;
+
+  // Record decision
+  const decision = await repo.insertReportDecision(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    decision: data.decision,
+    summary: data.summary,
+  });
+
+  // Update report status
+  const resolvedAt = new Date().toISOString();
+  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+
+  // Create audit record
+  const action = await createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    action: "decision_recorded",
+    previous_status: previousStatus,
+    new_status: "resolved",
+    notes: `Report resolved. Decision: ${data.decision}. Summary: ${data.summary.substring(0, 200)}`,
+  });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+
+  // Notify reporter
+  const decisionMessage = {
+    no_violation: "no violation was found",
+    guideline_violation: "a community guideline violation was confirmed",
+    copyright_confirmed: "a copyright violation was confirmed",
+    insufficient_evidence: "there was insufficient evidence",
+    false_report: "it was determined to be a false report",
+  }[data.decision];
+
+  await createReportNotification(supabase, {
+    userId: updatedReport.reporter_id,
+    type: "report_resolved",
+    title: "Report Resolved",
+    message: `Your report "${updatedReport.title}" has been reviewed — ${decisionMessage}.`,
+    reportId: data.reportId,
+  });
+
+  return { report: updatedReport, action, decision };
+}
+
+// ========== RECEIVE EVIDENCE & REOPEN ==========
+
+/**
+ * Called when evidence is uploaded while a report is in 'awaiting_evidence' status.
+ * Transitions the report back to 'under_review' and notifies admins.
+ */
+export async function receiveEvidenceAndReopen(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    uploaderId: string;
+    fileName: string;
+  }
+): Promise<{ report: Report; action: ReportAction }> {
+  const report = await repo.getReportById(supabase, data.reportId);
+  if (!report) throw new Error("Report not found");
+
+  if (report.status !== "awaiting_evidence") {
+    // Not in awaiting_evidence — no need to change status
+    return {
+      report,
+      action: {} as ReportAction, // caller should handle this case
+    };
+  }
+
+  const previousStatus: ReportStatus = "awaiting_evidence";
+
+  // Transition back to under_review
+  await repo.updateReportStatus(supabase, data.reportId, "under_review");
+
+  // Create audit record
+  const action = await createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.uploaderId,
+    action: "evidence_uploaded",
+    previous_status: previousStatus,
+    new_status: "under_review",
+    notes: `Evidence uploaded: ${data.fileName}. Report returned to under review.`,
+  });
+
+  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+
+  // Notify admins
+  await createAdminNotification(supabase, {
+    type: "report_awaiting_evidence",
+    title: "New Evidence Submitted",
+    message: `New evidence was submitted for report "${updatedReport.title}". The report is now back under review.`,
+    reportId: data.reportId,
+  });
+
+  return { report: updatedReport, action };
+}
+
+// ========== TIMELINE LOGGING HELPER ==========
+
+/**
+ * Centralized timeline logging for all moderation actions.
+ * Reads the current report status and inserts a report_actions record.
+ */
+export async function logModerationAction(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    adminId: string;
+    action: "user_warned" | "user_suspended" | "user_banned" | "artwork_removed" | "artwork_restored" | "artwork_nsfw" | "plagiarism_scan_rerun";
+    notes: string;
+  }
+): Promise<ReportAction> {
+  const report = await repo.getReportById(supabase, data.reportId);
+  const currentStatus = report?.status ?? null;
+
+  return createAuditRecord(supabase, {
+    report_id: data.reportId,
+    admin_id: data.adminId,
+    action: data.action,
+    previous_status: currentStatus,
+    new_status: currentStatus,
+    notes: data.notes,
+  });
 }

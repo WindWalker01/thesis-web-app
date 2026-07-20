@@ -8,27 +8,31 @@ import { z } from "zod";
 export const reportStatusSchema = z.enum([
   "pending_review",
   "under_review",
+  "awaiting_evidence",
   "resolved",
 ]);
 
 // ---- Report Type ----
 export const reportTypeSchema = z.enum([
-  "plagiarism",
-  "repost",
-  "tracing",
-  "commercial_use",
-  "counterfeit",
-  "ownership_dispute",
+  "copyright",
+  "spam",
+  "harassment",
+  "nudity",
+  "violence",
+  "hate",
   "other",
 ]);
 
 // ---- Decision Value ----
 export const reportDecisionValueSchema = z.enum([
-  "infringement_confirmed",
+  "infringement_confirmed", // deprecated
   "no_violation",
   "insufficient_evidence",
-  "duplicate_report",
-  "other",
+  "duplicate_report", // deprecated
+  "other", // deprecated
+  "guideline_violation",
+  "copyright_confirmed",
+  "false_report",
 ]);
 
 // ---- Action Type ----
@@ -39,6 +43,14 @@ export const reportActionTypeSchema = z.enum([
   "comment_added",
   "decision_recorded",
   "report_created",
+  "user_warned",
+  "user_suspended",
+  "user_banned",
+  "artwork_removed",
+  "artwork_restored",
+  "artwork_nsfw",
+  "plagiarism_scan_rerun",
+  "evidence_reviewed",
 ]);
 
 // ---- Create Report ----
@@ -96,6 +108,31 @@ export const recordDecisionSchema = z.object({
 
 export type RecordDecisionInput = z.infer<typeof recordDecisionSchema>;
 
+// ---- Resolve Report (unified) ----
+export const resolveReportSchema = z.object({
+  decision: z.enum([
+    "no_violation",
+    "copyright_confirmed",
+    "guideline_violation",
+    "insufficient_evidence",
+    "false_report",
+  ]),
+  summary: z
+    .string()
+    .min(10, "Summary must be at least 10 characters")
+    .max(3000, "Summary must be at most 3000 characters"),
+  artworkActions: z
+    .array(z.enum(["keep_artwork", "remove_artwork", "restore_artwork", "mark_nsfw", "rerun_plagiarism"]))
+    .optional(),
+  artworkReason: z.string().max(2000).optional(),
+  userActions: z
+    .array(z.enum(["warn_user", "suspend_user", "ban_user"]))
+    .optional(),
+  userReason: z.string().max(2000).optional(),
+});
+
+export type ResolveReportInput = z.infer<typeof resolveReportSchema>;
+
 // ---- Request Evidence ----
 export const requestEvidenceSchema = z.object({
   message: z
@@ -113,7 +150,7 @@ export const assignAdminSchema = z.object({
 
 export type AssignAdminInput = z.infer<typeof assignAdminSchema>;
 
-// ---- Approve Report ----
+// ---- Approve Report (deprecated — kept for backward compat) ----
 export const approveReportSchema = z.object({
   summary: z
     .string()
@@ -123,7 +160,7 @@ export const approveReportSchema = z.object({
 
 export type ApproveReportInput = z.infer<typeof approveReportSchema>;
 
-// ---- Reject Report ----
+// ---- Reject Report (deprecated — kept for backward compat) ----
 export const rejectReportSchema = z.object({
   reason: z.enum(["false_report", "duplicate", "insufficient_evidence", "other"]),
   summary: z
@@ -134,7 +171,7 @@ export const rejectReportSchema = z.object({
 
 export type RejectReportInput = z.infer<typeof rejectReportSchema>;
 
-// ---- Close Report ----
+// ---- Close Report (deprecated — kept for backward compat) ----
 export const closeReportSchema = z.object({
   notes: z.string().max(2000, "Notes must be at most 2000 characters").optional(),
 });

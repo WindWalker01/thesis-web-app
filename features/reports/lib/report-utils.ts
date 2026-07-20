@@ -2,13 +2,18 @@
 // Report Management - Utility Functions
 // ============================================
 
-import type { ReportStatus, ReportType, ReportDecisionValue } from "@/features/reports/types";
+import type {
+  ReportStatus,
+  ReportType,
+  ReportDecisionValue,
+} from "@/features/reports/types";
 
 // ---- Status Display & Colors ----
 
 export const STATUS_LABELS: Record<ReportStatus, string> = {
-  pending_review: "Pending for Review",
+  pending_review: "Pending Review",
   under_review: "Under Review",
+  awaiting_evidence: "Awaiting Evidence",
   resolved: "Resolved",
 };
 
@@ -17,6 +22,8 @@ export const STATUS_COLORS: Record<ReportStatus, string> = {
     "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   under_review:
     "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  awaiting_evidence:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   resolved:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
 };
@@ -24,38 +31,48 @@ export const STATUS_COLORS: Record<ReportStatus, string> = {
 export const STATUS_DOT_COLORS: Record<ReportStatus, string> = {
   pending_review: "bg-blue-500",
   under_review: "bg-amber-500",
+  awaiting_evidence: "bg-yellow-500",
   resolved: "bg-emerald-500",
 };
 
 // ---- Type Labels ----
 
 export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
-  plagiarism: "Plagiarism",
-  repost: "Repost",
-  tracing: "Tracing",
-  commercial_use: "Commercial Use",
-  counterfeit: "Counterfeit",
-  ownership_dispute: "Ownership Dispute",
+  copyright: "Copyright / Stolen Artwork",
+  spam: "Spam",
+  harassment: "Harassment",
+  nudity: "Nudity",
+  violence: "Violence",
+  hate: "Hate",
   other: "Other",
 };
 
 // ---- Decision Labels ----
 
 export const DECISION_LABELS: Record<ReportDecisionValue, string> = {
-  infringement_confirmed: "Infringement Confirmed",
   no_violation: "No Violation",
+  copyright_confirmed: "Copyright Confirmed",
+  guideline_violation: "Community Guideline Violation",
   insufficient_evidence: "Insufficient Evidence",
-  duplicate_report: "Duplicate Report",
-  other: "Other",
+  false_report: "False Report",
+  infringement_confirmed: "Infringement Confirmed (Legacy)",
+  duplicate_report: "Duplicate Report (Legacy)",
+  other: "Other (Legacy)",
 };
 
 export const DECISION_COLORS: Record<ReportDecisionValue, string> = {
-  infringement_confirmed:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   no_violation:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  copyright_confirmed:
+    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  guideline_violation:
+    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   insufficient_evidence:
     "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+  false_report:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+  infringement_confirmed:
+    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   duplicate_report:
     "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
   other:
@@ -111,7 +128,10 @@ export function getFileIcon(mimeType: string | null): string {
   if (!mimeType) return "📄";
   if (mimeType.startsWith("image/")) return "🖼️";
   if (mimeType === "application/pdf") return "📕";
-  if (mimeType.startsWith("application/zip") || mimeType.startsWith("application/x-rar"))
+  if (
+    mimeType.startsWith("application/zip") ||
+    mimeType.startsWith("application/x-rar")
+  )
     return "📦";
   if (mimeType.startsWith("text/")) return "📝";
   return "📄";

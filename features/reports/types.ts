@@ -6,25 +6,29 @@
 export type ReportStatus =
   | "pending_review"
   | "under_review"
+  | "awaiting_evidence"
   | "resolved";
 
 // ---- Report Type ----
 export type ReportType =
-  | "plagiarism"
-  | "repost"
-  | "tracing"
-  | "commercial_use"
-  | "counterfeit"
-  | "ownership_dispute"
+  | "copyright"
+  | "spam"
+  | "harassment"
+  | "nudity"
+  | "violence"
+  | "hate"
   | "other";
 
 // ---- Decision Type ----
 export type ReportDecisionValue =
-  | "infringement_confirmed"
+  | "infringement_confirmed" // deprecated — use copyright_confirmed
   | "no_violation"
   | "insufficient_evidence"
-  | "duplicate_report"
-  | "other";
+  | "duplicate_report" // deprecated — use guideline_violation or no_violation
+  | "other" // deprecated — use appropriate decision
+  | "guideline_violation"
+  | "copyright_confirmed"
+  | "false_report";
 
 // ---- Action Type ----
 export type ReportActionType =
@@ -33,7 +37,15 @@ export type ReportActionType =
   | "evidence_uploaded"
   | "comment_added"
   | "decision_recorded"
-  | "report_created";
+  | "report_created"
+  | "user_warned"
+  | "user_suspended"
+  | "user_banned"
+  | "artwork_removed"
+  | "artwork_restored"
+  | "artwork_nsfw"
+  | "plagiarism_scan_rerun"
+  | "evidence_reviewed";
 
 // ---- Report (base) ----
 export type Report = {
@@ -121,6 +133,8 @@ export type ReportAction = {
   new_status: ReportStatus | null;
   notes: string | null;
   created_at: string;
+  /** Admin display name (populated via join with users table) */
+  admin_name?: string;
 };
 
 // ---- Report Decision ----
@@ -131,6 +145,37 @@ export type ReportDecision = {
   decision: ReportDecisionValue;
   summary: string;
   created_at: string;
+};
+
+// ---- Moderation Summary ----
+export type ModerationSummary = {
+  user: {
+    warnings: number;
+    suspensions: number;
+    bans: number;
+    previousReports: number;
+    resolvedReports: number;
+  };
+  artwork: {
+    previousReports: number;
+    copyrightReports: number;
+    wasRemoved: boolean;
+  };
+};
+
+// ---- Action Recommendation ----
+/** Suggested actions for a given report_type + decision combination */
+export type ActionRecommendation = {
+  artworkActions: {
+    action: "keep_artwork" | "remove_artwork" | "restore_artwork" | "mark_nsfw" | "rerun_plagiarism";
+    label: string;
+    checked: boolean;
+  }[];
+  userActions: {
+    action: "warn_user" | "suspend_user" | "ban_user";
+    label: string;
+    checked: boolean;
+  }[];
 };
 
 // ---- API Response types ----
@@ -206,6 +251,7 @@ export type AdminReportDetail = {
   comments: ReportComment[];
   decision: ReportDecision | null;
   actions: ReportAction[];
+  moderationSummary?: ModerationSummary;
 };
 
 // ---- Report Statistics ----
@@ -213,6 +259,7 @@ export type ReportStatistics = {
   total: number;
   pending_review: number;
   under_review: number;
+  awaiting_evidence: number;
   resolved: number;
   average_resolution_time_hours: number | null;
   reports_this_month: number;
@@ -228,19 +275,32 @@ export type StatusTransition = {
 
 export const VALID_STATUS_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
   pending_review: ["under_review"],
-  under_review: ["resolved", "pending_review"],
+  under_review: ["awaiting_evidence", "resolved"],
+  awaiting_evidence: ["under_review", "resolved"],
   resolved: [],
 };
 
 // ---- Report Type Labels ----
 export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
-  plagiarism: "Plagiarism",
-  repost: "Repost",
-  tracing: "Tracing",
-  commercial_use: "Commercial Use",
-  counterfeit: "Counterfeit",
-  ownership_dispute: "Ownership Dispute",
+  copyright: "Copyright / Stolen Artwork",
+  spam: "Spam",
+  harassment: "Harassment",
+  nudity: "Nudity",
+  violence: "Violence",
+  hate: "Hate",
   other: "Other",
+};
+
+// ---- Decision Labels ----
+export const DECISION_LABELS: Record<string, string> = {
+  no_violation: "No Violation",
+  copyright_confirmed: "Copyright Confirmed",
+  guideline_violation: "Community Guideline Violation",
+  insufficient_evidence: "Insufficient Evidence",
+  false_report: "False Report",
+  infringement_confirmed: "Infringement Confirmed (Legacy)",
+  duplicate_report: "Duplicate Report (Legacy)",
+  other: "Other (Legacy)",
 };
 
 // ---- Sort Options ----
@@ -257,3 +317,12 @@ export type AdminReportsQuery = {
   sortBy: AdminReportsSortBy;
   sortOrder: SortOrder;
 };
+
+// Re-export recommendation logic from its dedicated module
+export {
+  DECISION_ARTWORK_ACTIONS,
+  DECISION_USER_ACTIONS,
+  GUIDELINE_ARTWORK_DEFAULTS,
+  getRecommendedActions,
+  validateActionCombination,
+} from "@/features/reports/lib/moderation-recommendations";
