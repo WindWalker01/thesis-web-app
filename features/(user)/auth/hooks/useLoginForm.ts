@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { signInSchema, type SignInInput } from "@/features/(user)/auth/schemas/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase/client";
 
 export function useLoginForm() {
     const router = useRouter();
@@ -40,6 +41,22 @@ export function useLoginForm() {
         }
         queryClient.clear();
         router.refresh();
+
+        // Determine redirect based on user role
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+            const { data: profile } = await supabase
+                .from("users")
+                .select("role")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+            if (profile?.role === "admin") {
+                router.push("/admin/dashboard");
+                return;
+            }
+        }
+
         router.push("/dashboard");
         return;
     };

@@ -112,32 +112,64 @@ export async function proxy(request: NextRequest) {
     // making it safe to use for auth-gating decisions.
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Redirect authenticated users away from auth-only pages.
-    // This prevents logged-in users from accessing /login, /register, etc.
-    // Note: /reset-password is intentionally excluded — a recovery session
-    // (established after OTP verification) is still a valid Supabase session,
-    // and the recovery flow needs to remain accessible.
-    const authRoutes = ["/login", "/register", "/forgot-password"];
-    if (user && authRoutes.some(route => pathname.startsWith(route))) {
-        const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
-        // Forward any Set-Cookie headers that Supabase may have added during
-        // session refresh (getUser() can trigger a token refresh). Without this,
-        // the redirected request to /dashboard uses a stale cookie, causing
-        // getUser() to fail and the admin to see the maintenance page.
-        response.headers.forEach((value, key) => {
-            if (key.toLowerCase() === "set-cookie") {
-                redirectResponse.headers.append(key, value);
-            }
-        });
-        return redirectResponse;
-    }
-
     // ── Account Status Enforcement ──
     // Only check status for authenticated users on non-public routes
     // Lift profile to outer scope so it can be reused by the maintenance block below
     let profile: { account_status: string; role: string; suspended_until: string | null } | null = null;
+    let isAdmin = false;
+
+    const authRoutes = ["/login", "/register", "/forgot-password"];
 
     if (user) {
+        // ── Auth-Route Redirect ──
+        // Redirect authenticated users away from /login, /register, /forgot-password.
+        // Admins go to /admin/dashboard; regular users go to /dashboard.
+        // This must run before the status bypass check because auth routes are
+        // in STATUS_BYPASS_ROUTES and would return early before the redirect fires.
+        if (authRoutes.some(route => pathname.startsWith(route))) {
+            // Fetch profile first so we know the role
+            const { data } = await supabase
+                .from("users")
+                .select("role")
+                .eq("id", user.id)
+                .maybeSingle();
+
+            const role = data?.role ?? "user";
+            const targetUrl = role === "admin" ? "/admin/dashboard" : "/dashboard";
+            const redirectResponse = NextResponse.redirect(new URL(targetUrl, request.url));
+            // Forward any Set-Cookie headers that Supabase may have added during
+            // session refresh (getUser() can trigger a token refresh).
+            response.headers.forEach((value, key) => {
+                if (key.toLowerCase() === "set-cookie") {
+                    redirectResponse.headers.append(key, value);
+                }
+            });
+            return redirectResponse;
+        }
+
+        // ── Admin Dashboard Redirect ──
+        // Redirect admins away from /dashboard to /admin/dashboard.
+        // This covers direct URL entry, refresh, bookmarks, etc.
+        // The client-side login form also has its own check as an optimization,
+        // but the middleware is the definitive enforcement layer.
+        if (pathname.startsWith("/dashboard")) {
+            const { data } = await supabase
+                .from("users")
+                .select("role")
+                .eq("id", user.id)
+                .maybeSingle();
+
+            if (data?.role === "admin") {
+                const redirectResponse = NextResponse.redirect(new URL("/admin/dashboard", request.url));
+                response.headers.forEach((value, key) => {
+                    if (key.toLowerCase() === "set-cookie") {
+                        redirectResponse.headers.append(key, value);
+                    }
+                });
+                return redirectResponse;
+            }
+        }
+
         // Skip status checks for bypass routes
         const shouldBypass = STATUS_BYPASS_ROUTES.some(route =>
             pathname.startsWith(route)
@@ -156,11 +188,10 @@ export async function proxy(request: NextRequest) {
         profile = data;
         if (profile) {
             detectedRole = profile.role;
+            isAdmin = profile.role === "admin";
         }
 
         if (profile) {
-            const isAdmin = profile.role === "admin";
-
             // Admins bypass account status restrictions
             if (isAdmin) {
                 return buildResponse();
