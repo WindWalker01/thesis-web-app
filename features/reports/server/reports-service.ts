@@ -287,31 +287,26 @@ export async function requestEvidenceWithAudit(
     is_admin: true,
   });
 
-  // Transition to awaiting_evidence
-  await repo.updateReportStatus(supabase, data.reportId, "awaiting_evidence");
-
-  // Create audit record for evidence request
+  // Create audit record for evidence request (no status change)
   const action = await createAuditRecord(supabase, {
     report_id: data.reportId,
     admin_id: data.adminId,
     action: "evidence_requested",
-    previous_status: "under_review",
-    new_status: "awaiting_evidence",
+    previous_status: report.status,
+    new_status: report.status,
     notes: data.message.substring(0, 200),
   });
 
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
-
   // Notify reporter with detailed message
   await createReportNotification(supabase, {
-    userId: updatedReport.reporter_id,
+    userId: report.reporter_id,
     type: "report_awaiting_evidence",
     title: "Additional Evidence Required",
-    message: `An administrator has reviewed your report "${updatedReport.title}" and requires additional evidence before making a decision. Please visit your report to upload the requested information.\n\nAdmin note: ${data.message}`,
+    message: `An administrator has reviewed your report "${report.title}" and requires additional evidence before making a decision. Please visit your report to upload the requested information.\n\nAdmin note: ${data.message}`,
     reportId: data.reportId,
   });
 
-  return { comment, action, report: updatedReport };
+  return { comment, action, report };
 }
 
 // ========== EVIDENCE UPLOAD ==========
@@ -732,8 +727,8 @@ export async function resolveReport(
 // ========== RECEIVE EVIDENCE & REOPEN ==========
 
 /**
- * Called when evidence is uploaded while a report is in 'awaiting_evidence' status.
- * Transitions the report back to 'under_review' and notifies admins.
+ * Called when evidence is uploaded.
+ * Notifies admins that new evidence has been submitted.
  */
 export async function receiveEvidenceAndReopen(
   supabase: SupabaseClient,
@@ -746,40 +741,25 @@ export async function receiveEvidenceAndReopen(
   const report = await repo.getReportById(supabase, data.reportId);
   if (!report) throw new Error("Report not found");
 
-  if (report.status !== "awaiting_evidence") {
-    // Not in awaiting_evidence — no need to change status
-    return {
-      report,
-      action: {} as ReportAction, // caller should handle this case
-    };
-  }
-
-  const previousStatus: ReportStatus = "awaiting_evidence";
-
-  // Transition back to under_review
-  await repo.updateReportStatus(supabase, data.reportId, "under_review");
-
   // Create audit record
   const action = await createAuditRecord(supabase, {
     report_id: data.reportId,
     admin_id: data.uploaderId,
     action: "evidence_uploaded",
-    previous_status: previousStatus,
-    new_status: "under_review",
-    notes: `Evidence uploaded: ${data.fileName}. Report returned to under review.`,
+    previous_status: report.status,
+    new_status: report.status,
+    notes: `Evidence uploaded: ${data.fileName}`,
   });
-
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
 
   // Notify admins
   await createAdminNotification(supabase, {
     type: "report_awaiting_evidence",
     title: "New Evidence Submitted",
-    message: `New evidence was submitted for report "${updatedReport.title}". The report is now back under review.`,
+    message: `New evidence was submitted for report "${report.title}".`,
     reportId: data.reportId,
   });
 
-  return { report: updatedReport, action };
+  return { report, action };
 }
 
 // ========== TIMELINE LOGGING HELPER ==========

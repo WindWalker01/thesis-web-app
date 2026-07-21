@@ -13,7 +13,6 @@ import type {
 export const STATUS_LABELS: Record<ReportStatus, string> = {
   pending_review: "Pending Review",
   under_review: "Under Review",
-  awaiting_evidence: "Awaiting Evidence",
   resolved: "Resolved",
 };
 
@@ -22,8 +21,6 @@ export const STATUS_COLORS: Record<ReportStatus, string> = {
     "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
   under_review:
     "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  awaiting_evidence:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   resolved:
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
 };
@@ -31,7 +28,6 @@ export const STATUS_COLORS: Record<ReportStatus, string> = {
 export const STATUS_DOT_COLORS: Record<ReportStatus, string> = {
   pending_review: "bg-blue-500",
   under_review: "bg-amber-500",
-  awaiting_evidence: "bg-yellow-500",
   resolved: "bg-emerald-500",
 };
 

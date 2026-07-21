@@ -1,3 +1,6 @@
+
+
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -74,6 +77,112 @@ CREATE TYPE "public"."art_status" AS ENUM (
 ALTER TYPE "public"."art_status" OWNER TO "postgres";
 
 
+CREATE TYPE "public"."attachment_role" AS ENUM (
+    'reporter',
+    'moderator'
+);
+
+
+ALTER TYPE "public"."attachment_role" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."case_message_author_role" AS ENUM (
+    'moderator',
+    'reporter',
+    'reported_user',
+    'system'
+);
+
+
+ALTER TYPE "public"."case_message_author_role" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."case_message_category" AS ENUM (
+    'message',
+    'request_information',
+    'decision',
+    'system'
+);
+
+
+ALTER TYPE "public"."case_message_category" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."case_message_visibility" AS ENUM (
+    'internal',
+    'to_reporter',
+    'to_reported_user',
+    'shared'
+);
+
+
+ALTER TYPE "public"."case_message_visibility" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."moderation_action_type" AS ENUM (
+    'content_removed',
+    'content_restored',
+    'content_flagged_nsfw',
+    'user_warned',
+    'user_suspended',
+    'user_banned',
+    'user_restored',
+    'assigned',
+    'unassigned',
+    'status_change',
+    'note_added',
+    'evidence_requested',
+    'evidence_reviewed',
+    'case_dismissed',
+    'case_resolved',
+    'case_reopened',
+    'appeal_received',
+    'appeal_granted',
+    'appeal_denied',
+    'bulk_action',
+    'message_sent',
+    'information_requested',
+    'decision_recorded_communication',
+    'system_notification'
+);
+
+
+ALTER TYPE "public"."moderation_action_type" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."moderation_priority" AS ENUM (
+    'critical',
+    'high',
+    'normal'
+);
+
+
+ALTER TYPE "public"."moderation_priority" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."moderation_status" AS ENUM (
+    'open',
+    'triaged',
+    'investigating',
+    'pending_action',
+    'resolved',
+    'dismissed',
+    'appealed'
+);
+
+
+ALTER TYPE "public"."moderation_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."note_visibility" AS ENUM (
+    'internal',
+    'reporter_visible'
+);
+
+
+ALTER TYPE "public"."note_visibility" OWNER TO "postgres";
+
+
 CREATE TYPE "public"."report_status" AS ENUM (
     'pending_review',
     'under_review',
@@ -82,6 +191,17 @@ CREATE TYPE "public"."report_status" AS ENUM (
 
 
 ALTER TYPE "public"."report_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."report_target_type" AS ENUM (
+    'artwork',
+    'comment',
+    'user',
+    'collection'
+);
+
+
+ALTER TYPE "public"."report_target_type" OWNER TO "postgres";
 
 
 CREATE TYPE "public"."report_type" AS ENUM (
@@ -133,6 +253,147 @@ $$;
 
 
 ALTER FUNCTION "public"."enforce_art_post_owner_match"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_moderation_enforcement_stats"("p_days" integer DEFAULT 7) RETURNS "jsonb"
+    LANGUAGE "plpgsql" STABLE
+    AS $$
+DECLARE
+  result jsonb;
+  since timestamptz;
+BEGIN
+  since := now() - (p_days || ' days')::interval;
+  SELECT jsonb_build_object(
+    'warnings',    (SELECT count(*) FROM moderation_actions
+                    WHERE action_type = 'user_warned'      AND created_at >= since),
+    'suspensions', (SELECT count(*) FROM moderation_actions
+                    WHERE action_type = 'user_suspended'    AND created_at >= since),
+    'bans',        (SELECT count(*) FROM moderation_actions
+                    WHERE action_type = 'user_banned'       AND created_at >= since),
+    'removals',    (SELECT count(*) FROM moderation_actions
+                    WHERE action_type = 'content_removed'   AND created_at >= since),
+    'dismissed',   (SELECT count(*) FROM moderation_actions
+                    WHERE action_type = 'case_dismissed'    AND created_at >= since),
+    'restored',    (SELECT count(*) FROM moderation_actions
+                    WHERE action_type = 'content_restored'  AND created_at >= since)
+  ) INTO result;
+  RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_moderation_enforcement_stats"("p_days" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_moderation_queue_health"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" STABLE
+    AS $$
+DECLARE
+  result jsonb;
+BEGIN
+  SELECT jsonb_build_object(
+    'critical', (SELECT count(*) FROM moderations
+                 WHERE priority = 'critical' AND status NOT IN ('resolved', 'dismissed')),
+    'high',     (SELECT count(*) FROM moderations
+                 WHERE priority = 'high'     AND status NOT IN ('resolved', 'dismissed')),
+    'normal',   (SELECT count(*) FROM moderations
+                 WHERE priority = 'normal'   AND status NOT IN ('resolved', 'dismissed')),
+    'appealed', (SELECT count(*) FROM moderations WHERE status = 'appealed'),
+    'avg_resolution_hours', (
+      SELECT COALESCE(ROUND(AVG(
+        EXTRACT(EPOCH FROM (resolved_at - created_at)) / 3600
+      )::numeric, 1), 0)
+      FROM moderations WHERE resolved_at >= current_date - interval '30 days'
+    ),
+    'oldest_open_hours', (
+      SELECT COALESCE(ROUND(
+        EXTRACT(EPOCH FROM (now() - created_at)) / 3600
+      )::numeric, 0)
+      FROM moderations WHERE status NOT IN ('resolved', 'dismissed')
+      ORDER BY created_at LIMIT 1
+    ),
+    'resolved_today', (
+      SELECT count(*) FROM moderations WHERE resolved_at >= current_date
+    )
+  ) INTO result;
+  RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_moderation_queue_health"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_moderation_trends"("p_days" integer DEFAULT 7) RETURNS "jsonb"
+    LANGUAGE "plpgsql" STABLE
+    AS $$
+DECLARE
+  result jsonb;
+  since timestamptz;
+BEGIN
+  since := now() - (p_days || ' days')::interval;
+  SELECT jsonb_build_object(
+    'reports_by_type', (
+      SELECT COALESCE(jsonb_object_agg(report_type, cnt), '{}'::jsonb) FROM (
+        SELECT r.report_type, count(*) as cnt
+        FROM reports r
+        JOIN moderations m ON m.report_id = r.id
+        WHERE r.created_at >= since
+        GROUP BY r.report_type
+      ) sub
+    ),
+    'resolution_trend', (
+      SELECT COALESCE(jsonb_agg(
+        jsonb_build_object('date', d::date, 'count', COALESCE(c, 0))
+      ) FILTER (WHERE d IS NOT NULL), '[]'::jsonb)
+      FROM generate_series(since::date, current_date, '1 day') d
+      LEFT JOIN (
+        SELECT resolved_at::date, count(*) as c
+        FROM moderations
+        WHERE resolved_at >= since
+        GROUP BY resolved_at::date
+      ) t ON t.resolved_at::date = d::date
+    ),
+    'repeat_offenders', (
+      SELECT count(*) FROM (
+        SELECT target_user_id FROM moderation_actions
+        WHERE target_user_id IS NOT NULL
+          AND action_type IN ('user_warned', 'user_suspended', 'user_banned')
+          AND created_at >= since
+        GROUP BY target_user_id HAVING count(*) >= 2
+      ) sub
+    )
+  ) INTO result;
+  RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_moderation_trends"("p_days" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_moderator_activity"("p_moderator_id" "uuid" DEFAULT NULL::"uuid", "p_days" integer DEFAULT 1) RETURNS TABLE("moderator_id" "uuid", "moderator_name" "text", "action_type" "public"."moderation_action_type", "action_count" bigint, "last_action_at" timestamp with time zone)
+    LANGUAGE "plpgsql" STABLE
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ma.moderator_id,
+    u.first_name || ' ' || COALESCE(u.last_name, '') as moderator_name,
+    ma.action_type,
+    count(*) as action_count,
+    max(ma.created_at) as last_action_at
+  FROM moderation_actions ma
+  JOIN users u ON u.id = ma.moderator_id
+  WHERE ma.created_at >= now() - (p_days || ' days')::interval
+    AND (p_moderator_id IS NULL OR ma.moderator_id = p_moderator_id)
+  GROUP BY ma.moderator_id, u.first_name, u.last_name, ma.action_type
+  ORDER BY action_count DESC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_moderator_activity"("p_moderator_id" "uuid", "p_days" integer) OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
@@ -214,8 +475,24 @@ ALTER FUNCTION "public"."is_admin"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."mark_report_messages_read"("p_report_id" "uuid", "p_user_id" "uuid") RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
+  -- Authorization: only the report's reporter or an admin may mark messages as read
+  IF NOT EXISTS (
+    SELECT 1 FROM "public"."reports" r
+    WHERE r.id = p_report_id
+      AND (r.reporter_id = p_user_id OR r.reporter_id = auth.uid())
+  ) THEN
+    -- Check if caller is admin
+    IF NOT EXISTS (
+      SELECT 1 FROM "public"."users" u
+      WHERE u.id = auth.uid() AND u.role = 'admin'
+    ) THEN
+      RAISE EXCEPTION 'Not authorized to mark messages as read on this report.';
+    END IF;
+  END IF;
+
   UPDATE public.report_comments
   SET read_at = now()
   WHERE report_id = p_report_id
@@ -685,6 +962,19 @@ $$;
 ALTER FUNCTION "public"."sync_art_post_vote_counts_incremental"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."trg_moderations_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."trg_moderations_updated_at"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_user_preferences_timestamp"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -713,7 +1003,7 @@ CREATE TABLE IF NOT EXISTS "public"."admin_audit_logs" (
     "metadata" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
     "ip_address" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "admin_audit_logs_action_check" CHECK (("action" = ANY (ARRAY['suspend_user'::"text", 'ban_user'::"text", 'reactivate_user'::"text", 'verify_artist'::"text", 'remove_verification'::"text", 'reset_password'::"text", 'send_notification'::"text", 'force_logout'::"text", 'delete_account'::"text", 'bulk_suspend'::"text", 'bulk_ban'::"text", 'bulk_verify'::"text", 'export_users'::"text"])))
+    CONSTRAINT "admin_audit_logs_action_check" CHECK (("action" = ANY (ARRAY['suspend_user'::"text", 'ban_user'::"text", 'reactivate_user'::"text", 'verify_artist'::"text", 'remove_verification'::"text", 'reset_password'::"text", 'send_notification'::"text", 'force_logout'::"text", 'delete_account'::"text", 'bulk_suspend'::"text", 'bulk_ban'::"text", 'bulk_verify'::"text", 'export_users'::"text", 'moderate_content'::"text", 'warn_user'::"text", 'dismiss_report'::"text", 'resolve_report'::"text", 'assign_case'::"text", 'unassign_case'::"text", 'appeal_reviewed'::"text"])))
 );
 
 
@@ -858,6 +1148,63 @@ CREATE TABLE IF NOT EXISTS "public"."artwork_reviews" (
 ALTER TABLE "public"."artwork_reviews" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."case_message_attachments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "message_id" "uuid" NOT NULL,
+    "uploaded_by" "uuid" NOT NULL,
+    "storage_path" "text" NOT NULL,
+    "file_name" "text" NOT NULL,
+    "mime_type" "text",
+    "file_size" bigint,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."case_message_attachments" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."case_message_reads" (
+    "message_id" "uuid" NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "read_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."case_message_reads" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."case_messages" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "moderation_id" "uuid" NOT NULL,
+    "author_id" "uuid" NOT NULL,
+    "author_role" "public"."case_message_author_role" NOT NULL,
+    "message" "text" NOT NULL,
+    "category" "public"."case_message_category" DEFAULT 'message'::"public"."case_message_category" NOT NULL,
+    "visibility" "public"."case_message_visibility" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."case_messages" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."case_messages" IS 'Append-only case communication. No update/delete.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."copyright_context_snapshots" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "moderation_id" "uuid" NOT NULL,
+    "artwork_id" "uuid" NOT NULL,
+    "version" integer DEFAULT 1 NOT NULL,
+    "snapshot" "jsonb" NOT NULL,
+    "generated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."copyright_context_snapshots" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."genres" (
     "id" smallint NOT NULL,
     "name" "text" NOT NULL
@@ -876,6 +1223,60 @@ ALTER TABLE "public"."genres" ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTITY
     CACHE 1
 );
 
+
+
+CREATE TABLE IF NOT EXISTS "public"."moderation_actions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "moderation_id" "uuid" NOT NULL,
+    "moderator_id" "uuid" NOT NULL,
+    "target_user_id" "uuid",
+    "action_type" "public"."moderation_action_type" NOT NULL,
+    "previous_status" "public"."moderation_status",
+    "new_status" "public"."moderation_status",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."moderation_actions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."moderations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "report_id" "uuid" NOT NULL,
+    "status" "public"."moderation_status" DEFAULT 'open'::"public"."moderation_status" NOT NULL,
+    "priority" "public"."moderation_priority" DEFAULT 'normal'::"public"."moderation_priority" NOT NULL,
+    "priority_override" boolean DEFAULT false NOT NULL,
+    "assigned_moderator_id" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "resolved_at" timestamp with time zone,
+    "awaiting_response_from" "text",
+    "response_due_at" timestamp with time zone,
+    CONSTRAINT "ck_moderations_priority_override_consistent" CHECK ((NOT (("priority_override" = true) AND ("priority" IS NULL)))),
+    CONSTRAINT "ck_moderations_resolved_requires_terminal" CHECK ((("resolved_at" IS NULL) OR ("status" = ANY (ARRAY['resolved'::"public"."moderation_status", 'dismissed'::"public"."moderation_status"])))),
+    CONSTRAINT "moderations_awaiting_response_from_check" CHECK ((("awaiting_response_from" IS NULL) OR ("awaiting_response_from" = ANY (ARRAY['reporter'::"text", 'reported_user'::"text"]))))
+);
+
+
+ALTER TABLE "public"."moderations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."moderator_notes" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "moderation_id" "uuid" NOT NULL,
+    "moderator_id" "uuid" NOT NULL,
+    "content" "text" NOT NULL,
+    "visibility" "public"."note_visibility" DEFAULT 'internal'::"public"."note_visibility" NOT NULL,
+    "edited_at" timestamp with time zone,
+    "edited_by" "uuid",
+    "original_content" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."moderator_notes" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."notifications" (
@@ -939,6 +1340,23 @@ CREATE TABLE IF NOT EXISTS "public"."report_actions" (
 
 
 ALTER TABLE "public"."report_actions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."report_attachments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "report_id" "uuid" NOT NULL,
+    "uploaded_by" "uuid" NOT NULL,
+    "role" "public"."attachment_role" DEFAULT 'reporter'::"public"."attachment_role" NOT NULL,
+    "storage_path" "text" NOT NULL,
+    "file_name" "text" NOT NULL,
+    "mime_type" "text",
+    "file_size" bigint,
+    "description" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."report_attachments" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."report_comments" (
@@ -1010,11 +1428,30 @@ CREATE TABLE IF NOT EXISTS "public"."reports" (
     "status" "public"."report_status" DEFAULT 'pending_review'::"public"."report_status" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "resolved_at" timestamp with time zone,
-    "assigned_admin_id" "uuid"
+    "assigned_admin_id" "uuid",
+    "target_type" "public"."report_target_type" DEFAULT 'artwork'::"public"."report_target_type" NOT NULL,
+    "target_id" "uuid",
+    CONSTRAINT "reports_target_type_check" CHECK (("target_type" = ANY (ARRAY['artwork'::"public"."report_target_type", 'comment'::"public"."report_target_type", 'user'::"public"."report_target_type", 'collection'::"public"."report_target_type"])))
 );
 
 
 ALTER TABLE "public"."reports" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."reports"."reported_art_post_id" IS 'DEPRECATED. Use target_type + target_id. Kept for backward compatibility only.';
+
+
+
+COMMENT ON COLUMN "public"."reports"."status" IS 'DEPRECATED. Use moderations.status. Kept for backward compatibility only.';
+
+
+
+COMMENT ON COLUMN "public"."reports"."resolved_at" IS 'DEPRECATED. Use moderations.resolved_at. Kept for backward compatibility only.';
+
+
+
+COMMENT ON COLUMN "public"."reports"."assigned_admin_id" IS 'DEPRECATED. Use moderations.assigned_moderator_id. Kept for backward compatibility only.';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."settings_audit_logs" (
@@ -1140,6 +1577,31 @@ ALTER TABLE ONLY "public"."artwork_reviews"
 
 
 
+ALTER TABLE ONLY "public"."case_message_attachments"
+    ADD CONSTRAINT "case_message_attachments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."case_message_reads"
+    ADD CONSTRAINT "case_message_reads_pkey" PRIMARY KEY ("message_id", "user_id");
+
+
+
+ALTER TABLE ONLY "public"."case_messages"
+    ADD CONSTRAINT "case_messages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."copyright_context_snapshots"
+    ADD CONSTRAINT "copyright_context_snapshots_moderation_id_version_key" UNIQUE ("moderation_id", "version");
+
+
+
+ALTER TABLE ONLY "public"."copyright_context_snapshots"
+    ADD CONSTRAINT "copyright_context_snapshots_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."genres"
     ADD CONSTRAINT "genres_name_key" UNIQUE ("name");
 
@@ -1147,6 +1609,26 @@ ALTER TABLE ONLY "public"."genres"
 
 ALTER TABLE ONLY "public"."genres"
     ADD CONSTRAINT "genres_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."moderation_actions"
+    ADD CONSTRAINT "moderation_actions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."moderations"
+    ADD CONSTRAINT "moderations_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."moderations"
+    ADD CONSTRAINT "moderations_report_id_key" UNIQUE ("report_id");
+
+
+
+ALTER TABLE ONLY "public"."moderator_notes"
+    ADD CONSTRAINT "moderator_notes_pkey" PRIMARY KEY ("id");
 
 
 
@@ -1172,6 +1654,11 @@ ALTER TABLE ONLY "public"."registered_arts"
 
 ALTER TABLE ONLY "public"."report_actions"
     ADD CONSTRAINT "report_actions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."report_attachments"
+    ADD CONSTRAINT "report_attachments_pkey" PRIMARY KEY ("id");
 
 
 
@@ -1390,6 +1877,66 @@ CREATE INDEX "idx_artwork_reviews_status" ON "public"."artwork_reviews" USING "b
 
 
 
+CREATE INDEX "idx_case_messages_category" ON "public"."case_messages" USING "btree" ("moderation_id", "category");
+
+
+
+CREATE INDEX "idx_case_messages_moderation" ON "public"."case_messages" USING "btree" ("moderation_id", "created_at");
+
+
+
+CREATE INDEX "idx_cma_message" ON "public"."case_message_attachments" USING "btree" ("message_id");
+
+
+
+CREATE INDEX "idx_cmr_user" ON "public"."case_message_reads" USING "btree" ("user_id", "read_at" DESC);
+
+
+
+CREATE INDEX "idx_copyright_snapshots_mod" ON "public"."copyright_context_snapshots" USING "btree" ("moderation_id", "version" DESC);
+
+
+
+CREATE INDEX "idx_moderation_actions_mod" ON "public"."moderation_actions" USING "btree" ("moderation_id", "created_at");
+
+
+
+CREATE INDEX "idx_moderation_actions_moderator" ON "public"."moderation_actions" USING "btree" ("moderator_id", "created_at");
+
+
+
+CREATE INDEX "idx_moderation_actions_target_user" ON "public"."moderation_actions" USING "btree" ("target_user_id", "created_at") WHERE ("target_user_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_moderation_actions_type" ON "public"."moderation_actions" USING "btree" ("action_type");
+
+
+
+CREATE INDEX "idx_moderations_assigned" ON "public"."moderations" USING "btree" ("assigned_moderator_id");
+
+
+
+CREATE INDEX "idx_moderations_created" ON "public"."moderations" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "idx_moderations_queue" ON "public"."moderations" USING "btree" ("priority", "status", "created_at");
+
+
+
+CREATE INDEX "idx_moderations_report" ON "public"."moderations" USING "btree" ("report_id");
+
+
+
+CREATE INDEX "idx_moderations_status" ON "public"."moderations" USING "btree" ("status");
+
+
+
+CREATE INDEX "idx_moderator_notes_moderation" ON "public"."moderator_notes" USING "btree" ("moderation_id", "created_at");
+
+
+
 CREATE INDEX "idx_notifications_related_art_id" ON "public"."notifications" USING "btree" ("related_art_id");
 
 
@@ -1470,6 +2017,10 @@ CREATE INDEX "idx_report_actions_report_id" ON "public"."report_actions" USING "
 
 
 
+CREATE INDEX "idx_report_attachments_report" ON "public"."report_attachments" USING "btree" ("report_id");
+
+
+
 CREATE INDEX "idx_report_comments_created_at" ON "public"."report_comments" USING "btree" ("report_id", "created_at" DESC);
 
 
@@ -1535,6 +2086,10 @@ CREATE INDEX "idx_reports_status" ON "public"."reports" USING "btree" ("status")
 
 
 CREATE INDEX "idx_reports_status_created" ON "public"."reports" USING "btree" ("status", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_reports_target" ON "public"."reports" USING "btree" ("target_type", "target_id");
 
 
 
@@ -1670,6 +2225,14 @@ CREATE OR REPLACE TRIGGER "trg_initialize_user_preferences" AFTER INSERT ON "pub
 
 
 
+CREATE OR REPLACE TRIGGER "trg_moderations_updated_at" BEFORE UPDATE ON "public"."moderations" FOR EACH ROW EXECUTE FUNCTION "public"."trg_moderations_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_moderator_notes_updated_at" BEFORE UPDATE ON "public"."moderator_notes" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trg_notify_art_similarity_scan_status" AFTER UPDATE ON "public"."art_similarity_scans" FOR EACH ROW EXECUTE FUNCTION "public"."notify_art_similarity_scan_status"();
 
 
@@ -1786,6 +2349,86 @@ ALTER TABLE ONLY "public"."artwork_reviews"
 
 
 
+ALTER TABLE ONLY "public"."case_message_attachments"
+    ADD CONSTRAINT "case_message_attachments_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "public"."case_messages"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."case_message_attachments"
+    ADD CONSTRAINT "case_message_attachments_uploaded_by_fkey" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."case_message_reads"
+    ADD CONSTRAINT "case_message_reads_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "public"."case_messages"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."case_message_reads"
+    ADD CONSTRAINT "case_message_reads_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."case_messages"
+    ADD CONSTRAINT "case_messages_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."case_messages"
+    ADD CONSTRAINT "case_messages_moderation_id_fkey" FOREIGN KEY ("moderation_id") REFERENCES "public"."moderations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."copyright_context_snapshots"
+    ADD CONSTRAINT "copyright_context_snapshots_artwork_id_fkey" FOREIGN KEY ("artwork_id") REFERENCES "public"."registered_arts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."copyright_context_snapshots"
+    ADD CONSTRAINT "copyright_context_snapshots_moderation_id_fkey" FOREIGN KEY ("moderation_id") REFERENCES "public"."moderations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."moderation_actions"
+    ADD CONSTRAINT "moderation_actions_moderation_id_fkey" FOREIGN KEY ("moderation_id") REFERENCES "public"."moderations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."moderation_actions"
+    ADD CONSTRAINT "moderation_actions_moderator_id_fkey" FOREIGN KEY ("moderator_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."moderation_actions"
+    ADD CONSTRAINT "moderation_actions_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."moderations"
+    ADD CONSTRAINT "moderations_assigned_moderator_id_fkey" FOREIGN KEY ("assigned_moderator_id") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."moderations"
+    ADD CONSTRAINT "moderations_report_id_fkey" FOREIGN KEY ("report_id") REFERENCES "public"."reports"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."moderator_notes"
+    ADD CONSTRAINT "moderator_notes_edited_by_fkey" FOREIGN KEY ("edited_by") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."moderator_notes"
+    ADD CONSTRAINT "moderator_notes_moderation_id_fkey" FOREIGN KEY ("moderation_id") REFERENCES "public"."moderations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."moderator_notes"
+    ADD CONSTRAINT "moderator_notes_moderator_id_fkey" FOREIGN KEY ("moderator_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."notifications"
     ADD CONSTRAINT "notifications_related_art_id_fkey" FOREIGN KEY ("related_art_id") REFERENCES "public"."registered_arts"("id") ON DELETE CASCADE;
 
@@ -1818,6 +2461,16 @@ ALTER TABLE ONLY "public"."report_actions"
 
 ALTER TABLE ONLY "public"."report_actions"
     ADD CONSTRAINT "report_actions_report_id_fkey" FOREIGN KEY ("report_id") REFERENCES "public"."reports"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."report_attachments"
+    ADD CONSTRAINT "report_attachments_report_id_fkey" FOREIGN KEY ("report_id") REFERENCES "public"."reports"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."report_attachments"
+    ADD CONSTRAINT "report_attachments_uploaded_by_fkey" FOREIGN KEY ("uploaded_by") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -1872,7 +2525,7 @@ ALTER TABLE ONLY "public"."reports"
 
 
 ALTER TABLE ONLY "public"."reports"
-    ADD CONSTRAINT "reports_reported_art_post_id_fkey" FOREIGN KEY ("reported_art_post_id") REFERENCES "public"."art_posts"("id");
+    ADD CONSTRAINT "reports_reported_art_post_id_fkey" FOREIGN KEY ("reported_art_post_id") REFERENCES "public"."art_posts"("id") ON DELETE SET NULL;
 
 
 
@@ -1964,24 +2617,6 @@ CREATE POLICY "Admins can insert warnings" ON "public"."user_warnings" FOR INSER
 
 
 
-CREATE POLICY "Admins can read all report actions" ON "public"."report_actions" FOR SELECT USING ((EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
-
-
-
-CREATE POLICY "Admins can read all report comments" ON "public"."report_comments" FOR SELECT USING ((EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
-
-
-
-CREATE POLICY "Admins can read all report decisions" ON "public"."report_decisions" FOR SELECT USING ((EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
-
-
-
 CREATE POLICY "Admins can read all report evidence" ON "public"."report_evidence" FOR SELECT USING ((EXISTS ( SELECT 1
    FROM "public"."users"
   WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
@@ -2001,12 +2636,6 @@ CREATE POLICY "Admins can read all warnings" ON "public"."user_warnings" FOR SEL
 
 
 CREATE POLICY "Admins can read settings_audit_logs" ON "public"."settings_audit_logs" FOR SELECT USING ((EXISTS ( SELECT 1
-   FROM "public"."users"
-  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
-
-
-
-CREATE POLICY "Admins can read system_settings" ON "public"."system_settings" FOR SELECT USING ((EXISTS ( SELECT 1
    FROM "public"."users"
   WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
 
@@ -2056,75 +2685,7 @@ CREATE POLICY "Authenticated users can upload evidence to own reports" ON "publi
 
 
 
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."admin_audit_logs" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
 CREATE POLICY "Enable insert for authenticated users only" ON "public"."art_genres" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."artwork_review_actions" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."artwork_reviews" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."notifications" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."report_actions" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."report_comments" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."report_decisions" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."settings_audit_logs" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable insert for authenticated users only" ON "public"."system_settings" FOR INSERT TO "authenticated" WITH CHECK (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."admin_audit_logs" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."artwork_review_actions" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."artwork_reviews" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."report_actions" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."report_comments" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."report_decisions" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."settings_audit_logs" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Enable read access for all users" ON "public"."system_settings" FOR SELECT USING (true);
 
 
 
@@ -2227,6 +2788,18 @@ CREATE POLICY "Users can view their own preferences" ON "public"."user_preferenc
 ALTER TABLE "public"."admin_audit_logs" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "admin_audit_logs_insert_admin" ON "public"."admin_audit_logs" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "admin_audit_logs_select_admin" ON "public"."admin_audit_logs" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
 ALTER TABLE "public"."art_genres" ENABLE ROW LEVEL SECURITY;
 
 
@@ -2296,10 +2869,108 @@ CREATE POLICY "art_similarity_scans_update_own" ON "public"."art_similarity_scan
 ALTER TABLE "public"."artwork_review_actions" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "artwork_review_actions_insert_admin" ON "public"."artwork_review_actions" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "artwork_review_actions_select_admin" ON "public"."artwork_review_actions" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
 ALTER TABLE "public"."artwork_review_evidence" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."artwork_reviews" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "artwork_reviews_insert_admin" ON "public"."artwork_reviews" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "artwork_reviews_select_admin" ON "public"."artwork_reviews" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+ALTER TABLE "public"."case_message_attachments" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."case_message_reads" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."case_messages" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "cm_admins_all" ON "public"."case_messages" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "cm_reported_insert" ON "public"."case_messages" FOR INSERT TO "authenticated" WITH CHECK ((("author_id" = "auth"."uid"()) AND ("author_role" = 'reported_user'::"public"."case_message_author_role") AND ("visibility" = 'to_reported_user'::"public"."case_message_visibility") AND (EXISTS ( SELECT 1
+   FROM ("public"."moderations" "m"
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("m"."id" = "case_messages"."moderation_id") AND ("r"."target_type" = 'artwork'::"public"."report_target_type") AND (EXISTS ( SELECT 1
+           FROM ("public"."art_posts" "ap"
+             JOIN "public"."registered_arts" "ra" ON (("ra"."id" = "ap"."art_id")))
+          WHERE (("ap"."id" = "r"."target_id") AND ("ra"."owner_id" = "auth"."uid"())))))))));
+
+
+
+CREATE POLICY "cm_reported_read" ON "public"."case_messages" FOR SELECT TO "authenticated" USING ((("visibility" = ANY (ARRAY['to_reported_user'::"public"."case_message_visibility", 'shared'::"public"."case_message_visibility"])) AND (EXISTS ( SELECT 1
+   FROM ("public"."moderations" "m"
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("m"."id" = "case_messages"."moderation_id") AND ("r"."target_type" = 'artwork'::"public"."report_target_type") AND (EXISTS ( SELECT 1
+           FROM ("public"."art_posts" "ap"
+             JOIN "public"."registered_arts" "ra" ON (("ra"."id" = "ap"."art_id")))
+          WHERE (("ap"."id" = "r"."target_id") AND ("ra"."owner_id" = "auth"."uid"())))))))));
+
+
+
+CREATE POLICY "cm_reporters_insert" ON "public"."case_messages" FOR INSERT TO "authenticated" WITH CHECK ((("author_id" = "auth"."uid"()) AND ("author_role" = 'reporter'::"public"."case_message_author_role") AND ("visibility" = 'to_reporter'::"public"."case_message_visibility") AND (EXISTS ( SELECT 1
+   FROM ("public"."moderations" "m"
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("m"."id" = "case_messages"."moderation_id") AND ("r"."reporter_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "cm_reporters_read" ON "public"."case_messages" FOR SELECT TO "authenticated" USING ((("visibility" = ANY (ARRAY['to_reporter'::"public"."case_message_visibility", 'shared'::"public"."case_message_visibility"])) AND (EXISTS ( SELECT 1
+   FROM ("public"."moderations" "m"
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("m"."id" = "case_messages"."moderation_id") AND ("r"."reporter_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "cma_admins_all" ON "public"."case_message_attachments" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "cma_reporters_read" ON "public"."case_message_attachments" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM (("public"."case_messages" "cm"
+     JOIN "public"."moderations" "m" ON (("m"."id" = "cm"."moderation_id")))
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("cm"."id" = "case_message_attachments"."message_id") AND ("cm"."visibility" = ANY (ARRAY['to_reporter'::"public"."case_message_visibility", 'shared'::"public"."case_message_visibility"])) AND ("r"."reporter_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "cmr_admins_all" ON "public"."case_message_reads" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "cmr_reporters_manage" ON "public"."case_message_reads" TO "authenticated" USING (("user_id" = "auth"."uid"())) WITH CHECK (("user_id" = "auth"."uid"()));
+
+
+
+ALTER TABLE "public"."copyright_context_snapshots" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "cs_admins_all" ON "public"."copyright_context_snapshots" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
 
 
 ALTER TABLE "public"."genres" ENABLE ROW LEVEL SECURITY;
@@ -2321,7 +2992,70 @@ CREATE POLICY "genres_select_all" ON "public"."genres" FOR SELECT TO "authentica
 
 
 
+CREATE POLICY "ma_admins_all" ON "public"."moderation_actions" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "ma_reporters_read" ON "public"."moderation_actions" FOR SELECT TO "authenticated" USING (((EXISTS ( SELECT 1
+   FROM ("public"."moderations" "m"
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("m"."id" = "moderation_actions"."moderation_id") AND ("r"."reporter_id" = "auth"."uid"())))) AND ("action_type" = ANY (ARRAY['case_resolved'::"public"."moderation_action_type", 'case_dismissed'::"public"."moderation_action_type", 'case_reopened'::"public"."moderation_action_type", 'content_removed'::"public"."moderation_action_type", 'content_restored'::"public"."moderation_action_type", 'content_flagged_nsfw'::"public"."moderation_action_type", 'user_warned'::"public"."moderation_action_type", 'user_suspended'::"public"."moderation_action_type", 'user_banned'::"public"."moderation_action_type", 'appeal_granted'::"public"."moderation_action_type", 'appeal_denied'::"public"."moderation_action_type"]))));
+
+
+
+CREATE POLICY "mn_admins_all" ON "public"."moderator_notes" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "mn_reporters_read" ON "public"."moderator_notes" FOR SELECT TO "authenticated" USING ((("visibility" = 'reporter_visible'::"public"."note_visibility") AND (EXISTS ( SELECT 1
+   FROM ("public"."moderations" "m"
+     JOIN "public"."reports" "r" ON (("r"."id" = "m"."report_id")))
+  WHERE (("m"."id" = "moderator_notes"."moderation_id") AND ("r"."reporter_id" = "auth"."uid"()))))));
+
+
+
+CREATE POLICY "mod_admins_all" ON "public"."moderations" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "mod_reporters_read" ON "public"."moderations" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."reports"
+  WHERE (("reports"."id" = "moderations"."report_id") AND ("reports"."reporter_id" = "auth"."uid"())))));
+
+
+
+ALTER TABLE "public"."moderation_actions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."moderations" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."moderator_notes" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "notifications_insert_admin" ON "public"."notifications" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "notifications_select_admin" ON "public"."notifications" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "ra_admins_all" ON "public"."report_attachments" TO "authenticated" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "ra_reporters_read" ON "public"."report_attachments" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."reports"
+  WHERE (("reports"."id" = "report_attachments"."report_id") AND ("reports"."reporter_id" = "auth"."uid"())))));
+
 
 
 ALTER TABLE "public"."registered_arts" ENABLE ROW LEVEL SECURITY;
@@ -2352,10 +3086,37 @@ CREATE POLICY "registered_arts_update_own" ON "public"."registered_arts" FOR UPD
 ALTER TABLE "public"."report_actions" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "report_actions_select_reporter_or_admin" ON "public"."report_actions" FOR SELECT USING (((EXISTS ( SELECT 1
+   FROM "public"."reports"
+  WHERE (("reports"."id" = "report_actions"."report_id") AND ("reports"."reporter_id" = "auth"."uid"())))) OR (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role"))))));
+
+
+
+ALTER TABLE "public"."report_attachments" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."report_comments" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "report_comments_select_reporter_or_admin" ON "public"."report_comments" FOR SELECT USING (((EXISTS ( SELECT 1
+   FROM "public"."reports"
+  WHERE (("reports"."id" = "report_comments"."report_id") AND ("reports"."reporter_id" = "auth"."uid"())))) OR (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role"))))));
+
+
+
 ALTER TABLE "public"."report_decisions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "report_decisions_select_reporter_or_admin" ON "public"."report_decisions" FOR SELECT USING (((EXISTS ( SELECT 1
+   FROM "public"."reports"
+  WHERE (("reports"."id" = "report_decisions"."report_id") AND ("reports"."reporter_id" = "auth"."uid"())))) OR (EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role"))))));
+
 
 
 ALTER TABLE "public"."report_evidence" ENABLE ROW LEVEL SECURITY;
@@ -2382,7 +3143,23 @@ CREATE POLICY "reports_select_own_or_admin" ON "public"."reports" FOR SELECT TO 
 ALTER TABLE "public"."settings_audit_logs" ENABLE ROW LEVEL SECURITY;
 
 
+CREATE POLICY "settings_audit_logs_insert_admin" ON "public"."settings_audit_logs" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
+CREATE POLICY "settings_audit_logs_select_admin" ON "public"."settings_audit_logs" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role" = 'admin'::"public"."user_role")))));
+
+
+
 ALTER TABLE "public"."system_settings" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "system_settings_select_authenticated" ON "public"."system_settings" FOR SELECT TO "authenticated" USING (true);
+
 
 
 ALTER TABLE "public"."user_preferences" ENABLE ROW LEVEL SECURITY;
@@ -2416,6 +3193,30 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 GRANT ALL ON FUNCTION "public"."enforce_art_post_owner_match"() TO "anon";
 GRANT ALL ON FUNCTION "public"."enforce_art_post_owner_match"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."enforce_art_post_owner_match"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_moderation_enforcement_stats"("p_days" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_moderation_enforcement_stats"("p_days" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_moderation_enforcement_stats"("p_days" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_moderation_queue_health"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_moderation_queue_health"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_moderation_queue_health"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_moderation_trends"("p_days" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_moderation_trends"("p_days" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_moderation_trends"("p_days" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_moderator_activity"("p_moderator_id" "uuid", "p_days" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_moderator_activity"("p_moderator_id" "uuid", "p_days" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_moderator_activity"("p_moderator_id" "uuid", "p_days" integer) TO "service_role";
 
 
 
@@ -2497,6 +3298,12 @@ GRANT ALL ON FUNCTION "public"."sync_art_post_vote_counts_incremental"() TO "ser
 
 
 
+GRANT ALL ON FUNCTION "public"."trg_moderations_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."trg_moderations_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."trg_moderations_updated_at"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_user_preferences_timestamp"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_user_preferences_timestamp"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_user_preferences_timestamp"() TO "service_role";
@@ -2557,6 +3364,30 @@ GRANT ALL ON TABLE "public"."artwork_reviews" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."case_message_attachments" TO "anon";
+GRANT ALL ON TABLE "public"."case_message_attachments" TO "authenticated";
+GRANT ALL ON TABLE "public"."case_message_attachments" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."case_message_reads" TO "anon";
+GRANT ALL ON TABLE "public"."case_message_reads" TO "authenticated";
+GRANT ALL ON TABLE "public"."case_message_reads" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."case_messages" TO "anon";
+GRANT ALL ON TABLE "public"."case_messages" TO "authenticated";
+GRANT ALL ON TABLE "public"."case_messages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."copyright_context_snapshots" TO "anon";
+GRANT ALL ON TABLE "public"."copyright_context_snapshots" TO "authenticated";
+GRANT ALL ON TABLE "public"."copyright_context_snapshots" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."genres" TO "anon";
 GRANT ALL ON TABLE "public"."genres" TO "authenticated";
 GRANT ALL ON TABLE "public"."genres" TO "service_role";
@@ -2566,6 +3397,24 @@ GRANT ALL ON TABLE "public"."genres" TO "service_role";
 GRANT ALL ON SEQUENCE "public"."genres_id_seq" TO "anon";
 GRANT ALL ON SEQUENCE "public"."genres_id_seq" TO "authenticated";
 GRANT ALL ON SEQUENCE "public"."genres_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."moderation_actions" TO "anon";
+GRANT ALL ON TABLE "public"."moderation_actions" TO "authenticated";
+GRANT ALL ON TABLE "public"."moderation_actions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."moderations" TO "anon";
+GRANT ALL ON TABLE "public"."moderations" TO "authenticated";
+GRANT ALL ON TABLE "public"."moderations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."moderator_notes" TO "anon";
+GRANT ALL ON TABLE "public"."moderator_notes" TO "authenticated";
+GRANT ALL ON TABLE "public"."moderator_notes" TO "service_role";
 
 
 
@@ -2584,6 +3433,12 @@ GRANT ALL ON TABLE "public"."registered_arts" TO "service_role";
 GRANT ALL ON TABLE "public"."report_actions" TO "anon";
 GRANT ALL ON TABLE "public"."report_actions" TO "authenticated";
 GRANT ALL ON TABLE "public"."report_actions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."report_attachments" TO "anon";
+GRANT ALL ON TABLE "public"."report_attachments" TO "authenticated";
+GRANT ALL ON TABLE "public"."report_attachments" TO "service_role";
 
 
 

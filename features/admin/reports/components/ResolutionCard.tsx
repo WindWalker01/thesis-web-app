@@ -148,14 +148,14 @@ export function ResolutionCard({
     );
   }
 
-  // Must be under review or awaiting_evidence to resolve
-  if (currentStatus !== "under_review" && currentStatus !== "awaiting_evidence") {
+  // Must be under review to resolve
+  if (currentStatus !== "under_review") {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Resolution</CardTitle>
           <CardDescription className="text-xs">
-            Move this report to "Under Review" before taking resolution actions.
+            Move this report to &apos;Under Review&apos; before taking resolution actions.
           </CardDescription>
         </CardHeader>
       </Card>

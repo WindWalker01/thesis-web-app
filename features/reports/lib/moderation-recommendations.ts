@@ -56,8 +56,7 @@ export const GUIDELINE_ARTWORK_DEFAULTS: Record<
 
 export const VALID_STATUS_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
   pending_review: ["under_review"],
-  under_review: ["awaiting_evidence", "resolved"],
-  awaiting_evidence: ["under_review", "resolved"],
+  under_review: ["resolved"],
   resolved: [],
 };
 

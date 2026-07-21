@@ -41,12 +41,6 @@ const TRANSITION_LABELS: Record<
     description: "Confirm you are actively investigating this report.",
     icon: <Clock className="h-4 w-4" />,
   },
-  awaiting_evidence: {
-    label: "Request Evidence",
-    description:
-      "Ask the reporter to provide additional evidence before proceeding.",
-    icon: <MessageSquareText className="h-4 w-4" />,
-  },
   resolved: {
     label: "Resolve",
     description:
@@ -61,22 +55,6 @@ function getTransitionLabel(from: ReportStatus, to: ReportStatus): {
   description: string;
   icon: React.ReactNode;
 } {
-  if (from === "under_review" && to === "awaiting_evidence") {
-    return {
-      label: "Request Evidence",
-      description:
-        "Request additional evidence from the reporter. The report will move to 'Awaiting Evidence'.",
-      icon: <MessageSquareText className="h-4 w-4" />,
-    };
-  }
-  if (from === "awaiting_evidence" && to === "under_review") {
-    return {
-      label: "Return to Review",
-      description:
-        "Evidence has been received. Move the report back to 'Under Review'.",
-      icon: <RotateCcw className="h-4 w-4" />,
-    };
-  }
   if (from === "pending_review" && to === "under_review") {
     return {
       label: "Begin Investigation",

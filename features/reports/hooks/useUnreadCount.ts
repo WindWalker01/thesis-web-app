@@ -50,7 +50,7 @@ export function useUnreadCount({
     if (!enabled || !userId) return;
 
     const channel = supabase
-      .channel("report-unread-changes")
+      .channel(`report-unread-changes-${userId}-${crypto.randomUUID()}`)
       .on(
         "postgres_changes",
         {
@@ -82,7 +82,7 @@ export function useUnreadCount({
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [userId, enabled, queryClient]);
 

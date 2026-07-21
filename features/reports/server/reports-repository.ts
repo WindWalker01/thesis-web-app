@@ -698,7 +698,6 @@ export async function getReportStatistics(): Promise<ReportStatistics> {
     const total = allReports.length;
     const pendingReview = allReports.filter((r) => r.status === "pending_review").length;
     const underReview = allReports.filter((r) => r.status === "under_review").length;
-    const awaitingEvidence = allReports.filter((r) => r.status === "awaiting_evidence").length;
     const resolved = allReports.filter((r) => r.status === "resolved").length;
     const reportsThisMonth = allReports.filter(
       (r) => new Date(r.created_at) >= monthStart
@@ -735,7 +734,6 @@ export async function getReportStatistics(): Promise<ReportStatistics> {
       total,
       pending_review: pendingReview,
       under_review: underReview,
-      awaiting_evidence: awaitingEvidence,
       resolved,
       average_resolution_time_hours: averageResolutionTimeHours,
       reports_this_month: reportsThisMonth,

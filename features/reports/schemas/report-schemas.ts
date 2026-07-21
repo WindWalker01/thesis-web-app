@@ -8,7 +8,6 @@ import { z } from "zod";
 export const reportStatusSchema = z.enum([
   "pending_review",
   "under_review",
-  "awaiting_evidence",
   "resolved",
 ]);
 

@@ -6,7 +6,6 @@
 export type ReportStatus =
   | "pending_review"
   | "under_review"
-  | "awaiting_evidence"
   | "resolved";
 
 // ---- Report Type ----
@@ -256,7 +255,6 @@ export type ReportStatistics = {
   total: number;
   pending_review: number;
   under_review: number;
-  awaiting_evidence: number;
   resolved: number;
   average_resolution_time_hours: number | null;
   reports_this_month: number;
@@ -272,8 +270,7 @@ export type StatusTransition = {
 
 export const VALID_STATUS_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
   pending_review: ["under_review"],
-  under_review: ["awaiting_evidence", "resolved"],
-  awaiting_evidence: ["under_review", "resolved"],
+  under_review: ["resolved"],
   resolved: [],
 };
 
