@@ -38,10 +38,49 @@ const MAINTENANCE_BYPASS_ROUTES = [
 ];
 
 export async function proxy(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+
+    // ── Session Clear (runs before any auth checks) ──
+    // When the user clicks "Administrator? Log in here" on the maintenance page,
+    // we need to delete ALL auth cookies so they can log in as a different user.
+    // This must run BEFORE getUser() and the auth-route redirect, otherwise the
+    // middleware will redirect to /dashboard before the cookies are cleared.
+    if (request.nextUrl.searchParams.get("clear_session") === "1") {
+        const clearResponse = NextResponse.redirect(new URL("/login", request.url));
+        // Delete all Supabase auth cookies by setting maxAge to 0
+        request.cookies.getAll().forEach((c) => {
+            if (c.name.includes("sb-")) {
+                clearResponse.cookies.set(c.name, "", { maxAge: 0, path: "/" });
+            }
+        });
+        return clearResponse;
+    }
+
     // We must create a new response and pass it through so Supabase can
     // refresh the session cookie if it has expired (via Set-Cookie header).
+
+    // Track the detected user role for passing to downstream Server Components.
+    // Updated after profile is fetched. Default: anonymous.
+    let detectedRole = "anonymous";
+
+    // Use a staging response for tracking Set-Cookie headers from Supabase.
+    // At each return point we rebuild a fresh NextResponse with the correct
+    // x-user-role request header plus any Set-Cookie headers accumulated here.
     const response = NextResponse.next();
-    const { pathname } = request.nextUrl;
+
+    // ── Helper: rebuild the pass-through response with the current role ──
+    const buildResponse = (): NextResponse => {
+        const h = new Headers(request.headers);
+        h.set("x-user-role", detectedRole);
+        const newResponse = NextResponse.next({ request: { headers: h } });
+        // Forward any Set-Cookie headers that Supabase added to the original response
+        response.headers.forEach((value, key) => {
+            if (key.toLowerCase() === "set-cookie") {
+                newResponse.headers.append(key, value);
+            }
+        });
+        return newResponse;
+    };
 
     // Edge-compatible Supabase client — DO NOT replace with createSupabaseServerClient().
     // See note at the top of this file for why.
@@ -58,7 +97,8 @@ export async function proxy(request: NextRequest) {
                     cookiesToSet.forEach(({ name, value }) => {
                         request.cookies.set(name, value);
                     });
-                    // 2. Update the response so the browser saves the new token.
+                    // 2. Track Set-Cookie headers on the staging response (merged
+                    // into the final response by buildResponse() above).
                     cookiesToSet.forEach(({ name, value, options }) => {
                         response.cookies.set(name, value, options);
                     });
@@ -79,7 +119,17 @@ export async function proxy(request: NextRequest) {
     // and the recovery flow needs to remain accessible.
     const authRoutes = ["/login", "/register", "/forgot-password"];
     if (user && authRoutes.some(route => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        const redirectResponse = NextResponse.redirect(new URL("/dashboard", request.url));
+        // Forward any Set-Cookie headers that Supabase may have added during
+        // session refresh (getUser() can trigger a token refresh). Without this,
+        // the redirected request to /dashboard uses a stale cookie, causing
+        // getUser() to fail and the admin to see the maintenance page.
+        response.headers.forEach((value, key) => {
+            if (key.toLowerCase() === "set-cookie") {
+                redirectResponse.headers.append(key, value);
+            }
+        });
+        return redirectResponse;
     }
 
     // ── Account Status Enforcement ──
@@ -93,7 +143,7 @@ export async function proxy(request: NextRequest) {
             pathname.startsWith(route)
         );
         if (shouldBypass) {
-            return response;
+            return buildResponse();
         }
 
         // Fetch user's account status and role
@@ -104,13 +154,16 @@ export async function proxy(request: NextRequest) {
             .single();
 
         profile = data;
+        if (profile) {
+            detectedRole = profile.role;
+        }
 
         if (profile) {
             const isAdmin = profile.role === "admin";
 
             // Admins bypass account status restrictions
             if (isAdmin) {
-                return response;
+                return buildResponse();
             }
 
             // Check if suspension has expired — auto-unsuspend
@@ -128,7 +181,7 @@ export async function proxy(request: NextRequest) {
                     })
                     .eq("id", user.id);
 
-                return response;
+                return buildResponse();
             }
 
             // Redirect suspended users to suspension notice page
@@ -162,7 +215,7 @@ export async function proxy(request: NextRequest) {
         // return empty for non-admin users. We handle that gracefully — if the
         // query fails or returns no data, we assume maintenance mode is OFF
         // (safe default) and allow access. The server-side layout check in
-        // app/layout.tsx provides a secondary enforcement layer using the
+        // app/(main)/layout.tsx provides a secondary enforcement layer using the
         // service-role admin client which bypasses RLS.
         let maintenanceMode = false;
 
@@ -233,7 +286,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Always return the response so session cookies are forwarded correctly.
-    return response;
+    return buildResponse();
 }
 
 export const config = {
