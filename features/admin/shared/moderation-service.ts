@@ -134,6 +134,16 @@ export async function removeArtworkFromReports(
       }
     }
 
+    // Update the registered_arts status to 'removed'
+    const { error: artStatusError } = await supabase
+      .from("registered_arts")
+      .update({ status: "removed" })
+      .eq("id", artworkId);
+
+    if (artStatusError) {
+      return { success: false, message: `Failed to update artwork status: ${artStatusError.message}` };
+    }
+
     // Log the removal in admin_audit_logs
     await supabase.from("admin_audit_logs").insert({
       admin_id: "", // Will be set by caller if needed
