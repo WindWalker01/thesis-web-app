@@ -968,7 +968,7 @@ CREATE TABLE IF NOT EXISTS "public"."report_decisions" (
     "decision" "text" NOT NULL,
     "summary" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "report_decisions_decision_check" CHECK (("decision" = ANY (ARRAY['infringement_confirmed'::"text", 'no_violation'::"text", 'insufficient_evidence'::"text", 'duplicate_report'::"text", 'other'::"text"])))
+    CONSTRAINT "report_decisions_decision_check" CHECK (("decision" = ANY (ARRAY['no_violation'::"text", 'copyright_confirmed'::"text", 'guideline_violation'::"text", 'insufficient_evidence'::"text", 'false_report'::"text"])))
 );
 
 

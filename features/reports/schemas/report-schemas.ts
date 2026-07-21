@@ -25,13 +25,10 @@ export const reportTypeSchema = z.enum([
 
 // ---- Decision Value ----
 export const reportDecisionValueSchema = z.enum([
-  "infringement_confirmed", // deprecated
   "no_violation",
-  "insufficient_evidence",
-  "duplicate_report", // deprecated
-  "other", // deprecated
-  "guideline_violation",
   "copyright_confirmed",
+  "guideline_violation",
+  "insufficient_evidence",
   "false_report",
 ]);
 

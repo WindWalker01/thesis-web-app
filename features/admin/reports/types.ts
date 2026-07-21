@@ -88,9 +88,6 @@ export const DECISION_LABELS: Record<string, string> = {
   guideline_violation: "Community Guideline Violation",
   insufficient_evidence: "Insufficient Evidence",
   false_report: "False Report",
-  infringement_confirmed: "Infringement Confirmed (Legacy)",
-  duplicate_report: "Duplicate Report (Legacy)",
-  other: "Other (Legacy)",
 };
 
 // Action labels

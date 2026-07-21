@@ -12,6 +12,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
 import { logModerationAction, resolveReport } from "@/features/reports/server/reports-service";
+import { resolveReportSchema } from "@/features/reports/schemas/report-schemas";
 
 export async function POST(
   request: NextRequest,
@@ -66,6 +67,17 @@ export async function POST(
       case "resolve_report": {
         // === ORCHESTRATED RESOLUTION ===
         // Single endpoint that handles decision, artwork actions, user actions, and resolution.
+
+        // Validate request body with Zod — catches invalid decision values before DB insert
+        const parsed = resolveReportSchema.safeParse(body);
+        if (!parsed.success) {
+          const firstError = parsed.error.issues[0];
+          return NextResponse.json(
+            { success: false, error: { message: `Validation error: ${firstError.path.join(".")} — ${firstError.message}` } },
+            { status: 400 }
+          );
+        }
+
         const {
           decision: resolveDecision,
           summary: resolveSummary,
@@ -73,14 +85,7 @@ export async function POST(
           userActions: resolveUserActions = [],
           artworkReason: resolveArtworkReason,
           userReason: resolveUserReason,
-        } = body;
-
-        if (!resolveDecision || !resolveSummary) {
-          return NextResponse.json(
-            { success: false, error: { message: "decision and summary are required" } },
-            { status: 400 }
-          );
-        }
+        } = parsed.data;
 
         // Idempotency check
         const report = await serverSupabase.from("reports").select("status").eq("id", reportId).single();
@@ -91,7 +96,7 @@ export async function POST(
         // Step 1: Execute artwork actions
         const validArtworkActions = ["remove_artwork", "restore_artwork", "mark_nsfw", "rerun_plagiarism"] as const;
         for (const awAction of resolveArtworkActions) {
-          if (!validArtworkActions.includes(awAction)) continue;
+          if (!(validArtworkActions as readonly string[]).includes(awAction)) continue;
           if (!artworkId) continue;
 
           try {
@@ -172,7 +177,7 @@ export async function POST(
           result = await resolveReportAfterModeration(
             reportId,
             adminId,
-            "infringement_confirmed",
+            "copyright_confirmed",
             reason ?? "Report upheld — infringement confirmed after investigation."
           );
         } else {
@@ -196,7 +201,7 @@ export async function POST(
             result = await resolveReportAfterModeration(
               reportId,
               adminId,
-              "infringement_confirmed",
+              "copyright_confirmed",
               reason ?? "Artwork was flagged during report investigation."
             );
           } else {
@@ -224,7 +229,7 @@ export async function POST(
           result = await resolveReportAfterModeration(
             reportId,
             adminId,
-            "infringement_confirmed",
+            "copyright_confirmed",
             reason ?? "Artwork was removed during report investigation."
           );
         }

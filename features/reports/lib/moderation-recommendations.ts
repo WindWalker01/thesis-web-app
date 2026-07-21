@@ -16,7 +16,7 @@ import type {
 // ---- Decision → Allowed Artwork Actions ----
 
 export const DECISION_ARTWORK_ACTIONS: Record<
-  Exclude<ReportDecisionValue, "infringement_confirmed" | "duplicate_report" | "other">,
+  ReportDecisionValue,
   ("keep_artwork" | "remove_artwork" | "restore_artwork" | "mark_nsfw" | "rerun_plagiarism")[]
 > = {
   no_violation: ["keep_artwork"],
@@ -29,7 +29,7 @@ export const DECISION_ARTWORK_ACTIONS: Record<
 // ---- Decision → Allowed User Actions ----
 
 export const DECISION_USER_ACTIONS: Record<
-  Exclude<ReportDecisionValue, "infringement_confirmed" | "duplicate_report" | "other">,
+  ReportDecisionValue,
   ("warn_user" | "suspend_user" | "ban_user")[]
 > = {
   no_violation: [],
@@ -90,33 +90,25 @@ export function getRecommendedActions(
   const artworkActions: ActionRecommendation["artworkActions"] = [];
   const userActions: ActionRecommendation["userActions"] = [];
 
-  // Map legacy decisions
-  const normalizedDecision: ReportDecisionValue =
-    decision === "infringement_confirmed"
-      ? "copyright_confirmed"
-      : decision === "duplicate_report"
-        ? "guideline_violation"
-        : decision;
-
   // Artwork actions — use type-safe lookup with fallback
   const allowedArtwork: ("keep_artwork" | "remove_artwork" | "restore_artwork" | "mark_nsfw" | "rerun_plagiarism")[] =
-    normalizedDecision in DECISION_ARTWORK_ACTIONS
-      ? DECISION_ARTWORK_ACTIONS[normalizedDecision as keyof typeof DECISION_ARTWORK_ACTIONS]
+    decision in DECISION_ARTWORK_ACTIONS
+      ? DECISION_ARTWORK_ACTIONS[decision as keyof typeof DECISION_ARTWORK_ACTIONS]
       : ["keep_artwork"];
 
   for (const action of allowedArtwork) {
-    const isGuidelineViolation = normalizedDecision === "guideline_violation";
+    const isGuidelineViolation = decision === "guideline_violation";
     const defaults =
       isGuidelineViolation && reportType !== "copyright" && reportType !== "other"
         ? GUIDELINE_ARTWORK_DEFAULTS[reportType as keyof typeof GUIDELINE_ARTWORK_DEFAULTS]
         : [];
 
     let checked = false;
-    if (normalizedDecision === "copyright_confirmed" && action === "remove_artwork") {
+    if (decision === "copyright_confirmed" && action === "remove_artwork") {
       checked = true;
     } else if (isGuidelineViolation && defaults.includes(action as "remove_artwork" | "mark_nsfw")) {
       checked = true;
-    } else if (normalizedDecision === "no_violation" || normalizedDecision === "insufficient_evidence") {
+    } else if (decision === "no_violation" || decision === "insufficient_evidence") {
       checked = true;
     }
 
@@ -129,15 +121,15 @@ export function getRecommendedActions(
 
   // User actions — use type-safe lookup with fallback
   const allowedUser: ("warn_user" | "suspend_user" | "ban_user")[] =
-    normalizedDecision in DECISION_USER_ACTIONS
-      ? DECISION_USER_ACTIONS[normalizedDecision as keyof typeof DECISION_USER_ACTIONS]
+    decision in DECISION_USER_ACTIONS
+      ? DECISION_USER_ACTIONS[decision as keyof typeof DECISION_USER_ACTIONS]
       : [];
 
   for (const action of allowedUser) {
     let checked = false;
-    if (normalizedDecision === "copyright_confirmed" && action === "warn_user") {
+    if (decision === "copyright_confirmed" && action === "warn_user") {
       checked = true;
-    } else if (normalizedDecision === "guideline_violation" && action === "warn_user") {
+    } else if (decision === "guideline_violation" && action === "warn_user") {
       checked = true;
     }
 
@@ -166,48 +158,42 @@ export function validateActionCombination(
   artworkActions: string[],
   userActions: string[]
 ): CombinationValidationResult {
-  // Map legacy decisions
-  const normalized: ReportDecisionValue =
-    decision === "infringement_confirmed" ? "copyright_confirmed"
-    : decision === "duplicate_report" ? "guideline_violation"
-    : decision;
-
   // Decisions that allow NO modifications
   const passiveDecisions: ReportDecisionValue[] = ["no_violation", "insufficient_evidence", "false_report"];
 
-  if (passiveDecisions.includes(normalized)) {
+  if (passiveDecisions.includes(decision)) {
     const activeArtwork = artworkActions.filter((a) => a !== "keep_artwork");
     if (activeArtwork.length > 0) {
       return {
         valid: false,
-        reason: `Decision "${normalized}" does not allow artwork actions: ${activeArtwork.join(", ")}.`,
+        reason: `Decision "${decision}" does not allow artwork actions: ${activeArtwork.join(", ")}.`,
       };
     }
     if (userActions.length > 0) {
       return {
         valid: false,
-        reason: `Decision "${normalized}" does not allow user actions: ${userActions.join(", ")}.`,
+        reason: `Decision "${decision}" does not allow user actions: ${userActions.join(", ")}.`,
       };
     }
   }
 
   // Validate each action is in the allowed set
-  const allowedArtwork = DECISION_ARTWORK_ACTIONS[normalized as keyof typeof DECISION_ARTWORK_ACTIONS] ?? ["keep_artwork"];
+  const allowedArtwork = DECISION_ARTWORK_ACTIONS[decision] ?? ["keep_artwork"];
   for (const action of artworkActions) {
     if (!allowedArtwork.includes(action as typeof allowedArtwork[number])) {
       return {
         valid: false,
-        reason: `Artwork action "${action}" is not allowed for decision "${normalized}". Allowed: ${allowedArtwork.join(", ")}.`,
+        reason: `Artwork action "${action}" is not allowed for decision "${decision}". Allowed: ${allowedArtwork.join(", ")}.`,
       };
     }
   }
 
-  const allowedUser = DECISION_USER_ACTIONS[normalized as keyof typeof DECISION_USER_ACTIONS] ?? [];
+  const allowedUser = DECISION_USER_ACTIONS[decision] ?? [];
   for (const action of userActions) {
     if (!allowedUser.includes(action as typeof allowedUser[number])) {
       return {
         valid: false,
-        reason: `User action "${action}" is not allowed for decision "${normalized}". Allowed: ${allowedUser.join(", ") || "none"}.`,
+        reason: `User action "${action}" is not allowed for decision "${decision}". Allowed: ${allowedUser.join(", ") || "none"}.`,
       };
     }
   }

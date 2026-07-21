@@ -21,13 +21,10 @@ export type ReportType =
 
 // ---- Decision Type ----
 export type ReportDecisionValue =
-  | "infringement_confirmed" // deprecated — use copyright_confirmed
   | "no_violation"
-  | "insufficient_evidence"
-  | "duplicate_report" // deprecated — use guideline_violation or no_violation
-  | "other" // deprecated — use appropriate decision
-  | "guideline_violation"
   | "copyright_confirmed"
+  | "guideline_violation"
+  | "insufficient_evidence"
   | "false_report";
 
 // ---- Action Type ----
@@ -298,9 +295,6 @@ export const DECISION_LABELS: Record<string, string> = {
   guideline_violation: "Community Guideline Violation",
   insufficient_evidence: "Insufficient Evidence",
   false_report: "False Report",
-  infringement_confirmed: "Infringement Confirmed (Legacy)",
-  duplicate_report: "Duplicate Report (Legacy)",
-  other: "Other (Legacy)",
 };
 
 // ---- Sort Options ----

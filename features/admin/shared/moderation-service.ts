@@ -267,7 +267,7 @@ export async function resolveReportAfterModeration(
     const { error: decisionError } = await supabase.from("report_decisions").insert({
       report_id: reportId,
       admin_id: adminId,
-      decision: decisionValue,
+      decision: decisionValue === "infringement_confirmed" ? "copyright_confirmed" : decisionValue,
       summary: summary,
     });
 

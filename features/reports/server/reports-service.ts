@@ -559,10 +559,10 @@ export async function rejectReport(
   const decisionValue = data.reason === "false_report"
     ? "no_violation"
     : data.reason === "duplicate"
-      ? "duplicate_report"
+      ? "false_report"
       : data.reason === "insufficient_evidence"
         ? "insufficient_evidence"
-        : "other";
+        : "guideline_violation";
 
   // Record decision
   const decision = await repo.insertReportDecision(supabase, {

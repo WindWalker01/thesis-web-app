@@ -55,9 +55,6 @@ export const DECISION_LABELS: Record<ReportDecisionValue, string> = {
   guideline_violation: "Community Guideline Violation",
   insufficient_evidence: "Insufficient Evidence",
   false_report: "False Report",
-  infringement_confirmed: "Infringement Confirmed (Legacy)",
-  duplicate_report: "Duplicate Report (Legacy)",
-  other: "Other (Legacy)",
 };
 
 export const DECISION_COLORS: Record<ReportDecisionValue, string> = {
@@ -71,12 +68,6 @@ export const DECISION_COLORS: Record<ReportDecisionValue, string> = {
     "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   false_report:
     "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
-  infringement_confirmed:
-    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  duplicate_report:
-    "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  other:
-    "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400",
 };
 
 // ---- Terminal Status Check ----
