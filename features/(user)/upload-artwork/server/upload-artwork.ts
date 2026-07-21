@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveAccount } from "@/lib/account-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
+import { uploadArtworkImageToCloudinary, deleteArtworkImageFromCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
 import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
   buildSimilarityReport,
@@ -28,9 +28,16 @@ import { fetchGenreClassification } from "./fetch-genre";
 async function rollbackArtworkInsert(params: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
   artworkId: string;
+  cloudinaryPublicId?: string | null;
 }) {
-  const { supabase, artworkId } = params;
+  const { supabase, artworkId, cloudinaryPublicId } = params;
   console.log(`[Artwork Registration] Rolling back artwork insert: ${artworkId}`);
+
+  // Delete Cloudinary asset if we have a public ID (non-blocking)
+  if (cloudinaryPublicId) {
+    await deleteArtworkImageFromCloudinary(cloudinaryPublicId);
+  }
+
   await supabase.from("registered_arts").delete().eq("id", artworkId);
 }
 
@@ -358,6 +365,12 @@ export async function recordArtworkInDatabase(
 
       console.error("[Artwork Registration] Database insert error:", error);
 
+      // Clean up the Cloudinary asset since the DB insert failed
+      if (uploadedImage.publicId) {
+        console.log(`[Artwork Registration] Cleaning up Cloudinary asset: ${uploadedImage.publicId}`);
+        await deleteArtworkImageFromCloudinary(uploadedImage.publicId);
+      }
+
       return {
         success: false,
         message: isDuplicate
@@ -390,7 +403,11 @@ export async function recordArtworkInDatabase(
 
       if (scanInsertError) {
         console.error("[Similarity Scan] Failed to create scan record:", scanInsertError);
-        await rollbackArtworkInsert({ supabase, artworkId: insertedArtworkId });
+        await rollbackArtworkInsert({
+          supabase,
+          artworkId: insertedArtworkId,
+          cloudinaryPublicId: uploadedImage.publicId,
+        });
         return {
           success: false,
           message: scanInsertError.message,

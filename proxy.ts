@@ -84,6 +84,9 @@ export async function proxy(request: NextRequest) {
 
     // ── Account Status Enforcement ──
     // Only check status for authenticated users on non-public routes
+    // Lift profile to outer scope so it can be reused by the maintenance block below
+    let profile: { account_status: string; role: string; suspended_until: string | null } | null = null;
+
     if (user) {
         // Skip status checks for bypass routes
         const shouldBypass = STATUS_BYPASS_ROUTES.some(route =>
@@ -94,11 +97,13 @@ export async function proxy(request: NextRequest) {
         }
 
         // Fetch user's account status and role
-        const { data: profile } = await supabase
+        const { data } = await supabase
             .from("users")
             .select("account_status, role, suspended_until")
             .eq("id", user.id)
             .single();
+
+        profile = data;
 
         if (profile) {
             const isAdmin = profile.role === "admin";
@@ -214,18 +219,11 @@ export async function proxy(request: NextRequest) {
         }
 
         if (maintenanceMode) {
-            // Check if user is an admin (admins can bypass maintenance mode)
-            let isAdmin = false;
-            if (user) {
-                const { data: profile } = await supabase
-                    .from("users")
-                    .select("role")
-                    .eq("id", user.id)
-                    .single();
-                isAdmin = profile?.role === "admin";
-            }
+            // Admins bypass maintenance mode.
+            // Reuse the profile from the account-status block above if the user is
+            // authenticated. For unauthenticated users, profile is undefined — redirect.
+            const isAdmin = profile?.role === "admin";
 
-            // If user is not an admin, redirect to maintenance page
             if (!isAdmin) {
                 return NextResponse.redirect(
                     new URL("/maintenance", request.url)

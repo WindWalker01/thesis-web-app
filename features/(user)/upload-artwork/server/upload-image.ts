@@ -18,6 +18,31 @@ export type UploadedArtworkImage = {
   height: number | null;
 };
 
+/**
+ * Deletes an artwork image from Cloudinary by its public ID.
+ * Used for rollback when the database insert fails after upload.
+ * Non-throwing — logs errors but never blocks the caller.
+ */
+export async function deleteArtworkImageFromCloudinary(
+  publicId: string
+): Promise<void> {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image",
+    });
+    if (result.result !== "ok" && result.result !== "not found") {
+      console.error(
+        `[Cloudinary] Failed to delete image ${publicId}: ${result.result}`,
+      );
+    }
+  } catch (error) {
+    console.error(
+      `[Cloudinary] Error deleting image ${publicId}:`,
+      error instanceof Error ? error.message : error,
+    );
+  }
+}
+
 export async function uploadArtworkImageToCloudinary(params: {
   fileBuffer: Buffer;
   fileName: string;

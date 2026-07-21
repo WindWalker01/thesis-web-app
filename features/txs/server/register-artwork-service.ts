@@ -182,12 +182,31 @@ export async function registerArtworkOnBlockchain(
       .eq("owner_id", ownerId);
 
     if (updateError) {
-      // Transaction succeeded on-chain but DB update failed
-      // The artwork has a valid tx on-chain but our DB doesn't reflect it
-      return {
-        success: false,
-        message: `Blockchain transaction succeeded but database update failed: ${updateError.message}`,
-      };
+      // Transaction succeeded on-chain but DB update failed.
+      // Retry the update once to prevent double-minting on re-invocation.
+      const { error: retryError } = await supabase
+        .from("registered_arts")
+        .update({
+          chain: CHAIN_NAME,
+          tx_hash: receipt.hash,
+          block_number: receipt.blockNumber,
+          work_id: workId.toString(),
+          status: "active",
+        })
+        .eq("id", artworkId)
+        .eq("owner_id", ownerId);
+
+      if (retryError) {
+        // DB update still failed — return error but the idempotency check
+        // won't help since tx_hash wasn't persisted. Log and return failure.
+        console.error(
+          `[registerArtworkOnBlockchain] CRITICAL: DB update failed after confirmed tx ${receipt.hash} for artwork ${artworkId}. Retry also failed: ${retryError.message}`,
+        );
+        return {
+          success: false,
+          message: `Blockchain transaction succeeded (${receipt.hash}) but database update failed after retry: ${retryError.message}. An admin must manually sync this record.`,
+        };
+      }
     }
 
     return {
