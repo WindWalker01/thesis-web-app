@@ -6,6 +6,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Trash2,
+  RotateCcw,
   ExternalLink,
   Loader2,
   Info,
@@ -57,6 +58,7 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
   const scanSuccess = artwork.scan?.success;
   const hasHighSimilarity =
     (artwork.scan?.best_similarity_percentage ?? 0) >= 75;
+  const isRemoved = artwork.status === "removed";
 
   const handleActionClick = (action: string) => {
     if (action === "remove") {
@@ -65,6 +67,20 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
         title: "Remove Artwork",
         description:
           "This will remove the artwork from public view. The blockchain registration record is preserved for evidence. This action can be reversed by restoring the artwork.",
+        onConfirm: () => {
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          setSelectedAction(action);
+          setReason("");
+        },
+      });
+      return;
+    }
+    if (action === "restore") {
+      setConfirmDialog({
+        open: true,
+        title: "Restore Artwork",
+        description:
+          "This will restore the artwork to public view. The artwork will become visible again on the platform.",
         onConfirm: () => {
           setConfirmDialog((prev) => ({ ...prev, open: false }));
           setSelectedAction(action);
@@ -82,11 +98,7 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
     setIsLoading(true);
     try {
       await onAction(selectedAction, reason);
-      toast.success(
-        selectedAction === "mark_reported"
-          ? "Artwork flagged as reported"
-          : `Action completed: ${selectedAction.replace(/_/g, " ")}`
-      );
+      toast.success(`Action completed: ${selectedAction.replace(/_/g, " ")}`);
       setSelectedAction(null);
       setReason("");
     } catch {
@@ -278,123 +290,118 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
               Quick Actions
             </p>
             <div className="space-y-2">
-              {/* Mark as Reported */}
-              <div
-                className={cn(
-                  "rounded-lg border p-2.5",
-                  selectedAction === "mark_reported"
-                    ? "border-primary ring-1 ring-primary"
-                    : "border-blue-200 bg-blue-50/50"
-                )}
-              >
-                <Button
-                  onClick={() => handleActionClick("mark_reported")}
-                  disabled={isLoading}
-                  variant={selectedAction === "mark_reported" ? "default" : "outline"}
-                  className="w-full gap-2 h-8 text-xs justify-start"
-                  size="sm"
-                >
-                  {isLoading && selectedAction === "mark_reported" ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <ShieldAlert className="h-3.5 w-3.5 text-blue-600" />
+              {isRemoved ? (
+                /* Restore Artwork */
+                <div className="rounded-lg border border-green-300 bg-green-50/50 dark:border-green-900 dark:bg-green-950/10 p-2.5">
+                  <Button
+                    onClick={() => handleActionClick("restore")}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full gap-2 h-8 text-xs justify-start border-green-400 text-green-700 hover:bg-green-100 dark:text-green-400 dark:hover:bg-green-950/20"
+                    size="sm"
+                  >
+                    {isLoading && selectedAction === "restore" ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    )}
+                    Restore Artwork
+                  </Button>
+                  <p className="mt-1 text-[9px] leading-tight text-green-700 dark:text-green-400">
+                    <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
+                    Restore this artwork to public view. It will become visible again on the platform.
+                  </p>
+
+                  {/* Inline reason input */}
+                  {selectedAction === "restore" && (
+                    <div className="mt-3 space-y-2">
+                      <Textarea
+                        placeholder="Explain why this artwork is being restored..."
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        rows={2}
+                        className="min-h-[60px] text-xs"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleConfirm}
+                          disabled={!reason.trim() || isLoading}
+                          size="sm"
+                          className="flex-1 gap-1 text-xs h-8"
+                        >
+                          {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+                          {isLoading ? "Processing..." : "Confirm Restore"}
+                        </Button>
+                        <Button
+                          onClick={handleCancel}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-8"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                  Mark as Reported
-                </Button>
-                <p className="mt-1 text-[9px] leading-tight text-blue-700 dark:text-blue-400">
-                  <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
-                  Flag this artwork as having an active report. It will be marked for further investigation.
-                </p>
+                </div>
+              ) : (
+                /* Remove Artwork */
+                <div className="rounded-lg border border-red-300 bg-red-100/50 dark:border-red-900 dark:bg-red-950/10 p-2.5">
+                  <Button
+                    onClick={() => handleActionClick("remove")}
+                    disabled={isLoading}
+                    variant="destructive"
+                    className="w-full gap-2 h-8 text-xs justify-start"
+                    size="sm"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Remove Artwork
+                  </Button>
+                  <p className="mt-1 text-[9px] leading-tight text-red-700 dark:text-red-400">
+                    <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
+                    Remove this artwork from public view. The blockchain registration record is preserved for evidence.
+                  </p>
 
-                {/* Inline reason input */}
-                {selectedAction === "mark_reported" && (
-                  <div className="mt-3 space-y-2">
-                    <Textarea
-                      placeholder="Describe the nature of the report..."
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      rows={2}
-                      className="min-h-[60px] text-xs"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleConfirm}
-                        disabled={!reason.trim() || isLoading}
-                        size="sm"
-                        className="flex-1 gap-1 text-xs h-8"
-                      >
-                        {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-                        {isLoading ? "Processing..." : "Confirm Report Flag"}
-                      </Button>
-                      <Button
-                        onClick={handleCancel}
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-8"
-                      >
-                        Cancel
-                      </Button>
+                  {/* Inline reason input */}
+                  {selectedAction === "remove" && (
+                    <div className="mt-3 space-y-2">
+                      <Textarea
+                        placeholder="Explain why this artwork is being removed..."
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        rows={2}
+                        className="min-h-[60px] text-xs"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleConfirm}
+                          disabled={!reason.trim() || isLoading}
+                          size="sm"
+                          variant="destructive"
+                          className="flex-1 gap-1 text-xs h-8"
+                        >
+                          {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+                          {isLoading ? "Processing..." : "Confirm Removal"}
+                        </Button>
+                        <Button
+                          onClick={handleCancel}
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-8"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Remove Artwork */}
-              <div className="rounded-lg border border-red-300 bg-red-100/50 dark:border-red-900 dark:bg-red-950/10 p-2.5">
-                <Button
-                  onClick={() => handleActionClick("remove")}
-                  disabled={isLoading}
-                  variant="destructive"
-                  className="w-full gap-2 h-8 text-xs justify-start"
-                  size="sm"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Remove Artwork
-                </Button>
-                <p className="mt-1 text-[9px] leading-tight text-red-700 dark:text-red-400">
-                  <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
-                  Remove this artwork from public view. The blockchain registration record is preserved for evidence.
-                </p>
-
-                {/* Inline reason input */}
-                {selectedAction === "remove" && (
-                  <div className="mt-3 space-y-2">
-                    <Textarea
-                      placeholder="Explain why this artwork is being removed..."
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      rows={2}
-                      className="min-h-[60px] text-xs"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleConfirm}
-                        disabled={!reason.trim() || isLoading}
-                        size="sm"
-                        variant="destructive"
-                        className="flex-1 gap-1 text-xs h-8"
-                      >
-                        {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-                        {isLoading ? "Processing..." : "Confirm Removal"}
-                      </Button>
-                      <Button
-                        onClick={handleCancel}
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs h-8"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog for destructive actions */}
+      {/* Confirmation Dialog */}
       <Dialog
         open={confirmDialog.open}
         onOpenChange={(open) =>
@@ -418,7 +425,7 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant={selectedAction === "restore" ? "default" : "destructive"}
               onClick={confirmDialog.onConfirm}
             >
               Confirm

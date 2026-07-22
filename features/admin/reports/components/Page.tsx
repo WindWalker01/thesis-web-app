@@ -18,10 +18,6 @@ import { ReportsFilters } from "./ReportsFilters";
 import { ReportsTable } from "./ReportsTable";
 import { ReportDrawer } from "./ReportDrawer";
 import { AssignAdminDialog } from "./AssignAdminDialog";
-import { ApproveReportDialog } from "./ApproveReportDialog";
-import { RejectReportDialog } from "./RejectReportDialog";
-import { RequestEvidenceDialog } from "./RequestEvidenceDialog";
-import { CloseReportDialog } from "./CloseReportDialog";
 import { WarnUserDialog } from "./WarnUserDialog";
 import { SuspendUserDialog } from "./SuspendUserDialog";
 import { BanUserDialog } from "./BanUserDialog";
@@ -66,14 +62,6 @@ export default function ReportsManagementPage() {
   // Action dialogs
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignReportId, setAssignReportId] = useState("");
-  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
-  const [approveReportId, setApproveReportId] = useState("");
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectReportId, setRejectReportId] = useState("");
-  const [evidenceDialogOpen, setEvidenceDialogOpen] = useState(false);
-  const [evidenceReportId, setEvidenceReportId] = useState("");
-  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
-  const [closeReportId, setCloseReportId] = useState("");
   const [warnDialogOpen, setWarnDialogOpen] = useState(false);
   const [warnReportId, setWarnReportId] = useState("");
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
@@ -344,18 +332,6 @@ export default function ReportsManagementPage() {
             setAssignReportId(id);
             setAssignDialogOpen(true);
           }}
-          onApprove={(id) => {
-            setApproveReportId(id);
-            setApproveDialogOpen(true);
-          }}
-          onReject={(id) => {
-            setRejectReportId(id);
-            setRejectDialogOpen(true);
-          }}
-          onRequestEvidence={(id) => {
-            setEvidenceReportId(id);
-            setEvidenceDialogOpen(true);
-          }}
           onWarnUser={(id) => {
             setWarnReportId(id);
             setWarnDialogOpen(true);
@@ -367,10 +343,6 @@ export default function ReportsManagementPage() {
           onBanUser={(id) => {
             setBanReportId(id);
             setBanDialogOpen(true);
-          }}
-          onClose={(id) => {
-            setCloseReportId(id);
-            setCloseDialogOpen(true);
           }}
           isLoading={reportsLoading}
         />
@@ -402,30 +374,6 @@ export default function ReportsManagementPage() {
         onAssign={handleAssign}
       />
 
-      {/* Approve Report Dialog */}
-      <ApproveReportDialog
-        open={approveDialogOpen}
-        onOpenChange={setApproveDialogOpen}
-        reportId={approveReportId}
-        onSuccess={handleRefresh}
-      />
-
-      {/* Reject Report Dialog */}
-      <RejectReportDialog
-        open={rejectDialogOpen}
-        onOpenChange={setRejectDialogOpen}
-        reportId={rejectReportId}
-        onSuccess={handleRefresh}
-      />
-
-      {/* Request Evidence Dialog */}
-      <RequestEvidenceDialog
-        open={evidenceDialogOpen}
-        onOpenChange={setEvidenceDialogOpen}
-        reportId={evidenceReportId}
-        onSuccess={handleRefresh}
-      />
-
       {/* Warn User Dialog */}
       <WarnUserDialog
         open={warnDialogOpen}
@@ -450,13 +398,6 @@ export default function ReportsManagementPage() {
         onSuccess={handleRefresh}
       />
 
-      {/* Close Report Dialog */}
-      <CloseReportDialog
-        open={closeDialogOpen}
-        onOpenChange={setCloseDialogOpen}
-        reportId={closeReportId}
-        onSuccess={handleRefresh}
-      />
     </>
   );
 }

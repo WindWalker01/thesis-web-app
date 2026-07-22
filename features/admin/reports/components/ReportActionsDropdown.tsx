@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Eye, Clock, CheckCircle2, XCircle, MessageSquare, AlertTriangle, Ban } from "lucide-react";
+import { MoreHorizontal, Eye, Clock, AlertTriangle, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,26 +15,18 @@ interface ReportActionsDropdownProps {
   reportId: string;
   onView: (id: string) => void;
   onAssign: (id: string) => void;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  onRequestEvidence: (id: string) => void;
   onWarnUser: (id: string) => void;
   onSuspendUser: (id: string) => void;
   onBanUser: (id: string) => void;
-  onClose: (id: string) => void;
 }
 
 export function ReportActionsDropdown({
   reportId,
   onView,
   onAssign,
-  onApprove,
-  onReject,
-  onRequestEvidence,
   onWarnUser,
   onSuspendUser,
   onBanUser,
-  onClose,
 }: ReportActionsDropdownProps) {
   return (
     <DropdownMenu>
@@ -52,17 +44,6 @@ export function ReportActionsDropdown({
           <Clock className="mr-2 h-4 w-4" /> Assign Admin
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Resolution</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => onApprove(reportId)}>
-          <CheckCircle2 className="mr-2 h-4 w-4" /> Approve Report
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onReject(reportId)}>
-          <XCircle className="mr-2 h-4 w-4" /> Reject Report
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onRequestEvidence(reportId)}>
-          <MessageSquare className="mr-2 h-4 w-4" /> Request Evidence
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuLabel>User Moderation</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => onWarnUser(reportId)}>
           <AlertTriangle className="mr-2 h-4 w-4" /> Warn User
@@ -72,10 +53,6 @@ export function ReportActionsDropdown({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onBanUser(reportId)}>
           <Ban className="mr-2 h-4 w-4" /> Ban User
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => onClose(reportId)}>
-          <XCircle className="mr-2 h-4 w-4" /> Close Report
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

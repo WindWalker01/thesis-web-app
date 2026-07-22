@@ -521,6 +521,53 @@ export async function registerArtworkBlockchain(
   }
 }
 
+// ========== RESTORE ARTWORK ==========
+
+export async function restoreArtwork(
+  artworkId: string,
+  reason: string
+): Promise<AdminActionResult> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const adminId = await verifyAdmin(supabase);
+
+    // Reverse the removal: restore art_posts to public visibility and unarchived
+    const { data: posts } = await supabase
+      .from("art_posts")
+      .select("id")
+      .eq("art_id", artworkId);
+
+    if (posts && posts.length > 0) {
+      const postIds = posts.map((p: { id: string }) => p.id);
+
+      await supabase
+        .from("art_posts")
+        .update({
+          visibility: "public",
+          is_archived: false,
+        })
+        .in("id", postIds);
+    }
+
+    // Update the registered_arts status back to 'active'
+    await supabase
+      .from("registered_arts")
+      .update({ status: "active" })
+      .eq("id", artworkId);
+
+    await createAdminAuditLog(supabase, adminId, "restore_artwork", reason, {
+      artwork_id: artworkId,
+    });
+
+    return { success: true, message: "Artwork has been restored and is now publicly visible again." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to restore artwork",
+    };
+  }
+}
+
 // ========== REMOVE ARTWORK ==========
 
 export async function removeArtwork(
