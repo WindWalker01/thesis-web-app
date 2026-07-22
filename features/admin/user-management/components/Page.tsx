@@ -385,40 +385,42 @@ export default function UserManagementPage() {
         cell: ({ row }) => {
           const userId = row.original.id;
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => openDrawer(userId)}>
-                  <Eye className="mr-2 h-4 w-4" /> View Details
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Admin</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => openSuspend(userId)}>
-                  <Clock className="mr-2 h-4 w-4" /> Suspend
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openBan(userId)}>
-                  <Ban className="mr-2 h-4 w-4" /> Ban
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openVerify(userId)}>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Verify Artist
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleResetPassword(userId)}>
-                  <KeyRound className="mr-2 h-4 w-4" /> Reset Password
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleDeleteUser(userId)}
-                  className="text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete Account
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => openDrawer(userId)}>
+                    <Eye className="mr-2 h-4 w-4" /> View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Admin</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => openSuspend(userId)}>
+                    <Clock className="mr-2 h-4 w-4" /> Suspend
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openBan(userId)}>
+                    <Ban className="mr-2 h-4 w-4" /> Ban
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openVerify(userId)}>
+                    <CheckCircle2 className="mr-2 h-4 w-4" /> Verify Artist
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleResetPassword(userId)}>
+                    <KeyRound className="mr-2 h-4 w-4" /> Reset Password
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteUser(userId)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete Account
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           );
         },
         enableSorting: false,
