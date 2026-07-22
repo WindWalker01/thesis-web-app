@@ -211,7 +211,7 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
                     <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                   ) : artwork.status === "flagged" ? (
                     <Flag className="h-3.5 w-3.5 text-orange-600" />
-                  ) : artwork.status === "rejected" ? (
+                  ) : artwork.status === "blockchain_failed" ? (
                     <Ban className="h-3.5 w-3.5 text-red-600" />
                   ) : (
                     <Clock className="h-3.5 w-3.5 text-yellow-600" />

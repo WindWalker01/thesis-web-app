@@ -6,8 +6,11 @@
 export type ArtworkStatus =
   | "pending_blockchain"
   | "active"
-  | "rejected"
-  | "flagged";
+  | "flagged"
+  | "under_review"
+  | "removed"
+  | "blockchain_failed"
+  | "revoked";
 
 // ── Visibility ──
 export type ArtworkVisibility = "public" | "private" | "unlisted";
@@ -282,8 +285,11 @@ export const MULTIPLE_MATCHES_THRESHOLD = 3;
 export const ARTWORK_STATUS_LABELS: Record<string, string> = {
   pending_blockchain: "Pending Blockchain",
   active: "Active",
-  rejected: "Rejected",
   flagged: "Flagged",
+  under_review: "Under Review",
+  removed: "Removed",
+  blockchain_failed: "Blockchain Failed",
+  revoked: "Revoked",
 };
 
 export const ARTWORK_STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
@@ -301,19 +307,40 @@ export const ARTWORK_STATUS_CONFIG: Record<string, { label: string; color: strin
     border: "border-green-200/50",
     dot: "bg-green-500",
   },
-  rejected: {
-    label: "Rejected",
-    color: "text-red-600",
-    bg: "bg-red-100",
-    border: "border-red-200/50",
-    dot: "bg-red-500",
-  },
   flagged: {
     label: "Flagged",
     color: "text-orange-600",
     bg: "bg-orange-100",
     border: "border-orange-200/50",
     dot: "bg-orange-500",
+  },
+  under_review: {
+    label: "Under Review",
+    color: "text-blue-600",
+    bg: "bg-blue-100",
+    border: "border-blue-200/50",
+    dot: "bg-blue-500",
+  },
+  removed: {
+    label: "Removed",
+    color: "text-red-700",
+    bg: "bg-red-100",
+    border: "border-red-300/50",
+    dot: "bg-red-600",
+  },
+  blockchain_failed: {
+    label: "Blockchain Failed",
+    color: "text-red-600",
+    bg: "bg-red-100",
+    border: "border-red-200/50",
+    dot: "bg-red-500",
+  },
+  revoked: {
+    label: "Revoked",
+    color: "text-purple-600",
+    bg: "bg-purple-100",
+    border: "border-purple-200/50",
+    dot: "bg-purple-500",
   },
 };
 

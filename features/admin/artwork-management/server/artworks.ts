@@ -61,7 +61,7 @@ function computeNeedsReview(
   if ((scan?.best_similarity_percentage ?? 0) >= SIMILARITY_THRESHOLD) return true;
   if ((scan?.total_matches ?? 0) >= MULTIPLE_MATCHES_THRESHOLD) return true;
   if (reportCount > 0) return true;
-  if (artworkStatus === "rejected") return true;
+  if (artworkStatus === "blockchain_failed") return true;
   return false;
 }
 
@@ -81,7 +81,7 @@ function getReviewConditions(
     conditions.push(`Multiple similarity matches (${scan!.total_matches})`);
   }
   if (reportCount > 0) conditions.push(`${reportCount} active report(s)`);
-  if (artworkStatus === "rejected") conditions.push("Blockchain verification failed");
+  if (artworkStatus === "blockchain_failed") conditions.push("Blockchain verification failed");
   return conditions;
 }
 
