@@ -64,7 +64,7 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
         open: true,
         title: "Remove Artwork",
         description:
-          "This will permanently delete the artwork and all associated data. This action cannot be undone.",
+          "This will remove the artwork from public view. The blockchain registration record is preserved for evidence. This action can be reversed by restoring the artwork.",
         onConfirm: () => {
           setConfirmDialog((prev) => ({ ...prev, open: false }));
           setSelectedAction(action);
@@ -353,7 +353,7 @@ export function ManualReviewCard({ artwork, onAction }: ManualReviewCardProps) {
                 </Button>
                 <p className="mt-1 text-[9px] leading-tight text-red-700 dark:text-red-400">
                   <Info className="inline h-2.5 w-2.5 mr-0.5 align-text-bottom" />
-                  Permanently delete this artwork. Use only for clear policy violations.
+                  Remove this artwork from public view. The blockchain registration record is preserved for evidence.
                 </p>
 
                 {/* Inline reason input */}

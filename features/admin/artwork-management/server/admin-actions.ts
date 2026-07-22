@@ -531,14 +531,37 @@ export async function removeArtwork(
     const supabase = await createSupabaseServerClient();
     const adminId = await verifyAdmin(supabase);
 
-    // Delete the artwork (cascade will handle posts, scans, reviews, genres)
-    await supabase.from("registered_arts").delete().eq("id", artworkId);
+    // Soft-delete: archive and hide the art post instead of hard-deleting
+    // This preserves the registered_arts record (blockchain evidence remains intact)
+    // and avoids FK cascade issues with reports and other related tables.
+    const { data: posts } = await supabase
+      .from("art_posts")
+      .select("id")
+      .eq("art_id", artworkId);
+
+    if (posts && posts.length > 0) {
+      const postIds = posts.map((p: { id: string }) => p.id);
+
+      await supabase
+        .from("art_posts")
+        .update({
+          visibility: "private",
+          is_archived: true,
+        })
+        .in("id", postIds);
+    }
+
+    // Update the registered_arts status to 'removed'
+    await supabase
+      .from("registered_arts")
+      .update({ status: "removed" })
+      .eq("id", artworkId);
 
     await createAdminAuditLog(supabase, adminId, "remove_artwork", reason, {
       artwork_id: artworkId,
     });
 
-    return { success: true, message: "Artwork removed successfully" };
+    return { success: true, message: "Artwork has been removed from public view. The blockchain registration record is preserved for evidence." };
   } catch (error) {
     return {
       success: false,
@@ -604,12 +627,31 @@ export async function bulkDelete(
     const supabase = await createSupabaseServerClient();
     await verifyAdmin(supabase);
 
+    // Soft-delete: archive and hide all art posts for these artworks
+    const { data: posts } = await supabase
+      .from("art_posts")
+      .select("id, art_id")
+      .in("art_id", artworkIds);
+
+    if (posts && posts.length > 0) {
+      const postIds = posts.map((p: { id: string }) => p.id);
+
+      await supabase
+        .from("art_posts")
+        .update({
+          visibility: "private",
+          is_archived: true,
+        })
+        .in("id", postIds);
+    }
+
+    // Update registered_arts status to 'removed' for all
     await supabase
       .from("registered_arts")
-      .delete()
+      .update({ status: "removed" })
       .in("id", artworkIds);
 
-    return { success: true, message: `${artworkIds.length} artworks deleted` };
+    return { success: true, message: `${artworkIds.length} artworks removed from public view. Blockchain records preserved.` };
   } catch (error) {
     return {
       success: false,
