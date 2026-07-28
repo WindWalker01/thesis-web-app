@@ -5,6 +5,15 @@ import { supabase } from "@/lib/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReportUnreadCounts } from "@/features/reports/types";
 
+/**
+ * Module-level reference-counting map to prevent duplicate Supabase
+ * Realtime subscriptions for the "report-unread-changes" channel.
+ * Multiple components may call useUnreadCount in the same render tree;
+ * only the first call creates the channel, and it's only torn down
+ * when the last consumer unmounts.
+ */
+const subscriptionRefCounts = new Map<string, number>();
+
 type UseUnreadCountOptions = {
   userId: string;
   reportIds?: string[];
@@ -15,13 +24,13 @@ const UNREAD_QUERY_KEY = "report-unread-counts";
 
 async function fetchUnreadCounts(
   userId: string,
-  reportIds?: string[]
+  reportIds?: string[],
 ): Promise<ReportUnreadCounts> {
   if (!reportIds || reportIds.length === 0) return {};
 
   // Fetch unread counts per report efficiently
   const res = await fetch(
-    `/api/reports/unread?user_id=${userId}${reportIds.map((id) => `&report_id=${id}`).join("")}`
+    `/api/reports/unread?user_id=${userId}${reportIds.map((id) => `&report_id=${id}`).join("")}`,
   );
 
   if (!res.ok) return {};
@@ -49,8 +58,17 @@ export function useUnreadCount({
   useEffect(() => {
     if (!enabled || !userId) return;
 
+    // Prevent duplicate subscriptions for the channel name across
+    // multiple component instances in the same render tree. Use a
+    // reference count so the channel is only created once and only
+    // torn down when the last consumer unmounts.
+    const CHANNEL_KEY = "report-unread-changes";
+    const existingCount = subscriptionRefCounts.get(CHANNEL_KEY) ?? 0;
+    subscriptionRefCounts.set(CHANNEL_KEY, existingCount + 1);
+    if (existingCount > 0) return;
+
     const channel = supabase
-      .channel("report-unread-changes")
+      .channel(CHANNEL_KEY)
       .on(
         "postgres_changes",
         {
@@ -63,7 +81,7 @@ export function useUnreadCount({
           queryClient.invalidateQueries({
             queryKey: [UNREAD_QUERY_KEY, userId],
           });
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -77,12 +95,18 @@ export function useUnreadCount({
           queryClient.invalidateQueries({
             queryKey: [UNREAD_QUERY_KEY, userId],
           });
-        }
+        },
       )
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      const count = subscriptionRefCounts.get(CHANNEL_KEY) ?? 1;
+      if (count <= 1) {
+        subscriptionRefCounts.delete(CHANNEL_KEY);
+        channel.unsubscribe();
+      } else {
+        subscriptionRefCounts.set(CHANNEL_KEY, count - 1);
+      }
     };
   }, [userId, enabled, queryClient]);
 
@@ -90,10 +114,13 @@ export function useUnreadCount({
     (reportId: string): number => {
       return unreadCounts[reportId] ?? 0;
     },
-    [unreadCounts]
+    [unreadCounts],
   );
 
-  const totalUnread = Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
+  const totalUnread = Object.values(unreadCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
 
   return {
     unreadCounts,
