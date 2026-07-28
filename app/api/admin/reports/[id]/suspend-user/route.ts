@@ -3,8 +3,40 @@
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
 import * as adminActions from "@/features/admin/user-management/server/admin-actions";
+
+/**
+ * Resolves the reported user ID from a report.
+ * Looks up the art post owner from the report's reported_art_post_id.
+ */
+async function resolveReportedUserId(reportId: string): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data: report } = await supabase
+    .from("reports")
+    .select("reported_art_post_id")
+    .eq("id", reportId)
+    .single();
+
+  if (!report?.reported_art_post_id) return null;
+
+  const { data: artPost } = await supabase
+    .from("art_posts")
+    .select("art_id")
+    .eq("id", report.reported_art_post_id)
+    .single();
+
+  if (!artPost?.art_id) return null;
+
+  const { data: artwork } = await supabase
+    .from("registered_arts")
+    .select("owner_id")
+    .eq("id", artPost.art_id)
+    .single();
+
+  return artwork?.owner_id ?? null;
+}
 
 export async function POST(
   request: NextRequest,
@@ -23,7 +55,10 @@ export async function POST(
     const body = await request.json();
     const { user_id, reason, duration, duration_days } = body;
 
-    if (!user_id || !reason || !duration) {
+    // Resolve user_id from the report if not provided
+    const targetUserId = user_id || (await resolveReportedUserId(reportId));
+
+    if (!targetUserId || !reason || !duration) {
       return NextResponse.json(
         { success: false, error: { message: "user_id, reason, and duration are required" } },
         { status: 400 }
@@ -38,7 +73,7 @@ export async function POST(
     }
 
     const result = await adminActions.suspendUser({
-      user_id,
+      user_id: targetUserId,
       reason,
       duration,
       duration_days,

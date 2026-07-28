@@ -114,7 +114,9 @@ export function useCommunityFeed({
 
         if (feedScope === "community") {
             result = result.filter(
-                (post) => post.visibility === "public" && !post.isArchived
+                (post) =>
+                    (post.visibility === "public" && !post.isArchived) ||
+                    (post.userId === currentUserId && !post.isArchived)
             );
         }
 

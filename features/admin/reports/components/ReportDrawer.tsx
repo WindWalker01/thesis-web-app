@@ -35,6 +35,7 @@ import {
 import { toast } from "sonner";
 import { cn, formatDate } from "@/lib/client-utils";
 import { ReportStatusBadge } from "./ReportStatusBadge";
+import { StatusActions } from "./StatusActions";
 import { EvidenceViewer } from "./EvidenceViewer";
 import { ResolutionCard } from "./ResolutionCard";
 import { Timeline } from "@/features/reports/components/Timeline";
@@ -315,13 +316,26 @@ export function ReportDrawer({
                         <p className="font-medium">{formatDate(detail.report.created_at)}</p>
                       </div>
                     </div>
+                    {detail.report.title && (
+                      <div className="pt-2">
+                        <div className="text-xs text-muted-foreground">Reason</div>
+                        <p className="text-sm mt-1">{detail.report.title}</p>
+                      </div>
+                    )}
                     {detail.report.description && (
-                      <div className="pt-1">
-                        <span className="text-xs text-muted-foreground">Description</span>
-                        <p className="text-sm mt-0.5">{detail.report.description}</p>
+                      <div className="pt-2">
+                        <div className="text-xs text-muted-foreground">Additional details</div>
+                        <p className="text-sm mt-1">{detail.report.description}</p>
                       </div>
                     )}
                   </div>
+
+                  {/* Status Management */}
+                  <StatusActions
+                    currentStatus={detail.report.status as ReportStatus}
+                    onUpdateStatus={onUpdateStatus}
+                    isUpdatingStatus={isUpdatingStatus}
+                  />
 
                   {/* Associated Artwork */}
                   {detail.reported_art_post?.registered_arts && (

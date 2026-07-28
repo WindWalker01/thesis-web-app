@@ -6,7 +6,6 @@
 export type ReportStatus =
   | "pending_review"
   | "under_review"
-  | "awaiting_evidence"
   | "resolved";
 
 // ---- Report Type ----
@@ -21,13 +20,10 @@ export type ReportType =
 
 // ---- Decision Type ----
 export type ReportDecisionValue =
-  | "infringement_confirmed" // deprecated — use copyright_confirmed
   | "no_violation"
-  | "insufficient_evidence"
-  | "duplicate_report" // deprecated — use guideline_violation or no_violation
-  | "other" // deprecated — use appropriate decision
-  | "guideline_violation"
   | "copyright_confirmed"
+  | "guideline_violation"
+  | "insufficient_evidence"
   | "false_report";
 
 // ---- Action Type ----
@@ -259,7 +255,6 @@ export type ReportStatistics = {
   total: number;
   pending_review: number;
   under_review: number;
-  awaiting_evidence: number;
   resolved: number;
   average_resolution_time_hours: number | null;
   reports_this_month: number;
@@ -275,8 +270,7 @@ export type StatusTransition = {
 
 export const VALID_STATUS_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
   pending_review: ["under_review"],
-  under_review: ["awaiting_evidence", "resolved"],
-  awaiting_evidence: ["under_review", "resolved"],
+  under_review: ["resolved"],
   resolved: [],
 };
 
@@ -298,9 +292,6 @@ export const DECISION_LABELS: Record<string, string> = {
   guideline_violation: "Community Guideline Violation",
   insufficient_evidence: "Insufficient Evidence",
   false_report: "False Report",
-  infringement_confirmed: "Infringement Confirmed (Legacy)",
-  duplicate_report: "Duplicate Report (Legacy)",
-  other: "Other (Legacy)",
 };
 
 // ---- Sort Options ----

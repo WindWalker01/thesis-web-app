@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryClientProvider } from "@/providers/react-query-provider";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,70 +39,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // ── Server-side Maintenance Mode Check (Fallback) ──
-  // This is a secondary enforcement layer that runs on every page render.
-  // It uses the admin client (service role key) which bypasses RLS, so it
-  // can always read maintenance_mode even for non-admin users.
-  // The primary enforcement is in middleware (proxy.ts), but this ensures
-  // protection even if middleware is bypassed or fails.
-  const settings = await getRuntimeSettings();
-
-  // ── Check maintenance mode (manual or scheduled) ──
-  let isInMaintenance = settings.maintenance_mode;
-
-  // Check if scheduled maintenance window is active
-  if (!isInMaintenance && settings.scheduled_maintenance) {
-    const startStr = settings.scheduled_maintenance_start;
-    const endStr = settings.scheduled_maintenance_end;
-    if (startStr && endStr) {
-      const now = new Date();
-      const start = new Date(startStr);
-      const end = new Date(endStr);
-      if (now >= start && now <= end) {
-        isInMaintenance = true;
-      }
-    }
-  }
-
-  if (isInMaintenance) {
-    // Check if the current user is an admin (admins bypass maintenance mode)
-    const supabase = await createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    let isAdmin = false;
-    if (user) {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      isAdmin = profile?.role === "admin";
-    }
-
-    // If user is not an admin, render the maintenance page instead
-    if (!isAdmin) {
-      const { default: MaintenancePage } = await import("@/app/maintenance/page");
-      return (
-        <html lang="en" suppressHydrationWarning>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-            >
-              <MaintenancePage />
-            </ThemeProvider>
-          </body>
-        </html>
-      );
-    }
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body

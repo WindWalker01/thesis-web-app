@@ -91,7 +91,7 @@ export default async function MaintenancePage() {
         {allowAdminLogin && (
           <div className="pt-4">
             <a
-              href="/login"
+              href="/login?clear_session=1"
               className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
             >
               Administrator? Log in here

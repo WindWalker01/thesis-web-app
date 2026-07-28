@@ -45,13 +45,9 @@ interface ReportsTableProps {
   onPerPageChange: (perPage: number) => void;
   onViewReport: (id: string) => void;
   onAssign: (id: string) => void;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  onRequestEvidence: (id: string) => void;
   onWarnUser: (id: string) => void;
   onSuspendUser: (id: string) => void;
   onBanUser: (id: string) => void;
-  onClose: (id: string) => void;
   isLoading: boolean;
 }
 
@@ -65,13 +61,9 @@ export function ReportsTable({
   onPerPageChange,
   onViewReport,
   onAssign,
-  onApprove,
-  onReject,
-  onRequestEvidence,
   onWarnUser,
   onSuspendUser,
   onBanUser,
-  onClose,
   isLoading,
 }: ReportsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -229,24 +221,22 @@ export function ReportsTable({
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <ReportActionsDropdown
-            reportId={row.original.id}
-            onView={onViewReport}
-            onAssign={onAssign}
-            onApprove={onApprove}
-            onReject={onReject}
-            onRequestEvidence={onRequestEvidence}
-            onWarnUser={onWarnUser}
-            onSuspendUser={onSuspendUser}
-            onBanUser={onBanUser}
-            onClose={onClose}
-          />
+          <div onClick={(e) => e.stopPropagation()}>
+            <ReportActionsDropdown
+              reportId={row.original.id}
+              onView={onViewReport}
+              onAssign={onAssign}
+              onWarnUser={onWarnUser}
+              onSuspendUser={onSuspendUser}
+              onBanUser={onBanUser}
+            />
+          </div>
         ),
         enableSorting: false,
         size: 60,
       },
     ],
-    [onViewReport, onAssign, onApprove, onReject, onRequestEvidence, onWarnUser, onSuspendUser, onBanUser, onClose]
+    [onViewReport, onAssign, onWarnUser, onSuspendUser, onBanUser]
   );
 
   const table = useReactTable({

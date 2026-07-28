@@ -23,8 +23,11 @@ const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "pending_blockchain", label: "Pending Blockchain" },
   { value: "active", label: "Active" },
-  { value: "rejected", label: "Rejected" },
   { value: "flagged", label: "Flagged" },
+  { value: "under_review", label: "Under Review" },
+  { value: "removed", label: "Removed" },
+  { value: "blockchain_failed", label: "Blockchain Failed" },
+  { value: "revoked", label: "Revoked" },
 ];
 
 const blockchainOptions = [

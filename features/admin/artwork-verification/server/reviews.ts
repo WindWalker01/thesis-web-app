@@ -780,7 +780,7 @@ export async function rejectArtwork(
     // Update artwork status
     await supabase
       .from("registered_arts")
-      .update({ status: "rejected" })
+      .update({ status: "removed" })
       .eq("id", review.artwork_id);
 
     // Create action
