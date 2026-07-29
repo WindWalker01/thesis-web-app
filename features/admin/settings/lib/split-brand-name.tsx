@@ -49,8 +49,7 @@ export function BrandNameDisplay({
   const segments = splitIntoBrandSegments(name);
 
   const blueClass = variant === "light" ? "text-blue-300" : "text-blue-500";
-  const orangeClass =
-    variant === "light" ? "text-orange-400" : "text-orange-600";
+  const orangeClass = variant === "light" ? "text-[#ff9a5c]" : "text-[#ff751f]";
 
   return (
     <>
