@@ -39,7 +39,10 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       .single();
 
     if (!profile || profile.role !== "admin") {
-      return { success: false, message: "Unauthorized. Admin access required." };
+      return {
+        success: false,
+        message: "Unauthorized. Admin access required.",
+      };
     }
 
     // Run all queries in parallel for performance
@@ -66,73 +69,109 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
     ] = await Promise.all([
       // Stats queries
       supabase.from("users").select("*", { count: "exact", head: true }),
-      supabase.from("users").select("*", { count: "exact", head: true }).eq("is_verified", true),
-      supabase.from("registered_arts").select("*", { count: "exact", head: true }),
-      supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "pending_review"),
-      supabase.from("reports").select("*", { count: "exact", head: true }).eq("status", "resolved"),
-      supabase.from("registered_arts").select("*", { count: "exact", head: true }).not("tx_hash", "is", null),
-      supabase.from("art_similarity_scans").select("*", { count: "exact", head: true }).eq("success", true).gt("total_matches", 0),
+      supabase
+        .from("users")
+        .select("*", { count: "exact", head: true })
+        .eq("is_verified", true),
+      supabase
+        .from("registered_arts")
+        .select("*", { count: "exact", head: true }),
+      supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending_review"),
+      supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "resolved"),
+      supabase
+        .from("registered_arts")
+        .select("*", { count: "exact", head: true })
+        .not("tx_hash", "is", null),
+      supabase
+        .from("art_similarity_scans")
+        .select("*", { count: "exact", head: true })
+        .eq("success", true)
+        .gt("total_matches", 0),
       supabase.from("art_posts").select("upvote_count"),
       // Chart 1: Artwork uploads last 30 days
       supabase
         .from("registered_arts")
         .select("created_at")
-        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .gte(
+          "created_at",
+          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        )
         .order("created_at", { ascending: true }),
       // Chart 2: New users last 30 days
       supabase
         .from("users")
         .select("created_at")
-        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .gte(
+          "created_at",
+          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        )
         .order("created_at", { ascending: true }),
       // Chart 3: Report statuses
       supabase.from("reports").select("status"),
       // Chart 4: Artwork categories
-      supabase.from("art_genres").select("genre_id, genres!inner(name)") as never,
+      supabase
+        .from("art_genres")
+        .select("genre_id, genres!inner(name)") as never,
       // Chart 5: Daily engagement
       supabase
         .from("art_reactions")
         .select("created_at, reaction_type")
-        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .gte(
+          "created_at",
+          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        )
         .eq("reaction_type", "upvote")
         .order("created_at", { ascending: true }),
       // Recent activity
       supabase
         .from("notifications")
-        .select("id, type, title, message, user_id, related_art_id, related_report_id, created_at")
+        .select(
+          "id, type, title, message, user_id, related_art_id, related_report_id, created_at",
+        )
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(10),
       // Recent reports
       supabase
         .from("reports")
-        .select(`
+        .select(
+          `
           id, title, report_type, status, created_at,
           reporter:users!reports_reporter_id_fkey ( first_name, middle_name, last_name, username, c_profile_image )
-        `)
+        `,
+        )
         .order("created_at", { ascending: false })
         .limit(5),
       // Latest artworks
       supabase
         .from("registered_arts")
-        .select(`
+        .select(
+          `
           id, title, c_secure_url, status, created_at,
           owner:users!registered_arts_owner_id_fkey ( id, first_name, middle_name, last_name )
-        `)
+        `,
+        )
         .order("created_at", { ascending: false })
         .limit(6),
       // Leaderboard: top artists by total upvotes
       supabase
         .from("users")
-        .select(`
+        .select(
+          `
           id, username, first_name, middle_name, last_name, c_profile_image, is_verified,
           artwork_count:registered_arts(count)
-        `)
+        `,
+        )
         .order("created_at", { ascending: false })
         .limit(50),
       // Most reported artworks
-      supabase
-        .from("reports")
-        .select(`
+      supabase.from("reports").select(`
           reported_art_post_id,
           report_type,
           status,
@@ -145,6 +184,7 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       supabase
         .from("notifications")
         .select("id, type, title, message, is_read, created_at")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(5),
     ]);
@@ -159,22 +199,23 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
     const blockchainRegistrations = blockchainRegistrationsResult.count ?? 0;
     const detectedSimilarities = similarityScansResult.count ?? 0;
     const totalUpvotes = (totalUpvotesResult.data ?? []).reduce(
-      (sum: number, post: { upvote_count: number }) => sum + (post.upvote_count ?? 0),
-      0
+      (sum: number, post: { upvote_count: number }) =>
+        sum + (post.upvote_count ?? 0),
+      0,
     );
 
     // ── Chart 1: Artwork Uploads (line) ──
 
     const uploadChart = buildDateChart(
       (uploadChartRaw.data ?? []) as { created_at: string }[],
-      "created_at"
+      "created_at",
     );
 
     // ── Chart 2: New Users (bar) ──
 
     const newUsersChart = buildDateChart(
       (newUsersRaw.data ?? []) as { created_at: string }[],
-      "created_at"
+      "created_at",
     );
 
     // ── Chart 3: Report Statuses (pie) ──
@@ -184,9 +225,21 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       statusMap.set(row.status, (statusMap.get(row.status) ?? 0) + 1);
     }
     const reportStatuses: ReportStatusData[] = [
-      { name: "Pending for Review", value: statusMap.get("pending_review") ?? 0, color: "var(--chart-1)" },
-      { name: "Under Review", value: statusMap.get("under_review") ?? 0, color: "var(--chart-3)" },
-      { name: "Resolved", value: statusMap.get("resolved") ?? 0, color: "var(--chart-2)" },
+      {
+        name: "Pending for Review",
+        value: statusMap.get("pending_review") ?? 0,
+        color: "var(--chart-1)",
+      },
+      {
+        name: "Under Review",
+        value: statusMap.get("under_review") ?? 0,
+        color: "var(--chart-3)",
+      },
+      {
+        name: "Resolved",
+        value: statusMap.get("resolved") ?? 0,
+        color: "var(--chart-2)",
+      },
     ].filter((s) => s.value > 0);
 
     // ── Chart 4: Artwork Categories (horizontal bar) ──
@@ -219,22 +272,26 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       });
       engagementMap.set(date, (engagementMap.get(date) ?? 0) + 1);
     }
-    const dailyEngagement: EngagementData[] = Array.from(engagementMap.entries())
+    const dailyEngagement: EngagementData[] = Array.from(
+      engagementMap.entries(),
+    )
       .map(([date, upvotes]) => ({ date, upvotes }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     // ── Recent Activity ──
 
-    const recentActivity: ActivityItem[] = ((recentNotificationsRaw.data ?? []) as Array<{
-      id: string;
-      type: string;
-      title: string;
-      message: string;
-      user_id: string;
-      related_art_id: string | null;
-      related_report_id: string | null;
-      created_at: string;
-    }>).map((n) => ({
+    const recentActivity: ActivityItem[] = (
+      (recentNotificationsRaw.data ?? []) as Array<{
+        id: string;
+        type: string;
+        title: string;
+        message: string;
+        user_id: string;
+        related_art_id: string | null;
+        related_report_id: string | null;
+        created_at: string;
+      }>
+    ).map((n) => ({
       id: n.id,
       type: mapNotificationType(n.type),
       user: null,
@@ -249,20 +306,38 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
     // ── Recent Reports ──
 
-    const recentReports: RecentReport[] = ((recentReportsRaw.data ?? []) as Array<{
-      id: string;
-      title: string;
-      report_type: string;
-      status: string;
-      created_at: string;
-      reporter: { first_name: string; middle_name: string; last_name: string | null; c_profile_image: string | null } | { first_name: string; middle_name: string; last_name: string | null; c_profile_image: string | null }[] | null;
-    }>).map((r) => {
+    const recentReports: RecentReport[] = (
+      (recentReportsRaw.data ?? []) as Array<{
+        id: string;
+        title: string;
+        report_type: string;
+        status: string;
+        created_at: string;
+        reporter:
+          | {
+              first_name: string;
+              middle_name: string;
+              last_name: string | null;
+              c_profile_image: string | null;
+            }
+          | {
+              first_name: string;
+              middle_name: string;
+              last_name: string | null;
+              c_profile_image: string | null;
+            }[]
+          | null;
+      }>
+    ).map((r) => {
       const reporter = Array.isArray(r.reporter) ? r.reporter[0] : r.reporter;
       return {
         id: r.id,
         title: r.title,
         reporter: {
-          name: [reporter?.first_name, reporter?.middle_name, reporter?.last_name].filter(Boolean).join(" ") || "Unknown",
+          name:
+            [reporter?.first_name, reporter?.middle_name, reporter?.last_name]
+              .filter(Boolean)
+              .join(" ") || "Unknown",
           avatar: reporter?.c_profile_image ?? null,
         },
         status: r.status,
@@ -273,20 +348,38 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
     // ── Latest Artworks ──
 
-    const latestArtworks: LatestArtwork[] = ((latestArtworksRaw.data ?? []) as Array<{
-      id: string;
-      title: string;
-      c_secure_url: string | null;
-      status: string;
-      created_at: string;
-      owner: { id: string; first_name: string; middle_name: string; last_name: string | null } | { id: string; first_name: string; middle_name: string; last_name: string | null }[] | null;
-    }>).map((a) => {
+    const latestArtworks: LatestArtwork[] = (
+      (latestArtworksRaw.data ?? []) as Array<{
+        id: string;
+        title: string;
+        c_secure_url: string | null;
+        status: string;
+        created_at: string;
+        owner:
+          | {
+              id: string;
+              first_name: string;
+              middle_name: string;
+              last_name: string | null;
+            }
+          | {
+              id: string;
+              first_name: string;
+              middle_name: string;
+              last_name: string | null;
+            }[]
+          | null;
+      }>
+    ).map((a) => {
       const owner = Array.isArray(a.owner) ? a.owner[0] : a.owner;
       return {
         id: a.id,
         title: a.title,
         thumbnail: a.c_secure_url,
-        artist: [owner?.first_name, owner?.middle_name, owner?.last_name].filter(Boolean).join(" ") || "Unknown",
+        artist:
+          [owner?.first_name, owner?.middle_name, owner?.last_name]
+            .filter(Boolean)
+            .join(" ") || "Unknown",
         artist_id: owner?.id ?? "",
         category: null,
         created_at: formatTimeAgo(a.created_at),
@@ -301,30 +394,36 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       .select("user_id, upvote_count");
 
     const userUpvoteMap = new Map<string, number>();
-    for (const post of (postUpvotes ?? []) as { user_id: string; upvote_count: number }[]) {
+    for (const post of (postUpvotes ?? []) as {
+      user_id: string;
+      upvote_count: number;
+    }[]) {
       userUpvoteMap.set(
         post.user_id,
-        (userUpvoteMap.get(post.user_id) ?? 0) + (post.upvote_count ?? 0)
+        (userUpvoteMap.get(post.user_id) ?? 0) + (post.upvote_count ?? 0),
       );
     }
 
-    const leaderboard: TopArtist[] = ((leaderboardRaw.data ?? []) as Array<{
-      id: string;
-      username: string;
-      first_name: string;
-      middle_name: string;
-      last_name: string | null;
-      c_profile_image: string | null;
-      is_verified: boolean;
-      artwork_count: { count: number }[] | { count: number } | null;
-    }>)
+    const leaderboard: TopArtist[] = (
+      (leaderboardRaw.data ?? []) as Array<{
+        id: string;
+        username: string;
+        first_name: string;
+        middle_name: string;
+        last_name: string | null;
+        c_profile_image: string | null;
+        is_verified: boolean;
+        artwork_count: { count: number }[] | { count: number } | null;
+      }>
+    )
       .map((u) => {
         const artworkCountArr = Array.isArray(u.artwork_count)
           ? u.artwork_count
           : u.artwork_count
             ? [u.artwork_count]
             : [];
-        const artworks = artworkCountArr.length > 0 ? artworkCountArr[0].count : 0;
+        const artworks =
+          artworkCountArr.length > 0 ? artworkCountArr[0].count : 0;
         const upvotes = userUpvoteMap.get(u.id) ?? 0;
         return {
           id: u.id,
@@ -345,7 +444,13 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
     const reportGroupMap = new Map<
       string,
-      { count: number; reasons: Map<string, number>; status: string; title: string; thumbnail: string | null }
+      {
+        count: number;
+        reasons: Map<string, number>;
+        status: string;
+        title: string;
+        thumbnail: string | null;
+      }
     >();
 
     const mostReportedRows = mostReportedRaw as unknown as {
@@ -355,7 +460,10 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
         status: string;
         reported_art_post: {
           id: string;
-          registered_arts: { title: string; c_secure_url: string | null } | { title: string; c_secure_url: string | null }[] | null;
+          registered_arts:
+            | { title: string; c_secure_url: string | null }
+            | { title: string; c_secure_url: string | null }[]
+            | null;
         } | null;
       }> | null;
     };
@@ -379,12 +487,20 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       }
       const entry = reportGroupMap.get(postId)!;
       entry.count++;
-      entry.reasons.set(row.report_type, (entry.reasons.get(row.report_type) ?? 0) + 1);
+      entry.reasons.set(
+        row.report_type,
+        (entry.reasons.get(row.report_type) ?? 0) + 1,
+      );
     }
 
-    const mostReported: MostReportedArtwork[] = Array.from(reportGroupMap.entries())
+    const mostReported: MostReportedArtwork[] = Array.from(
+      reportGroupMap.entries(),
+    )
       .map(([artPostId, entry]) => {
-        const topReason = Array.from(entry.reasons.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Unknown";
+        const topReason =
+          Array.from(entry.reasons.entries()).sort(
+            (a, b) => b[1] - a[1],
+          )[0]?.[0] ?? "Unknown";
         return {
           art_post_id: artPostId,
           artwork_title: entry.title,
@@ -399,14 +515,16 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
     // ── Admin Notifications ──
 
-    const notifications: AdminNotification[] = ((adminNotificationsRaw.data ?? []) as Array<{
-      id: string;
-      type: string;
-      title: string;
-      message: string;
-      is_read: boolean;
-      created_at: string;
-    }>).map((n) => ({
+    const notifications: AdminNotification[] = (
+      (adminNotificationsRaw.data ?? []) as Array<{
+        id: string;
+        type: string;
+        title: string;
+        message: string;
+        is_read: boolean;
+        created_at: string;
+      }>
+    ).map((n) => ({
       id: n.id,
       type: n.type,
       title: n.title,
@@ -426,7 +544,9 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
       {
         name: "Cloudinary",
         status: "healthy",
-        endpoint: "https://api.cloudinary.com/v1_1/" + (process.env.CLOUDINARY_NAME ?? ""),
+        endpoint:
+          "https://api.cloudinary.com/v1_1/" +
+          (process.env.CLOUDINARY_NAME ?? ""),
       },
       {
         name: "Blockchain Service",
@@ -477,14 +597,17 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to load admin dashboard.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to load admin dashboard.",
     };
   }
 }
 
 function buildDateChart(
   rows: { created_at: string }[],
-  _field: string
+  _field: string,
 ): ChartDataPoint[] {
   const map = new Map<string, number>();
 
@@ -492,13 +615,19 @@ function buildDateChart(
   for (let i = 29; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(now.getDate() - i);
-    const key = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const key = d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
     map.set(key, 0);
   }
 
   for (const row of rows) {
     const d = new Date(row.created_at);
-    const key = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const key = d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
     if (map.has(key)) {
       map.set(key, (map.get(key) ?? 0) + 1);
     }
@@ -510,7 +639,8 @@ function buildDateChart(
 function mapNotificationType(type: string): ActivityItem["type"] {
   if (type.includes("blockchain")) return "blockchain";
   if (type.includes("report") || type.includes("scan_flagged")) return "report";
-  if (type.includes("artwork") || type.includes("scan_completed")) return "upload";
+  if (type.includes("artwork") || type.includes("scan_completed"))
+    return "upload";
   if (type.includes("system")) return "system";
   if (type.includes("verify")) return "verify";
   return "system";
