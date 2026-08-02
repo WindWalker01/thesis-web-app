@@ -9,6 +9,8 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules", ".next", "dist"],
+    // `tests/` is reserved for Playwright E2E specs (see tests/README.md).
+    // Exclude it so Vitest never attempts to load Playwright test files.
+    exclude: ["node_modules", ".next", "dist", "tests"],
   },
 });

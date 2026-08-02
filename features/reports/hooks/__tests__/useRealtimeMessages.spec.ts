@@ -56,7 +56,7 @@ const hoisted = vi.hoisted(() => {
 
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
-    channel: vi.fn((_name: string) => hoisted.createFakeChannel()),
+    channel: vi.fn(() => hoisted.createFakeChannel()),
   },
 }));
 
