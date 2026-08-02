@@ -30,6 +30,7 @@ import {
   ImageIcon,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   flexRender,
   getCoreRowModel,
@@ -173,6 +174,16 @@ export default function UserManagementPage() {
     useUserTimeline(drawerOpen ? selectedUserId : null);
 
   const actions = useAdminActions();
+
+  // Track whether the current bulk selection includes any banned users.
+  // Banned accounts are the authoritative "no further moderation actions" state,
+  // so bulk Suspend/Ban must be disabled when such a user is selected.
+  const hasBannedSelected = useMemo(() => {
+    if (bulkSelection.size === 0) return false;
+    return users.some(
+      (u) => bulkSelection.has(u.id) && u.account_status === "banned",
+    );
+  }, [bulkSelection, users]);
 
   // ── Derived sort from TanStack sorting ──
   // Map column sorting to our sort option
@@ -390,6 +401,11 @@ export default function UserManagementPage() {
                   <DropdownMenuItem onClick={() => openDrawer(userId)}>
                     <Eye className="mr-2 h-4 w-4" /> View Details
                   </DropdownMenuItem>
+                  {row.original.account_status === "banned" && (
+                    <DropdownMenuItem disabled data-testid={`banned-${userId}`}>
+                      <Ban className="mr-2 h-4 w-4" /> Banned
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Admin</DropdownMenuLabel>
                   {row.original.account_status !== "banned" && (
@@ -468,10 +484,18 @@ export default function UserManagementPage() {
     setSuspendDialogOpen(true);
   }, []);
 
-  const openBan = useCallback((userId: string) => {
-    setSelectedUserId(userId);
-    setBanDialogOpen(true);
-  }, []);
+  const openBan = useCallback(
+    (userId: string) => {
+      const target = users.find((u) => u.id === userId);
+      if (target?.account_status === "banned") {
+        toast.error("This user is already banned.");
+        return;
+      }
+      setSelectedUserId(userId);
+      setBanDialogOpen(true);
+    },
+    [users],
+  );
 
   const openVerify = useCallback((userId: string) => {
     setSelectedUserId(userId);
@@ -852,6 +876,12 @@ export default function UserManagementPage() {
           <Button
             variant="outline"
             size="sm"
+            disabled={hasBannedSelected}
+            title={
+              hasBannedSelected
+                ? "Some selected users are already banned."
+                : undefined
+            }
             onClick={() => {
               setConfirmAction({
                 title: "Bulk Suspend",
@@ -874,6 +904,12 @@ export default function UserManagementPage() {
           <Button
             variant="outline"
             size="sm"
+            disabled={hasBannedSelected}
+            title={
+              hasBannedSelected
+                ? "Some selected users are already banned."
+                : undefined
+            }
             onClick={() => {
               setConfirmAction({
                 title: "Bulk Ban",

@@ -1,20 +1,18 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type {
-  AdminActionResult,
-  SuspendPayload,
-  BanPayload,
-} from "../types";
+import type { AdminActionResult, SuspendPayload, BanPayload } from "../types";
 
 export async function suspendUser(
-  payload: SuspendPayload
+  payload: SuspendPayload,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
     // Verify admin
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -28,7 +26,10 @@ export async function suspendUser(
 
     // Prevent self-suspension
     if (payload.user_id === user.id) {
-      return { success: false, message: "You cannot suspend your own account." };
+      return {
+        success: false,
+        message: "You cannot suspend your own account.",
+      };
     }
 
     // Calculate suspension end date
@@ -76,23 +77,21 @@ export async function suspendUser(
     }
 
     // Send notification to user
-    const { error: notifError } = await supabase
-      .from("notifications")
-      .insert({
-        user_id: payload.user_id,
-        type: "system_announcement",
-        title: "Account Suspended",
-        message: `Your account has been suspended. Reason: ${payload.reason}${
-          suspendedUntil
-            ? `. Suspended until: ${new Date(suspendedUntil).toLocaleDateString()}`
-            : ""
-        }`,
-        metadata: {
-          action: "suspend",
-          reason: payload.reason,
-          suspended_until: suspendedUntil,
-        },
-      });
+    const { error: notifError } = await supabase.from("notifications").insert({
+      user_id: payload.user_id,
+      type: "system_announcement",
+      title: "Account Suspended",
+      message: `Your account has been suspended. Reason: ${payload.reason}${
+        suspendedUntil
+          ? `. Suspended until: ${new Date(suspendedUntil).toLocaleDateString()}`
+          : ""
+      }`,
+      metadata: {
+        action: "suspend",
+        reason: payload.reason,
+        suspended_until: suspendedUntil,
+      },
+    });
 
     if (notifError) {
       console.error("Failed to send notification:", notifError);
@@ -115,7 +114,9 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -135,7 +136,7 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
     // Prevent banning other admins
     const { data: targetUser } = await supabase
       .from("users")
-      .select("role")
+      .select("role, account_status")
       .eq("id", payload.user_id)
       .single();
 
@@ -146,7 +147,17 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
       };
     }
 
-    // Update user status
+    // Idempotency guard: already-banned accounts should not be re-banned.
+    // Returning an idempotent success (without an audit log or notification)
+    // ensures repeated submits do not create duplicate ban_user records.
+    if (targetUser?.account_status === "banned") {
+      return {
+        success: true,
+        message: "User is already banned.",
+      };
+    }
+
+    // Update user status (the .neq guard is a DB-level idempotency failsafe)
     const { error: updateError } = await supabase
       .from("users")
       .update({
@@ -154,7 +165,8 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
         suspended_until: null,
         suspension_reason: payload.reason,
       })
-      .eq("id", payload.user_id);
+      .eq("id", payload.user_id)
+      .neq("account_status", "banned");
 
     if (updateError) {
       return { success: false, message: updateError.message };
@@ -168,7 +180,7 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
         target_user_id: payload.user_id,
         action: "ban_user",
         reason: payload.reason,
-        previous_value: "active",
+        previous_value: targetUser?.account_status ?? "active",
         new_value: "banned",
         metadata: { evidence: payload.evidence ?? null },
       });
@@ -178,15 +190,13 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
     }
 
     // Send notification
-    const { error: notifError } = await supabase
-      .from("notifications")
-      .insert({
-        user_id: payload.user_id,
-        type: "system_announcement",
-        title: "Account Banned",
-        message: `Your account has been permanently banned. Reason: ${payload.reason}`,
-        metadata: { action: "ban", reason: payload.reason },
-      });
+    const { error: notifError } = await supabase.from("notifications").insert({
+      user_id: payload.user_id,
+      type: "system_announcement",
+      title: "Account Banned",
+      message: `Your account has been permanently banned. Reason: ${payload.reason}`,
+      metadata: { action: "ban", reason: payload.reason },
+    });
 
     if (notifError) {
       console.error("Failed to send notification:", notifError);
@@ -199,20 +209,21 @@ export async function banUser(payload: BanPayload): Promise<AdminActionResult> {
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to ban user.",
+      message: error instanceof Error ? error.message : "Failed to ban user.",
     };
   }
 }
 
 export async function reactivateUser(
   userId: string,
-  reason?: string
+  reason?: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -279,12 +290,14 @@ export async function reactivateUser(
 
 export async function verifyArtist(
   userId: string,
-  reason?: string
+  reason?: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -336,12 +349,14 @@ export async function verifyArtist(
 
 export async function removeVerification(
   userId: string,
-  reason?: string
+  reason?: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -396,12 +411,14 @@ export async function removeVerification(
 }
 
 export async function sendPasswordReset(
-  userId: string
+  userId: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -432,7 +449,7 @@ export async function sendPasswordReset(
       targetUser.email,
       {
         redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/reset-password`,
-      }
+      },
     );
 
     if (resetError) {
@@ -464,12 +481,14 @@ export async function sendPasswordReset(
 
 export async function deleteUser(
   userId: string,
-  reason?: string
+  reason?: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -546,12 +565,14 @@ export async function deleteUser(
 
 export async function bulkSuspendUsers(
   userIds: string[],
-  reason: string
+  reason: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -630,12 +651,14 @@ export async function bulkSuspendUsers(
 
 export async function bulkBanUsers(
   userIds: string[],
-  reason: string
+  reason: string,
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -649,12 +672,17 @@ export async function bulkBanUsers(
 
     const { data: targetUsers } = await supabase
       .from("users")
-      .select("id, role")
+      .select("id, role, account_status")
       .in("id", userIds);
 
-    const validIds = (targetUsers ?? [])
-      .filter((u) => u.id !== user.id && u.role !== "admin")
-      .map((u) => u.id);
+    // Filter out self, other admins, and already-banned users so that repeated
+    // bulk bans do not generate duplicate audit records or notifications.
+    const validUsers = (targetUsers ?? []).filter(
+      (u) =>
+        u.id !== user.id && u.role !== "admin" && u.account_status !== "banned",
+    );
+
+    const validIds = validUsers.map((u) => u.id);
 
     if (validIds.length === 0) {
       return { success: false, message: "No valid users to ban." };
@@ -672,12 +700,12 @@ export async function bulkBanUsers(
       return { success: false, message: updateError.message };
     }
 
-    const auditLogs = validIds.map((targetId) => ({
+    const auditLogs = validUsers.map((targetUser) => ({
       admin_id: user.id,
-      target_user_id: targetId,
+      target_user_id: targetUser.id,
       action: "bulk_ban" as const,
       reason,
-      previous_value: "active",
+      previous_value: targetUser.account_status ?? "active",
       new_value: "banned",
     }));
 
@@ -700,8 +728,7 @@ export async function bulkBanUsers(
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to bulk ban.",
+      message: error instanceof Error ? error.message : "Failed to bulk ban.",
     };
   }
 }
@@ -714,7 +741,9 @@ export async function warnUser(payload: {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
@@ -727,14 +756,12 @@ export async function warnUser(payload: {
     }
 
     // Insert warning record
-    const { error: insertError } = await supabase
-      .from("user_warnings")
-      .insert({
-        user_id: payload.user_id,
-        admin_id: user.id,
-        report_id: payload.report_id ?? null,
-        reason: payload.reason,
-      });
+    const { error: insertError } = await supabase.from("user_warnings").insert({
+      user_id: payload.user_id,
+      admin_id: user.id,
+      report_id: payload.report_id ?? null,
+      reason: payload.reason,
+    });
 
     if (insertError) {
       return { success: false, message: insertError.message };
@@ -771,19 +798,20 @@ export async function warnUser(payload: {
   } catch (error) {
     return {
       success: false,
-      message:
-        error instanceof Error ? error.message : "Failed to warn user.",
+      message: error instanceof Error ? error.message : "Failed to warn user.",
     };
   }
 }
 
 export async function bulkVerifyUsers(
-  userIds: string[]
+  userIds: string[],
 ): Promise<AdminActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return { success: false, message: "Not authenticated." };
 
     const { data: profile } = await supabase
