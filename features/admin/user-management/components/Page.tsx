@@ -74,7 +74,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useUserManagement, useUserManagementStats } from "../hooks/useUserManagement";
+import {
+  useUserManagement,
+  useUserManagementStats,
+} from "../hooks/useUserManagement";
 import {
   useUserDetail,
   useUserArtworks,
@@ -152,30 +155,22 @@ export default function UserManagementPage() {
 
   const { stats, isLoading: statsLoading } = useUserManagementStats();
 
-  const {
-    user: selectedUser,
-    isLoading: userLoading,
-  } = useUserDetail(selectedUserId);
+  const { user: selectedUser, isLoading: userLoading } =
+    useUserDetail(selectedUserId);
 
-  const {
-    artworks,
-    isLoading: artworksLoading,
-  } = useUserArtworks(drawerOpen ? selectedUserId : null);
+  const { artworks, isLoading: artworksLoading } = useUserArtworks(
+    drawerOpen ? selectedUserId : null,
+  );
 
-  const {
-    reports,
-    isLoading: reportsLoading,
-  } = useUserReports(drawerOpen ? selectedUserId : null);
+  const { reports, isLoading: reportsLoading } = useUserReports(
+    drawerOpen ? selectedUserId : null,
+  );
 
-  const {
-    activities: blockchainActivities,
-    isLoading: blockchainLoading,
-  } = useUserBlockchainActivity(drawerOpen ? selectedUserId : null);
+  const { activities: blockchainActivities, isLoading: blockchainLoading } =
+    useUserBlockchainActivity(drawerOpen ? selectedUserId : null);
 
-  const {
-    events: timelineEvents,
-    isLoading: timelineLoading,
-  } = useUserTimeline(drawerOpen ? selectedUserId : null);
+  const { events: timelineEvents, isLoading: timelineLoading } =
+    useUserTimeline(drawerOpen ? selectedUserId : null);
 
   const actions = useAdminActions();
 
@@ -248,10 +243,14 @@ export default function UserManagementPage() {
           const displayName = [u.first_name, u.middle_name, u.last_name]
             .filter(Boolean)
             .join(" ");
-          const initial = (u.first_name?.charAt(0) ?? u.last_name?.charAt(0) ?? "?").toUpperCase();
+          const initial = (
+            u.first_name?.charAt(0) ??
+            u.last_name?.charAt(0) ??
+            "?"
+          ).toUpperCase();
           return (
             <div className="flex items-center gap-3">
-              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-muted">
+              <div className="bg-muted relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
                 {u.c_profile_image ? (
                   <img
                     src={u.c_profile_image}
@@ -259,7 +258,7 @@ export default function UserManagementPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-muted-foreground">
+                  <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-bold">
                     {initial}
                   </div>
                 )}
@@ -270,10 +269,10 @@ export default function UserManagementPage() {
                     {displayName}
                   </span>
                   {u.is_verified && (
-                    <Verified className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <Verified className="text-primary h-3.5 w-3.5 shrink-0" />
                   )}
                 </div>
-                <p className="truncate text-xs text-muted-foreground">
+                <p className="text-muted-foreground truncate text-xs">
                   @{u.username}
                 </p>
               </div>
@@ -287,7 +286,7 @@ export default function UserManagementPage() {
         header: "Email",
         accessorKey: "email",
         cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {row.original.email ?? "—"}
           </span>
         ),
@@ -299,7 +298,7 @@ export default function UserManagementPage() {
         cell: ({ row }) => (
           <Badge
             variant={row.original.role === "admin" ? "default" : "secondary"}
-            className="capitalize text-xs"
+            className="text-xs capitalize"
           >
             {row.original.role}
           </Badge>
@@ -321,19 +320,13 @@ export default function UserManagementPage() {
                     : "destructive"
               }
               className={cn(
-                "capitalize text-xs",
-                status === "active" && "border-green-500 text-green-600"
+                "text-xs capitalize",
+                status === "active" && "border-green-500 text-green-600",
               )}
             >
-              {status === "active" && (
-                <CheckCircle2 className="mr-1 h-3 w-3" />
-              )}
-              {status === "suspended" && (
-                <Clock className="mr-1 h-3 w-3" />
-              )}
-              {status === "banned" && (
-                <Ban className="mr-1 h-3 w-3" />
-              )}
+              {status === "active" && <CheckCircle2 className="mr-1 h-3 w-3" />}
+              {status === "suspended" && <Clock className="mr-1 h-3 w-3" />}
+              {status === "banned" && <Ban className="mr-1 h-3 w-3" />}
               {status}
             </Badge>
           );
@@ -364,7 +357,7 @@ export default function UserManagementPage() {
         header: "Registered",
         accessorKey: "created_at",
         cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {new Date(row.original.created_at).toLocaleDateString()}
           </span>
         ),
@@ -374,7 +367,7 @@ export default function UserManagementPage() {
         header: "Last Active",
         accessorKey: "last_active",
         cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {new Date(row.original.last_active).toLocaleDateString()}
           </span>
         ),
@@ -399,12 +392,31 @@ export default function UserManagementPage() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Admin</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => openSuspend(userId)}>
-                    <Clock className="mr-2 h-4 w-4" /> Suspend
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => openBan(userId)}>
-                    <Ban className="mr-2 h-4 w-4" /> Ban
-                  </DropdownMenuItem>
+                  {row.original.account_status !== "banned" && (
+                    <>
+                      {row.original.account_status === "active" ? (
+                        <DropdownMenuItem
+                          data-testid={`suspend-${userId}`}
+                          onClick={() => openSuspend(userId)}
+                        >
+                          <Clock className="mr-2 h-4 w-4" /> Suspend
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          data-testid={`unsuspend-${userId}`}
+                          onClick={() => handleUnsuspend(userId)}
+                        >
+                          <UserCheck className="mr-2 h-4 w-4" /> Unsuspend
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        data-testid={`ban-${userId}`}
+                        onClick={() => openBan(userId)}
+                      >
+                        <Ban className="mr-2 h-4 w-4" /> Ban
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem onClick={() => openVerify(userId)}>
                     <CheckCircle2 className="mr-2 h-4 w-4" /> Verify Artist
                   </DropdownMenuItem>
@@ -426,7 +438,7 @@ export default function UserManagementPage() {
         enableSorting: false,
       },
     ],
-    [users, bulkSelection]
+    [users, bulkSelection],
   );
 
   const table = useReactTable({
@@ -466,38 +478,75 @@ export default function UserManagementPage() {
     setVerifyDialogOpen(true);
   }, []);
 
-  const handleResetPassword = useCallback((userId: string) => {
-    setConfirmAction({
-      title: "Reset Password",
-      description:
-        "This will send a password reset email to the user. Continue?",
-      onConfirm: () => {
-        actions.resetPassword.mutate(userId);
-        setConfirmDialogOpen(false);
-      },
-    });
-    setConfirmDialogOpen(true);
-  }, [actions]);
+  const handleResetPassword = useCallback(
+    (userId: string) => {
+      setConfirmAction({
+        title: "Reset Password",
+        description:
+          "This will send a password reset email to the user. Continue?",
+        onConfirm: () => {
+          actions.resetPassword.mutate(userId);
+          setConfirmDialogOpen(false);
+        },
+      });
+      setConfirmDialogOpen(true);
+    },
+    [actions],
+  );
 
-  const handleDeleteUser = useCallback((userId: string) => {
-    setSelectedUserId(userId);
-    setConfirmAction({
-      title: "Delete Account",
-      description:
-        "This will soft-delete and anonymize the account. This action cannot be undone. Continue?",
-      onConfirm: () => {
-        actions.deleteUser.mutate({ userId, reason: "Deleted by administrator." });
-        setConfirmDialogOpen(false);
-      },
-    });
-    setConfirmDialogOpen(true);
-  }, [actions]);
+  const handleDeleteUser = useCallback(
+    (userId: string) => {
+      setSelectedUserId(userId);
+      setConfirmAction({
+        title: "Delete Account",
+        description:
+          "This will soft-delete and anonymize the account. This action cannot be undone. Continue?",
+        onConfirm: () => {
+          actions.deleteUser.mutate({
+            userId,
+            reason: "Deleted by administrator.",
+          });
+          setConfirmDialogOpen(false);
+        },
+      });
+      setConfirmDialogOpen(true);
+    },
+    [actions],
+  );
+
+  const handleUnsuspend = useCallback(
+    (userId: string) => {
+      setSelectedUserId(userId);
+      setConfirmAction({
+        title: "Unsuspend User",
+        description:
+          "This will reactivate the user's account and restore access. Continue?",
+        onConfirm: () => {
+          actions.reactivate.mutate({
+            userId,
+            reason: "Account reactivated by administrator.",
+          });
+          setConfirmDialogOpen(false);
+        },
+      });
+      setConfirmDialogOpen(true);
+    },
+    [actions],
+  );
 
   const handleExport = useCallback(async () => {
     try {
-      const result = await exportUsersCSV({ search: debouncedSearch, filters, sort });
+      const result = await exportUsersCSV({
+        search: debouncedSearch,
+        filters,
+        sort,
+      });
       if (!result.success) {
-        actions.suspend.mutate({ user_id: "", reason: "", duration: "permanent" }); // dummy for toast
+        actions.suspend.mutate({
+          user_id: "",
+          reason: "",
+          duration: "permanent",
+        }); // dummy for toast
         return;
       }
 
@@ -507,14 +556,17 @@ export default function UserManagementPage() {
       ];
       const rows = result.data.map(
         (r) =>
-          `"${r.username}","${r.email}","${r.role}","${r.status}","${r.verified}","${r.registration_date}",${r.artwork_count},${r.report_count}`
+          `"${r.username}","${r.email}","${r.role}","${r.status}","${r.verified}","${r.registration_date}",${r.artwork_count},${r.report_count}`,
       );
       const csv = [...headers, ...rows].join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `users-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.setAttribute(
+        "download",
+        `users-export-${new Date().toISOString().slice(0, 10)}.csv`,
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -549,9 +601,9 @@ export default function UserManagementPage() {
   // ── Error ──
   if (error && !isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <div className="max-w-md text-center space-y-4">
-          <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="max-w-md space-y-4 text-center">
+          <AlertTriangle className="text-destructive mx-auto h-12 w-12" />
           <h2 className="text-xl font-bold">Failed to Load Users</h2>
           <p className="text-muted-foreground text-sm">{error}</p>
           <Button onClick={() => refetch()} className="gap-2">
@@ -565,10 +617,10 @@ export default function UserManagementPage() {
   return (
     <>
       {/* Top Bar */}
-      <div className="border-b border-border bg-card px-4 py-3">
+      <div className="border-border bg-card border-b px-4 py-3">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Users className="h-5 w-5 text-primary" />
+            <Users className="text-primary h-5 w-5" />
             <h1 className="text-lg font-bold tracking-tight sm:text-xl">
               User Management
             </h1>
@@ -581,7 +633,7 @@ export default function UserManagementPage() {
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search users..."
                 value={search}
@@ -620,7 +672,9 @@ export default function UserManagementPage() {
               onClick={() => refetch()}
               disabled={isLoading}
             >
-              <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+              <RefreshCw
+                className={cn("h-4 w-4", isLoading && "animate-spin")}
+              />
             </Button>
           </div>
         </div>
@@ -628,10 +682,10 @@ export default function UserManagementPage() {
 
       {/* Filters Panel */}
       {filtersOpen && (
-        <div className="border-b border-border bg-muted/30 px-4 py-3">
+        <div className="border-border bg-muted/30 border-b px-4 py-3">
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Role</Label>
+              <Label className="text-muted-foreground text-xs">Role</Label>
               <Select
                 value={filters.role}
                 onValueChange={(v: "all" | "user" | "admin") =>
@@ -650,7 +704,7 @@ export default function UserManagementPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Status</Label>
+              <Label className="text-muted-foreground text-xs">Status</Label>
               <Select
                 value={filters.account_status}
                 onValueChange={(v: "all" | AccountStatus) =>
@@ -670,7 +724,7 @@ export default function UserManagementPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Verified</Label>
+              <Label className="text-muted-foreground text-xs">Verified</Label>
               <Select
                 value={
                   filters.is_verified === null
@@ -698,7 +752,9 @@ export default function UserManagementPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Has Artwork</Label>
+              <Label className="text-muted-foreground text-xs">
+                Has Artwork
+              </Label>
               <Select
                 value={
                   filters.has_uploaded_artwork === null
@@ -710,8 +766,7 @@ export default function UserManagementPage() {
                 onValueChange={(v) =>
                   setFilters({
                     ...filters,
-                    has_uploaded_artwork:
-                      v === "all" ? null : v === "yes",
+                    has_uploaded_artwork: v === "all" ? null : v === "yes",
                   })
                 }
               >
@@ -727,7 +782,9 @@ export default function UserManagementPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Has Reports</Label>
+              <Label className="text-muted-foreground text-xs">
+                Has Reports
+              </Label>
               <Select
                 value={
                   filters.has_reports === null
@@ -755,7 +812,7 @@ export default function UserManagementPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Sort</Label>
+              <Label className="text-muted-foreground text-xs">Sort</Label>
               <Select
                 value={sort}
                 onValueChange={(v: UserSortOption) => setSort(v)}
@@ -787,7 +844,7 @@ export default function UserManagementPage() {
 
       {/* Bulk Action Bar */}
       {bulkSelection.size > 0 && (
-        <div className="flex items-center gap-3 border-b border-border bg-primary/5 px-4 py-2.5">
+        <div className="border-border bg-primary/5 flex items-center gap-3 border-b px-4 py-2.5">
           <span className="text-sm font-medium">
             {bulkSelection.size} selected
           </span>
@@ -861,7 +918,7 @@ export default function UserManagementPage() {
             variant="ghost"
             size="sm"
             onClick={() => setBulkSelection(new Set())}
-            className="text-xs text-muted-foreground"
+            className="text-muted-foreground text-xs"
           >
             Clear
           </Button>
@@ -869,7 +926,7 @@ export default function UserManagementPage() {
       )}
 
       {/* Statistics Cards */}
-      <div className="p-4 lg:p-6 space-y-6">
+      <div className="space-y-6 p-4 lg:p-6">
         {stats && (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-7">
             <StatCard
@@ -916,18 +973,22 @@ export default function UserManagementPage() {
         )}
 
         {/* Table */}
-        <div className="overflow-hidden rounded-xl border border-border">
+        <div className="border-border overflow-hidden rounded-xl border">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id} className="border-b border-border bg-muted/30">
+                  <tr
+                    key={headerGroup.id}
+                    className="border-border bg-muted/30 border-b"
+                  >
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
                         className={cn(
-                          "px-4 py-3 text-left text-xs font-medium text-muted-foreground",
-                          header.column.getCanSort() && "cursor-pointer select-none"
+                          "text-muted-foreground px-4 py-3 text-left text-xs font-medium",
+                          header.column.getCanSort() &&
+                            "cursor-pointer select-none",
                         )}
                         onClick={header.column.getToggleSortingHandler()}
                         style={{ width: header.getSize() }}
@@ -935,7 +996,7 @@ export default function UserManagementPage() {
                         <div className="flex items-center gap-1">
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                           {{
                             asc: " ↑",
@@ -955,13 +1016,17 @@ export default function UserManagementPage() {
                       className="px-4 py-16 text-center"
                     >
                       <div className="flex flex-col items-center gap-2">
-                        <Users className="h-8 w-8 text-muted-foreground/40" />
-                        <p className="text-sm text-muted-foreground">
-                          {debouncedSearch || filters.role !== "all" || filters.account_status !== "all"
+                        <Users className="text-muted-foreground/40 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          {debouncedSearch ||
+                          filters.role !== "all" ||
+                          filters.account_status !== "all"
                             ? "No users match your search criteria."
                             : "No users found."}
                         </p>
-                        {(debouncedSearch || filters.role !== "all" || filters.account_status !== "all") && (
+                        {(debouncedSearch ||
+                          filters.role !== "all" ||
+                          filters.account_status !== "all") && (
                           <Button
                             variant="link"
                             size="sm"
@@ -977,7 +1042,7 @@ export default function UserManagementPage() {
                   table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className="border-b border-border transition-colors hover:bg-muted/50 cursor-pointer"
+                      className="border-border hover:bg-muted/50 cursor-pointer border-b transition-colors"
                       onClick={() => openDrawer(row.original.id)}
                     >
                       {row.getVisibleCells().map((cell) => (
@@ -988,7 +1053,7 @@ export default function UserManagementPage() {
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </td>
                       ))}
@@ -1001,9 +1066,9 @@ export default function UserManagementPage() {
 
           {/* Pagination */}
           {pageCount_ > 0 && (
-            <div className="flex items-center justify-between border-t border-border px-4 py-3">
+            <div className="border-border flex items-center justify-between border-t px-4 py-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground text-sm">
                   Rows per page
                 </span>
                 <Select
@@ -1025,7 +1090,7 @@ export default function UserManagementPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground text-sm">
                   Page {page} of {pageCount_}
                 </span>
                 <div className="flex items-center gap-1">
@@ -1056,19 +1121,23 @@ export default function UserManagementPage() {
 
       {/* ── User Details Dialog ── */}
       <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <DialogContent showCloseButton={false} className="flex flex-col p-0 gap-0" style={{ maxWidth: "85vw", maxHeight: "90vh" }}>
+        <DialogContent
+          showCloseButton={false}
+          className="flex flex-col gap-0 p-0"
+          style={{ maxWidth: "85vw", maxHeight: "90vh" }}
+        >
           {userLoading ? (
             <div className="space-y-4 p-4">
-              <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-              <div className="h-32 animate-pulse rounded-xl bg-muted" />
-              <div className="h-64 animate-pulse rounded-xl bg-muted" />
+              <div className="bg-muted h-8 w-48 animate-pulse rounded" />
+              <div className="bg-muted h-32 animate-pulse rounded-xl" />
+              <div className="bg-muted h-64 animate-pulse rounded-xl" />
             </div>
           ) : selectedUser ? (
             <>
-              <div className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">
+              <div className="border-border bg-card sticky top-0 z-10 border-b px-6 py-4">
                 <div className="flex items-center justify-between">
                   <DialogTitle className="flex items-center gap-3 text-lg">
-                    <div className="relative h-10 w-10 overflow-hidden rounded-full bg-muted">
+                    <div className="bg-muted relative h-10 w-10 overflow-hidden rounded-full">
                       {selectedUser.c_profile_image ? (
                         <img
                           src={selectedUser.c_profile_image}
@@ -1076,22 +1145,34 @@ export default function UserManagementPage() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-sm font-bold text-muted-foreground">
-                          {selectedUser.first_name?.charAt(0) ?? selectedUser.last_name?.charAt(0) ?? "?"}
+                        <div className="text-muted-foreground flex h-full w-full items-center justify-center text-sm font-bold">
+                          {selectedUser.first_name?.charAt(0) ??
+                            selectedUser.last_name?.charAt(0) ??
+                            "?"}
                         </div>
                       )}
                     </div>
                     <div>
                       <p className="text-base font-semibold">
-                        {[selectedUser.first_name, selectedUser.middle_name, selectedUser.last_name].filter(Boolean).join(" ")}
+                        {[
+                          selectedUser.first_name,
+                          selectedUser.middle_name,
+                          selectedUser.last_name,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         @{selectedUser.username}
                       </p>
                     </div>
                   </DialogTitle>
                   <DialogClose asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                    >
                       <X className="h-4 w-4" />
                       <span className="sr-only">Close</span>
                     </Button>
@@ -1101,309 +1182,534 @@ export default function UserManagementPage() {
 
               {/* Dialog Body (scrollable) */}
               <div className="flex-1 overflow-y-auto px-6 py-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full justify-start">
-                  <TabsTrigger value="profile" className="text-xs">Profile</TabsTrigger>
-                  <TabsTrigger value="artworks" className="text-xs">Artworks</TabsTrigger>
-                  <TabsTrigger value="reports" className="text-xs">Reports</TabsTrigger>
-                  <TabsTrigger value="blockchain" className="text-xs">Blockchain</TabsTrigger>
-                  <TabsTrigger value="timeline" className="text-xs">Activity</TabsTrigger>
-                </TabsList>
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="w-full justify-start">
+                    <TabsTrigger value="profile" className="text-xs">
+                      Profile
+                    </TabsTrigger>
+                    <TabsTrigger value="artworks" className="text-xs">
+                      Artworks
+                    </TabsTrigger>
+                    <TabsTrigger value="reports" className="text-xs">
+                      Reports
+                    </TabsTrigger>
+                    <TabsTrigger value="blockchain" className="text-xs">
+                      Blockchain
+                    </TabsTrigger>
+                    <TabsTrigger value="timeline" className="text-xs">
+                      Activity
+                    </TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="profile" className="space-y-4 pt-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Profile Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Email</p>
-                          <p>{selectedUser.email ?? "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Role</p>
-                          <Badge variant={selectedUser.role === "admin" ? "default" : "secondary"} className="capitalize text-xs">
-                            {selectedUser.role}
-                          </Badge>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Status</p>
-                          <Badge className={cn(
-                            "capitalize text-xs",
-                            selectedUser.account_status === "active" && "border-green-500 text-green-600"
-                          )}>
-                            {selectedUser.account_status}
-                          </Badge>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Verified</p>
-                          <p>{selectedUser.is_verified ? "Yes" : "No"}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Country</p>
-                          <p>{selectedUser.country ?? "—"}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Online</p>
-                          <p>{selectedUser.is_online ? "Yes" : "No"}</p>
-                        </div>
-                      </div>
-                      <Separator />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Bio</p>
-                        <p className="text-muted-foreground">{selectedUser.bio ?? "No bio."}</p>
-                      </div>
-                      <Separator />
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Created</p>
-                          <p>{new Date(selectedUser.created_at).toLocaleDateString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">Last Active</p>
-                          <p>{new Date(selectedUser.last_active).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Statistics</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <StatMini label="Artworks" value={selectedUser.statistics.registered_artworks} />
-                        <StatMini label="Posts" value={selectedUser.statistics.public_posts} />
-                        <StatMini label="Upvotes" value={selectedUser.statistics.total_upvotes_received} />
-                        <StatMini label="Reports Filed" value={selectedUser.statistics.reports_filed} />
-                        <StatMini label="Reports Against" value={selectedUser.statistics.reports_against} />
-                        <StatMini label="Similarity" value={selectedUser.statistics.similarity_matches} />
-                        <StatMini label="Blockchain" value={selectedUser.statistics.blockchain_registrations} />
-                        <StatMini label="Notifications" value={selectedUser.statistics.notifications_count} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="artworks" className="space-y-4 pt-4">
-                  {artworksLoading ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
-                      ))}
-                    </div>
-                  ) : artworks.length === 0 ? (
-                    <div className="flex flex-col items-center gap-2 py-12 text-center">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-                      <p className="text-sm text-muted-foreground">No artworks found.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {artworks.map((art) => (
-                        <div
-                          key={art.id}
-                          className="flex items-center gap-3 rounded-lg border border-border p-3"
-                        >
-                          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
-                            {art.c_secure_url ? (
-                              <img
-                                src={art.c_secure_url}
-                                alt={art.title}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                                No img
-                              </div>
-                            )}
+                  <TabsContent value="profile" className="space-y-4 pt-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">
+                          Profile Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3 text-sm">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Email
+                            </p>
+                            <p>{selectedUser.email ?? "—"}</p>
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">{art.title}</p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-[10px] px-1.5">
-                                {art.visibility}
-                              </Badge>
-                              {art.similarity_score !== null && (
-                                <span>{art.similarity_score}% match</span>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Role
+                            </p>
+                            <Badge
+                              variant={
+                                selectedUser.role === "admin"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="text-xs capitalize"
+                            >
+                              {selectedUser.role}
+                            </Badge>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Status
+                            </p>
+                            <Badge
+                              className={cn(
+                                "text-xs capitalize",
+                                selectedUser.account_status === "active" &&
+                                  "border-green-500 text-green-600",
                               )}
-                              <span>{new Date(art.created_at).toLocaleDateString()}</span>
-                            </div>
+                            >
+                              {selectedUser.account_status}
+                            </Badge>
                           </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                              <a href={`/art/${art.id}`} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </a>
-                            </Button>
-                            {art.tx_hash && (
-                              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Verified
+                            </p>
+                            <p>{selectedUser.is_verified ? "Yes" : "No"}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Country
+                            </p>
+                            <p>{selectedUser.country ?? "—"}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Online
+                            </p>
+                            <p>{selectedUser.is_online ? "Yes" : "No"}</p>
+                          </div>
+                        </div>
+                        {selectedUser.account_status === "suspended" && (
+                          <>
+                            <Separator />
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <p className="text-muted-foreground text-xs">
+                                  Suspended Until
+                                </p>
+                                <p>
+                                  {selectedUser.suspended_until
+                                    ? new Date(
+                                        selectedUser.suspended_until,
+                                      ).toLocaleDateString()
+                                    : "Permanent"}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground text-xs">
+                                  Suspension Reason
+                                </p>
+                                <p>{selectedUser.suspension_reason ?? "—"}</p>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                        <Separator />
+                        <div>
+                          <p className="text-muted-foreground text-xs">Bio</p>
+                          <p className="text-muted-foreground">
+                            {selectedUser.bio ?? "No bio."}
+                          </p>
+                        </div>
+                        <Separator />
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Created
+                            </p>
+                            <p>
+                              {new Date(
+                                selectedUser.created_at,
+                              ).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground text-xs">
+                              Last Active
+                            </p>
+                            <p>
+                              {new Date(
+                                selectedUser.last_active,
+                              ).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Statistics</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                          <StatMini
+                            label="Artworks"
+                            value={selectedUser.statistics.registered_artworks}
+                          />
+                          <StatMini
+                            label="Posts"
+                            value={selectedUser.statistics.public_posts}
+                          />
+                          <StatMini
+                            label="Upvotes"
+                            value={
+                              selectedUser.statistics.total_upvotes_received
+                            }
+                          />
+                          <StatMini
+                            label="Reports Filed"
+                            value={selectedUser.statistics.reports_filed}
+                          />
+                          <StatMini
+                            label="Reports Against"
+                            value={selectedUser.statistics.reports_against}
+                          />
+                          <StatMini
+                            label="Similarity"
+                            value={selectedUser.statistics.similarity_matches}
+                          />
+                          <StatMini
+                            label="Blockchain"
+                            value={
+                              selectedUser.statistics.blockchain_registrations
+                            }
+                          />
+                          <StatMini
+                            label="Notifications"
+                            value={selectedUser.statistics.notifications_count}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="artworks" className="space-y-4 pt-4">
+                    {artworksLoading ? (
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="bg-muted h-20 animate-pulse rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : artworks.length === 0 ? (
+                      <div className="flex flex-col items-center gap-2 py-12 text-center">
+                        <ImageIcon className="text-muted-foreground/40 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          No artworks found.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {artworks.map((art) => (
+                          <div
+                            key={art.id}
+                            className="border-border flex items-center gap-3 rounded-lg border p-3"
+                          >
+                            <div className="bg-muted h-14 w-14 shrink-0 overflow-hidden rounded-md">
+                              {art.c_secure_url ? (
+                                <img
+                                  src={art.c_secure_url}
+                                  alt={art.title}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs">
+                                  No img
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">
+                                {art.title}
+                              </p>
+                              <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="px-1.5 text-[10px]"
+                                >
+                                  {art.visibility}
+                                </Badge>
+                                {art.similarity_score !== null && (
+                                  <span>{art.similarity_score}% match</span>
+                                )}
+                                <span>
+                                  {new Date(
+                                    art.created_at,
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                asChild
+                              >
                                 <a
-                                  href={`https://amoy.polygonscan.com/tx/${art.tx_hash}`}
+                                  href={`/art/${art.id}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >
                                   <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
                               </Button>
-                            )}
+                              {art.tx_hash && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  asChild
+                                >
+                                  <a
+                                    href={`https://amoy.polygonscan.com/tx/${art.tx_hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
 
-                <TabsContent value="reports" className="space-y-4 pt-4">
-                  {reportsLoading ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
-                      ))}
-                    </div>
-                  ) : reports.length === 0 ? (
-                    <div className="flex flex-col items-center gap-2 py-12 text-center">
-                      <ShieldAlert className="h-8 w-8 text-muted-foreground/40" />
-                      <p className="text-sm text-muted-foreground">No reports found.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {reports.map((report) => (
-                        <div
-                          key={report.id}
-                          className="flex items-center justify-between rounded-lg border border-border p-3"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">{report.title}</p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge variant="outline" className="text-[10px] px-1.5 capitalize">
-                                {report.report_type}
+                  <TabsContent value="reports" className="space-y-4 pt-4">
+                    {reportsLoading ? (
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="bg-muted h-16 animate-pulse rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : reports.length === 0 ? (
+                      <div className="flex flex-col items-center gap-2 py-12 text-center">
+                        <ShieldAlert className="text-muted-foreground/40 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          No reports found.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {reports.map((report) => (
+                          <div
+                            key={report.id}
+                            className="border-border flex items-center justify-between rounded-lg border p-3"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">
+                                {report.title}
+                              </p>
+                              <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                                <Badge
+                                  variant="outline"
+                                  className="px-1.5 text-[10px] capitalize"
+                                >
+                                  {report.report_type}
+                                </Badge>
+                                <span>
+                                  {new Date(
+                                    report.created_at,
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className="text-[10px] capitalize">
+                                {report.status}
                               </Badge>
-                              <span>{new Date(report.created_at).toLocaleDateString()}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                asChild
+                              >
+                                <a
+                                  href={`/admin/reports/${report.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className="text-[10px] capitalize">{report.status}</Badge>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                              <a href={`/admin/reports/${report.id}`} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </a>
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
 
-                <TabsContent value="blockchain" className="space-y-4 pt-4">
-                  {blockchainLoading ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
-                      ))}
-                    </div>
-                  ) : blockchainActivities.length === 0 ? (
-                    <div className="flex flex-col items-center gap-2 py-12 text-center">
-                      <ExternalLink className="h-8 w-8 text-muted-foreground/40" />
-                      <p className="text-sm text-muted-foreground">No blockchain activity found.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {blockchainActivities.map((act) => (
-                        <div
-                          key={act.id}
-                          className="flex items-center justify-between rounded-lg border border-border p-3"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">{act.artwork_title}</p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span className="truncate font-mono">{act.tx_hash?.slice(0, 16)}...</span>
-                              {act.chain && <Badge variant="outline" className="text-[10px]">{act.chain}</Badge>}
+                  <TabsContent value="blockchain" className="space-y-4 pt-4">
+                    {blockchainLoading ? (
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="bg-muted h-16 animate-pulse rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : blockchainActivities.length === 0 ? (
+                      <div className="flex flex-col items-center gap-2 py-12 text-center">
+                        <ExternalLink className="text-muted-foreground/40 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          No blockchain activity found.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {blockchainActivities.map((act) => (
+                          <div
+                            key={act.id}
+                            className="border-border flex items-center justify-between rounded-lg border p-3"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium">
+                                {act.artwork_title}
+                              </p>
+                              <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                                <span className="truncate font-mono">
+                                  {act.tx_hash?.slice(0, 16)}...
+                                </span>
+                                {act.chain && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px]"
+                                  >
+                                    {act.chain}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <Badge
+                              className={cn(
+                                "text-[10px] capitalize",
+                                act.verification_status === "verified" &&
+                                  "border-green-500 text-green-600",
+                              )}
+                            >
+                              {act.verification_status}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="timeline" className="space-y-4 pt-4">
+                    {timelineLoading ? (
+                      <div className="space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex gap-3">
+                            <div className="bg-muted h-8 w-8 animate-pulse rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <div className="bg-muted h-4 w-32 animate-pulse rounded" />
+                              <div className="bg-muted h-3 w-48 animate-pulse rounded" />
                             </div>
                           </div>
-                          <Badge className={cn(
-                            "text-[10px] capitalize",
-                            act.verification_status === "verified" && "border-green-500 text-green-600"
-                          )}>
-                            {act.verification_status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="timeline" className="space-y-4 pt-4">
-                  {timelineLoading ? (
-                    <div className="space-y-3">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="flex gap-3">
-                          <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
-                          <div className="flex-1 space-y-2">
-                            <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-                            <div className="h-3 w-48 animate-pulse rounded bg-muted" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : timelineEvents.length === 0 ? (
-                    <div className="flex flex-col items-center gap-2 py-12 text-center">
-                      <Clock className="h-8 w-8 text-muted-foreground/40" />
-                      <p className="text-sm text-muted-foreground">No activity recorded.</p>
-                    </div>
-                  ) : (
-                    <div className="relative space-y-0">
-                      {timelineEvents.map((event, idx) => (
-                        <div key={event.id} className="relative flex gap-4 pb-6 last:pb-0">
-                          {idx < timelineEvents.length - 1 && (
-                            <div className="absolute left-[15px] top-8 h-full w-px bg-border" />
-                          )}
-                          <div className={cn(
-                            "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                            event.type === "account_created" && "bg-blue-100 text-blue-600",
-                            event.type === "artwork_uploaded" && "bg-green-100 text-green-600",
-                            event.type === "blockchain_recorded" && "bg-purple-100 text-purple-600",
-                            event.type === "report_filed" && "bg-orange-100 text-orange-600",
-                            event.type === "report_received" && "bg-red-100 text-red-600",
-                            event.type === "similarity_detected" && "bg-yellow-100 text-yellow-600",
-                            event.type === "admin_action" && "bg-gray-100 text-gray-600",
-                            !["account_created","artwork_uploaded","blockchain_recorded","report_filed","report_received","similarity_detected","admin_action"].includes(event.type) && "bg-muted text-muted-foreground"
-                          )}>
-                            {event.type === "account_created" && <UserCheck className="h-4 w-4" />}
-                            {event.type === "artwork_uploaded" && <ImageIcon className="h-4 w-4" />}
-                            {event.type === "blockchain_recorded" && <Verified className="h-4 w-4" />}
-                            {event.type === "report_filed" && <ShieldAlert className="h-4 w-4" />}
-                            {event.type === "report_received" && <Ban className="h-4 w-4" />}
-                            {event.type === "similarity_detected" && <AlertTriangle className="h-4 w-4" />}
-                            {event.type === "notification_received" && <Bell className="h-4 w-4" />}
-                            {event.type === "admin_action" && <ShieldAlert className="h-4 w-4" />}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium">{event.title}</p>
-                            {event.description && (
-                              <p className="text-xs text-muted-foreground">{event.description}</p>
+                        ))}
+                      </div>
+                    ) : timelineEvents.length === 0 ? (
+                      <div className="flex flex-col items-center gap-2 py-12 text-center">
+                        <Clock className="text-muted-foreground/40 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          No activity recorded.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="relative space-y-0">
+                        {timelineEvents.map((event, idx) => (
+                          <div
+                            key={event.id}
+                            className="relative flex gap-4 pb-6 last:pb-0"
+                          >
+                            {idx < timelineEvents.length - 1 && (
+                              <div className="bg-border absolute top-8 left-[15px] h-full w-px" />
                             )}
-                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                              {new Date(event.created_at).toLocaleDateString(undefined, {
-                                month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit"
-                              })}
-                            </p>
+                            <div
+                              className={cn(
+                                "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                                event.type === "account_created" &&
+                                  "bg-blue-100 text-blue-600",
+                                event.type === "artwork_uploaded" &&
+                                  "bg-green-100 text-green-600",
+                                event.type === "blockchain_recorded" &&
+                                  "bg-purple-100 text-purple-600",
+                                event.type === "report_filed" &&
+                                  "bg-orange-100 text-orange-600",
+                                event.type === "report_received" &&
+                                  "bg-red-100 text-red-600",
+                                event.type === "similarity_detected" &&
+                                  "bg-yellow-100 text-yellow-600",
+                                event.type === "admin_action" &&
+                                  "bg-gray-100 text-gray-600",
+                                ![
+                                  "account_created",
+                                  "artwork_uploaded",
+                                  "blockchain_recorded",
+                                  "report_filed",
+                                  "report_received",
+                                  "similarity_detected",
+                                  "admin_action",
+                                ].includes(event.type) &&
+                                  "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              {event.type === "account_created" && (
+                                <UserCheck className="h-4 w-4" />
+                              )}
+                              {event.type === "artwork_uploaded" && (
+                                <ImageIcon className="h-4 w-4" />
+                              )}
+                              {event.type === "blockchain_recorded" && (
+                                <Verified className="h-4 w-4" />
+                              )}
+                              {event.type === "report_filed" && (
+                                <ShieldAlert className="h-4 w-4" />
+                              )}
+                              {event.type === "report_received" && (
+                                <Ban className="h-4 w-4" />
+                              )}
+                              {event.type === "similarity_detected" && (
+                                <AlertTriangle className="h-4 w-4" />
+                              )}
+                              {event.type === "notification_received" && (
+                                <Bell className="h-4 w-4" />
+                              )}
+                              {event.type === "admin_action" && (
+                                <ShieldAlert className="h-4 w-4" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium">
+                                {event.title}
+                              </p>
+                              {event.description && (
+                                <p className="text-muted-foreground text-xs">
+                                  {event.description}
+                                </p>
+                              )}
+                              <p className="text-muted-foreground/60 mt-0.5 text-[10px]">
+                                {new Date(event.created_at).toLocaleDateString(
+                                  undefined,
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-full p-6">
+            <div className="flex h-full items-center justify-center p-6">
               <div className="flex flex-col items-center gap-2 text-center">
-                <Users className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Select a user to view details.</p>
+                <Users className="text-muted-foreground/40 h-8 w-8" />
+                <p className="text-muted-foreground text-sm">
+                  Select a user to view details.
+                </p>
               </div>
             </div>
           )}
@@ -1434,7 +1740,8 @@ export default function UserManagementPage() {
           <DialogHeader>
             <DialogTitle>Ban User</DialogTitle>
             <DialogDescription>
-              This will permanently ban the user. This action requires confirmation.
+              This will permanently ban the user. This action requires
+              confirmation.
             </DialogDescription>
           </DialogHeader>
           <BanForm
@@ -1456,7 +1763,7 @@ export default function UserManagementPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               This will mark the account as verified and notify the user.
             </p>
             <div className="flex justify-end gap-3">
@@ -1476,7 +1783,9 @@ export default function UserManagementPage() {
                 disabled={actions.verify.isPending}
                 className="gap-2"
               >
-                {actions.verify.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {actions.verify.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 Verify Artist
               </Button>
             </div>
@@ -1485,7 +1794,10 @@ export default function UserManagementPage() {
       </Dialog>
 
       {/* ── Send Notification Dialog ── */}
-      <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
+      <Dialog
+        open={notificationDialogOpen}
+        onOpenChange={setNotificationDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Send Notification</DialogTitle>
@@ -1549,10 +1861,10 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-3 lg:p-4">
+    <div className="border-border bg-card rounded-xl border p-3 lg:p-4">
       <div className="flex items-center gap-2">
         <div className={cn("text-muted-foreground", color)}>{icon}</div>
-        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-muted-foreground text-xs">{label}</p>
       </div>
       <p className={cn("mt-1 text-xl font-bold", color)}>
         {value.toLocaleString()}
@@ -1563,9 +1875,9 @@ function StatCard({
 
 function StatMini({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg bg-muted/50 p-3 text-center">
+    <div className="bg-muted/50 rounded-lg p-3 text-center">
       <p className="text-lg font-bold">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-muted-foreground text-xs">{label}</p>
     </div>
   );
 }
@@ -1578,11 +1890,19 @@ function SuspendForm({
 }: {
   userId: string;
   onSuccess: () => void;
-  onSuspend: (payload: { user_id: string; reason: string; duration: "temporary" | "permanent"; duration_days?: number; admin_notes?: string }) => void;
+  onSuspend: (payload: {
+    user_id: string;
+    reason: string;
+    duration: "temporary" | "permanent";
+    duration_days?: number;
+    admin_notes?: string;
+  }) => void;
   isLoading: boolean;
 }) {
   const [reason, setReason] = useState("");
-  const [duration, setDuration] = useState<"temporary" | "permanent">("temporary");
+  const [duration, setDuration] = useState<"temporary" | "permanent">(
+    "temporary",
+  );
   const [durationDays, setDurationDays] = useState(7);
   const [adminNotes, setAdminNotes] = useState("");
 
@@ -1611,7 +1931,10 @@ function SuspendForm({
       </div>
       <div className="space-y-2">
         <Label>Duration</Label>
-        <Select value={duration} onValueChange={(v: "temporary" | "permanent") => setDuration(v)}>
+        <Select
+          value={duration}
+          onValueChange={(v: "temporary" | "permanent") => setDuration(v)}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -1643,8 +1966,14 @@ function SuspendForm({
         />
       </div>
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={onSuccess}>Cancel</Button>
-        <Button onClick={handleSubmit} disabled={!reason.trim() || isLoading} className="gap-2">
+        <Button variant="outline" onClick={onSuccess}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={!reason.trim() || isLoading}
+          className="gap-2"
+        >
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           Suspend User
         </Button>
@@ -1661,7 +1990,11 @@ function BanForm({
 }: {
   userId: string;
   onSuccess: () => void;
-  onBan: (payload: { user_id: string; reason: string; evidence?: string }) => void;
+  onBan: (payload: {
+    user_id: string;
+    reason: string;
+    evidence?: string;
+  }) => void;
   isLoading: boolean;
 }) {
   const [reason, setReason] = useState("");
@@ -1698,18 +2031,21 @@ function BanForm({
           rows={2}
         />
       </div>
-      <div className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+      <div className="border-destructive/20 bg-destructive/5 flex items-start gap-2 rounded-lg border p-3">
         <Checkbox
           id="ban-confirm"
           checked={confirmed}
           onCheckedChange={(v) => setConfirmed(v as boolean)}
         />
-        <Label htmlFor="ban-confirm" className="text-xs text-destructive">
-          I confirm that I want to permanently ban this user. This action cannot be undone.
+        <Label htmlFor="ban-confirm" className="text-destructive text-xs">
+          I confirm that I want to permanently ban this user. This action cannot
+          be undone.
         </Label>
       </div>
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={onSuccess}>Cancel</Button>
+        <Button variant="outline" onClick={onSuccess}>
+          Cancel
+        </Button>
         <Button
           onClick={handleSubmit}
           disabled={!reason.trim() || !confirmed || isLoading}
@@ -1735,7 +2071,9 @@ function NotificationForm({
   onSend: (payload: SendNotificationPayload) => void;
   isLoading: boolean;
 }) {
-  const [type, setType] = useState<"information" | "warning" | "announcement">("information");
+  const [type, setType] = useState<"information" | "warning" | "announcement">(
+    "information",
+  );
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
 
@@ -1752,12 +2090,17 @@ function NotificationForm({
 
   return (
     <div className="space-y-4 py-4">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         Recipients: {recipientIds.length} user(s)
       </p>
       <div className="space-y-2">
         <Label>Type</Label>
-        <Select value={type} onValueChange={(v: "information" | "warning" | "announcement") => setType(v)}>
+        <Select
+          value={type}
+          onValueChange={(v: "information" | "warning" | "announcement") =>
+            setType(v)
+          }
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -1786,10 +2129,17 @@ function NotificationForm({
         />
       </div>
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={onSuccess}>Cancel</Button>
+        <Button variant="outline" onClick={onSuccess}>
+          Cancel
+        </Button>
         <Button
           onClick={handleSubmit}
-          disabled={!title.trim() || !message.trim() || recipientIds.length === 0 || isLoading}
+          disabled={
+            !title.trim() ||
+            !message.trim() ||
+            recipientIds.length === 0 ||
+            isLoading
+          }
           className="gap-2"
         >
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}

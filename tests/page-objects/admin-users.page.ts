@@ -25,6 +25,11 @@ export class AdminUsersPage {
     await this.page.getByRole("button", { name: /confirm|suspend/i }).click();
   }
 
+  async unsuspendUser(userId: string) {
+    await this.page.locator(`[data-testid="unsuspend-${userId}"]`).click();
+    await this.page.getByRole("button", { name: /confirm|unsuspend/i }).click();
+  }
+
   async warnUser(userId: string) {
     await this.page.locator(`[data-testid="warn-${userId}"]`).click();
     await this.page.getByRole("button", { name: /confirm|send/i }).click();
