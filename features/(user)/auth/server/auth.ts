@@ -10,9 +10,7 @@ import {
   type SignUpInput,
 } from "../schemas/auth-schema";
 
-export async function signIn(
-  input: SignInInput,
-) {
+export async function signIn(input: SignInInput) {
   const parsed = signInSchema.safeParse(input);
   if (!parsed.success) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
@@ -82,7 +80,9 @@ export async function forgotPassword(
 
   const { error } = await supabase.auth.resetPasswordForEmail(
     parsed.data.email,
-    {},
+    {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/reset-password`,
+    },
   );
 
   if (error) {
