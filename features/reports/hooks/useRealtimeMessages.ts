@@ -2,7 +2,11 @@
 
 import { useEffect, useCallback, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import type { ChatMessage, MessageStatus, ReportComment } from "@/features/reports/types";
+import type {
+  ChatMessage,
+  MessageStatus,
+  ReportComment,
+} from "@/features/reports/types";
 
 type UseRealtimeMessagesOptions = {
   reportId: string;
@@ -40,8 +44,9 @@ export function useRealtimeMessages({
   const [isOffline, setIsOffline] = useState(false);
   const pendingMessages = useRef<OptimisticMessage[]>([]);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connecting");
-  const baseRef = useRef<ChatMessage[]>([]);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "connecting" | "disconnected"
+  >("connecting");
 
   // Transform initial comments to ChatMessages
   const baseMessages: ChatMessage[] = initialMessages.map((c) => ({
@@ -65,16 +70,10 @@ export function useRealtimeMessages({
       msgMap.set(msg.id, msg);
     }
 
-    // Add pending (optimistic) messages
-    for (const pending of pendingMessages.current) {
-      if (!msgMap.has(pending.temp_id)) {
-        msgMap.set(pending.temp_id, pending as unknown as ChatMessage);
-      }
-    }
-
     // Sort by created_at ascending
     const sorted = Array.from(msgMap.values()).sort(
-      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
 
     // Limit to last N messages
@@ -130,34 +129,49 @@ export function useRealtimeMessages({
 
         const serverComment = json.data as ReportComment;
 
-        // Remove optimistic
+        // Remove optimistic from the pending queue
         pendingMessages.current = pendingMessages.current.filter(
-          (p) => p.temp_id !== tempId
-        );
-        setLiveMessages((prev) =>
-          prev.filter((m) => m.id !== tempId)
+          (p) => p.temp_id !== tempId,
         );
 
-        return { ...serverComment, status: "sent" };
+        // Replace the optimistic message with the authoritative server comment
+        // so it renders immediately after a successful insert. If Realtime
+        // already delivered the same server comment, avoid a duplicate.
+        setLiveMessages((prev) => {
+          const withoutTemp = prev.filter(
+            (m) => m.id !== tempId && m.temp_id !== tempId,
+          );
+          if (!withoutTemp.some((m) => m.id === serverComment.id)) {
+            withoutTemp.push({
+              ...serverComment,
+              status: "sent" as MessageStatus,
+            });
+          }
+          return withoutTemp;
+        });
+
+        return { ...serverComment, status: "sent" as MessageStatus };
       } catch (error) {
         // Remove failed optimistic
         pendingMessages.current = pendingMessages.current.filter(
-          (p) => p.temp_id !== tempId
+          (p) => p.temp_id !== tempId,
         );
-        setLiveMessages((prev) =>
-          prev.filter((m) => m.id !== tempId)
-        );
+        setLiveMessages((prev) => prev.filter((m) => m.id !== tempId));
         throw error;
       }
     },
-    [reportId, currentUserId]
+    [reportId, currentUserId],
   );
 
   // Set up Realtime subscription
   useEffect(() => {
     if (!enabled || !reportId) return;
 
-    setConnectionStatus("connecting");
+    // Reset to "connecting" on (re)subscription. Deferred to a macrotask so we
+    // don't synchronously set state inside the effect body (React lint rule).
+    const connectingTimer = setTimeout(() => {
+      setConnectionStatus("connecting");
+    }, 0);
 
     const channelName = `report-messages-${reportId}`;
 
@@ -180,24 +194,37 @@ export function useRealtimeMessages({
       (payload) => {
         const newComment = payload.new as ReportComment;
 
-        // Ignore if it's our own message (already handled optimistically)
+        // Own message — reconcile the optimistic copy with the authoritative
+        // server row. This is needed because the optimistic message has a
+        // temp id, while Realtime carries the real DB id.
         if (newComment.user_id === currentUserId) {
-          // Update the optimistic message with the real server data
           setLiveMessages((prev) => {
-            const exists = prev.find((m) => m.id === newComment.id);
-            if (exists) return prev; // Already have it
-
-            // Check if it matches a pending message
-            const pendingIndex = pendingMessages.current.findIndex(
-              (p) => p.temp_id && p.message === newComment.message
-            );
-            if (pendingIndex >= 0) {
-              // Replace pending with server version
-              pendingMessages.current.splice(pendingIndex, 1);
-              return prev.filter((m) => m.id !== newComment.id);
+            // Authoritative copy already present (POST success path added it)
+            if (prev.some((m) => m.id === newComment.id)) {
+              return prev;
             }
 
-            return [...prev, { ...newComment, status: "sent" as MessageStatus }];
+            // Find and remove the matching optimistic message (temp_id marker)
+            const pendingIndex = pendingMessages.current.findIndex(
+              (p) => p.temp_id && p.message === newComment.message,
+            );
+            if (pendingIndex >= 0) {
+              const tempId = pendingMessages.current[pendingIndex].temp_id;
+              pendingMessages.current.splice(pendingIndex, 1);
+
+              const withoutOptimistic = prev.filter(
+                (m) => m.id !== tempId && m.temp_id !== tempId,
+              );
+              return [
+                ...withoutOptimistic,
+                { ...newComment, status: "sent" as MessageStatus },
+              ];
+            }
+
+            return [
+              ...prev,
+              { ...newComment, status: "sent" as MessageStatus },
+            ];
           });
           return;
         }
@@ -206,9 +233,12 @@ export function useRealtimeMessages({
         setLiveMessages((prev) => {
           const exists = prev.find((m) => m.id === newComment.id);
           if (exists) return prev;
-          return [...prev, { ...newComment, status: "delivered" as MessageStatus }];
+          return [
+            ...prev,
+            { ...newComment, status: "delivered" as MessageStatus },
+          ];
         });
-      }
+      },
     );
 
     // Listen for read receipt updates
@@ -226,12 +256,16 @@ export function useRealtimeMessages({
           setLiveMessages((prev) =>
             prev.map((m) =>
               m.id === updated.id
-                ? { ...m, read_at: updated.read_at, status: "seen" as MessageStatus }
-                : m
-            )
+                ? {
+                    ...m,
+                    read_at: updated.read_at,
+                    status: "seen" as MessageStatus,
+                  }
+                : m,
+            ),
           );
         }
-      }
+      },
     );
 
     // Track connection state via subscribe callback
@@ -248,6 +282,7 @@ export function useRealtimeMessages({
     channelRef.current = channel;
 
     return () => {
+      clearTimeout(connectingTimer);
       channel.unsubscribe();
       channelRef.current = null;
     };
