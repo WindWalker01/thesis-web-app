@@ -36,7 +36,12 @@ function result(
 
 describe("getSimilarityMatches", () => {
   it("normalizes, dedupes, and sorts matches by similarity descending", () => {
-    const dup = match({ type: "internet", source: "s", url: "u", similarity: 40 });
+    const dup = match({
+      type: "internet",
+      source: "s",
+      url: "u",
+      similarity: 40,
+    });
 
     const matches = getSimilarityMatches(
       result({
@@ -126,20 +131,20 @@ describe("getSimilarityReportMatch", () => {
     expect(report?.url).toBe("db-1");
   });
 
-  it("returns null when a sub-70 database primary has no internet fallback", () => {
+  it("returns null when a database primary below the render threshold has no internet fallback", () => {
     const report = getSimilarityReportMatch(
       result({
-        db: match({ type: "database", url: "db-1", similarity: 65 }),
+        db: match({ type: "database", url: "db-1", similarity: 55 }),
       }),
     );
 
     expect(report).toBeNull();
   });
 
-  it("returns null when the internet fallback is also below 70", () => {
+  it("returns null when the internet fallback is also below the render threshold", () => {
     const report = getSimilarityReportMatch(
       result({
-        db: match({ type: "database", url: "db-1", similarity: 65 }),
+        db: match({ type: "database", url: "db-1", similarity: 55 }),
         web: match({ type: "internet", url: "web-1", similarity: 40 }),
       }),
     );
@@ -181,8 +186,18 @@ describe("buildSimilarityScanInsert", () => {
       result: result({
         filename: "art.png",
         original_hash: "abc123",
-        db: match({ type: "database", url: "db-1", similarity: 90, source: "db" }),
-        web: match({ type: "internet", url: "web-1", similarity: 50, source: "web" }),
+        db: match({
+          type: "database",
+          url: "db-1",
+          similarity: 90,
+          source: "db",
+        }),
+        web: match({
+          type: "internet",
+          url: "web-1",
+          similarity: 50,
+          source: "web",
+        }),
       }),
     });
 

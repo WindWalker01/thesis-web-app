@@ -6,7 +6,10 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveAccount } from "@/lib/account-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { uploadArtworkImageToCloudinary, deleteArtworkImageFromCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
+import {
+  uploadArtworkImageToCloudinary,
+  deleteArtworkImageFromCloudinary,
+} from "@/features/(user)/upload-artwork/server/upload-image";
 import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
   buildSimilarityReport,
@@ -31,7 +34,9 @@ async function rollbackArtworkInsert(params: {
   cloudinaryPublicId?: string | null;
 }) {
   const { supabase, artworkId, cloudinaryPublicId } = params;
-  console.log(`[Artwork Registration] Rolling back artwork insert: ${artworkId}`);
+  console.log(
+    `[Artwork Registration] Rolling back artwork insert: ${artworkId}`,
+  );
 
   // Delete Cloudinary asset if we have a public ID (non-blocking)
   if (cloudinaryPublicId) {
@@ -64,7 +69,8 @@ export async function recordArtworkInDatabase(
       console.log("[Artwork Registration] Account is suspended or banned");
       return {
         success: false,
-        message: "Your account is currently suspended or banned. You cannot upload artwork.",
+        message:
+          "Your account is currently suspended or banned. You cannot upload artwork.",
         similarityReport: null,
         otherMatches: null,
       };
@@ -179,7 +185,9 @@ export async function recordArtworkInDatabase(
       console.log("[Similarity Scan] Scan completed — API response received");
 
       if (!result.success) {
-        console.log("[Similarity Scan] Plagiarism check failed — no artwork created");
+        console.log(
+          "[Similarity Scan] Plagiarism check failed — no artwork created",
+        );
         return {
           success: false,
           message: "Unexpected server error during similarity checking.",
@@ -235,7 +243,9 @@ export async function recordArtworkInDatabase(
         typeof primaryMatch.similarity === "number" &&
         primaryMatch.similarity >= 100
       ) {
-        console.log("[Similarity Scan] Hard block triggered — 100% database match");
+        console.log(
+          "[Similarity Scan] Hard block triggered — 100% database match",
+        );
         return {
           success: false,
           message:
@@ -272,7 +282,9 @@ export async function recordArtworkInDatabase(
         typeof result.original_hash !== "string" ||
         result.original_hash.trim().length === 0
       ) {
-        console.log("[Similarity Scan] Missing perceptual hash from API response");
+        console.log(
+          "[Similarity Scan] Missing perceptual hash from API response",
+        );
         return {
           success: false,
           message: "Missing perceptual hash from similarity checking service.",
@@ -367,7 +379,9 @@ export async function recordArtworkInDatabase(
 
       // Clean up the Cloudinary asset since the DB insert failed
       if (uploadedImage.publicId) {
-        console.log(`[Artwork Registration] Cleaning up Cloudinary asset: ${uploadedImage.publicId}`);
+        console.log(
+          `[Artwork Registration] Cleaning up Cloudinary asset: ${uploadedImage.publicId}`,
+        );
         await deleteArtworkImageFromCloudinary(uploadedImage.publicId);
       }
 
@@ -382,7 +396,9 @@ export async function recordArtworkInDatabase(
     }
 
     const insertedArtworkId = data.id;
-    console.log(`[Artwork Registration] Artwork inserted: ${insertedArtworkId}`);
+    console.log(
+      `[Artwork Registration] Artwork inserted: ${insertedArtworkId}`,
+    );
 
     // ─────────────────────────────────────────────────────────────────────────
     // Step 6: Create the art_similarity_scans record (only when scanning ran)
@@ -402,7 +418,10 @@ export async function recordArtworkInDatabase(
         .insert(scanInsertPayload);
 
       if (scanInsertError) {
-        console.error("[Similarity Scan] Failed to create scan record:", scanInsertError);
+        console.error(
+          "[Similarity Scan] Failed to create scan record:",
+          scanInsertError,
+        );
         await rollbackArtworkInsert({
           supabase,
           artworkId: insertedArtworkId,
@@ -424,23 +443,60 @@ export async function recordArtworkInDatabase(
     // Artworks with 'flagged' or 'under_review' status require admin review
     // ─────────────────────────────────────────────────────────────────────────
     if (artworkStatus === "flagged" || artworkStatus === "under_review") {
-      console.log("[Artwork Verification] Creating review record for admin verification...");
+      console.log(
+        "[Artwork Verification] Creating review record for admin verification...",
+      );
 
-      const { error: reviewInsertError } = await supabase
-        .from("artwork_reviews")
-        .insert({
-          artwork_id: insertedArtworkId,
-          status: "pending",
-          reviewer_id: null,
-          assigned_at: null,
-        });
+      // The artwork_reviews table only has an admin-scoped INSERT RLS policy
+      // (artwork_reviews_insert_admin). The uploading artist is not an admin,
+      // so this write MUST use the service-role admin client — otherwise the
+      // insert is rejected (Postgres 42501) and the artwork silently never
+      // enters the Admin Artwork Verification queue.
+      const adminSupabase = createSupabaseAdminClient();
 
-      if (reviewInsertError) {
-        console.error("[Artwork Verification] Failed to create review record:", reviewInsertError);
-        // Don't rollback the entire upload - the artwork and scan still exist
-        // The review can be created manually by an admin if needed
+      // Idempotency guard: artwork_reviews.artwork_id has a UNIQUE constraint,
+      // and the scan/review event may be processed more than once (e.g. a
+      // retried submission). Never create a duplicate review for an artwork.
+      const { data: existingReview, error: existingReviewError } =
+        await adminSupabase
+          .from("artwork_reviews")
+          .select("id")
+          .eq("artwork_id", insertedArtworkId)
+          .maybeSingle();
+
+      if (existingReviewError) {
+        console.error(
+          `[Artwork Verification] Failed to check existing review for artwork ${insertedArtworkId}:`,
+          existingReviewError,
+        );
+      }
+
+      if (existingReview) {
+        console.log(
+          `[Artwork Verification] Review already exists for artwork ${insertedArtworkId} — skipping insert`,
+        );
       } else {
-        console.log("[Artwork Verification] Review record created successfully");
+        const { error: reviewInsertError } = await adminSupabase
+          .from("artwork_reviews")
+          .insert({
+            artwork_id: insertedArtworkId,
+            status: "pending",
+            reviewer_id: null,
+            assigned_at: null,
+          });
+
+        if (reviewInsertError) {
+          console.error(
+            `[Artwork Verification] Failed to create review record for artwork ${insertedArtworkId}:`,
+            reviewInsertError,
+          );
+          // Don't rollback the entire upload - the artwork and scan still exist
+          // The review can be created manually by an admin if needed
+        } else {
+          console.log(
+            "[Artwork Verification] Review record created successfully",
+          );
+        }
       }
     }
 
