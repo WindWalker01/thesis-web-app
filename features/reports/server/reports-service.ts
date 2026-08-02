@@ -391,7 +391,19 @@ export async function uploadEvidence(
 
   // If reporter uploaded, notify admins
   if (!isAdmin) {
-    // Create audit record
+    // Create audit record.
+    //
+    // NOTE: This intentionally uses `admin_id: data.userId` (the reporter's
+    // own id) for user-originated actions. `report_actions` serves as the
+    // report activity/audit log, and the RLS policy
+    // "Reporters can record evidence on own reports" (see
+    // supabase/migrations/20260802_report_actions_reporter_evidence_policy.sql)
+    // allows a reporter to INSERT user-originated action types
+    // (`evidence_uploaded`, `report_created`) ONLY when:
+    //   - admin_id equals auth.uid() (self-attribution), and
+    //   - the report belongs to the current user.
+    // Admin-only action types (status_change, decision_recorded, etc.) remain
+    // restricted to the admin-only INSERT policy.
     await createAuditRecord(supabase, {
       report_id: data.reportId,
       admin_id: data.userId,

@@ -2717,6 +2717,12 @@ CREATE POLICY "Reporters can read own reports" ON "public"."reports" FOR SELECT 
 
 
 
+CREATE POLICY "Reporters can record evidence on own reports" ON "public"."report_actions" FOR INSERT WITH CHECK ((("admin_id" = "auth"."uid"()) AND ("action" = ANY (ARRAY['evidence_uploaded'::"text", 'report_created'::"text"])) AND (EXISTS ( SELECT 1
+   FROM "public"."reports" "r"
+  WHERE (("r"."id" = "report_actions"."report_id") AND ("r"."reporter_id" = "auth"."uid"()))))));
+
+
+
 CREATE POLICY "Users can delete own typing indicators" ON "public"."report_typing_indicators" FOR DELETE USING (("user_id" = "auth"."uid"()));
 
 
