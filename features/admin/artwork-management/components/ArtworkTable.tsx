@@ -68,11 +68,7 @@ export function ArtworkTable({
           checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => {
             table.toggleAllPageRowsSelected(!!value);
-            onSelectionChange?.(
-              value
-                ? artworks.map((a) => a.id)
-                : []
-            );
+            onSelectionChange?.(value ? artworks.map((a) => a.id) : []);
           }}
           aria-label="Select all"
         />
@@ -86,7 +82,9 @@ export function ArtworkTable({
             if (value) {
               onSelectionChange?.([...selected, row.original.id]);
             } else {
-              onSelectionChange?.(selected.filter((id) => id !== row.original.id));
+              onSelectionChange?.(
+                selected.filter((id) => id !== row.original.id),
+              );
             }
           }}
           aria-label={`Select ${row.original.title}`}
@@ -101,7 +99,7 @@ export function ArtworkTable({
       cell: ({ row }) => {
         const url = row.original.c_secure_url;
         return (
-          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
+          <div className="bg-muted relative h-10 w-10 shrink-0 overflow-hidden rounded-md">
             {url ? (
               <Image
                 src={url}
@@ -112,7 +110,7 @@ export function ArtworkTable({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                <ImageIcon className="text-muted-foreground h-4 w-4" />
               </div>
             )}
           </div>
@@ -125,16 +123,14 @@ export function ArtworkTable({
       accessorKey: "title",
       header: "Title",
       cell: ({ row }) => (
-        <div className="min-w-0 max-w-[200px]">
+        <div className="max-w-[200px] min-w-0">
           <button
             onClick={() => onViewArtwork(row.original.id)}
-            className="truncate text-sm font-medium hover:text-primary transition-colors text-left"
+            className="hover:text-primary truncate text-left text-sm font-medium transition-colors"
           >
             {row.original.title}
           </button>
-          {row.original.needs_review && (
-            <NeedsReviewBadge className="mt-1" />
-          )}
+          {row.original.needs_review && <NeedsReviewBadge className="mt-1" />}
         </div>
       ),
     },
@@ -142,8 +138,8 @@ export function ArtworkTable({
       id: "artist",
       header: "Artist",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full bg-muted">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="bg-muted relative h-6 w-6 shrink-0 overflow-hidden rounded-full">
             {row.original.owner.c_profile_image ? (
               <Image
                 src={row.original.owner.c_profile_image}
@@ -154,11 +150,11 @@ export function ArtworkTable({
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                <User className="h-3 w-3 text-muted-foreground" />
+                <User className="text-muted-foreground h-3 w-3" />
               </div>
             )}
           </div>
-          <span className="truncate text-sm text-muted-foreground">
+          <span className="text-muted-foreground truncate text-sm">
             {row.original.owner.username}
           </span>
         </div>
@@ -171,12 +167,16 @@ export function ArtworkTable({
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.genres.slice(0, 2).map((genre) => (
-            <Badge key={genre.id} variant="secondary" className="text-[10px] px-1.5 py-0">
+            <Badge
+              key={genre.id}
+              variant="secondary"
+              className="px-1.5 py-0 text-[10px]"
+            >
               {genre.name}
             </Badge>
           ))}
           {row.original.genres.length > 2 && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
               +{row.original.genres.length - 2}
             </Badge>
           )}
@@ -201,8 +201,14 @@ export function ArtworkTable({
       id: "blockchain",
       header: "Blockchain",
       cell: ({ row }) => {
-        const hasBlockchain = !!(row.original.scan?.success && row.original.status === "active");
-        const status = hasBlockchain ? "registered" : row.original.status === "pending_blockchain" ? "pending" : "none";
+        const hasBlockchain = !!(
+          row.original.scan?.success && row.original.status === "active"
+        );
+        const status = hasBlockchain
+          ? "registered"
+          : row.original.status === "pending_blockchain"
+            ? "pending"
+            : "none";
         return <ArtworkStatusBadge status={status} type="blockchain" />;
       },
     },
@@ -211,8 +217,14 @@ export function ArtworkTable({
       header: "Similarity",
       cell: ({ row }) => {
         const sim = row.original.scan?.best_similarity_percentage;
-        if (sim === null || sim === undefined) return <span className="text-xs text-muted-foreground">—</span>;
-        const color = sim >= 75 ? "text-red-600" : sim >= 50 ? "text-orange-600" : "text-green-600";
+        if (sim === null || sim === undefined)
+          return <span className="text-muted-foreground text-xs">—</span>;
+        const color =
+          sim >= 75
+            ? "text-red-600"
+            : sim >= 50
+              ? "text-orange-600"
+              : "text-green-600";
         return <span className={cn("text-sm font-medium", color)}>{sim}%</span>;
       },
     },
@@ -221,7 +233,8 @@ export function ArtworkTable({
       header: "Reports",
       cell: ({ row }) => {
         const count = row.original.report_count;
-        if (count === 0) return <span className="text-xs text-muted-foreground">—</span>;
+        if (count === 0)
+          return <span className="text-muted-foreground text-xs">—</span>;
         return (
           <Badge variant="destructive" className="text-xs">
             {count}
@@ -233,7 +246,7 @@ export function ArtworkTable({
       accessorKey: "created_at",
       header: "Created",
       cell: ({ row }) => (
-        <span className="text-xs text-muted-foreground whitespace-nowrap">
+        <span className="text-muted-foreground text-xs whitespace-nowrap">
           {formatDate(row.original.created_at)}
         </span>
       ),
@@ -281,19 +294,26 @@ export function ArtworkTable({
         <table className="w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b bg-muted/50">
+              <tr key={headerGroup.id} className="bg-muted/50 border-b">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     className={cn(
-                      "px-3 py-3 text-left text-xs font-medium text-muted-foreground",
-                      header.column.getCanSort() && "cursor-pointer select-none hover:text-foreground"
+                      "text-muted-foreground px-3 py-3 text-left text-xs font-medium",
+                      header.column.getCanSort() &&
+                        "hover:text-foreground cursor-pointer select-none",
                     )}
-                    style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                    style={{
+                      width:
+                        header.getSize() !== 150 ? header.getSize() : undefined,
+                    }}
                     onClick={header.column.getToggleSortingHandler()}
                   >
                     <div className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                       {{
                         asc: <ChevronUp className="h-3 w-3" />,
                         desc: <ChevronDown className="h-3 w-3" />,
@@ -309,8 +329,8 @@ export function ArtworkTable({
               <tr
                 key={row.id}
                 className={cn(
-                  "border-b last:border-0 transition-colors",
-                  row.getIsSelected() ? "bg-primary/5" : "hover:bg-accent/50"
+                  "border-b transition-colors last:border-0",
+                  row.getIsSelected() ? "bg-primary/5" : "hover:bg-muted/50",
                 )}
               >
                 {row.getVisibleCells().map((cell) => (
@@ -326,9 +346,9 @@ export function ArtworkTable({
         {/* Empty state */}
         {artworks.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <ImageIcon className="h-10 w-10 text-muted-foreground mb-3" />
+            <ImageIcon className="text-muted-foreground mb-3 h-10 w-10" />
             <p className="text-sm font-medium">No artworks found</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1 text-xs">
               Try adjusting your search or filters
             </p>
           </div>
@@ -337,8 +357,8 @@ export function ArtworkTable({
 
       {/* Pagination */}
       {totalPages > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex flex-col items-center justify-between gap-4 text-sm sm:flex-row">
+          <div className="text-muted-foreground flex items-center gap-2">
             <span>
               {startItem}–{endItem} of {total}
             </span>
@@ -374,7 +394,8 @@ export function ArtworkTable({
               Previous
             </Button>
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              const pageNum = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
+              const pageNum =
+                Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
               if (pageNum > totalPages) return null;
               return (
                 <Button
