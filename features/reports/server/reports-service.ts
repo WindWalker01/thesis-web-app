@@ -22,14 +22,14 @@ import * as repo from "./reports-repository";
 
 export function isValidStatusTransition(
   from: ReportStatus,
-  to: ReportStatus
+  to: ReportStatus,
 ): boolean {
   const allowed = VALID_STATUS_TRANSITIONS[from];
   return allowed.includes(to);
 }
 
 export function getValidNextStatuses(
-  currentStatus: ReportStatus
+  currentStatus: ReportStatus,
 ): ReportStatus[] {
   return VALID_STATUS_TRANSITIONS[currentStatus];
 }
@@ -49,12 +49,20 @@ export async function createAuditRecord(
     previous_status: ReportStatus | null;
     new_status: ReportStatus | null;
     notes: string | null;
-  }
+  },
 ): Promise<ReportAction> {
   return repo.insertReportAction(supabase, data);
 }
 
 // ========== NOTIFICATION CREATION ==========
+
+export function isDuplicateNotificationError(error: {
+  code?: string;
+}): boolean {
+  // PostgreSQL unique_violation code (e.g. partial unique index
+  // `uq_notifications_report_event (user_id, related_report_id, type)`).
+  return error?.code === "23505";
+}
 
 export async function createReportNotification(
   supabase: SupabaseClient,
@@ -64,7 +72,7 @@ export async function createReportNotification(
     title: string;
     message: string;
     reportId: string;
-  }
+  },
 ): Promise<void> {
   const { error } = await supabase.from("notifications").insert({
     user_id: data.userId,
@@ -72,12 +80,14 @@ export async function createReportNotification(
     title: data.title,
     message: data.message,
     related_report_id: data.reportId,
-      action_url: `/my-reports/${data.reportId}`,
+    action_url: `/my-reports/${data.reportId}`,
     metadata: {},
     is_read: false,
   });
 
-  if (error) {
+  // A unique_violation here means the DB trigger already created this
+  // notification (or a concurrent path did). Treat it as a no-op.
+  if (error && !isDuplicateNotificationError(error)) {
     console.error("Failed to create notification:", error.message);
   }
 }
@@ -89,7 +99,7 @@ export async function createAdminNotification(
     title: string;
     message: string;
     reportId: string;
-  }
+  },
 ): Promise<void> {
   // Notify all admin users
   const { data: admins, error } = await supabase
@@ -115,8 +125,11 @@ export async function createAdminNotification(
       .from("notifications")
       .insert(notifications);
 
-    if (insertError) {
-      console.error("Failed to create admin notifications:", insertError.message);
+    if (insertError && !isDuplicateNotificationError(insertError)) {
+      console.error(
+        "Failed to create admin notifications:",
+        insertError.message,
+      );
     }
   }
 }
@@ -130,7 +143,7 @@ export async function updateReportStatusWithAudit(
     newStatus: ReportStatus;
     adminId: string;
     notes?: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction }> {
   // Get current report
   const report = await repo.getReportById(supabase, data.reportId);
@@ -146,7 +159,7 @@ export async function updateReportStatusWithAudit(
 
   if (!isValidStatusTransition(currentStatus, data.newStatus)) {
     throw new Error(
-      `Cannot transition from "${currentStatus}" to "${data.newStatus}". Valid transitions: ${getValidNextStatuses(currentStatus).join(", ")}`
+      `Cannot transition from "${currentStatus}" to "${data.newStatus}". Valid transitions: ${getValidNextStatuses(currentStatus).join(", ")}`,
     );
   }
 
@@ -159,7 +172,7 @@ export async function updateReportStatusWithAudit(
     supabase,
     data.reportId,
     data.newStatus,
-    resolvedAt
+    resolvedAt,
   );
 
   // Create audit record
@@ -175,7 +188,7 @@ export async function updateReportStatusWithAudit(
   // Get updated report
   const updatedReport = (await repo.getReportById(
     supabase,
-    data.reportId
+    data.reportId,
   )) as Report;
 
   // Notify reporter of status change
@@ -199,7 +212,7 @@ export async function addCommentWithAudit(
     userId: string;
     message: string;
     isAdmin: boolean;
-  }
+  },
 ): Promise<ReportComment> {
   // Verify report exists
   const report = await repo.getReportById(supabase, data.reportId);
@@ -260,7 +273,7 @@ export async function requestEvidenceWithAudit(
     reportId: string;
     adminId: string;
     message: string;
-  }
+  },
 ): Promise<{ comment: ReportComment; action: ReportAction; report: Report }> {
   // Verify report exists
   const report = await repo.getReportById(supabase, data.reportId);
@@ -275,7 +288,7 @@ export async function requestEvidenceWithAudit(
   // Only allow evidence requests on reports that are under review
   if (report.status !== "under_review") {
     throw new Error(
-      `Cannot request evidence on a report with status "${report.status}". The report must be under review.`
+      `Cannot request evidence on a report with status "${report.status}". The report must be under review.`,
     );
   }
 
@@ -320,7 +333,7 @@ export async function uploadEvidence(
     mimeType: string | null;
     description: string | null;
     fileBuffer: ArrayBuffer;
-  }
+  },
 ): Promise<ReportEvidence> {
   // Verify report exists and belongs to user or user is admin
   const report = await repo.getReportById(supabase, data.reportId);
@@ -332,13 +345,8 @@ export async function uploadEvidence(
     data: { user },
   } = await supabase.auth.getUser();
   const isAdmin = user?.id
-    ? (
-        await supabase
-          .from("users")
-          .select("role")
-          .eq("id", user.id)
-          .single()
-      ).data?.role === "admin"
+    ? (await supabase.from("users").select("role").eq("id", user.id).single())
+        .data?.role === "admin"
     : false;
 
   if (report.reporter_id !== data.userId && !isAdmin) {
@@ -393,7 +401,6 @@ export async function uploadEvidence(
       notes: `Uploaded: ${data.fileName}`,
     });
 
-
     await createAdminNotification(supabase, {
       type: "report_submitted",
       title: "New Evidence Uploaded",
@@ -426,7 +433,7 @@ export async function assignAdminToReport(
     reportId: string;
     adminId: string;
     currentUserId: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction }> {
   // Verify report exists
   const report = await repo.getReportById(supabase, data.reportId);
@@ -444,7 +451,10 @@ export async function assignAdminToReport(
   await repo.assignAdminToReport(supabase, data.reportId, data.adminId);
 
   // Get the assigned admin's name for the audit log
-  const assignedAdmin = await repo.getReportAssignedAdmin(supabase, data.reportId);
+  const assignedAdmin = await repo.getReportAssignedAdmin(
+    supabase,
+    data.reportId,
+  );
   const adminName = assignedAdmin
     ? `${assignedAdmin.first_name} ${assignedAdmin.last_name} (@${assignedAdmin.username})`
     : data.adminId;
@@ -468,7 +478,10 @@ export async function assignAdminToReport(
     reportId: data.reportId,
   });
 
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+  const updatedReport = (await repo.getReportById(
+    supabase,
+    data.reportId,
+  )) as Report;
 
   return { report: updatedReport, action };
 }
@@ -481,7 +494,7 @@ export async function approveReport(
     reportId: string;
     adminId: string;
     summary: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction; decision: ReportDecision }> {
   // Verify report exists
   const report = await repo.getReportById(supabase, data.reportId);
@@ -503,7 +516,12 @@ export async function approveReport(
 
   // Update report status
   const resolvedAt = new Date().toISOString();
-  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+  await repo.updateReportStatus(
+    supabase,
+    data.reportId,
+    "resolved",
+    resolvedAt,
+  );
 
   // Create audit record
   const action = await createAuditRecord(supabase, {
@@ -515,7 +533,10 @@ export async function approveReport(
     notes: `Report approved. Decision: no_violation. Summary: ${data.summary.substring(0, 200)}`,
   });
 
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+  const updatedReport = (await repo.getReportById(
+    supabase,
+    data.reportId,
+  )) as Report;
 
   // Notify reporter
   await createReportNotification(supabase, {
@@ -538,7 +559,7 @@ export async function rejectReport(
     adminId: string;
     reason: string;
     summary: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction; decision: ReportDecision }> {
   // Verify report exists
   const report = await repo.getReportById(supabase, data.reportId);
@@ -551,13 +572,14 @@ export async function rejectReport(
   }
 
   // Map frontend reason to decision value
-  const decisionValue = data.reason === "false_report"
-    ? "no_violation"
-    : data.reason === "duplicate"
-      ? "false_report"
-      : data.reason === "insufficient_evidence"
-        ? "insufficient_evidence"
-        : "guideline_violation";
+  const decisionValue =
+    data.reason === "false_report"
+      ? "no_violation"
+      : data.reason === "duplicate"
+        ? "false_report"
+        : data.reason === "insufficient_evidence"
+          ? "insufficient_evidence"
+          : "guideline_violation";
 
   // Record decision
   const decision = await repo.insertReportDecision(supabase, {
@@ -569,7 +591,12 @@ export async function rejectReport(
 
   // Update report status
   const resolvedAt = new Date().toISOString();
-  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+  await repo.updateReportStatus(
+    supabase,
+    data.reportId,
+    "resolved",
+    resolvedAt,
+  );
 
   // Create audit record
   const action = await createAuditRecord(supabase, {
@@ -581,7 +608,10 @@ export async function rejectReport(
     notes: `Report rejected. Reason: ${data.reason}. Summary: ${data.summary.substring(0, 200)}`,
   });
 
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+  const updatedReport = (await repo.getReportById(
+    supabase,
+    data.reportId,
+  )) as Report;
 
   // Notify reporter
   const reasonLabels: Record<string, string> = {
@@ -610,7 +640,7 @@ export async function closeReport(
     reportId: string;
     adminId: string;
     notes?: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction }> {
   // Verify report exists
   const report = await repo.getReportById(supabase, data.reportId);
@@ -626,7 +656,12 @@ export async function closeReport(
 
   // Update report status
   const resolvedAt = new Date().toISOString();
-  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+  await repo.updateReportStatus(
+    supabase,
+    data.reportId,
+    "resolved",
+    resolvedAt,
+  );
 
   // Create audit record
   const action = await createAuditRecord(supabase, {
@@ -638,7 +673,10 @@ export async function closeReport(
     notes: data.notes ?? "Report closed by administrator",
   });
 
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+  const updatedReport = (await repo.getReportById(
+    supabase,
+    data.reportId,
+  )) as Report;
 
   // Notify reporter
   await createReportNotification(supabase, {
@@ -657,7 +695,7 @@ export async function closeReport(
 export async function verifyReportOwnership(
   supabase: SupabaseClient,
   reportId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const report = await repo.getReportById(supabase, reportId);
   return report?.reporter_id === userId;
@@ -670,13 +708,19 @@ export async function resolveReport(
   data: {
     reportId: string;
     adminId: string;
-    decision: "no_violation" | "guideline_violation" | "copyright_confirmed" | "insufficient_evidence" | "false_report";
+    decision:
+      | "no_violation"
+      | "guideline_violation"
+      | "copyright_confirmed"
+      | "insufficient_evidence"
+      | "false_report";
     summary: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction; decision: ReportDecision }> {
   const report = await repo.getReportById(supabase, data.reportId);
   if (!report) throw new Error("Report not found");
-  if (report.status === "resolved") throw new Error("Report is already resolved");
+  if (report.status === "resolved")
+    throw new Error("Report is already resolved");
 
   const previousStatus = report.status;
 
@@ -690,7 +734,12 @@ export async function resolveReport(
 
   // Update report status
   const resolvedAt = new Date().toISOString();
-  await repo.updateReportStatus(supabase, data.reportId, "resolved", resolvedAt);
+  await repo.updateReportStatus(
+    supabase,
+    data.reportId,
+    "resolved",
+    resolvedAt,
+  );
 
   // Create audit record
   const action = await createAuditRecord(supabase, {
@@ -702,7 +751,10 @@ export async function resolveReport(
     notes: `Report resolved. Decision: ${data.decision}. Summary: ${data.summary.substring(0, 200)}`,
   });
 
-  const updatedReport = (await repo.getReportById(supabase, data.reportId)) as Report;
+  const updatedReport = (await repo.getReportById(
+    supabase,
+    data.reportId,
+  )) as Report;
 
   // Notify reporter
   const decisionMessage = {
@@ -736,7 +788,7 @@ export async function receiveEvidenceAndReopen(
     reportId: string;
     uploaderId: string;
     fileName: string;
-  }
+  },
 ): Promise<{ report: Report; action: ReportAction }> {
   const report = await repo.getReportById(supabase, data.reportId);
   if (!report) throw new Error("Report not found");
@@ -773,9 +825,16 @@ export async function logModerationAction(
   data: {
     reportId: string;
     adminId: string;
-    action: "user_warned" | "user_suspended" | "user_banned" | "artwork_removed" | "artwork_restored" | "artwork_nsfw" | "plagiarism_scan_rerun";
+    action:
+      | "user_warned"
+      | "user_suspended"
+      | "user_banned"
+      | "artwork_removed"
+      | "artwork_restored"
+      | "artwork_nsfw"
+      | "plagiarism_scan_rerun";
     notes: string;
-  }
+  },
 ): Promise<ReportAction> {
   const report = await repo.getReportById(supabase, data.reportId);
   const currentStatus = report?.status ?? null;

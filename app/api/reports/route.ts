@@ -15,8 +15,11 @@ export async function POST(request: NextRequest) {
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        { status: 401 }
+        {
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "Authentication required" },
+        },
+        { status: 401 },
       );
     }
 
@@ -29,14 +32,17 @@ export async function POST(request: NextRequest) {
           success: false,
           error: {
             code: "VALIDATION_ERROR",
-            message: validation.error.issues.map((issue) => issue.message).join(", "),
+            message: validation.error.issues
+              .map((issue) => issue.message)
+              .join(", "),
           },
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { reported_art_post_id, report_type, title, description } = validation.data;
+    const { reported_art_post_id, report_type, title, description } =
+      validation.data;
     const supabase = await createSupabaseServerClient();
 
     // Create report
@@ -58,20 +64,20 @@ export async function POST(request: NextRequest) {
       notes: "Report submitted",
     });
 
-    // Notify admins
-    await service.createAdminNotification(supabase, {
-      type: "report_submitted",
-      title: "New Report Submitted",
-      message: `A new report "${title}" has been submitted.`,
-      reportId: report.id,
-    });
+    // Admin notifications are created by the database trigger
+    // `notify_report_submitted_to_admins` (AFTER INSERT ON reports).
+    // Do NOT create them here — the duplicate insert races with the
+    // trigger on the unique index `uq_notifications_report_event`
+    // (user_id, related_report_id, type) and could otherwise produce
+    // non-deterministic notification rows.
 
     return NextResponse.json({ success: true, data: report }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create report";
+    const message =
+      error instanceof Error ? error.message : "Failed to create report";
     return NextResponse.json(
       { success: false, error: { code: "INTERNAL_ERROR", message } },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -81,8 +87,11 @@ export async function GET() {
     const user = await getAuthUser();
     if (!user) {
       return NextResponse.json(
-        { success: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        { status: 401 }
+        {
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "Authentication required" },
+        },
+        { status: 401 },
       );
     }
 
@@ -91,10 +100,11 @@ export async function GET() {
 
     return NextResponse.json({ success: true, data: reports });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to fetch reports";
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch reports";
     return NextResponse.json(
       { success: false, error: { code: "INTERNAL_ERROR", message } },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
