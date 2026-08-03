@@ -5,7 +5,10 @@ import { useUserReports } from "@/features/reports/hooks/useUserReports";
 import { useUnreadCount } from "@/features/reports/hooks/useUnreadCount";
 import { ReportCard } from "@/features/reports/components/ReportCard";
 import { ReportCardSkeleton } from "@/features/reports/components/ReportCardSkeleton";
-import { ReportFilters, type FiltersState } from "@/features/reports/components/ReportFilters";
+import {
+  ReportFilters,
+  type FiltersState,
+} from "@/features/reports/components/ReportFilters";
 import { DashboardStatsCards } from "@/features/reports/components/DashboardStatsCards";
 import { EmptyState } from "@/features/reports/components/EmptyState";
 import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
@@ -39,7 +42,7 @@ export default function MyReportsPage() {
         (r) =>
           r.title.toLowerCase().includes(q) ||
           r.description.toLowerCase().includes(q) ||
-          r.report_type.toLowerCase().includes(q)
+          r.report_type.toLowerCase().includes(q),
       );
     }
 
@@ -63,13 +66,13 @@ export default function MyReportsPage() {
       case "newest":
         result.sort(
           (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
         break;
       case "oldest":
         result.sort(
           (a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
         );
         break;
       case "recently_updated":
@@ -85,7 +88,7 @@ export default function MyReportsPage() {
   }, [reports, filters, getReportUnread]);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+    <div className="mx-auto mt-12 max-w-5xl space-y-6 px-4 py-8">
       {/* Page Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -94,7 +97,7 @@ export default function MyReportsPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">My Reports</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Monitor and manage your submitted infringement reports.
             </p>
           </div>
@@ -121,7 +124,7 @@ export default function MyReportsPage() {
 
       {/* Filters */}
       {!isLoading && !isError && reports.length > 0 && (
-        <div className="rounded-lg border bg-card p-4">
+        <div className="bg-card rounded-lg border p-4">
           <ReportFilters filters={filters} onFiltersChange={setFilters} />
         </div>
       )}
@@ -131,7 +134,7 @@ export default function MyReportsPage() {
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
+              <div key={i} className="bg-muted h-24 animate-pulse rounded-xl" />
             ))}
           </div>
           <div className="space-y-3 pt-4">
@@ -141,12 +144,12 @@ export default function MyReportsPage() {
           </div>
         </div>
       ) : isError ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-16 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-            <AlertCircle className="h-7 w-7 text-destructive" />
+        <div className="bg-card flex flex-col items-center justify-center rounded-xl border py-16 text-center">
+          <div className="bg-destructive/10 mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+            <AlertCircle className="text-destructive h-7 w-7" />
           </div>
           <h3 className="mb-2 text-lg font-semibold">Failed to load reports</h3>
-          <p className="mb-6 max-w-sm text-sm text-muted-foreground">
+          <p className="text-muted-foreground mb-6 max-w-sm text-sm">
             {error ?? "An unexpected error occurred. Please try again."}
           </p>
           <Button onClick={() => refetch()} variant="outline" className="gap-2">
@@ -158,12 +161,12 @@ export default function MyReportsPage() {
         reports.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl border bg-card py-16 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-              <AlertCircle className="h-7 w-7 text-muted-foreground" />
+          <div className="bg-card flex flex-col items-center justify-center rounded-xl border py-16 text-center">
+            <div className="bg-muted mb-4 flex h-14 w-14 items-center justify-center rounded-full">
+              <AlertCircle className="text-muted-foreground h-7 w-7" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">No matching reports</h3>
-            <p className="mb-2 text-sm text-muted-foreground">
+            <p className="text-muted-foreground mb-2 text-sm">
               {filters.unreadOnly
                 ? "You have no unread messages in any reports."
                 : "Try adjusting your search or filter criteria."}
@@ -188,7 +191,7 @@ export default function MyReportsPage() {
       ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Showing {filteredAndSorted.length} of {reports.length} report
               {reports.length !== 1 ? "s" : ""}
               {totalUnread > 0 && (

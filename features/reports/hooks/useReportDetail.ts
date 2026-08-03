@@ -54,7 +54,7 @@ export function useReportDetail(id: string) {
     comments: query.data?.comments ?? [],
     decision: query.data?.decision ?? null,
     actions: query.data?.actions ?? [],
-    isLoading: query.isLoading,
+    isLoading: query.isPending,
     isError: query.isError,
     error: query.error instanceof Error ? query.error.message : null,
     refetch: query.refetch,
