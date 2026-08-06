@@ -45,7 +45,7 @@ export function CompareModeResult({
   return (
     <div className="space-y-5">
       {/* Image comparison row */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_auto_1fr]">
         {/* Image A */}
         <div className="bg-card border-border overflow-hidden rounded-2xl border">
           <div className="border-border flex items-center justify-between border-b px-5 py-3.5">
@@ -73,7 +73,7 @@ export function CompareModeResult({
             alt="Image A"
             width={480}
             height={220}
-            className="h-52 w-full object-cover"
+            className="h-44 w-full object-cover sm:h-52"
           />
           <div className="px-5 py-3">
             <p className="text-muted-foreground mb-0.5 text-[10px] font-bold tracking-widest">
@@ -84,7 +84,7 @@ export function CompareModeResult({
         </div>
 
         {/* Center: scores */}
-        <div className="bg-card border-border flex w-48 flex-col items-center gap-4 rounded-2xl border p-5">
+        <div className="bg-card border-border flex w-full flex-col items-center gap-4 rounded-2xl border p-5 sm:mx-auto sm:w-56 lg:w-48">
           <p className="text-muted-foreground text-[10px] font-bold tracking-widest">
             FINAL SCORE
           </p>
@@ -120,7 +120,8 @@ export function CompareModeResult({
             </div>
           </div>
 
-          {final >= 60 && (
+          {/* the system don't need this button since the users are reporting on community page */}
+          {/* {final >= 60 && (
             <Button
               variant="destructive"
               size="sm"
@@ -128,7 +129,7 @@ export function CompareModeResult({
             >
               <AlertTriangle size={12} /> Report Plagiarism
             </Button>
-          )}
+          )} */}
         </div>
 
         {/* Image B */}
@@ -163,7 +164,7 @@ export function CompareModeResult({
             alt="Image B"
             width={480}
             height={220}
-            className="h-52 w-full object-cover"
+            className="h-44 w-full object-cover sm:h-52"
           />
           <div className="px-5 py-3">
             <p className="text-muted-foreground mb-0.5 text-[10px] font-bold tracking-widest">
@@ -175,7 +176,7 @@ export function CompareModeResult({
       </div>
 
       {/* Similarity breakdown bars */}
-      <div className="bg-card border-border space-y-5 rounded-2xl border p-6">
+      <div className="bg-card border-border space-y-5 rounded-2xl border p-4 sm:p-6">
         <p className="text-foreground font-semibold">Similarity Breakdown</p>
         <SimilarityBar
           label="Final Similarity"

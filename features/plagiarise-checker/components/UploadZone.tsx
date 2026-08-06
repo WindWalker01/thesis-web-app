@@ -58,8 +58,8 @@ export function UploadZone({
           </div>
         )}
         {/* Hover actions */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-all duration-200 sm:bg-black/0 sm:group-hover:bg-black/30">
+          <div className="flex gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
             <button
               onClick={() => inputRef.current?.click()}
               className="bg-background/90 backdrop-blur text-foreground text-sm font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-background transition-colors"
@@ -88,7 +88,7 @@ export function UploadZone({
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
       className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200
-        ${compact ? "px-6 py-10" : "px-8 py-16"}
+        ${compact ? "px-5 py-8 sm:px-6 sm:py-10" : "px-5 py-10 sm:px-8 sm:py-16"}
         ${dragging ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50 hover:bg-primary/[0.02]"}`}
     >
         <input ref={inputRef} type="file" accept=".png,.jpg,.jpeg,.webp,.avif,.gif,.bmp,.tiff,.svg" onChange={handleFile} className="hidden" />
@@ -98,7 +98,7 @@ export function UploadZone({
       </div>
 
       <div className="text-center">
-        <p className={`${compact ? "text-base" : "text-lg"} font-semibold text-foreground`}>{label}</p>
+        <p className={`${compact ? "text-base" : "text-base sm:text-lg"} font-semibold text-foreground`}>{label}</p>
         <p className="text-sm text-muted-foreground mt-1">Drag & drop or click to browse</p>
       </div>
 

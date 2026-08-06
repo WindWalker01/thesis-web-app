@@ -24,7 +24,7 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
       isBest ? "border-primary/40 shadow-sm shadow-primary/10" : "border-border"
     }`}>
       {/* Header */}
-      <div className={`flex items-center justify-between px-5 py-3.5 border-b ${
+      <div className={`flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-3.5 border-b ${
         isBest ? "bg-primary/5 border-primary/20" : "border-border"
       }`}>
         <div className="flex items-center gap-2.5">
@@ -51,9 +51,9 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
       </div>
 
       {/* Body */}
-      <div className="p-5 flex items-center gap-6">
+      <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5">
         {/* Ring */}
-        <div className="shrink-0">
+        <div className="shrink-0 sm:self-start">
           <SimilarityRing value={match.similarity} size={100} />
         </div>
 

@@ -7,9 +7,9 @@ interface WebModeUploadProps {
 
 export function WebModeUpload({ onUpload }: WebModeUploadProps) {
   return (
-    <div className="grid grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       {/* Upload card */}
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+      <div className="bg-card border border-border rounded-2xl p-4 space-y-5 sm:p-6">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shrink-0">
             <Globe size={17} className="text-primary-foreground" />
@@ -24,7 +24,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
 
       {/* What we check */}
       <div className="space-y-4">
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-4 sm:p-6">
           <p className="font-semibold text-base text-foreground">What we check</p>
 
           <div className="space-y-4">
@@ -39,7 +39,7 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
                   {n}
                 </div>
                 <div>
-                  <p className="text-base font-semibold text-foreground">{label}</p>
+                  <p className="text-sm font-semibold text-foreground sm:text-base">{label}</p>
                   <p className="text-sm text-muted-foreground mt-0.5">{desc}</p>
                 </div>
               </div>
