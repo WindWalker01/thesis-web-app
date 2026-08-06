@@ -113,7 +113,7 @@ The application relies on the following environment configurations (configured i
 
 1. **Review Local Context**: Inspect nearby files within the target feature domain. Align with existing patterns.
 2. **Implement Safe Changes**: Adopt KISS, DRY, and YAGNI. Keep changes minimal and modular.
-3. **Execute Verifications**: Run `npm run lint` and `npm run build` after modifying any code to ensure compile-time and lint safety.
+3. **Execute Verifications**: Run unit and integration tests with Vitest focused on affected, changed, or newly created files (targeted scope first), then run `npm run lint` and `npm run build` after code modifications to ensure lint, type, and build safety.
 4. **Communicate Explicitly**: Explain the edits clearly upon completion, noting any configuration or security implications.
 
 ---
@@ -133,3 +133,16 @@ The application relies on the following environment configurations (configured i
   3. **Request user confirmation**: Present the proposal to the user and **wait for explicit approval** before any schema changes are made.
   4. **Update documentation**: Only after user approval, update the `supabase-schema.sql` file with the new column definition and any necessary indexes or constraints.
   5. **Document the change**: Add a comment in the schema SQL explaining the purpose of the new column.
+
+---
+
+## 11) Unit & Integration Testing (Vitest)
+
+- **Required for changed scope**: Add or update tests for every affected, changed, or newly created file. Do not leave modified behavior untested.
+- **Testing framework**: Use **Vitest** for unit and integration coverage (`npm run test`, `npm run test:run`).
+- **Test file naming**: Use `*.test.ts`, `*.test.tsx`, `*.spec.ts`, or `*.spec.tsx` (matches `vitest.config.ts` include: `**/*.{test,spec}.{ts,tsx}`).
+- **Test placement**: Keep tests close to the feature domain (colocated test files or a nearby `__tests__/` folder under the same feature path).
+- **Test scope expectations**:
+  - **Unit tests**: Validate isolated logic (helpers, schema validation, pure transforms, and component logic with mocked dependencies).
+  - **Integration tests**: Cover interactions across feature boundaries affected by the change (component + hook behavior, server action + data mapping, or multi-module flows with explicit mocks).
+- **E2E boundary**: Keep Playwright specs under `tests/`. Do not place Vitest tests there (`tests/` is excluded in `vitest.config.ts`).
