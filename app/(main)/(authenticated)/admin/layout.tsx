@@ -12,15 +12,14 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Persistent sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
-        onClose={() => setMobileMenuOpen(false)}
+        onClose={() => setSidebarOpen((current) => current)}
       />
 
       {/* Main content area */}
