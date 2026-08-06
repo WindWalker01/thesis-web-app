@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -16,6 +17,7 @@ import {
   ShieldAlert,
   FileText,
   ExternalLink,
+  ArrowLeft,
 } from "lucide-react";
 
 import { useCurrentUserProfile } from "../../profile/hooks/useFetchProfile";
@@ -107,6 +109,7 @@ export function Card({
 }
 
 export default function SettingsPage() {
+  const [isMobileDetailView, setIsMobileDetailView] = useState(false);
   const { profile } = useCurrentUserProfile();
   const {
     activeTab,
@@ -194,7 +197,9 @@ export default function SettingsPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          <aside className="w-full shrink-0 lg:sticky lg:top-20 lg:w-56">
+          <aside
+            className={`w-full shrink-0 lg:sticky lg:top-20 lg:w-56 ${isMobileDetailView ? "hidden lg:block" : "block"}`}
+          >
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
               {GROUPS.map((group, groupIndex) => {
                 const items = SIDEBAR_ITEMS.filter(
@@ -217,7 +222,11 @@ export default function SettingsPage() {
                       const buttonContent = (
                         <button
                           type="button"
-                          onClick={() => !item.href && setActiveTab(item.id)}
+                          onClick={() => {
+                            if (item.href) return;
+                            setActiveTab(item.id);
+                            setIsMobileDetailView(true);
+                          }}
                           className={`group flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-left text-base font-medium transition-all ${
                             isActive
                               ? "bg-blue-500/10 text-blue-600 shadow-[inset_2px_0_0_0] shadow-blue-500 dark:text-blue-400"
@@ -266,7 +275,17 @@ export default function SettingsPage() {
           </aside>
 
           {/* ── Main content ── */}
-          <div className="min-w-0 flex-1">
+          <div
+            className={`min-w-0 flex-1 ${isMobileDetailView ? "block" : "hidden lg:block"}`}
+          >
+            <button
+              type="button"
+              onClick={() => setIsMobileDetailView(false)}
+              className="mb-5 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:bg-blue-500/40"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to settings
+            </button>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
