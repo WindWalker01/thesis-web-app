@@ -93,17 +93,15 @@ export default function NavBar() {
   });
 
   const visibleNavLinks = useMemo(() => {
-    return NAV_LINKS
-      .filter((link) => {
-        if (link.requiresAuth && !user) return false;
-        return true;
-      })
-      .map((link) => {
-        if (link.label === "Dashboard" && isAdmin) {
-          return { ...link, href: "/admin/dashboard" };
-        }
-        return link;
-      });
+    return NAV_LINKS.filter((link) => {
+      if (link.requiresAuth && !user) return false;
+      return true;
+    }).map((link) => {
+      if (link.label === "Dashboard" && isAdmin) {
+        return { ...link, href: "/admin/dashboard" };
+      }
+      return link;
+    });
   }, [user, isAdmin]);
 
   const visibleMoreLinks = useMemo(() => {
@@ -120,7 +118,7 @@ export default function NavBar() {
 
   return (
     <>
-      <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+      <nav className="border-border bg-background/80 fixed top-0 z-50 w-full border-b backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* ── Logo ── */}
           <Logo href="/" />
@@ -148,8 +146,9 @@ export default function NavBar() {
               >
                 More
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-300 ${moreOpen ? "rotate-180" : ""
-                    }`}
+                  className={`h-4 w-4 transition-transform duration-300 ${
+                    moreOpen ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
@@ -160,7 +159,7 @@ export default function NavBar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.97 }}
                     transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="absolute left-1/2 top-10 z-50 w-44 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background shadow-xl"
+                    className="border-border bg-background absolute top-10 left-1/2 z-50 w-44 -translate-x-1/2 overflow-hidden rounded-xl border shadow-xl"
                   >
                     {visibleMoreLinks.map((item, idx) => (
                       <motion.div
@@ -175,11 +174,14 @@ export default function NavBar() {
                           className="relative block px-4 py-2.5 text-base transition-colors hover:bg-blue-500/10 hover:text-blue-500"
                         >
                           {item.label}
-                          {item.label === "My Reports" && reportUnreadCount > 0 && (
-                            <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold leading-none text-white">
-                              {reportUnreadCount > 9 ? "9+" : reportUnreadCount}
-                            </span>
-                          )}
+                          {item.label === "My Reports" &&
+                            reportUnreadCount > 0 && (
+                              <span className="ml-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] leading-none font-bold text-white">
+                                {reportUnreadCount > 9
+                                  ? "9+"
+                                  : reportUnreadCount}
+                              </span>
+                            )}
                         </Link>
                       </motion.div>
                     ))}
@@ -211,11 +213,11 @@ export default function NavBar() {
                 <button
                   onClick={() => setNotifOpen((prev) => !prev)}
                   aria-label="Notifications"
-                  className="relative flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-all hover:bg-blue-500/10 hover:text-blue-500"
+                  className="text-foreground relative flex h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-blue-500/10 hover:text-blue-500"
                 >
                   <Bell className="h-4 w-4" />
                   {unreadCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[9px] font-black leading-none text-white">
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[9px] leading-none font-black text-white">
                       {unreadCount}
                     </span>
                   )}
@@ -228,11 +230,13 @@ export default function NavBar() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -8, scale: 0.96 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="absolute right-0 top-12 z-50 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl"
+                      className="border-border bg-background absolute top-12 right-0 z-50 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-2xl border shadow-2xl"
                     >
-                      <div className="max-h-72 divide-y divide-border overflow-y-auto">
-                        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                          <span className="text-base font-bold">Notifications</span>
+                      <div className="divide-border max-h-72 divide-y overflow-y-auto">
+                        <div className="border-border flex items-center justify-between border-b px-4 py-3">
+                          <span className="text-base font-bold">
+                            Notifications
+                          </span>
 
                           <div className="flex items-center gap-2">
                             {unreadCount > 0 && (
@@ -252,18 +256,22 @@ export default function NavBar() {
                           </div>
                         </div>
 
-                        <div className="max-h-72 divide-y divide-border overflow-y-auto">
+                        <div className="divide-border max-h-72 divide-y overflow-y-auto">
                           {notificationsLoading ? (
-                            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                            <div className="text-muted-foreground px-4 py-6 text-center text-sm">
                               Loading notifications...
                             </div>
                           ) : notifications.length === 0 ? (
-                            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                            <div className="text-muted-foreground px-4 py-6 text-center text-sm">
                               No notifications yet.
                             </div>
                           ) : (
                             notifications.map((n, idx) => {
-                              const { icon: Icon, color, bg } = getNotificationUI(n.type);
+                              const {
+                                icon: Icon,
+                                color,
+                                bg,
+                              } = getNotificationUI(n.type);
 
                               return (
                                 <motion.button
@@ -271,7 +279,10 @@ export default function NavBar() {
                                   key={n.id}
                                   initial={{ opacity: 0, x: -8 }}
                                   animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: idx * 0.045, duration: 0.15 }}
+                                  transition={{
+                                    delay: idx * 0.045,
+                                    duration: 0.15,
+                                  }}
                                   onClick={async () => {
                                     if (!n.is_read) {
                                       await markAsRead(n.id);
@@ -281,8 +292,9 @@ export default function NavBar() {
                                       window.location.href = n.action_url;
                                     }
                                   }}
-                                  className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 ${!n.is_read ? "bg-blue-500/5" : ""
-                                    }`}
+                                  className={`hover:bg-muted/50 flex w-full gap-3 px-4 py-3 text-left transition-colors ${
+                                    !n.is_read ? "bg-blue-500/5" : ""
+                                  }`}
                                 >
                                   <div
                                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${bg}`}
@@ -291,13 +303,13 @@ export default function NavBar() {
                                   </div>
 
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-foreground">
+                                    <p className="text-foreground text-sm font-semibold">
                                       {n.title}
                                     </p>
-                                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-foreground/80">
+                                    <p className="text-foreground/80 mt-1 line-clamp-2 text-sm leading-relaxed">
                                       {n.message}
                                     </p>
-                                    <p className="mt-1 text-[10px] text-muted-foreground">
+                                    <p className="text-muted-foreground mt-1 text-[10px]">
                                       {formatNotificationTime(n.created_at)}
                                     </p>
                                   </div>
@@ -312,7 +324,7 @@ export default function NavBar() {
                         </div>
                       </div>
 
-                      <div className="border-t border-border px-4 py-3">
+                      <div className="border-border border-t px-4 py-3">
                         <Link
                           href="/settings/notifications"
                           onClick={() => setNotifOpen(false)}
@@ -335,7 +347,7 @@ export default function NavBar() {
                 <Link
                   href="/settings"
                   aria-label="Settings"
-                  className="hidden h-9 w-9 items-center justify-center rounded-lg text-foreground transition-all hover:bg-blue-500/10 hover:text-blue-500 sm:flex"
+                  className="text-foreground hidden h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-blue-500/10 hover:text-blue-500 sm:flex"
                 >
                   <Settings className="h-4 w-4" />
                 </Link>
@@ -343,7 +355,7 @@ export default function NavBar() {
                 <Link
                   href="/profile"
                   aria-label="Profile"
-                  className="hidden h-9 w-9 items-center justify-center rounded-lg text-foreground transition-all hover:bg-orange-500/10 hover:text-orange-500 sm:flex"
+                  className="text-foreground hidden h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-orange-500/10 hover:text-orange-500 sm:flex"
                 >
                   <UserIcon className="h-4 w-4" />
                 </Link>
@@ -352,20 +364,20 @@ export default function NavBar() {
 
             {/* Login / Register — sm+ */}
             <div className="hidden items-center gap-1 sm:flex">
-              <div className="mx-1 h-5 w-px bg-border" />
+              <div className="bg-border mx-1 h-5 w-px" />
               {user ? (
                 <LogoutButton />
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="whitespace-nowrap px-1 text-base font-medium transition-colors hover:text-blue-500"
+                    className="px-1 text-base font-medium whitespace-nowrap transition-colors hover:text-blue-500"
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
-                    className="whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-base font-semibold text-primary-foreground transition hover:opacity-90"
+                    className="bg-primary text-primary-foreground rounded-lg px-3 py-2 text-base font-semibold whitespace-nowrap transition hover:opacity-90"
                   >
                     Register
                   </Link>
@@ -379,7 +391,7 @@ export default function NavBar() {
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu-drawer"
-              className="ml-0.5 flex h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-muted lg:hidden"
+              className="hover:bg-muted ml-0.5 flex h-9 w-9 items-center justify-center rounded-lg transition-all lg:hidden"
             >
               <AnimatePresence mode="wait">
                 {mobileOpen ? (
@@ -418,7 +430,7 @@ export default function NavBar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22 }}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm lg:hidden"
               onClick={closeMobile}
               aria-hidden="true"
             />
@@ -432,17 +444,17 @@ export default function NavBar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 340, damping: 34 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-72 max-w-[calc(100vw-3rem)] flex-col border-l border-border bg-background lg:hidden"
+              className="border-border bg-background fixed top-0 right-0 z-50 flex h-full w-72 max-w-[calc(100vw-3rem)] flex-col border-l lg:hidden"
             >
               {/* Panel header */}
-              <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-5">
+              <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-5">
                 <Logo href="/" />
 
                 <div className="flex items-center gap-1">
                   <ThemeToggle />
                   <button
                     onClick={closeMobile}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg transition-all hover:bg-muted"
+                    className="hover:bg-muted flex h-8 w-8 items-center justify-center rounded-lg transition-all"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -453,7 +465,7 @@ export default function NavBar() {
               <div className="flex-1 overflow-y-auto py-3">
                 {/* Nav links */}
                 <div className="px-3 pb-3">
-                  <p className="px-3 pb-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <p className="px-3 pb-2 text-[9px] font-black tracking-widest text-slate-400 uppercase">
                     Navigation
                   </p>
 
@@ -469,11 +481,11 @@ export default function NavBar() {
                   ))}
                 </div>
 
-                <div className="mx-4 my-1 h-px bg-border" />
+                <div className="bg-border mx-4 my-1 h-px" />
 
                 {/* More links */}
                 <div className="px-3 py-3">
-                  <p className="px-3 pb-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <p className="px-3 pb-2 text-[9px] font-black tracking-widest text-slate-400 uppercase">
                     More
                   </p>
 
@@ -491,10 +503,10 @@ export default function NavBar() {
 
                 {user && (
                   <>
-                    <div className="mx-4 my-1 h-px bg-border" />
+                    <div className="bg-border mx-4 my-1 h-px" />
 
                     <div className="px-3 py-3">
-                      <p className="px-3 pb-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      <p className="px-3 pb-2 text-[9px] font-black tracking-widest text-slate-400 uppercase">
                         Account
                       </p>
 
@@ -528,7 +540,7 @@ export default function NavBar() {
                           key={href}
                           href={href}
                           onClick={closeMobile}
-                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors hover:bg-muted"
+                          className="hover:bg-muted flex items-center gap-3 rounded-xl px-3 py-2.5 text-base font-medium transition-colors"
                         >
                           <Icon className={`h-4 w-4 ${color}`} />
                           <span>{label}</span>
@@ -539,18 +551,18 @@ export default function NavBar() {
                 )}
               </div>
 
-              <div className="flex shrink-0 flex-col gap-2 border-t border-border px-4 py-5">
+              <div className="border-border flex shrink-0 flex-col gap-2 border-t px-4 py-5">
                 {user ? (
                   <LogoutButton />
                 ) : (
                   <>
                     <Link href="/login" onClick={closeMobile}>
-                      <button className="w-full cursor-pointer rounded-xl border border-border py-3 text-base font-semibold transition-colors hover:bg-muted min-h-[44px]">
+                      <button className="border-border hover:bg-muted min-h-[44px] w-full cursor-pointer rounded-xl border py-3 text-base font-semibold transition-colors">
                         Login
                       </button>
                     </Link>
                     <Link href="/register" onClick={closeMobile}>
-                      <button className="w-full cursor-pointer rounded-xl bg-primary py-3 text-base font-semibold text-primary-foreground transition hover:opacity-90 min-h-[44px]">
+                      <button className="bg-primary text-primary-foreground min-h-[44px] w-full cursor-pointer rounded-xl py-3 text-base font-semibold transition hover:opacity-90">
                         Register
                       </button>
                     </Link>
