@@ -281,7 +281,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => setIsMobileDetailView(false)}
-              className="mb-5 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:bg-blue-500/40"
+              className="mb-5 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:bg-blue-500/40 lg:hidden"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to settings
