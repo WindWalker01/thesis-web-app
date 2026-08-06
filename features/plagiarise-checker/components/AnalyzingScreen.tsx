@@ -18,7 +18,7 @@ export function AnalyzingScreen({ progress = 0, mode, indeterminate = false }: A
   const steps = STEPS[mode];
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-16 flex flex-col items-center text-center gap-6">
+    <div className="bg-card border border-border rounded-2xl p-6 sm:p-10 md:p-16 flex flex-col items-center text-center gap-6">
       <style>{`
         @keyframes indeterminate {
           0%   { transform: translateX(-100%); }

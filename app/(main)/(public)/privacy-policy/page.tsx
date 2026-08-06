@@ -65,7 +65,8 @@ const SECTIONS = [
 const COMMITMENT_CARDS = [
   { icon: Database, title: "Supabase / PostgreSQL", desc: "Industry-standard cloud storage with role-based access control." },
   { icon: Lock, title: "Encrypted & Hashed", desc: "All passwords hashed, connections secured with HTTPS at all times." },
-  { icon: Eye, title: "Your Data, Your Control", desc: "Exercise your R.A. 10173 rights: access, correct, or erase your data." },
+  { icon: Eye, title: "Your Data, Your Control", desc: "You can request access, corrections, or deletion of your personal data anytime." },
+  { icon: ShieldCheck, title: "Responsible Data Handling", desc: "We process only what is needed to run the platform and protect your artworks." },
 ];
 
 export default function PrivacyPolicyPage() {
@@ -131,23 +132,23 @@ export default function PrivacyPolicyPage() {
       </div>
 
       {/* ── Privacy Commitments — orange section with layered radial glows ── */}
-      <section className="relative py-16 md:py-20 bg-orange-950 text-white overflow-hidden select-none">
+      <section className="relative py-14 sm:py-16 md:py-20 bg-orange-950 text-white overflow-hidden select-none">
         {/* Layered radial glows */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-72 h-72 bg-orange-400/6 rounded-full blur-3xl pointer-events-none -translate-x-1/4 -translate-y-1/4" />
-        <div className="absolute bottom-0 right-0 w-72 h-72 bg-orange-400/6 rounded-full blur-3xl pointer-events-none translate-x-1/4 translate-y-1/4" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[240px] sm:w-[520px] sm:h-[380px] md:w-[700px] md:h-[500px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-0 w-44 h-44 sm:w-56 sm:h-56 md:w-72 md:h-72 bg-orange-400/6 rounded-full blur-3xl pointer-events-none -translate-x-1/4 -translate-y-1/4" />
+        <div className="absolute bottom-0 right-0 w-44 h-44 sm:w-56 sm:h-56 md:w-72 md:h-72 bg-orange-400/6 rounded-full blur-3xl pointer-events-none translate-x-1/4 translate-y-1/4" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Reveal className="text-center mb-12 md:mb-14">
-            <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-400/25 rounded-full px-4 py-1.5 mb-4">
+          <Reveal className="text-center mb-10 sm:mb-12 md:mb-14">
+            <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-400/25 rounded-full px-3 sm:px-4 py-1.5 mb-4">
               <ShieldCheck className="w-3 h-3 text-orange-300" />
               <span className="text-[10px] font-bold text-orange-200 uppercase tracking-widest">Our Commitments</span>
             </div>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white mb-3">Our Privacy Commitments</h2>
-            <p className="text-base text-orange-200/55">Core principles that govern how your data is handled.</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white mb-3">Our Privacy Commitments</h2>
+            <p className="text-sm sm:text-base text-orange-200/75 max-w-2xl mx-auto">Core principles that govern how your data is handled.</p>
           </Reveal>
 
-          <div className="flex gap-5 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 items-stretch">
             {COMMITMENT_CARDS.map((item, i) => {
               const Icon = item.icon;
               return (
@@ -163,7 +164,7 @@ export default function PrivacyPolicyPage() {
                         <Icon className="w-5 h-5 text-orange-300" strokeWidth={2} />
                       </div>
                       <h3 className="text-base font-bold mb-2 text-white">{item.title}</h3>
-                      <p className="text-base text-orange-100/60 leading-relaxed">{item.desc}</p>
+                      <p className="text-sm sm:text-base text-orange-100/70 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 </Reveal>

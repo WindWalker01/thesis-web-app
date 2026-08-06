@@ -47,7 +47,7 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
           {matches.map((match, idx) => {
             const isDb = !!match.artwork_id;
             return (
-              <div key={idx} className="p-4 flex items-center gap-4">
+              <div key={idx} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                   isDb ? "bg-indigo-500/15 text-indigo-400" : "bg-sky-500/15 text-sky-400"
                 }`}>
@@ -69,7 +69,7 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
                     {match.link ?? match.url}
                   </a>
                 </div>
-                <div className="text-right shrink-0">
+                <div className="shrink-0 sm:text-right">
                   <p className="text-sm font-bold text-foreground">{match.similarity.toFixed(1)}%</p>
                   <p className="text-[10px] text-muted-foreground">similarity</p>
                 </div>
@@ -91,7 +91,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
   return (
     <div className="space-y-5">
       {/* Top row: submitted image + best match ring + best match summary */}
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_auto_1fr]">
 
         {/* Submitted image */}
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -104,8 +104,8 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
               <ShieldCheck size={11} className="mr-1" /> Analyzed
             </Badge>
           </div>
-          <Image src={preview} alt="Submitted artwork" width={480} height={220} className="w-full h-52 object-cover" />
-          <div className="p-5 grid grid-cols-2 gap-4">
+          <Image src={preview} alt="Submitted artwork" width={480} height={220} className="h-44 w-full object-cover sm:h-52" />
+          <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5">
             <div>
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">FILENAME</p>
               <p className="text-base text-foreground font-mono truncate">{result.filename}</p>
@@ -119,7 +119,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
 
         {/* Best match ring */}
         {result.best_match ? (
-          <div className="bg-card border border-border rounded-2xl p-5 flex flex-col items-center gap-4 w-48">
+          <div className="bg-card border border-border rounded-2xl p-5 flex w-full flex-col items-center gap-4 sm:mx-auto sm:w-56 lg:w-48">
             <p className="text-[10px] font-bold tracking-widest text-muted-foreground text-center">BEST MATCH</p>
             <SimilarityRing value={result.best_match.similarity} size={130} />
             <div className="w-full text-center space-y-1.5">
@@ -136,7 +136,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
             </div>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-2xl p-5 flex flex-col items-center justify-center gap-3 w-48 text-center min-h-[180px]">
+          <div className="bg-card border border-border rounded-2xl p-5 flex w-full flex-col items-center justify-center gap-3 text-center min-h-[180px] sm:mx-auto sm:w-56 lg:w-48">
             <AlertCircle size={28} className="text-muted-foreground/30" />
             <p className="text-sm text-muted-foreground">No matches found</p>
           </div>
@@ -157,7 +157,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
 
             {/* DB best match: render the registered artwork image */}
             {isBestDb && bestMatch.imageUrl ? (
-              <div className="relative w-full h-44 bg-muted">
+              <div className="relative h-40 w-full bg-muted sm:h-44">
                 <Image
                   src={bestMatch.imageUrl}
                   alt={bestMatch.title ?? "Registered artwork"}
@@ -265,7 +265,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
       )}
 
       {/* Hash tables */}
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-card border border-border rounded-2xl p-4 space-y-6 sm:p-6">
         <div className="flex items-center gap-2">
           <Hash size={15} className="text-primary" />
           <p className="font-semibold text-foreground">Perceptual Hash Details</p>
