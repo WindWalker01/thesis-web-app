@@ -118,12 +118,14 @@ const TEAM_MEMBERS = [
     role: "Lead Developer",
     img: "/team-image/ruzzel.jpg",
     desc: "System architecture, blockchain integration, and backend development.",
+    portfolio_link: "https://ruzzel.vercel.app",
   },
   {
     name: "Tenshin",
     role: "Front/Backend Engineer",
     img: "/team-image/tenshin.jpg",
     desc: "Frontend components, API integrations, and full-stack development.",
+    portfolio_link: "https://tenshinponteres.dev",
   },
   {
     name: "Nathaniel",
@@ -285,7 +287,11 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {TEAM_MEMBERS.map((member, i) => (
             <Reveal key={member.name} delay={i * 130}>
-              <div className="group relative flex h-full cursor-pointer flex-col items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-center transition-all duration-300 hover:border-orange-400/60 hover:shadow-[0_8px_32px_rgba(251,146,60,0.12)] dark:border-slate-800 dark:bg-slate-900">
+              <a
+                href={member.portfolio_link}
+                target="_blank"
+                className="group relative flex h-full cursor-pointer flex-col items-center gap-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 text-center transition-all duration-300 hover:border-orange-400/60 hover:shadow-[0_8px_32px_rgba(251,146,60,0.12)] dark:border-slate-800 dark:bg-slate-900"
+              >
                 {/* Hover left accent */}
                 <div className="absolute top-0 bottom-0 left-0 w-0.75 rounded-l-2xl bg-linear-to-b from-orange-400 to-orange-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 {/* Avatar */}
@@ -310,7 +316,7 @@ export default function AboutPage() {
                     {member.desc}
                   </p>
                 </div>
-              </div>
+              </a>
             </Reveal>
           ))}
         </div>
