@@ -68,34 +68,34 @@ export default function PlagiarismHistorySection() {
             </div>
 
             <Card>
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="border-b border-slate-100 px-4 py-4 dark:border-slate-800 sm:px-6">
                     <p className="text-sm font-black uppercase tracking-widest text-slate-400">
                         Recent Scans
                     </p>
                 </div>
 
                 {error ? (
-                    <div className="px-6 py-4 text-base text-red-500">{error}</div>
+                    <div className="px-4 py-4 text-base text-red-500 sm:px-6">{error}</div>
                 ) : (
                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
                         {isLoading ? (
                             Array.from({ length: 4 }).map((_, index) => (
                                 <div
                                     key={index}
-                                    className="px-6 py-4 flex items-center justify-between"
+                                    className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                                 >
                                     <div className="space-y-2">
                                         <div className="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
                                         <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 self-start sm:self-auto">
                                         <div className="h-3 w-16 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
                                         <div className="h-6 w-24 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
                                     </div>
                                 </div>
                             ))
                         ) : history.length === 0 ? (
-                            <div className="px-6 py-10 text-center">
+                            <div className="px-4 py-10 text-center sm:px-6">
                                 <div className="mx-auto mb-3 w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                     <AlertTriangle className="w-4 h-4 text-slate-400" />
                                 </div>
@@ -114,11 +114,11 @@ export default function PlagiarismHistorySection() {
                                     <Link
                                         key={scan.id}
                                         href={href}
-                                        className="group block px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        className="group block px-4 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 sm:px-6"
                                     >
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="text-base font-semibold group-hover:text-blue-500 transition-colors">
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                                            <div className="min-w-0">
+                                                <p className="truncate text-base font-semibold transition-colors group-hover:text-blue-500">
                                                     {scan.artwork}
                                                 </p>
                                                 <p className="text-sm text-slate-400 mt-0.5">
@@ -126,15 +126,15 @@ export default function PlagiarismHistorySection() {
                                                 </p>
                                             </div>
 
-                                            <div className="flex items-center gap-3 shrink-0">
-                                                <span className="text-sm text-slate-400">
+                                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0">
+                                                <span className="text-xs text-slate-400 sm:text-sm">
                                                     {scan.matches} match{scan.matches !== 1 ? "es" : ""}
                                                     {typeof scan.similarity === "number"
                                                         ? ` · ${scan.similarity.toFixed(2)}%`
                                                         : ""}
                                                 </span>
                                                 <StatusBadge status={scan.status} />
-                                                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                                                <ChevronRight className="hidden h-4 w-4 text-slate-300 transition-colors group-hover:text-blue-500 sm:block" />
                                             </div>
                                         </div>
                                     </Link>
