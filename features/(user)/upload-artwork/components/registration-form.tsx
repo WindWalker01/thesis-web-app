@@ -141,9 +141,9 @@ export function RegistrationForm({
                         I confirm that I own this artwork or I am authorized to
                         register it.
                       </FormLabel>
-                      <FormDescription>
-                        This is not necessarily stored in the table, but it is
-                        important for the submission flow.
+                      <FormDescription className="text-sm">
+                        Falsely claiming ownership may result in account
+                        suspension and removal of the protected asset.
                       </FormDescription>
                     </div>
                   </div>
