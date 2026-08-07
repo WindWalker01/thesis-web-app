@@ -510,7 +510,8 @@ export async function recordArtworkInDatabase(
         const genreResult = await fetchGenreClassification(validFile);
 
         if (genreResult.success) {
-          genreSuggestions = genreResult.results.slice(0, 10);
+          // Pass all classifier labels through — the modal curates display.
+          genreSuggestions = genreResult.results;
         }
       } catch {
         // Non-fatal: genre suggestions are a convenience, not a hard requirement.

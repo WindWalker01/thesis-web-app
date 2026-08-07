@@ -1,8 +1,13 @@
 "use client";
 
-import * as React from "react";
 import { useState } from "react";
-import { CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +37,9 @@ type GenreTaggingModalProps = {
 
 const PRE_SELECT_COUNT = 3;
 
+// Number of genre chips shown before the "Show all" toggle is needed.
+const VISIBLE_COUNT = 6;
+
 function getInitialSelected(suggestions: GenreScoreLabel[]): Set<number> {
   // Pre-select the top PRE_SELECT_COUNT genres by rank (API returns results
   // sorted by score descending, so rank = position in the array).
@@ -52,11 +60,20 @@ export function GenreTaggingModal({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() =>
     getInitialSelected(suggestions),
   );
+  const [showAll, setShowAll] = useState(false);
+  const [prevSuggestions, setPrevSuggestions] = useState(suggestions);
 
-  // Re-sync when suggestions change (new upload without unmounting).
-  React.useEffect(() => {
+  // Reset selections and collapse the list when a new upload produces new
+  // suggestions. Render-time adjustment avoids setState inside an effect.
+  if (prevSuggestions !== suggestions) {
+    setPrevSuggestions(suggestions);
     setSelectedIds(getInitialSelected(suggestions));
-  }, [suggestions]);
+    setShowAll(false);
+  }
+
+  const visibleSuggestions = showAll
+    ? suggestions
+    : suggestions.slice(0, VISIBLE_COUNT);
 
   function toggle(index: number) {
     setSelectedIds((prev) => {
@@ -86,7 +103,10 @@ export function GenreTaggingModal({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="bg-background flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-[560px] flex-col overflow-hidden rounded-2xl border p-0 sm:w-[calc(100vw-2rem)]">
+      <DialogContent
+        showCloseButton={false}
+        className="bg-background flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-[560px] flex-col overflow-hidden rounded-2xl border p-0 sm:w-[calc(100vw-2rem)]"
+      >
         {/* Header */}
         <div className="border-b bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-5 py-5 text-white sm:px-6">
           <DialogHeader className="space-y-3 text-left">
@@ -122,7 +142,7 @@ export function GenreTaggingModal({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {suggestions.map((genre) => {
+            {visibleSuggestions.map((genre) => {
               const isSelected = selectedIds.has(genre.index);
               const isLast = isSelected && selectedIds.size === 1;
 
@@ -162,6 +182,28 @@ export function GenreTaggingModal({
             <div className="text-muted-foreground flex min-h-[80px] items-center justify-center rounded-xl border border-dashed text-base">
               No genres available from the classifier.
             </div>
+          )}
+
+          {suggestions.length > VISIBLE_COUNT && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full rounded-xl sm:w-auto"
+              onClick={() => setShowAll((v) => !v)}
+              disabled={isSubmitting}
+            >
+              {showAll ? (
+                <>
+                  <ChevronUp className="mr-2 h-4 w-4" />
+                  Show less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Show all {suggestions.length} genres
+                </>
+              )}
+            </Button>
           )}
 
           <p className="text-muted-foreground text-sm">
