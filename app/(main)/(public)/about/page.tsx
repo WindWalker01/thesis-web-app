@@ -116,7 +116,7 @@ const TEAM_MEMBERS = [
   {
     name: "Ruzzel",
     role: "Lead Developer",
-    img: "/team-image/ruzzel.jpg",
+    img: "/team-image/ruzzel.png",
     desc: "System architecture, blockchain integration, and backend development.",
     portfolio_link: "https://ruzzel.vercel.app",
   },

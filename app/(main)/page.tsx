@@ -696,7 +696,7 @@ export default function Home() {
               {
                 name: "Ruzzel",
                 role: "Lead Developer",
-                img: "/team-image/ruzzel.jpg",
+                img: "/team-image/ruzzel.png",
                 portfolio_link: "https://ruzzel.vercel.app",
               },
               {
