@@ -20,6 +20,7 @@ import {
   Settings2,
   ShieldCheck,
   User as UserIcon,
+  PanelLeftIcon
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,6 @@ import { clearQueryCache } from "@/providers/react-query-provider";
 
 type SidebarProps = {
   isOpen: boolean;
-  onToggle: () => void;
   onClose: () => void;
 };
 
@@ -59,7 +59,7 @@ const navItems = [
 
 const DEFAULT_LOGO = DEFAULT_SETTINGS.platform_logo_url as string;
 
-export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { data: pendingCount = 0 } = usePendingReviewCount();
   const { user, signOut } = useAuth();
@@ -86,7 +86,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
   const sidebarContent = (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="border-border flex h-16 items-center gap-2 border-b px-4">
+      <div className="flex h-16 items-center gap-2 px-4 pt-5 mb-5">
         <Image
           src={logoUrl}
           alt={settings.platform_name}
@@ -106,7 +106,7 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {navItems.map((item) => {
+{navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -126,31 +126,18 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span
-                className={cn(
-                  "flex-1 transition-opacity duration-200",
-                  !isOpen && "w-0 overflow-hidden opacity-0",
-                )}
-              >
-                {item.label}
-              </span>
-              {showBadge && (
-                <span
-                  className={cn(
-                    "bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold transition-opacity duration-200",
-                    !isOpen && "w-0 overflow-hidden opacity-0",
-                  )}
-                >
+              {isOpen && (
+                <span className="flex-1 truncate">{item.label}</span>
+              )}
+              {isOpen && showBadge && (
+                <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold">
                   {pendingCount}
                 </span>
               )}
-              {isActive && (
+              {isOpen && isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className={cn(
-                    "bg-primary h-1.5 w-1.5 rounded-full transition-opacity duration-200",
-                    !isOpen && "hidden",
-                  )}
+                  className="bg-primary h-1.5 w-1.5 rounded-full"
                 />
               )}
             </Link>
@@ -223,10 +210,6 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
                   Global Settings
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell className="mr-2 size-4" />
-                Notifications
-              </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -246,34 +229,6 @@ export function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
-
-      {/* Collapse button (desktop) */}
-      <div className="border-border hidden border-t p-3 lg:block">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          className={cn(
-            "text-muted-foreground w-full gap-2",
-            isOpen ? "justify-start" : "justify-center",
-          )}
-        >
-          <ChevronLeft
-            className={cn(
-              "h-4 w-4 shrink-0 transition-transform",
-              !isOpen && "rotate-180",
-            )}
-          />
-          <span
-            className={cn(
-              "text-xs transition-opacity duration-200",
-              !isOpen && "w-0 overflow-hidden opacity-0",
-            )}
-          >
-            {isOpen ? "Collapse" : "Expand"}
-          </span>
-        </Button>
       </div>
     </div>
   );
