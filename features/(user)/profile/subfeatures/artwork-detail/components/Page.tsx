@@ -24,7 +24,7 @@ import { TechnicalDetailsToggle } from "@/features/(user)/profile/subfeatures/ar
 import { useArtworkDetailPage } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage";
 import ArtworkDetailPageSkeleton from "./PageSkeleton";
 import { DownloadCertificateButton } from "./DownloadCertificateButton";
-import { SimilarityReportSection } from "@/features/(user)/profile/components/SimilarityReportSection";
+import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
 import { useArtworkReview } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkReview";

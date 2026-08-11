@@ -110,7 +110,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-500/15 px-5 py-2"
+              className="mt-10 inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-500/15 px-5 py-2 sm:mt-0"
             >
               <BookOpen className="h-3.5 w-3.5 text-blue-400" />
               <span className="text-sm font-bold tracking-widest text-blue-300 uppercase">

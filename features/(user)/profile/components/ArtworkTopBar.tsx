@@ -59,13 +59,13 @@ export function ArtworkTopBar({
             </button>
 
             {/* Search */}
-            <div className="flex-1 min-w-0 max-w-sm relative">
+            <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1 sm:max-w-sm relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder="Search artworks..."
-                    className="w-full pl-9 pr-9 py-2 rounded-xl border border-border bg-muted/40 text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
+                    className="w-full pl-9 pr-9 py-2 rounded-xl border border-border bg-muted/40 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition"
                 />
                 {searchQuery && (
                     <button

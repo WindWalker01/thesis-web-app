@@ -145,7 +145,7 @@ export function VerificationStatusCard({
   return (
     <Card className="border-border overflow-hidden">
       <CardHeader className={cn("pb-3", config.bg)}>
-        <CardTitle className="flex items-center gap-2 text-sm">
+        <CardTitle className="flex items-center gap-2 text-sm mt-4">
           <Icon className={cn("h-5 w-5", config.color)} />
           <span className={cn("font-bold", config.color)}>
             {formatStatusLabel(config.label)}

@@ -115,10 +115,10 @@ export default function ProfilePage({ scope = "gallery" }: Props) {
                 <p className="text-base text-muted-foreground">{pageDescription}</p>
               </div>
 
-              <div className="inline-flex rounded-xl border border-border p-1 bg-card">
+              <div className="inline-flex w-full rounded-xl border border-border bg-card p-1 sm:w-auto">
                 <Link
                   href="/profile"
-                  className={`rounded-lg px-3 py-2 text-base font-semibold transition-colors ${
+                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-center text-sm font-semibold whitespace-nowrap transition-colors sm:flex-none sm:px-3 sm:py-2 sm:text-base ${
                     scope === "gallery"
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -128,7 +128,7 @@ export default function ProfilePage({ scope = "gallery" }: Props) {
                 </Link>
                 <Link
                   href="/profile/issues"
-                  className={`rounded-lg px-3 py-2 text-base font-semibold transition-colors ${
+                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-center text-sm font-semibold whitespace-nowrap transition-colors sm:flex-none sm:px-3 sm:py-2 sm:text-base ${
                     scope === "issues"
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
