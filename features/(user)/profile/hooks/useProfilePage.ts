@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Artwork, ViewMode, ArtworkStatus, HashStatus } from "../types";
 
 export function useProfilePage(artworks: Artwork[], sortOptions: readonly string[]) {
@@ -18,6 +18,24 @@ export function useProfilePage(artworks: Artwork[], sortOptions: readonly string
   const [catOpen, setCatOpen] = useState(true);
   const [statusOpen, setStatusOpen] = useState(true);
   const [hashOpen, setHashOpen] = useState(false);
+
+   // Dynamically control sidebar visibility based on screen width.
+   // Handled in useEffect to prevent server/client hydration mismatch.
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) { // sm screen breakpoint
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    // Check size on mount
+    handleResize();
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const filtered = useMemo(() => {
     let list = [...artworks];
