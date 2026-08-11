@@ -43,18 +43,22 @@ export default function AdminLayout({
               />
             </Button>
 
-            {/* <Button
+            <Button
               variant="ghost"
               size="sm"
               asChild
-              className="text-muted-foreground gap-2"
+              className="text-muted-foreground ml-5 gap-2"
             >
               <Link href="/">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Home
               </Link>
-            </Button> */}
-            <ThemeToggle className="ml-auto mr-5" />
+            </Button>
+
+            <div className="ml-auto flex items-center gap-2">
+              
+              <ThemeToggle className="mr-5 ml-auto" />
+            </div>
           </div>
         </header>
 

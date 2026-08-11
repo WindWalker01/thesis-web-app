@@ -20,7 +20,7 @@ import {
   Settings2,
   ShieldCheck,
   User as UserIcon,
-  PanelLeftIcon
+  PanelLeftIcon,
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const sidebarContent = (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2 px-4 pt-5 mb-5">
+      <div className="mb-5 flex h-16 items-center gap-2 px-4 pt-5">
         <Image
           src={logoUrl}
           alt={settings.platform_name}
@@ -106,7 +106,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-{navItems.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -126,9 +126,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {isOpen && (
-                <span className="flex-1 truncate">{item.label}</span>
-              )}
+              {isOpen && <span className="flex-1 truncate">{item.label}</span>}
               {isOpen && showBadge && (
                 <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold">
                   {pendingCount}
@@ -198,12 +196,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link href="/admin/settings" onClick={onClose}>
-                  <BadgeCheck className="mr-2 size-4" />
-                  Account / Profile
-                </Link>
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/admin/settings" onClick={onClose}>
                   <Settings className="mr-2 size-4" />
