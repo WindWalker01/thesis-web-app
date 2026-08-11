@@ -25,7 +25,7 @@ export function useAdminDashboard() {
 
   return {
     dashboard: query.data ?? null,
-    isLoading: query.isLoading,
+    isLoading: query.isPending,
     error: query.error instanceof Error ? query.error.message : null,
     refetch: query.refetch,
   };

@@ -29,7 +29,7 @@ export default function AdminDashboardPageSkeleton() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="border-border hidden w-64 shrink-0 border-r lg:block">
+        <aside className="border-border sticky top-0 hidden h-screen w-64 shrink-0 self-start border-r lg:block">
           <div className="space-y-1 p-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <SkeletonBlock key={i} className="h-10 w-full rounded-lg" />
