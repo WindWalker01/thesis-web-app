@@ -19,19 +19,29 @@ export function useProfilePage(artworks: Artwork[], sortOptions: readonly string
   const [statusOpen, setStatusOpen] = useState(true);
   const [hashOpen, setHashOpen] = useState(false);
 
-   // Dynamically control sidebar visibility based on screen width.
-   // Handled in useEffect to prevent server/client hydration mismatch.
+  // Dynamically control sidebar visibility based on screen width.
+  // Handled in useEffect to prevent server/client hydration mismatch.
+  // Only triggers state changes when the width actually changes,
+  // preventing scroll-induced address bar resizes on mobile from closing the sidebar.
   useEffect(() => {
+    let lastWidth = window.innerWidth;
+
     const handleResize = () => {
-      if (window.innerWidth < 640) { // sm screen breakpoint
+      const currentWidth = window.innerWidth;
+      if (currentWidth === lastWidth) return;
+      lastWidth = currentWidth;
+
+      if (currentWidth < 640) { // sm breakpoint
         setSidebarOpen(false);
       } else {
         setSidebarOpen(true);
       }
     };
 
-    // Check size on mount
-    handleResize();
+    // Initialize state on mount
+    if (window.innerWidth < 640) {
+      setSidebarOpen(false);
+    }
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
