@@ -254,7 +254,10 @@ export default function ArtworkDetailPage({ id }: Props) {
 
               {txUrl ? <DownloadCertificateButton artwork={art} /> : null}
 
-              <
+              <DownloadOriginalButton artId={art.id} />
+            </div>
+          </div>
+        </section>
 
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <section className="border-border/70 bg-card/85 overflow-hidden rounded-3xl border backdrop-blur-xl">
