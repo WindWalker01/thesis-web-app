@@ -24,6 +24,7 @@ import { TechnicalDetailsToggle } from "@/features/(user)/profile/subfeatures/ar
 import { useArtworkDetailPage } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage";
 import ArtworkDetailPageSkeleton from "./PageSkeleton";
 import { DownloadCertificateButton } from "./DownloadCertificateButton";
+import { DownloadOriginalButton } from "./DownloadOriginalButton";
 import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
@@ -252,9 +253,8 @@ export default function ArtworkDetailPage({ id }: Props) {
               ) : null}
 
               {txUrl ? <DownloadCertificateButton artwork={art} /> : null}
-            </div>
-          </div>
-        </section>
+
+              <
 
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <section className="border-border/70 bg-card/85 overflow-hidden rounded-3xl border backdrop-blur-xl">
