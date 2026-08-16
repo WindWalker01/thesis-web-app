@@ -4,7 +4,21 @@ import { z } from "zod";
 // Setting Value Types
 // ============================================
 
-export type SettingValue = string | number | boolean | string[];
+export type SettingValue =
+  string | number | boolean | string[] | Record<string, unknown>;
+
+/**
+ * Extended SettingValue type that supports JSON objects
+ * for complex settings like badge thresholds.
+ */
+export type SettingValueJSON =
+  | string
+  | number
+  | boolean
+  | string[]
+  | {
+      [key: string]: unknown;
+    };
 
 export type SystemSetting = {
   id: string;
@@ -31,9 +45,11 @@ export type SettingFieldType =
   | "select"
   | "tags"
   | "readonly"
-  | "datetime";
+  | "datetime"
+  | "json";
 
-export type SettingBadgeType = "recommended" | "advanced" | "experimental" | "critical";
+export type SettingBadgeType =
+  "recommended" | "advanced" | "experimental" | "critical";
 
 export type SettingOption = {
   label: string;
@@ -50,7 +66,8 @@ export type SettingGroupId =
   | "duplicate-prevention"
   | "report-display"
   | "pdf-report"
-  | "general";
+  | "general"
+  | "community-recognition";
 
 export type SettingGroup = {
   id: SettingGroupId;
@@ -96,7 +113,21 @@ export type SettingDefinition = {
    * "Recommended: 80% for most digital artwork collections"
    */
   recommendedValue?: string;
+  /**
+   * whether the setting value is a JSON object.
+   * Used for settings like badge thresholds that need structured data.
+   */
+  isJSON?: boolean;
+  /**
+   * The JSON schema key that validates this setting's structure.
+   * Maps to schemas defined in the Zod validation section.
+   */
+  jsonSchemaKey?: string;
 };
+
+// ============================================
+// Settings Category
+// ============================================
 
 export type SettingsCategory = {
   id: string;
@@ -111,34 +142,46 @@ export const SETTING_GROUPS: SettingGroup[] = [
   {
     id: "detection-rules",
     label: "Detection Rules",
-    description: "Thresholds that control how the system identifies and handles similar artworks",
+    description:
+      "Thresholds that control how the system identifies and handles similar artworks",
     icon: "🔍",
   },
   {
     id: "scan-behavior",
     label: "Scan Behavior",
-    description: "How similarity scans are performed, including retries and timeouts",
+    description:
+      "How similarity scans are performed, including retries and timeouts",
     icon: "⚡",
   },
   {
     id: "duplicate-prevention",
     label: "Duplicate Prevention",
-    description: "Block exact-file duplicates before similarity analysis begins",
+    description:
+      "Block exact-file duplicates before similarity analysis begins",
     icon: "🛡️",
   },
   {
     id: "report-display",
     label: "Report Display",
-    description: "Controls which matches are visible in similarity reports (cosmetic only)",
+    description:
+      "Controls which matches are visible in similarity reports (cosmetic only)",
     icon: "📊",
     isAdvanced: true,
   },
   {
     id: "pdf-report",
     label: "PDF Report",
-    description: "Severity badges shown in exported PDF reports (cosmetic only)",
+    description:
+      "Severity badges shown in exported PDF reports (cosmetic only)",
     icon: "📄",
     isAdvanced: true,
+  },
+  {
+    id: "community-recognition",
+    label: "Community Recognition",
+    description:
+      "Badge tier thresholds for artist recognition based on community engagement",
+    icon: "🏆",
   },
 ];
 
@@ -174,6 +217,35 @@ export const allowedFileTypesSchema = z
   .min(1, "At least one file type is required");
 
 export const allowedOriginsSchema = z.array(z.string());
+
+/**
+ * Zod schema for community recognition badge thresholds.
+ * Validates that thresholds are in ascending order:
+ * Recognized < Acclaimed < Master
+ */
+export const communityRecognitionBadgeThresholdsSchema = z
+  .object({
+    Recognized: z.number().int().min(0).max(100),
+    Acclaimed: z.number().int().min(1).max(100),
+    Master: z.number().int().min(1).max(100),
+  })
+  .refine(
+    (data) => data.Recognized < data.Acclaimed && data.Acclaimed < data.Master,
+    {
+      message:
+        "Thresholds must be in ascending order: Recognized < Acclaimed < Master",
+      path: ["Acclaimed"],
+    },
+  );
+
+/**
+ * Type for the community recognition badge thresholds JSON object.
+ */
+export type CommunityRecognitionBadgeThresholds = {
+  Recognized: number;
+  Acclaimed: number;
+  Master: number;
+};
 
 // ============================================
 // Server Action Types

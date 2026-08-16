@@ -3,14 +3,22 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { SettingValue, SettingsActionResult } from "../types";
 import { DEFAULT_SETTINGS } from "../constants";
-import { getRuntimeSettings, clearRuntimeSettingsCache } from "@/features/admin/settings/lib/runtime-settings";
+import {
+  getRuntimeSettings,
+  clearRuntimeSettingsCache,
+} from "@/features/admin/settings/lib/runtime-settings";
+import { communityRecognitionBadgeThresholdsSchema } from "@/features/admin/settings/types";
 
 // ============================================
 // Helper: Verify admin access
 // ============================================
 
-async function verifyAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
-  const { data: { user } } = await supabase.auth.getUser();
+async function verifyAdmin(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated.");
 
   const { data: profile } = await supabase
@@ -78,7 +86,7 @@ export async function getSettings(): Promise<Record<string, SettingValue>> {
 
 export async function updateSettings(
   changes: Record<string, SettingValue>,
-  reason?: string
+  reason?: string,
 ): Promise<SettingsActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
@@ -102,28 +110,48 @@ export async function updateSettings(
     for (const [key, newValue] of Object.entries(changes)) {
       const previousValue = currentMap.get(key) ?? null;
 
+      // Validate JSON object settings before upserting
+      if (key === "community_recognition_badge_thresholds") {
+        const result =
+          communityRecognitionBadgeThresholdsSchema.safeParse(newValue);
+        if (!result.success) {
+          return {
+            success: false,
+            message: `Invalid badge thresholds: ${result.error.message}`,
+          };
+        }
+        // Use the validated (and coerced) value
+        changes[key] = result.data as SettingValue;
+      }
+
       // Upsert the setting
-      const { error: upsertError } = await supabase.from("system_settings").upsert(
-        {
-          key,
-          value: JSON.parse(JSON.stringify(newValue)),
-          updated_by: admin.id,
-          updated_at: now,
-        },
-        { onConflict: "key", ignoreDuplicates: false }
-      );
+      const { error: upsertError } = await supabase
+        .from("system_settings")
+        .upsert(
+          {
+            key,
+            value: JSON.parse(JSON.stringify(changes[key])),
+            updated_by: admin.id,
+            updated_at: now,
+          },
+          { onConflict: "key", ignoreDuplicates: false },
+        );
 
       if (upsertError) throw upsertError;
 
       // Create audit log entry (only if audit logging is enabled)
       if (auditEnabled) {
-        const { error: auditError } = await supabase.from("settings_audit_logs").insert({
-          admin_id: admin.id,
-          setting_key: key,
-          previous_value: previousValue ? JSON.parse(JSON.stringify(previousValue)) : null,
-          new_value: JSON.parse(JSON.stringify(newValue)),
-          reason: reason ?? null,
-        });
+        const { error: auditError } = await supabase
+          .from("settings_audit_logs")
+          .insert({
+            admin_id: admin.id,
+            setting_key: key,
+            previous_value: previousValue
+              ? JSON.parse(JSON.stringify(previousValue))
+              : null,
+            new_value: JSON.parse(JSON.stringify(newValue)),
+            reason: reason ?? null,
+          });
 
         if (auditError) {
           console.error("Failed to create settings audit log:", auditError);
@@ -142,19 +170,22 @@ export async function updateSettings(
         .eq("key", "scheduled_maintenance")
         .maybeSingle();
 
-      const scheduledEnabled = scheduledData?.value === true || scheduledData?.value === "true";
+      const scheduledEnabled =
+        scheduledData?.value === true || scheduledData?.value === "true";
 
       if (scheduledEnabled) {
         // Turn off scheduled_maintenance
-        const { error: upsertError } = await supabase.from("system_settings").upsert(
-          {
-            key: "scheduled_maintenance",
-            value: false,
-            updated_by: admin.id,
-            updated_at: now,
-          },
-          { onConflict: "key", ignoreDuplicates: false }
-        );
+        const { error: upsertError } = await supabase
+          .from("system_settings")
+          .upsert(
+            {
+              key: "scheduled_maintenance",
+              value: false,
+              updated_by: admin.id,
+              updated_at: now,
+            },
+            { onConflict: "key", ignoreDuplicates: false },
+          );
 
         if (upsertError) throw upsertError;
 
@@ -165,7 +196,9 @@ export async function updateSettings(
             setting_key: "scheduled_maintenance",
             previous_value: true,
             new_value: false,
-            reason: reason ? `${reason}; cascaded from maintenance_mode toggle` : "Cascaded from maintenance_mode toggle",
+            reason: reason
+              ? `${reason}; cascaded from maintenance_mode toggle`
+              : "Cascaded from maintenance_mode toggle",
           });
         }
       }
@@ -181,7 +214,8 @@ export async function updateSettings(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to update settings.",
+      message:
+        error instanceof Error ? error.message : "Failed to update settings.",
     };
   }
 }
@@ -191,7 +225,7 @@ export async function updateSettings(
 // ============================================
 
 export async function resetCategoryDefaults(
-  categoryKeys: string[]
+  categoryKeys: string[],
 ): Promise<SettingsActionResult> {
   try {
     const supabase = await createSupabaseServerClient();
@@ -218,20 +252,25 @@ export async function resetCategoryDefaults(
       const previousValue = currentMap.get(key) ?? null;
 
       // Skip if already at default
-      if (previousValue !== null && JSON.stringify(previousValue) === JSON.stringify(defaultValue)) {
+      if (
+        previousValue !== null &&
+        JSON.stringify(previousValue) === JSON.stringify(defaultValue)
+      ) {
         continue;
       }
 
       // Upsert the default value
-      const { error: upsertError } = await supabase.from("system_settings").upsert(
-        {
-          key,
-          value: JSON.parse(JSON.stringify(defaultValue)),
-          updated_by: admin.id,
-          updated_at: now,
-        },
-        { onConflict: "key", ignoreDuplicates: false }
-      );
+      const { error: upsertError } = await supabase
+        .from("system_settings")
+        .upsert(
+          {
+            key,
+            value: JSON.parse(JSON.stringify(defaultValue)),
+            updated_by: admin.id,
+            updated_at: now,
+          },
+          { onConflict: "key", ignoreDuplicates: false },
+        );
 
       if (upsertError) throw upsertError;
 
@@ -239,7 +278,9 @@ export async function resetCategoryDefaults(
       await supabase.from("settings_audit_logs").insert({
         admin_id: admin.id,
         setting_key: key,
-        previous_value: previousValue ? JSON.parse(JSON.stringify(previousValue)) : null,
+        previous_value: previousValue
+          ? JSON.parse(JSON.stringify(previousValue))
+          : null,
         new_value: JSON.parse(JSON.stringify(defaultValue)),
         reason: "Reset to default value",
       });
@@ -254,7 +295,8 @@ export async function resetCategoryDefaults(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to reset settings.",
+      message:
+        error instanceof Error ? error.message : "Failed to reset settings.",
     };
   }
 }
@@ -263,23 +305,27 @@ export async function resetCategoryDefaults(
 // Get settings audit logs
 // ============================================
 
-export async function getSettingsAuditLogs(
-  limit = 50
-): Promise<{ success: boolean; data?: Array<Record<string, unknown>>; message?: string }> {
+export async function getSettingsAuditLogs(limit = 50): Promise<{
+  success: boolean;
+  data?: Array<Record<string, unknown>>;
+  message?: string;
+}> {
   try {
     const supabase = await createSupabaseServerClient();
     await verifyAdmin(supabase);
 
     const { data, error } = await supabase
       .from("settings_audit_logs")
-      .select(`
+      .select(
+        `
         *,
         admin:admin_id (
           first_name,
           last_name,
           email
         )
-      `)
+      `,
+      )
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -289,7 +335,8 @@ export async function getSettingsAuditLogs(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "Failed to fetch audit logs.",
+      message:
+        error instanceof Error ? error.message : "Failed to fetch audit logs.",
     };
   }
 }

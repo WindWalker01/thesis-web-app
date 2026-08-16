@@ -3,81 +3,92 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatTimeAgo } from "@/lib/client-utils";
 import { getShowNsfwContentAction } from "@/features/(user)/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
-import type { ArtistReputation, CommunityPageData, Post, VoteType } from "../types";
+import type {
+  ArtistReputation,
+  CommunityPageData,
+  Post,
+  VoteType,
+} from "../types";
 import {
-    computeArtistReputation,
-    FEATURED_WORTHY_MIN_SCORE,
-    getRecognitionTier,
+  computeArtistReputation,
+  FEATURED_WORTHY_MIN_SCORE,
 } from "./artist-reputation";
+import {
+  getCommunityRecognitionBadge,
+  getBadgeLabel,
+  getBadgeIconName,
+  type BadgeThresholds,
+} from "./badge-thresholds";
+import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 
 export type CommunityPostDetail = {
-    post: Post;
-    currentUserId: string | null;
-    authed: boolean;
+  post: Post;
+  currentUserId: string | null;
+  authed: boolean;
 };
 
 const COMMUNITY_NAME = "ArtForgeLab";
 const COMMUNITY_HREF = "/community";
 const COMMUNITY_ICON =
-    "https://styles.redditmedia.com/t5_2qk7x/styles/communityIcon_gw3ypy6d357e1.png?width=48&height=48&frame=1&auto=webp&crop=48%3A48%2Csmart&s=82b75539c0b754d2498ab3c553d8857e6215fcc5";
+  "https://styles.redditmedia.com/t5_2qk7x/styles/communityIcon_gw3ypy6d357e1.png?width=48&height=48&frame=1&auto=webp&crop=48%3A48%2Csmart&s=82b75539c0b754d2498ab3c553d8857e6215fcc5";
 
 type ArtReactionRow = {
-    user_id: string;
-    reaction_type: "upvote" | "downvote";
+  user_id: string;
+  reaction_type: "upvote" | "downvote";
 };
 
-    type ArtPostRow = {
-    id: string;
-    art_id: string;
-    user_id: string;
-    visibility: "public" | "private";
-    is_archived: boolean;
-    is_nsfw: boolean;
-    upvote_count: number;
-    downvote_count: number;
-    score: number;
-    created_at: string;
-    registered_arts:
-        | {
-            id: string;
-            title: string;
-            description: string | null;
-            c_secure_url: string | null;
-            status: string;
-        }[]
-        | null;
-    users:
-        | {
-            id: string;
-            username: string;
-            first_name: string | null;
-            middle_name: string | null;
-            last_name: string | null;
-            c_profile_image: string | null;
-        }[]
-        | null;
-    art_reactions?: ArtReactionRow[] | null;
-    reports?: { reporter_id: string }[] | null;
-    };
+type ArtPostRow = {
+  id: string;
+  art_id: string;
+  user_id: string;
+  visibility: "public" | "private";
+  is_archived: boolean;
+  is_nsfw: boolean;
+  upvote_count: number;
+  downvote_count: number;
+  score: number;
+  created_at: string;
+  registered_arts:
+    | {
+        id: string;
+        title: string;
+        description: string | null;
+        c_secure_url: string | null;
+        status: string;
+      }[]
+    | null;
+  users:
+    | {
+        id: string;
+        username: string;
+        first_name: string | null;
+        middle_name: string | null;
+        last_name: string | null;
+        c_profile_image: string | null;
+      }[]
+    | null;
+  art_reactions?: ArtReactionRow[] | null;
+  reports?: { reporter_id: string }[] | null;
+};
 
 type ArtGenreRow = {
-    art_id: string;
-    genre_id: number;
-    genres: { name: string } | { name: string }[] | null;
+  art_id: string;
+  genre_id: number;
+  genres: { name: string } | { name: string }[] | null;
 };
 
 function toSingleObject<T>(value: T | T[] | null): T | null {
-    if (!value) return null;
-    return Array.isArray(value) ? (value[0] ?? null) : value;
+  if (!value) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
 // Community Recognition thresholds and reputation scoring live in
-// `./artist-reputation` so the badge tier and the numeric reputation share a
+// `./badge-thresholds` so the badge tier and the numeric reputation share a
 // single source of truth.
 
 type ArtistStats = {
-    tier: Post["artistBadge"];
-    reputation: ArtistReputation;
+  tier: Post["artistBadge"];
+  reputation: ArtistReputation;
 };
 
 /**
@@ -85,7 +96,6 @@ type ArtistStats = {
  * in a single pass, then derive both the recognition tier and the numeric
  * reputation. Computed before any NSFW display filtering so results are
  * identical for every viewer (no viewer-dependent badges or scores).
- * Private/archived posts are excluded so hidden work never inflates standing.
  *
  * Rows are filtered with the same artwork/author guard that `mapPosts` applies,
  * so standing only reflects posts actually shown in the feed. Without this,
@@ -94,54 +104,55 @@ type ArtistStats = {
  * hidden/non-active posts inflate an artist's standing.
  */
 function buildArtistStatsMap(
-    publicRows: ArtPostRow[],
+  publicRows: ArtPostRow[],
+  thresholds: BadgeThresholds,
 ): Map<string, ArtistStats> {
-    const netScoreByArtist = new Map<string, number>();
-    const upvotesByArtist = new Map<string, number>();
-    const featuredWorthyByArtist = new Map<string, number>();
+  const netScoreByArtist = new Map<string, number>();
+  const upvotesByArtist = new Map<string, number>();
+  const featuredWorthyByArtist = new Map<string, number>();
 
-    for (const row of publicRows) {
-        const artwork = toSingleObject(row.registered_arts);
-        const author = toSingleObject(row.users);
+  for (const row of publicRows) {
+    const artwork = toSingleObject(row.registered_arts);
+    const author = toSingleObject(row.users);
 
-        if (!artwork || !author) continue;
+    if (!artwork || !author) continue;
 
-        const score = row.score ?? 0;
+    const score = row.score ?? 0;
 
-        netScoreByArtist.set(
-            row.user_id,
-            (netScoreByArtist.get(row.user_id) ?? 0) + score,
-        );
-        upvotesByArtist.set(
-            row.user_id,
-            (upvotesByArtist.get(row.user_id) ?? 0) + (row.upvote_count ?? 0),
-        );
+    netScoreByArtist.set(
+      row.user_id,
+      (netScoreByArtist.get(row.user_id) ?? 0) + score,
+    );
+    upvotesByArtist.set(
+      row.user_id,
+      (upvotesByArtist.get(row.user_id) ?? 0) + (row.upvote_count ?? 0),
+    );
 
-        if (score >= FEATURED_WORTHY_MIN_SCORE) {
-            featuredWorthyByArtist.set(
-                row.user_id,
-                (featuredWorthyByArtist.get(row.user_id) ?? 0) + 1,
-            );
-        }
+    if (score >= FEATURED_WORTHY_MIN_SCORE) {
+      featuredWorthyByArtist.set(
+        row.user_id,
+        (featuredWorthyByArtist.get(row.user_id) ?? 0) + 1,
+      );
     }
+  }
 
-    const statsByArtist = new Map<string, ArtistStats>();
+  const statsByArtist = new Map<string, ArtistStats>();
 
-    for (const [userId, totalNetScore] of netScoreByArtist) {
-        const totalUpvotes = upvotesByArtist.get(userId) ?? 0;
-        const featuredWorthyCount = featuredWorthyByArtist.get(userId) ?? 0;
+  for (const [userId, totalNetScore] of netScoreByArtist) {
+    const totalUpvotes = upvotesByArtist.get(userId) ?? 0;
+    const featuredWorthyCount = featuredWorthyByArtist.get(userId) ?? 0;
 
-        statsByArtist.set(userId, {
-            tier: getRecognitionTier(totalNetScore),
-            reputation: computeArtistReputation({
-                totalNetScore,
-                totalUpvotes,
-                featuredWorthyCount,
-            }),
-        });
-    }
+    statsByArtist.set(userId, {
+      tier: getCommunityRecognitionBadge(totalNetScore, thresholds),
+      reputation: computeArtistReputation({
+        totalNetScore,
+        totalUpvotes,
+        featuredWorthyCount,
+      }),
+    });
+  }
 
-    return statsByArtist;
+  return statsByArtist;
 }
 
 /**
@@ -149,90 +160,96 @@ function buildArtistStatsMap(
  * their own private-only post), keeping the modal free of undefined access.
  */
 const EMPTY_REPUTATION: ArtistReputation = computeArtistReputation({
-    totalNetScore: 0,
-    totalUpvotes: 0,
-    featuredWorthyCount: 0,
+  totalNetScore: 0,
+  totalUpvotes: 0,
+  featuredWorthyCount: 0,
 });
 
 function getCurrentUserVote(
-    reactions: ArtReactionRow[] | null | undefined,
-    currentUserId: string | null,
+  reactions: ArtReactionRow[] | null | undefined,
+  currentUserId: string | null,
 ): VoteType {
-    if (!currentUserId || !reactions?.length) return null;
+  if (!currentUserId || !reactions?.length) return null;
 
-    const match = reactions.find((reaction) => reaction.user_id === currentUserId);
-    return match?.reaction_type ?? null;
+  const match = reactions.find(
+    (reaction) => reaction.user_id === currentUserId,
+  );
+  return match?.reaction_type ?? null;
 }
 
 function getHasReported(
-    reports: { reporter_id: string }[] | null | undefined,
-    currentUserId: string | null,
+  reports: { reporter_id: string }[] | null | undefined,
+  currentUserId: string | null,
 ): boolean {
-    if (!currentUserId || !reports?.length) return false;
-    return reports.some((report) => report.reporter_id === currentUserId);
+  if (!currentUserId || !reports?.length) return false;
+  return reports.some((report) => report.reporter_id === currentUserId);
 }
 
 function mapPosts(
-    rows: ArtPostRow[],
-    categoryByArtId: Map<string, string>,
-    currentUserId: string | null,
-    statsByArtist: Map<string, ArtistStats>,
+  rows: ArtPostRow[],
+  categoryByArtId: Map<string, string>,
+  currentUserId: string | null,
+  statsByArtist: Map<string, ArtistStats>,
 ): Post[] {
-    const posts: Post[] = [];
+  const posts: Post[] = [];
 
-    for (const row of rows) {
-        const artwork = toSingleObject(row.registered_arts);
-        const author = toSingleObject(row.users);
+  for (const row of rows) {
+    const artwork = toSingleObject(row.registered_arts);
+    const author = toSingleObject(row.users);
 
-        if (!artwork || !author) continue;
+    if (!artwork || !author) continue;
 
-        const category = categoryByArtId.get(row.art_id) ?? "Uncategorized";
-        const currentUserVote = getCurrentUserVote(row.art_reactions, currentUserId);
-        const hasReported = getHasReported(row.reports, currentUserId);
-        const stats = statsByArtist.get(row.user_id);
+    const category = categoryByArtId.get(row.art_id) ?? "Uncategorized";
+    const currentUserVote = getCurrentUserVote(
+      row.art_reactions,
+      currentUserId,
+    );
+    const hasReported = getHasReported(row.reports, currentUserId);
+    const stats = statsByArtist.get(row.user_id);
 
-        posts.push({
-            id: row.id,
-            postId: row.id,
-            artId: row.art_id,
-            userId: row.user_id,
+    posts.push({
+      id: row.id,
+      postId: row.id,
+      artId: row.art_id,
+      userId: row.user_id,
 
-            subredditName: COMMUNITY_NAME,
-            subredditHref: COMMUNITY_HREF,
+      subredditName: COMMUNITY_NAME,
+      subredditHref: COMMUNITY_HREF,
 
-            username: author.username,
-            userHref: `/profile/${author.username}`,
-            fullName: [author.first_name, author.middle_name, author.last_name]
-            .filter(Boolean)
-            .join(" ") || author.username,
-            profileImage: author.c_profile_image,
+      username: author.username,
+      userHref: `/profile/${author.username}`,
+      fullName:
+        [author.first_name, author.middle_name, author.last_name]
+          .filter(Boolean)
+          .join(" ") || author.username,
+      profileImage: author.c_profile_image,
 
-            createdAt: row.created_at,
-            timeAgo: formatTimeAgo(row.created_at),
+      createdAt: row.created_at,
+      timeAgo: formatTimeAgo(row.created_at),
 
-            title: artwork.title,
-            imageSrc: artwork.c_secure_url || COMMUNITY_ICON,
-            imageAlt: artwork.title,
+      title: artwork.title,
+      imageSrc: artwork.c_secure_url || COMMUNITY_ICON,
+      imageAlt: artwork.title,
 
-            score: row.score,
-            upvoteCount: row.upvote_count,
-            downvoteCount: row.downvote_count,
-            currentUserVote,
+      score: row.score,
+      upvoteCount: row.upvote_count,
+      downvoteCount: row.downvote_count,
+      currentUserVote,
 
-            category,
-            excerpt: artwork.description ?? undefined,
-            artistBadge: stats?.tier ?? "Emerging",
-            artistReputation: stats?.reputation ?? EMPTY_REPUTATION,
-            tags: [],
+      category,
+      excerpt: artwork.description ?? undefined,
+      artistBadge: stats?.tier ?? "Emerging",
+      artistReputation: stats?.reputation ?? EMPTY_REPUTATION,
+      tags: [],
 
-            visibility: row.visibility,
-            isArchived: row.is_archived,
-            isNsfw: row.is_nsfw ?? false,
-            hasReported,
-        });
-    }
+      visibility: row.visibility,
+      isArchived: row.is_archived,
+      isNsfw: row.is_nsfw ?? false,
+      hasReported,
+    });
+  }
 
-    return posts;
+  return posts;
 }
 
 const ART_POST_SELECT = `
@@ -271,163 +288,169 @@ const ART_POST_SELECT = `
 `;
 
 export async function getCommunityFeedData(): Promise<CommunityPageData> {
-    const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const authed = Boolean(user);
+  const authed = Boolean(user);
 
-    // Fetch the user's NSFW preference (defaults to false for guests)
-    const showNsfwContent = user ? await getShowNsfwContentAction() : false;
+  // Fetch the user's NSFW preference (defaults to false for guests)
+  const showNsfwContent = user ? await getShowNsfwContentAction() : false;
 
-    const { data: publicRows, error: publicError } = await supabase
-        .from("art_posts")
-        .select(ART_POST_SELECT)
-        .eq("visibility", "public")
-        .eq("is_archived", false)
-        .eq("registered_arts.status", "active")
-        .order("created_at", { ascending: false });
+  const { data: publicRows, error: publicError } = await supabase
+    .from("art_posts")
+    .select(ART_POST_SELECT)
+    .eq("visibility", "public")
+    .eq("is_archived", false)
+    .eq("registered_arts.status", "active")
+    .order("created_at", { ascending: false });
 
-    if (publicError) {
-        throw new Error(publicError.message);
-    }
+  if (publicError) {
+    throw new Error(publicError.message);
+  }
 
-    let ownRows: ArtPostRow[] = [];
+  let ownRows: ArtPostRow[] = [];
 
-    if (user) {
-        const { data, error } = await supabase
-            .from("art_posts")
-            .select(ART_POST_SELECT)
-            .eq("user_id", user.id)
-            .eq("is_archived", false)
-            .eq("registered_arts.status", "active")
-            .order("created_at", { ascending: false });
-
-        if (error) {
-            throw new Error(error.message);
-        }
-
-        ownRows = (data ?? []) as ArtPostRow[];
-    }
-
-    const mergedMap = new Map<string, ArtPostRow>();
-
-    for (const row of (publicRows ?? []) as ArtPostRow[]) {
-        mergedMap.set(row.id, row);
-    }
-
-    for (const row of ownRows) {
-        mergedMap.set(row.id, row);
-    }
-
-    const mergedRows = Array.from(mergedMap.values());
-    const artIds = Array.from(new Set(mergedRows.map((row) => row.art_id)));
-    const categoryByArtId = new Map<string, string>();
-
-    if (artIds.length > 0) {
-        const { data: genreRows, error: genreError } = await supabase
-            .from("art_genres")
-            .select(`
-        art_id,
-        genre_id,
-        genres (
-          name
-        )
-      `)
-            .in("art_id", artIds)
-            .order("genre_id", { ascending: true });
-
-        if (genreError) {
-            throw new Error(genreError.message);
-        }
-
-        for (const row of (genreRows ?? []) as ArtGenreRow[]) {
-            if (categoryByArtId.has(row.art_id)) continue;
-
-            const genreValue = row.genres;
-            const genreName = Array.isArray(genreValue)
-                ? (genreValue[0]?.name ?? null)
-                : (genreValue?.name ?? null);
-
-            if (genreName?.trim()) {
-                categoryByArtId.set(row.art_id, genreName.trim());
-            }
-        }
-    }
-
-    const allPosts = mapPosts(
-        mergedRows,
-        categoryByArtId,
-        user?.id ?? null,
-        buildArtistStatsMap((publicRows ?? []) as ArtPostRow[]),
-    );
-
-    // Filter out NSFW posts unless the user has opted in.
-    // Always keep the user's own posts regardless of NSFW status.
-    const posts = showNsfwContent
-        ? allPosts
-        : allPosts.filter(
-              (post) => !post.isNsfw || post.userId === user?.id,
-          );
-
-    const publicPosts = posts.filter(
-        (post) => post.visibility === "public" && !post.isArchived,
-    );
-
-    const uniqueArtists = new Set(publicPosts.map((post) => post.userId));
-
-    return {
-        authed,
-        currentUserId: user?.id ?? null,
-        currentUsername:
-            posts.find((post) => post.userId === user?.id)?.username ?? null,
-        posts,
-        stats: {
-            publishedWorks: `${publicPosts.length}+`,
-            activeArtists: `${uniqueArtists.size}+`,
-            protectedPosts: `${posts.length}+`,
-        },
-    };
-}
-
-async function getCategoryForArt(
-    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-    artId: string,
-): Promise<Map<string, string>> {
-    const categoryByArtId = new Map<string, string>();
-
-    const { data: genreRows, error } = await supabase
-        .from("art_genres")
-        .select(`
-        art_id,
-        genre_id,
-        genres (
-          name
-        )
-      `)
-        .eq("art_id", artId)
-        .order("genre_id", { ascending: true });
+  if (user) {
+    const { data, error } = await supabase
+      .from("art_posts")
+      .select(ART_POST_SELECT)
+      .eq("user_id", user.id)
+      .eq("is_archived", false)
+      .eq("registered_arts.status", "active")
+      .order("created_at", { ascending: false });
 
     if (error) {
-        throw new Error(error.message);
+      throw new Error(error.message);
+    }
+
+    ownRows = (data ?? []) as ArtPostRow[];
+  }
+
+  // Get badge thresholds from runtime settings (async)
+  const runtimeSettings = await getRuntimeSettings();
+  const thresholds = runtimeSettings.community_recognition_badge_thresholds;
+
+  const mergedMap = new Map<string, ArtPostRow>();
+
+  for (const row of (publicRows ?? []) as ArtPostRow[]) {
+    mergedMap.set(row.id, row);
+  }
+
+  for (const row of ownRows) {
+    mergedMap.set(row.id, row);
+  }
+
+  const mergedRows = Array.from(mergedMap.values());
+  const artIds = Array.from(new Set(mergedRows.map((row) => row.art_id)));
+  const categoryByArtId = new Map<string, string>();
+
+  if (artIds.length > 0) {
+    const { data: genreRows, error: genreError } = await supabase
+      .from("art_genres")
+      .select(
+        `
+    art_id,
+    genre_id,
+    genres (
+      name
+    )
+  `,
+      )
+      .in("art_id", artIds)
+      .order("genre_id", { ascending: true });
+
+    if (genreError) {
+      throw new Error(genreError.message);
     }
 
     for (const row of (genreRows ?? []) as ArtGenreRow[]) {
-        if (categoryByArtId.has(row.art_id)) continue;
+      if (categoryByArtId.has(row.art_id)) continue;
 
-        const genreValue = row.genres;
-        const genreName = Array.isArray(genreValue)
-            ? (genreValue[0]?.name ?? null)
-            : (genreValue?.name ?? null);
+      const genreValue = row.genres;
+      const genreName = Array.isArray(genreValue)
+        ? (genreValue[0]?.name ?? null)
+        : (genreValue?.name ?? null);
 
-        if (genreName?.trim()) {
-            categoryByArtId.set(row.art_id, genreName.trim());
-        }
+      if (genreName?.trim()) {
+        categoryByArtId.set(row.art_id, genreName.trim());
+      }
     }
+  }
 
-    return categoryByArtId;
+  const allPosts = mapPosts(
+    mergedRows,
+    categoryByArtId,
+    user?.id ?? null,
+    buildArtistStatsMap((publicRows ?? []) as ArtPostRow[], thresholds),
+  );
+
+  // Filter out NSFW posts unless the user has opted in.
+  // Always keep the user's own posts regardless of NSFW status.
+  const posts = showNsfwContent
+    ? allPosts
+    : allPosts.filter((post) => !post.isNsfw || post.userId === user?.id);
+
+  const publicPosts = posts.filter(
+    (post) => post.visibility === "public" && !post.isArchived,
+  );
+
+  const uniqueArtists = new Set(publicPosts.map((post) => post.userId));
+
+  return {
+    authed,
+    currentUserId: user?.id ?? null,
+    currentUsername:
+      posts.find((post) => post.userId === user?.id)?.username ?? null,
+    posts,
+    stats: {
+      publishedWorks: `${publicPosts.length}+`,
+      activeArtists: `${uniqueArtists.size}+`,
+      protectedPosts: `${posts.length}+`,
+    },
+  };
+}
+
+async function getCategoryForArt(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  artId: string,
+): Promise<Map<string, string>> {
+  const categoryByArtId = new Map<string, string>();
+
+  const { data: genreRows, error } = await supabase
+    .from("art_genres")
+    .select(
+      `
+    art_id,
+    genre_id,
+    genres (
+      name
+    )
+  `,
+    )
+    .eq("art_id", artId)
+    .order("genre_id", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  for (const row of (genreRows ?? []) as ArtGenreRow[]) {
+    if (categoryByArtId.has(row.art_id)) continue;
+
+    const genreValue = row.genres;
+    const genreName = Array.isArray(genreValue)
+      ? (genreValue[0]?.name ?? null)
+      : (genreValue?.name ?? null);
+
+    if (genreName?.trim()) {
+      categoryByArtId.set(row.art_id, genreName.trim());
+    }
+  }
+
+  return categoryByArtId;
 }
 
 /**
@@ -436,54 +459,54 @@ async function getCategoryForArt(
  * artwork, private and not owned, or NSFW without opt-in) so the route can 404.
  */
 export async function getCommunityPostById(
-    postId: string,
+  postId: string,
 ): Promise<CommunityPostDetail | null> {
-    const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const currentUserId = user?.id ?? null;
-    const authed = Boolean(user);
+  const currentUserId = user?.id ?? null;
+  const authed = Boolean(user);
 
-    const { data, error } = await supabase
-        .from("art_posts")
-        .select(ART_POST_SELECT)
-        .eq("id", postId)
-        .maybeSingle();
+  const { data, error } = await supabase
+    .from("art_posts")
+    .select(ART_POST_SELECT)
+    .eq("id", postId)
+    .maybeSingle();
 
-    if (error) {
-        throw new Error(error.message);
-    }
+  if (error) {
+    throw new Error(error.message);
+  }
 
-    if (!data) return null;
+  if (!data) return null;
 
-    const row = data as ArtPostRow;
-    const artwork = toSingleObject(row.registered_arts);
-    const author = toSingleObject(row.users);
+  const row = data as ArtPostRow;
+  const artwork = toSingleObject(row.registered_arts);
+  const author = toSingleObject(row.users);
 
-    if (!artwork || !author) return null;
+  if (!artwork || !author) return null;
 
-    const isOwner = currentUserId === row.user_id;
+  const isOwner = currentUserId === row.user_id;
 
-    // Access rules: only the owner may view archived, inactive, or private posts.
-    if (!isOwner) {
-        if (row.is_archived) return null;
-        if (row.visibility !== "public") return null;
-        if (artwork.status !== "active") return null;
-    }
+  // Access rules: only the owner may view archived, inactive, or private posts.
+  if (!isOwner) {
+    if (row.is_archived) return null;
+    if (row.visibility !== "public") return null;
+    if (artwork.status !== "active") return null;
+  }
 
-    // Respect the viewer's NSFW preference unless they own the post.
-    if (row.is_nsfw && !isOwner) {
-        const showNsfwContent = user ? await getShowNsfwContentAction() : false;
-        if (!showNsfwContent) return null;
-    }
+  // Respect the viewer's NSFW preference unless they own the post.
+  if (row.is_nsfw && !isOwner) {
+    const showNsfwContent = user ? await getShowNsfwContentAction() : false;
+    if (!showNsfwContent) return null;
+  }
 
-    const categoryByArtId = await getCategoryForArt(supabase, row.art_id);
-    const [post] = mapPosts([row], categoryByArtId, currentUserId, new Map());
+  const categoryByArtId = await getCategoryForArt(supabase, row.art_id);
+  const [post] = mapPosts([row], categoryByArtId, currentUserId, new Map());
 
-    if (!post) return null;
+  if (!post) return null;
 
-    return { post, currentUserId, authed };
+  return { post, currentUserId, authed };
 }

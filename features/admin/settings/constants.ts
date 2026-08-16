@@ -1,4 +1,8 @@
-import type { SettingDefinition, SettingsCategory, SettingValue } from "./types";
+import type {
+  SettingDefinition,
+  SettingsCategory,
+  SettingValue,
+} from "./types";
 
 // ============================================
 // Default Values & Category Definitions
@@ -7,7 +11,8 @@ import type { SettingDefinition, SettingsCategory, SettingValue } from "./types"
 export const DEFAULT_SETTINGS: Record<string, SettingValue> = {
   // General
   platform_name: "ArtForgeLab",
-  platform_description: "Intellectual Property Rights Management System for Digital Art",
+  platform_description:
+    "Intellectual Property Rights Management System for Digital Art",
   platform_logo_url: "/landing-page-elements/AFL_logoWeb.png",
   support_email: "support@artforgelab.com",
   default_timezone: "UTC",
@@ -43,12 +48,20 @@ export const DEFAULT_SETTINGS: Record<string, SettingValue> = {
 
   // Maintenance
   maintenance_mode: false,
-  maintenance_message: "We are currently performing scheduled maintenance. Please check back shortly.",
+  maintenance_message:
+    "We are currently performing scheduled maintenance. Please check back shortly.",
   scheduled_maintenance: false,
   scheduled_maintenance_start: "",
   scheduled_maintenance_end: "",
   allow_admin_login_during_maintenance: true,
   display_countdown: false,
+
+  // Community Recognition (JSON object)
+  community_recognition_badge_thresholds: {
+    Recognized: 5,
+    Acclaimed: 8,
+    Master: 11,
+  },
 };
 
 // ============================================
@@ -72,14 +85,17 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "platform_description",
         label: "Platform Description",
-        description: "A short description of the platform used in meta tags and headers",
+        description:
+          "A short description of the platform used in meta tags and headers",
         type: "textarea",
-        defaultValue: "Intellectual Property Rights Management System for Digital Art",
+        defaultValue:
+          "Intellectual Property Rights Management System for Digital Art",
       },
       {
         key: "platform_logo_url",
         label: "Platform Logo URL",
-        description: "URL or path to the platform logo image displayed throughout the application",
+        description:
+          "URL or path to the platform logo image displayed throughout the application",
         type: "text",
         defaultValue: "/landing-page-elements/AFL_logoWeb.png",
         placeholder: "/path/to/logo.png",
@@ -95,7 +111,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "default_timezone",
         label: "Default Time Zone",
-        description: "Default timezone for date and time displays across the platform",
+        description:
+          "Default timezone for date and time displays across the platform",
         type: "select",
         defaultValue: "UTC",
         options: [
@@ -103,7 +120,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
           { label: "America/New_York (Eastern)", value: "America/New_York" },
           { label: "America/Chicago (Central)", value: "America/Chicago" },
           { label: "America/Denver (Mountain)", value: "America/Denver" },
-          { label: "America/Los_Angeles (Pacific)", value: "America/Los_Angeles" },
+          {
+            label: "America/Los_Angeles (Pacific)",
+            value: "America/Los_Angeles",
+          },
           { label: "Europe/London (GMT)", value: "Europe/London" },
           { label: "Europe/Paris (CET)", value: "Europe/Paris" },
           { label: "Asia/Tokyo (JST)", value: "Asia/Tokyo" },
@@ -143,10 +163,12 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "detection-rules",
         helpText:
           "Higher values (e.g., 95%) detect only near-identical copies. Lower values (e.g., 60%) identify more possible matches but may increase false positives. This setting directly affects plagiarism detection accuracy.",
-        tooltip: "Determines when the system considers two artworks highly similar",
+        tooltip:
+          "Determines when the system considers two artworks highly similar",
         recommendedValue: "80% for most digital artwork collections",
         requiresConfirmation: true,
-        confirmationMessage: "Changing this value affects all future plagiarism scans. Continue?",
+        confirmationMessage:
+          "Changing this value affects all future plagiarism scans. Continue?",
       },
       {
         key: "manual_review_threshold",
@@ -163,7 +185,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "Lower values result in more artworks requiring admin review, increasing moderation workload. Higher values allow more artworks to pass through automatically but may let questionable content through. This affects the moderation workflow, not detection accuracy.",
         tooltip: "Controls which artworks require manual admin review",
-        recommendedValue: "60% for balanced moderation. Increase to 80% to reduce review workload.",
+        recommendedValue:
+          "60% for balanced moderation. Increase to 80% to reduce review workload.",
       },
       {
         key: "automatic_approval_threshold",
@@ -180,9 +203,11 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "Raising this value approves more artworks automatically, reducing admin workload. Lowering it increases the number of artworks that require review, which may catch more potential issues. This affects the approval workflow, not detection.",
         tooltip: "Artworks below this score bypass manual review entirely",
-        recommendedValue: "20–30% for most setups. Lower for stricter approval, higher for faster throughput.",
+        recommendedValue:
+          "20–30% for most setups. Lower for stricter approval, higher for faster throughput.",
         requiresConfirmation: true,
-        confirmationMessage: "This will bypass manual reviews for artworks below the threshold. Continue?",
+        confirmationMessage:
+          "This will bypass manual reviews for artworks below the threshold. Continue?",
       },
       {
         key: "minimum_confidence_score",
@@ -199,7 +224,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "Higher values (e.g., 70%) show only high-confidence matches, reducing false positives. Lower values (e.g., 30%) include more matches but some may be unreliable. This affects report quality, not security.",
         tooltip: "Filters out unreliable or low-confidence similarity matches",
-        recommendedValue: "50% for balanced reliability. Raise to 70% for stricter confidence requirements.",
+        recommendedValue:
+          "50% for balanced reliability. Raise to 70% for stricter confidence requirements.",
       },
 
       // ── Scan Behavior ──────────────────────────────────────────────
@@ -213,8 +239,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "scan-behavior",
         helpText:
           "Disabling this means no similarity checks run on upload unless an admin manually initiates them. This may reduce server load but increases the risk of undetected duplicates.",
-        tooltip: "Controls whether uploads are scanned immediately after submission",
-        recommendedValue: "Keep enabled unless performing batch uploads or maintenance.",
+        tooltip:
+          "Controls whether uploads are scanned immediately after submission",
+        recommendedValue:
+          "Keep enabled unless performing batch uploads or maintenance.",
       },
       {
         key: "enable_external_search",
@@ -228,7 +256,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "Disabling external search limits scanning to internal artworks only. External search significantly expands detection reach but may increase scan time. This affects detection coverage, not accuracy.",
         tooltip: "Searches outside the internal artwork database for matches",
-        recommendedValue: "Keep enabled for comprehensive plagiarism detection.",
+        recommendedValue:
+          "Keep enabled for comprehensive plagiarism detection.",
       },
       {
         key: "similarity_scan_timeout",
@@ -244,7 +273,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "Increase this value for large artworks or when external search is enabled, as those scans take longer. Decrease it to free up server resources faster. This affects performance only, not detection accuracy.",
         tooltip: "Maximum duration before a scan is cancelled",
-        recommendedValue: "60 seconds for internal scans. 120 seconds when external search is active.",
+        recommendedValue:
+          "60 seconds for internal scans. 120 seconds when external search is active.",
       },
       {
         key: "retry_attempts",
@@ -258,8 +288,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "scan-behavior",
         helpText:
           "Set to 0 to disable automatic retries (scans will fail on first error). Higher values increase reliability but may delay reporting of persistent failures. This affects reliability, not detection accuracy.",
-        tooltip: "Failed scans are retried automatically before being marked as failed",
-        recommendedValue: "3 attempts for most setups. Increase to 5 for unreliable network connections.",
+        tooltip:
+          "Failed scans are retried automatically before being marked as failed",
+        recommendedValue:
+          "3 attempts for most setups. Increase to 5 for unreliable network connections.",
       },
       {
         key: "maximum_similarity_matches",
@@ -274,7 +306,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "Higher values provide a more comprehensive list but increase report generation time. Lower values improve performance but may miss some potential matches. This affects performance and report size only, not detection accuracy.",
         tooltip: "Limits the number of matches shown in similarity reports",
-        recommendedValue: "20 for balanced performance. Increase to 50 for thorough investigations.",
+        recommendedValue:
+          "20 for balanced performance. Increase to 50 for thorough investigations.",
       },
 
       // ── Duplicate Prevention ───────────────────────────────────────
@@ -288,7 +321,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "duplicate-prevention",
         helpText:
           "This uses file hashing to detect exact byte-for-byte duplicates. It catches re-uploads of the same file regardless of metadata changes. This is a security measure, not a similarity check.",
-        tooltip: "Blocks exact file duplicates using file hashes before similarity analysis",
+        tooltip:
+          "Blocks exact file duplicates using file hashes before similarity analysis",
         recommendedValue: "Keep enabled to prevent duplicate registrations.",
       },
 
@@ -308,8 +342,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "report-display",
         helpText:
           "A purely cosmetic setting. It prevents low-scoring database matches from appearing as the primary result when a better internet match exists. Does not affect detection, moderation, or approval decisions.",
-        tooltip: "Controls which match is displayed as primary in the report (cosmetic only)",
-        recommendedValue: "60% — matches below this are replaced by the best internet match.",
+        tooltip:
+          "Controls which match is displayed as primary in the report (cosmetic only)",
+        recommendedValue:
+          "60% — matches below this are replaced by the best internet match.",
       },
       {
         key: "min_render_threshold",
@@ -326,7 +362,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "report-display",
         helpText:
           "A purely cosmetic setting. Lower values show more matches (including weak ones), which can overwhelm the report view. Higher values filter out weak matches for a cleaner display. Does not affect detection.",
-        tooltip: "Hides low-scoring similarity cards to reduce visual noise (cosmetic)",
+        tooltip:
+          "Hides low-scoring similarity cards to reduce visual noise (cosmetic)",
         recommendedValue: "60% — hides weak matches for a cleaner report view.",
       },
       {
@@ -344,8 +381,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "report-display",
         helpText:
           "A purely cosmetic setting. Lower values cause more matches to be labelled 'Very Similar'. This does not change which matches are flagged or reviewed — only how they appear.",
-        tooltip: "Matches above this value receive the 'Very Similar' label (cosmetic)",
-        recommendedValue: "90% — only near-identical works receive the 'Very Similar' badge.",
+        tooltip:
+          "Matches above this value receive the 'Very Similar' label (cosmetic)",
+        recommendedValue:
+          "90% — only near-identical works receive the 'Very Similar' badge.",
       },
       {
         key: "display_label_similar",
@@ -362,8 +401,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         group: "report-display",
         helpText:
           "A purely cosmetic setting. Matches between this threshold and the 'Very Similar' threshold are labelled 'Similar'. Does not affect which matches are flagged for review.",
-        tooltip: "Matches above this value receive the 'Similar' label (cosmetic)",
-        recommendedValue: "75% — reasonable matches receive the 'Similar' badge.",
+        tooltip:
+          "Matches above this value receive the 'Similar' label (cosmetic)",
+        recommendedValue:
+          "75% — reasonable matches receive the 'Similar' badge.",
       },
 
       // ── PDF Report (cosmetic) ──────────────────────────────────────
@@ -383,7 +424,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "A purely cosmetic PDF-only setting. It controls the severity badge colour shown in printed/exported reports. Has no effect on the web interface or detection logic.",
         tooltip: "Severity badge shown in exported PDF reports (cosmetic only)",
-        recommendedValue: "90% — only extreme matches get the critical severity badge.",
+        recommendedValue:
+          "90% — only extreme matches get the critical severity badge.",
       },
       {
         key: "pdf_report_high",
@@ -401,7 +443,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "A purely cosmetic PDF-only setting. Matches between this threshold and the 'Critical' threshold are labelled 'HIGH'. Does not affect detection or moderation.",
         tooltip: "Severity badge shown in exported PDF reports (cosmetic only)",
-        recommendedValue: "60% — moderate matches receive the high severity badge.",
+        recommendedValue:
+          "60% — moderate matches receive the high severity badge.",
       },
       {
         key: "pdf_report_moderate",
@@ -419,7 +462,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         helpText:
           "A purely cosmetic PDF-only setting. Matches below this threshold receive no severity badge in exported reports. Does not affect detection or moderation.",
         tooltip: "Severity badge shown in exported PDF reports (cosmetic only)",
-        recommendedValue: "50% — matches below this get no severity badge in PDFs.",
+        recommendedValue:
+          "50% — matches below this get no severity badge in PDFs.",
       },
     ],
   },
@@ -461,14 +505,16 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "require_verified_email",
         label: "Require Verified Email",
-        description: "Whether users must verify their email address before accessing the platform",
+        description:
+          "Whether users must verify their email address before accessing the platform",
         type: "toggle",
         defaultValue: true,
       },
       {
         key: "allowed_origins",
         label: "Allowed Origins",
-        description: "List of allowed CORS origins for API access (one per line)",
+        description:
+          "List of allowed CORS origins for API access (one per line)",
         type: "tags",
         defaultValue: [],
         badge: "advanced",
@@ -476,7 +522,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "enable_audit_logs",
         label: "Enable Audit Logs",
-        description: "Whether administrative audit logging is enabled for tracking all admin actions",
+        description:
+          "Whether administrative audit logging is enabled for tracking all admin actions",
         type: "toggle",
         defaultValue: true,
         badge: "recommended",
@@ -503,31 +550,37 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "maintenance_mode",
         label: "Maintenance Mode",
-        description: "When enabled, the platform will display a maintenance message to all non-admin users",
+        description:
+          "When enabled, the platform will display a maintenance message to all non-admin users",
         type: "toggle",
         defaultValue: false,
         requiresConfirmation: true,
-        confirmationMessage: "Enabling maintenance mode will prevent all users from accessing the platform. Only admins will be able to log in. Continue?",
+        confirmationMessage:
+          "Enabling maintenance mode will prevent all users from accessing the platform. Only admins will be able to log in. Continue?",
       },
       {
         key: "maintenance_message",
         label: "Maintenance Message",
-        description: "Message displayed to users when maintenance mode is active",
+        description:
+          "Message displayed to users when maintenance mode is active",
         type: "textarea",
-        defaultValue: "We are currently performing scheduled maintenance. Please check back shortly.",
+        defaultValue:
+          "We are currently performing scheduled maintenance. Please check back shortly.",
         placeholder: "Enter maintenance message...",
       },
       {
         key: "scheduled_maintenance",
         label: "Scheduled Maintenance",
-        description: "When enabled, the platform will automatically enter maintenance mode at the specified start time and exit at the end time",
+        description:
+          "When enabled, the platform will automatically enter maintenance mode at the specified start time and exit at the end time",
         type: "toggle",
         defaultValue: false,
       },
       {
         key: "scheduled_maintenance_start",
         label: "Scheduled Start Time",
-        description: "The date and time when scheduled maintenance should begin (ISO 8601 format)",
+        description:
+          "The date and time when scheduled maintenance should begin (ISO 8601 format)",
         type: "datetime",
         defaultValue: "",
         placeholder: "e.g. 2026-07-20T02:00:00Z",
@@ -535,7 +588,8 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "scheduled_maintenance_end",
         label: "Scheduled End Time",
-        description: "The date and time when scheduled maintenance should end (ISO 8601 format)",
+        description:
+          "The date and time when scheduled maintenance should end (ISO 8601 format)",
         type: "datetime",
         defaultValue: "",
         placeholder: "e.g. 2026-07-20T06:00:00Z",
@@ -543,16 +597,42 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: "allow_admin_login_during_maintenance",
         label: "Allow Admin Login During Maintenance",
-        description: "Whether administrators can log in to the platform during maintenance mode",
+        description:
+          "Whether administrators can log in to the platform during maintenance mode",
         type: "toggle",
         defaultValue: true,
       },
       {
         key: "display_countdown",
         label: "Display Countdown",
-        description: "Whether to display a countdown timer to users for scheduled maintenance",
+        description:
+          "Whether to display a countdown timer to users for scheduled maintenance",
         type: "toggle",
         defaultValue: false,
+      },
+    ],
+  },
+  {
+    id: "community-recognition",
+    label: "Community Recognition",
+    icon: "TrophyIcon",
+    description:
+      "Badge tier thresholds for artist recognition based on community engagement",
+    settings: [
+      {
+        key: "community_recognition_badge_thresholds",
+        label: "Badge Thresholds",
+        description:
+          "Configure artist recognition badge thresholds based on community engagement score",
+        type: "json",
+        defaultValue: { Recognized: 5, Acclaimed: 8, Master: 11 },
+        isJSON: true,
+        jsonSchemaKey: "community_recognition_badge_thresholds",
+        helpText:
+          "Thresholds must be in ascending order: Recognized < Acclaimed < Master",
+        tooltip:
+          "Controls which badge tier artists earn based on their community engagement score",
+        recommendedValue: "Recognized: 5, Acclaimed: 8, Master: 11",
       },
     ],
   },
