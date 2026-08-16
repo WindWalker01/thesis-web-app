@@ -15,10 +15,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getSettings, updateSettings, resetCategoryDefaults } from "../server/settings";
+import {
+  getSettings,
+  updateSettings,
+  resetCategoryDefaults,
+} from "../server/settings";
 import type { SettingValue, SettingDefinition } from "../types";
-import { SETTINGS_CATEGORIES, DEFAULT_SETTINGS, getSettingByKey, getGroupsForCategory } from "../constants";
+import {
+  SETTINGS_CATEGORIES,
+  DEFAULT_SETTINGS,
+  getSettingByKey,
+  getGroupsForCategory,
+} from "../constants";
 import { SETTING_GROUPS } from "../types";
+import {
+  normalizeCommunityRecognitionThresholds,
+  updateCommunityRecognitionThresholds,
+} from "../lib/community-recognition-thresholds";
 import { SettingsPageSkeleton } from "./page-skeleton";
 import { SettingCard } from "./SettingCard";
 import { SettingInput } from "./SettingInput";
@@ -30,13 +43,17 @@ import { ConfirmDialog } from "./ConfirmDialog";
 
 export default function SettingsPage() {
   // Data state
-  const [settings, setSettings] = useState<Record<string, SettingValue> | null>(null);
+  const [settings, setSettings] = useState<Record<string, SettingValue> | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // UI state
   const [activeTab, setActiveTab] = useState("general");
-  const [dirtyChanges, setDirtyChanges] = useState<Map<string, SettingValue>>(new Map());
+  const [dirtyChanges, setDirtyChanges] = useState<Map<string, SettingValue>>(
+    new Map(),
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -75,13 +92,16 @@ export default function SettingsPage() {
       if (settings && key in settings) return settings[key];
       return DEFAULT_SETTINGS[key] ?? "";
     },
-    [settings, dirtyChanges]
+    [settings, dirtyChanges],
   );
 
   // Helper: get setting definition
-  const getSettingDef = useCallback((key: string): SettingDefinition | undefined => {
-    return getSettingByKey(key);
-  }, []);
+  const getSettingDef = useCallback(
+    (key: string): SettingDefinition | undefined => {
+      return getSettingByKey(key);
+    },
+    [],
+  );
 
   // Handle setting change
   const handleChange = useCallback(
@@ -111,7 +131,7 @@ export default function SettingsPage() {
         return next;
       });
     },
-    [getSettingDef]
+    [getSettingDef],
   );
 
   // Handle save
@@ -134,7 +154,9 @@ export default function SettingsPage() {
         toast.error(result.message);
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save settings");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save settings",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -169,7 +191,9 @@ export default function SettingsPage() {
             toast.error(result.message);
           }
         } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Failed to reset settings");
+          toast.error(
+            err instanceof Error ? err.message : "Failed to reset settings",
+          );
         } finally {
           setIsResetting(false);
         }
@@ -210,7 +234,7 @@ export default function SettingsPage() {
           return undefined;
       }
     },
-    [activeTab, getValue]
+    [activeTab, getValue],
   );
 
   // ── Workflow info card for similarity tab ────────────────────────
@@ -221,61 +245,77 @@ export default function SettingsPage() {
     const similarity = Number(getValue("similarity_threshold"));
 
     return (
-      <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+      <div className="border-border bg-card rounded-lg border p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <Info className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-          <div className="space-y-3 min-w-0">
+          <Info className="text-primary mt-0.5 h-5 w-5 shrink-0" />
+          <div className="min-w-0 space-y-3">
             <div>
-              <h3 className="text-sm font-semibold">How Similarity Detection Works</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                When an artwork is uploaded, the system scans it and calculates a similarity score. The score determines what happens next:
+              <h3 className="text-sm font-semibold">
+                How Similarity Detection Works
+              </h3>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                When an artwork is uploaded, the system scans it and calculates
+                a similarity score. The score determines what happens next:
               </p>
             </div>
 
             <div className="space-y-1.5 text-xs">
               {/* Auto-approve zone */}
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 text-[10px] font-bold">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                   ✔
                 </span>
                 <span>
-                  <strong>Score {'<'}{autoApproval}%</strong> — Artwork is automatically approved. No review needed.
+                  <strong>
+                    Score {"<"}
+                    {autoApproval}%
+                  </strong>{" "}
+                  — Artwork is automatically approved. No review needed.
                 </span>
               </div>
 
               {/* Warning zone */}
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-[10px] font-bold">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
                   !
                 </span>
                 <span>
-                  <strong>{autoApproval}% – {manualReview}%</strong> — Artwork proceeds with registration. Similarity is shown to the uploader as a warning.
+                  <strong>
+                    {autoApproval}% – {manualReview}%
+                  </strong>{" "}
+                  — Artwork proceeds with registration. Similarity is shown to
+                  the uploader as a warning.
                 </span>
               </div>
 
               {/* Manual review zone */}
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400 text-[10px] font-bold">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-100 text-[10px] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400">
                   👁
                 </span>
                 <span>
-                  <strong>{manualReview}% – {similarity}%</strong> — Artwork is sent to an administrator for manual review.
+                  <strong>
+                    {manualReview}% – {similarity}%
+                  </strong>{" "}
+                  — Artwork is sent to an administrator for manual review.
                 </span>
               </div>
 
               {/* Highly similar zone */}
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 text-[10px] font-bold">
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 text-[10px] font-bold text-red-700 dark:bg-red-900/40 dark:text-red-400">
                   🚩
                 </span>
                 <span>
-                  <strong>Score ≥ {similarity}%</strong> — Artwork is flagged as highly similar and sent for admin review.
+                  <strong>Score ≥ {similarity}%</strong> — Artwork is flagged as
+                  highly similar and sent for admin review.
                 </span>
               </div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground/70">
-              Adjust the thresholds below to control where each boundary sits. Changes affect future uploads only.
+            <p className="text-muted-foreground/70 text-[11px]">
+              Adjust the thresholds below to control where each boundary sits.
+              Changes affect future uploads only.
             </p>
           </div>
         </div>
@@ -284,6 +324,59 @@ export default function SettingsPage() {
   };
 
   // ── Render a single setting field ─────────────────────────────────
+
+  const renderCommunityRecognitionThresholds = useCallback(() => {
+    const currentThresholds = normalizeCommunityRecognitionThresholds(
+      getValue("community_recognition_badge_thresholds"),
+    );
+
+    const updateThresholds = (
+      key: "Recognized" | "Acclaimed" | "Master",
+      nextValue: number,
+    ) => {
+      const validated = updateCommunityRecognitionThresholds(
+        currentThresholds,
+        key,
+        nextValue,
+      );
+
+      handleChange("community_recognition_badge_thresholds", validated);
+    };
+
+    return (
+      <div className="space-y-5">
+        <SettingSlider
+          label="Recognized Tier Threshold"
+          value={currentThresholds.Recognized}
+          min={0}
+          max={Math.min(99, currentThresholds.Acclaimed - 1)}
+          step={1}
+          unit="pts"
+          onChange={(value) => updateThresholds("Recognized", Number(value))}
+        />
+
+        <SettingSlider
+          label="Acclaimed Tier Threshold"
+          value={currentThresholds.Acclaimed}
+          min={Math.max(1, currentThresholds.Recognized + 1)}
+          max={Math.min(99, currentThresholds.Master - 1)}
+          step={1}
+          unit="pts"
+          onChange={(value) => updateThresholds("Acclaimed", Number(value))}
+        />
+
+        <SettingSlider
+          label="Master Tier Threshold"
+          value={currentThresholds.Master}
+          min={Math.max(2, currentThresholds.Acclaimed + 1)}
+          max={100}
+          step={1}
+          unit="pts"
+          onChange={(value) => updateThresholds("Master", Number(value))}
+        />
+      </div>
+    );
+  }, [getValue, handleChange]);
 
   const renderSetting = useCallback(
     (setting: SettingDefinition) => {
@@ -310,6 +403,26 @@ export default function SettingsPage() {
                 step={setting.step}
                 unit={setting.unit}
                 onChange={(v) => handleChange(setting.key, Number(v))}
+              />
+            </div>
+          );
+
+        case "json":
+          if (setting.key === "community_recognition_badge_thresholds") {
+            return renderCommunityRecognitionThresholds();
+          }
+          return (
+            <div className="space-y-1">
+              <SettingInput
+                label={setting.label}
+                value={JSON.stringify(value ?? {}, null, 2)}
+                type="textarea"
+                placeholder={setting.placeholder}
+                onChange={(v) => {
+                  const parsed =
+                    typeof v === "string" ? JSON.parse(v || "{}") : v;
+                  handleChange(setting.key, parsed as Record<string, unknown>);
+                }}
               />
             </div>
           );
@@ -389,7 +502,7 @@ export default function SettingsPage() {
           );
       }
     },
-    [getValue, handleChange]
+    [getValue, handleChange, renderCommunityRecognitionThresholds],
   );
 
   // ── Helper: determine if a setting should be visible ────────────
@@ -411,8 +524,14 @@ export default function SettingsPage() {
       // Gate scheduled datetime fields by BOTH maintenance_mode AND scheduled_maintenance.
       // This prevents the edge case where scheduled_maintenance was saved as ON
       // but maintenance_mode was later turned OFF.
-      if (setting.key === "scheduled_maintenance_start" || setting.key === "scheduled_maintenance_end") {
-        return Boolean(getValue("maintenance_mode")) && Boolean(getValue("scheduled_maintenance"));
+      if (
+        setting.key === "scheduled_maintenance_start" ||
+        setting.key === "scheduled_maintenance_end"
+      ) {
+        return (
+          Boolean(getValue("maintenance_mode")) &&
+          Boolean(getValue("scheduled_maintenance"))
+        );
       }
       // Gate all other child settings by the maintenance_mode toggle
       if (MAINTENANCE_CHILD_KEYS.has(setting.key)) {
@@ -420,7 +539,7 @@ export default function SettingsPage() {
       }
       return true;
     },
-    [getValue]
+    [getValue],
   );
 
   // ── Render a single setting card with all new props ──────────────
@@ -448,7 +567,7 @@ export default function SettingsPage() {
         </SettingCard>
       );
     },
-    [renderSetting, getValidationWarnings]
+    [renderSetting, getValidationWarnings],
   );
 
   // ── Render settings grouped by their `group` field ───────────────
@@ -486,7 +605,9 @@ export default function SettingsPage() {
         <div className="space-y-6">
           {groupIds.map((groupId) => {
             const groupDef = SETTING_GROUPS.find((g) => g.id === groupId);
-            const groupSettings = category.settings.filter((s) => s.group === groupId).filter(isSettingVisible);
+            const groupSettings = category.settings
+              .filter((s) => s.group === groupId)
+              .filter(isSettingVisible);
             if (groupSettings.length === 0) return null;
 
             const isAdvanced = groupDef?.isAdvanced ?? false;
@@ -509,12 +630,12 @@ export default function SettingsPage() {
                         return next;
                       });
                     }}
-                    className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-left text-sm font-medium hover:bg-muted/50 transition-colors"
+                    className="border-border bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors"
                   >
                     {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      <ChevronDown className="text-muted-foreground h-4 w-4" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <ChevronRight className="text-muted-foreground h-4 w-4" />
                     )}
                     <span className="text-base">{groupDef?.icon ?? "📋"}</span>
                     <span>{groupDef?.label ?? groupId}</span>
@@ -524,13 +645,15 @@ export default function SettingsPage() {
                   </button>
 
                   {isExpanded && (
-                    <div className="space-y-4 pl-2 border-l-2 border-muted">
+                    <div className="border-muted space-y-4 border-l-2 pl-2">
                       {groupDef?.description && (
-                        <p className="text-xs text-muted-foreground pl-2">
+                        <p className="text-muted-foreground pl-2 text-xs">
                           {groupDef.description}
                         </p>
                       )}
-                      {groupSettings.map((setting) => renderSettingCard(setting))}
+                      {groupSettings.map((setting) =>
+                        renderSettingCard(setting),
+                      )}
                     </div>
                   )}
                 </div>
@@ -542,9 +665,11 @@ export default function SettingsPage() {
               <div key={groupId} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-base">{groupDef?.icon ?? "📋"}</span>
-                  <h3 className="text-sm font-semibold">{groupDef?.label ?? groupId}</h3>
+                  <h3 className="text-sm font-semibold">
+                    {groupDef?.label ?? groupId}
+                  </h3>
                   {groupDef?.description && (
-                    <span className="text-xs text-muted-foreground hidden sm:inline">
+                    <span className="text-muted-foreground hidden text-xs sm:inline">
                       — {groupDef.description}
                     </span>
                   )}
@@ -559,7 +684,7 @@ export default function SettingsPage() {
         </div>
       );
     },
-    [renderSetting, renderSettingCard, expandedGroups]
+    [renderSetting, renderSettingCard, expandedGroups],
   );
 
   const totalDirtyCount = dirtyChanges.size;
@@ -572,9 +697,9 @@ export default function SettingsPage() {
   // Error state
   if (error || !settings) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <div className="max-w-md text-center space-y-4">
-          <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+      <div className="bg-background flex min-h-screen items-center justify-center p-4">
+        <div className="max-w-md space-y-4 text-center">
+          <AlertTriangle className="text-destructive mx-auto h-12 w-12" />
           <h2 className="text-xl font-bold">Failed to Load Settings</h2>
           <p className="text-muted-foreground text-sm">
             {error ?? "An unexpected error occurred while loading settings."}
@@ -590,22 +715,24 @@ export default function SettingsPage() {
   return (
     <>
       {/* Top Bar */}
-      <div className="border-b border-border bg-card px-4 py-3">
+      <div className="border-border bg-card border-b px-4 py-3">
         <div className="flex items-center gap-3">
-          <Settings2 className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-bold tracking-tight sm:text-xl">System Settings</h1>
+          <Settings2 className="text-primary h-5 w-5" />
+          <h1 className="text-lg font-bold tracking-tight sm:text-xl">
+            System Settings
+          </h1>
           <Badge variant="secondary" className="text-xs">
             {SETTINGS_CATEGORIES.length} categories
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <p className="text-muted-foreground mt-0.5 text-sm">
           Platform configuration and administration
         </p>
       </div>
 
       <div className="p-4 lg:p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6 flex items-center justify-between">
             <TabsList>
               {SETTINGS_CATEGORIES.map((cat) => (
                 <TabsTrigger key={cat.id} value={cat.id}>
@@ -628,10 +755,18 @@ export default function SettingsPage() {
           </div>
 
           {SETTINGS_CATEGORIES.map((category) => (
-            <TabsContent key={category.id} value={category.id} className="space-y-6 mt-0">
+            <TabsContent
+              key={category.id}
+              value={category.id}
+              className="mt-0 space-y-6"
+            >
               <div className="space-y-1">
-                <h2 className="text-xl font-bold tracking-tight">{category.label}</h2>
-                <p className="text-sm text-muted-foreground">{category.description}</p>
+                <h2 className="text-xl font-bold tracking-tight">
+                  {category.label}
+                </h2>
+                <p className="text-muted-foreground text-sm">
+                  {category.description}
+                </p>
               </div>
               <Separator />
 
@@ -647,10 +782,14 @@ export default function SettingsPage() {
 
       {/* Unsaved Changes Bar */}
       {totalDirtyCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card px-4 py-3 shadow-lg">
+        <div className="border-border bg-card fixed right-0 bottom-0 left-0 z-50 border-t px-4 py-3 shadow-lg">
           <div className="mx-auto flex max-w-5xl items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              You have <span className="font-semibold text-foreground">{totalDirtyCount}</span> unsaved change(s).
+            <p className="text-muted-foreground text-sm">
+              You have{" "}
+              <span className="text-foreground font-semibold">
+                {totalDirtyCount}
+              </span>{" "}
+              unsaved change(s).
             </p>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handleDiscard}>
