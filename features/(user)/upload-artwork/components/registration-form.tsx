@@ -169,6 +169,7 @@ export function RegistrationForm({
                   </p>
                   <ArtworkLicenseSelector
                     id="upload-license"
+                    variant="dropdown"
                     value={field.value}
                     onChange={field.onChange}
                   />

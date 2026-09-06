@@ -18,19 +18,11 @@ test.describe("artwork licensing", () => {
     await page.goto("/upload-artwork");
 
     // The licensing section is present and ARR is preselected by default.
-    const licenseGroup = page.getByRole("radiogroup");
-    await expect(licenseGroup).toBeVisible();
-
-    const arrRadio = licenseGroup
-      .locator("label", { hasText: ARR })
-      .getByRole("radio");
-    await expect(arrRadio).toBeChecked();
-
-    // CC options are offered but not preselected.
-    const ccRadio = licenseGroup
-      .locator("label", { hasText: "CC BY-NC-SA 4.0" })
-      .getByRole("radio");
-    await expect(ccRadio).not.toBeChecked();
+    const licenseSelect = page.getByRole("combobox", {
+      name: "Artwork license",
+    });
+    await expect(licenseSelect).toBeVisible();
+    await expect(licenseSelect).toContainText(ARR);
   });
 
   test("lets the artist select a Creative Commons license at upload", async ({
@@ -38,11 +30,11 @@ test.describe("artwork licensing", () => {
   }) => {
     await page.goto("/upload-artwork");
 
-    const licenseGroup = page.getByRole("radiogroup");
-    await licenseGroup
-      .locator("label", { hasText: "CC BY-NC-SA 4.0" })
-      .getByRole("radio")
-      .check();
+    const licenseSelect = page.getByRole("combobox", {
+      name: "Artwork license",
+    });
+    await licenseSelect.click();
+    await page.getByRole("option", { name: "CC BY-NC-SA 4.0" }).click();
 
     // The selected-license summary updates with permissions and official terms.
     await expect(
