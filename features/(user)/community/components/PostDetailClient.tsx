@@ -27,6 +27,7 @@ import { LoginRequiredModal } from "./LoginRequiredModal";
 import { SharePostButton } from "./SharePostButton";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
 import { ArtworkRecognitionProfile } from "./ArtworkRecognitionProfile";
+import { ContactArtistCard } from "../subfeatures/contact-artist/components/ContactArtistCard";
 import { useArtPost } from "../hooks/useArtPost";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
@@ -300,6 +301,10 @@ export function PostDetailClient({
                 </p>
               </div>
             )}
+
+            {/* Artwork Inquiry — lightweight contact-artist entry point.
+                Hidden on the artist's own posts. */}
+            {!isOwner && <ContactArtistCard artId={post.artId} />}
           </div>
         </div>
       </div>
