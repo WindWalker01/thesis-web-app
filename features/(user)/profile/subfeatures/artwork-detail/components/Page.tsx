@@ -27,10 +27,12 @@ import { DownloadCertificateButton } from "./DownloadCertificateButton";
 import { DownloadOriginalButton } from "./DownloadOriginalButton";
 import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
+import { LicenseSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/LicenseSection";
 import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
 import { useArtworkReview } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkReview";
 import { ArtworkRecognitionProfile } from "@/features/(user)/community/components/ArtworkRecognitionProfile";
 import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
+import type { ArtworkDetail } from "@/features/(user)/profile/types";
 
 type Props = {
   id: string;
@@ -56,6 +58,16 @@ function buildChainTxUrl(chain: string, txHash: string) {
   }
 
   return `https://amoy.polygonscan.com/tx/${txHash}`;
+}
+
+function buildArtistDisplayName(
+  creator: ArtworkDetail["creator"],
+): string | null {
+  if (!creator) return null;
+  const fullName = [creator.first_name, creator.middle_name, creator.last_name]
+    .filter(Boolean)
+    .join(" ");
+  return fullName.trim() || creator.username;
 }
 
 export default function ArtworkDetailPage({ id }: Props) {
@@ -338,6 +350,15 @@ export default function ArtworkDetailPage({ id }: Props) {
           <SimilarityReportSection
             scan={art.similarityScan}
             report={art.similarityReport}
+          />
+        </div>
+
+        <div className="mt-6">
+          <LicenseSection
+            artId={art.id}
+            licenseIdentifier={art.license.identifier}
+            artistName={buildArtistDisplayName(art.creator)}
+            showChangeControl
           />
         </div>
 

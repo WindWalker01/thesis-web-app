@@ -55,6 +55,7 @@ type ArtPostRow = {
         description: string | null;
         c_secure_url: string | null;
         status: string;
+        license_identifier: string | null;
       }[]
     | null;
   users:
@@ -238,6 +239,7 @@ function mapPosts(
 
       category,
       excerpt: artwork.description ?? undefined,
+      licenseIdentifier: artwork.license_identifier ?? null,
       artistBadge: stats?.tier ?? "Emerging",
       artistReputation: stats?.reputation ?? EMPTY_REPUTATION,
       tags: [],
@@ -268,7 +270,8 @@ const ART_POST_SELECT = `
     title,
     description,
     c_secure_url,
-    status
+    status,
+    license_identifier
   ),
   users!art_posts_user_id_fkey (
     id,

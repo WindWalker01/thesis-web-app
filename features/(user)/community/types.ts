@@ -86,6 +86,7 @@ export type Post = {
 
     category?: string;
     excerpt?: string;
+    licenseIdentifier?: string | null;
     artistBadge?: ArtistBadge;
     artistReputation?: ArtistReputation;
     recognitionProfile?: RecognitionProfileData;

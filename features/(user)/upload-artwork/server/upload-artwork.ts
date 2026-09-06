@@ -31,6 +31,7 @@ import {
 import { getArtworkStatusFromSimilarity } from "@/features/(user)/upload-artwork/lib/moderation-policy";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 import { fetchGenreClassification } from "./fetch-genre";
+import { getLicense, DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
 
 async function rollbackArtworkInsert(params: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
@@ -83,12 +84,19 @@ export async function recordArtworkInDatabase(
     const title = formData.get("title");
     const description = formData.get("description");
     const rightsConfirmed = formData.get("rightsConfirmed") === "true";
+    const rawLicenseIdentifier = formData.get("licenseIdentifier");
+    const licenseIdentifier =
+      typeof rawLicenseIdentifier === "string" &&
+      rawLicenseIdentifier.trim() !== ""
+        ? rawLicenseIdentifier
+        : DEFAULT_LICENSE_ID;
     const file = formData.get("file");
 
     const parsed = formSchema.safeParse({
       title,
       description,
       rightsConfirmed,
+      licenseIdentifier,
       file,
     });
 
@@ -356,6 +364,10 @@ export async function recordArtworkInDatabase(
     // ─────────────────────────────────────────────────────────────────────────
     console.log("[Artwork Registration] Inserting artwork into database...");
 
+    // The form schema defaults the identifier to All Rights Reserved and only
+    // allows supported values, so this resolution is always safe.
+    const license = getLicense(parsed.data.licenseIdentifier);
+
     const { data, error } = await supabase
       .from("registered_arts")
       .insert({
@@ -375,6 +387,10 @@ export async function recordArtworkInDatabase(
         work_id: null,
         status: artworkStatus,
         plagiarism_hashes: result?.hashes ?? null,
+        license_identifier: license.id,
+        license_name: license.name,
+        license_url: license.url,
+        license_type: license.type,
       })
       .select("id")
       .single();

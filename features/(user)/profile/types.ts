@@ -124,6 +124,15 @@ export type ArtworkDetail = {
 
   plagiarismHashes: unknown | null;
 
+  license: {
+    identifier: string | null;
+    name: string | null;
+    url: string | null;
+    type: string | null;
+    selectedAt: string | null;
+    updatedAt: string | null;
+  };
+
   creator: {
     id: string;
     first_name: string;

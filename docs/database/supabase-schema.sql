@@ -1319,11 +1319,31 @@ CREATE TABLE IF NOT EXISTS "public"."registered_arts" (
     "status" "public"."art_status" DEFAULT 'pending_blockchain'::"public"."art_status" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "plagiarism_hashes" json
+    "plagiarism_hashes" json,
+    "license_identifier" "text" DEFAULT 'all-rights-reserved'::"text" NOT NULL,
+    "license_name" "text" DEFAULT 'All Rights Reserved'::"text" NOT NULL,
+    "license_url" "text",
+    "license_type" "text" DEFAULT 'all_rights_reserved'::"text" NOT NULL,
+    "license_selected_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "license_updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
 
 ALTER TABLE "public"."registered_arts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."artwork_license_history" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "artwork_id" "uuid" NOT NULL,
+    "previous_license" "text" NOT NULL,
+    "new_license" "text" NOT NULL,
+    "changed_by" "uuid",
+    "changed_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "chk_artwork_license_history_licenses" CHECK ((("previous_license" = ANY (ARRAY['all-rights-reserved'::"text", 'cc-by'::"text", 'cc-by-sa'::"text", 'cc-by-nc'::"text", 'cc-by-nc-sa'::"text", 'cc-by-nd'::"text", 'cc-by-nc-nd'::"text"])) AND ("new_license" = ANY (ARRAY['all-rights-reserved'::"text", 'cc-by'::"text", 'cc-by-sa'::"text", 'cc-by-nc'::"text", 'cc-by-nc-sa'::"text", 'cc-by-nd'::"text", 'cc-by-nc-nd'::"text"]))))
+);
+
+
+ALTER TABLE "public"."artwork_license_history" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."report_actions" (
@@ -1644,6 +1664,21 @@ ALTER TABLE ONLY "public"."report_typing_indicators"
 
 ALTER TABLE ONLY "public"."registered_arts"
     ADD CONSTRAINT "registered_arts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."artwork_license_history"
+    ADD CONSTRAINT "artwork_license_history_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."artwork_license_history"
+    ADD CONSTRAINT "artwork_license_history_artwork_id_fkey" FOREIGN KEY ("artwork_id") REFERENCES "public"."registered_arts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."artwork_license_history"
+    ADD CONSTRAINT "artwork_license_history_changed_by_fkey" FOREIGN KEY ("changed_by") REFERENCES "public"."users"("id") ON DELETE SET NULL;
 
 
 
@@ -1998,6 +2033,10 @@ CREATE INDEX "idx_registered_arts_status" ON "public"."registered_arts" USING "b
 
 
 CREATE INDEX "idx_registered_arts_tx_hash" ON "public"."registered_arts" USING "btree" ("tx_hash");
+
+
+
+CREATE INDEX "idx_artwork_license_history_artwork_changed" ON "public"."artwork_license_history" USING "btree" ("artwork_id", "changed_at" DESC);
 
 
 
@@ -3086,6 +3125,18 @@ CREATE POLICY "registered_arts_select_publicly_posted" ON "public"."registered_a
 
 
 CREATE POLICY "registered_arts_update_own" ON "public"."registered_arts" FOR UPDATE TO "authenticated" USING (("owner_id" = "auth"."uid"())) WITH CHECK (("owner_id" = "auth"."uid"()));
+
+
+
+CREATE POLICY "artwork_license_history_insert_own" ON "public"."artwork_license_history" FOR INSERT TO "authenticated" WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."registered_arts" "ra"
+  WHERE (("ra"."id" = "artwork_license_history"."artwork_id") AND ("ra"."owner_id" = "auth"."uid"())))));
+
+
+
+CREATE POLICY "artwork_license_history_select_own" ON "public"."artwork_license_history" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."registered_arts" "ra"
+  WHERE (("ra"."id" = "artwork_license_history"."artwork_id") AND ("ra"."owner_id" = "auth"."uid"())))));
 
 
 

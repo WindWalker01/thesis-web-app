@@ -28,6 +28,7 @@ import { SharePostButton } from "./SharePostButton";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
 import { ArtworkRecognitionProfile } from "./ArtworkRecognitionProfile";
 import { ContactArtistCard } from "../subfeatures/contact-artist/components/ContactArtistCard";
+import { ArtworkLicenseDisplay } from "@/features/artwork-licensing/components/ArtworkLicenseDisplay";
 import { useArtPost } from "../hooks/useArtPost";
 import { usePostDetail } from "../hooks/usePostDetail";
 import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
@@ -284,6 +285,19 @@ export function PostDetailClient({
                 </button>
 
                 <SharePostButton postId={post.postId} title={post.title} />
+              </div>
+            </div>
+
+            {/* License / usage permissions card */}
+            <div className="border-border/70 bg-card/90 overflow-hidden rounded-3xl border shadow-sm">
+              <div className="text-muted-foreground border-b px-4 py-3 text-[10px] font-bold tracking-widest uppercase sm:px-5">
+                License
+              </div>
+              <div className="p-4 sm:p-5">
+                <ArtworkLicenseDisplay
+                  identifier={post.licenseIdentifier}
+                  artistName={post.fullName}
+                />
               </div>
             </div>
           </div>

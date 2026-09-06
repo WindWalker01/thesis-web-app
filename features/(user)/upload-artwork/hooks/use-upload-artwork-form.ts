@@ -12,6 +12,7 @@ import {
   formSchema,
   type UploadArtworkFormValues,
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
+import { DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
 import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
 import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
 import { submitArtworkGenres } from "../server/submit-artwork-genre";
@@ -130,6 +131,7 @@ export function useUploadArtworkForm() {
       title: "",
       description: "",
       rightsConfirmed: false,
+      licenseIdentifier: DEFAULT_LICENSE_ID,
     },
   });
 
@@ -370,6 +372,7 @@ export function useUploadArtworkForm() {
       formData.append("title", values.title);
       formData.append("description", values.description ?? "");
       formData.append("rightsConfirmed", String(values.rightsConfirmed));
+      formData.append("licenseIdentifier", values.licenseIdentifier);
       formData.append("file", values.file);
 
       setStepStatus(STEP_KEYS.upload, "done");
@@ -444,6 +447,7 @@ export function useUploadArtworkForm() {
         title: "",
         description: "",
         rightsConfirmed: false,
+        licenseIdentifier: DEFAULT_LICENSE_ID,
       });
 
       setPendingValues(null);

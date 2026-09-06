@@ -40,6 +40,12 @@ type RawArtworkDetailRow = {
     status: string;
     created_at: string;
     plagiarism_hashes: unknown | null;
+    license_identifier: string | null;
+    license_name: string | null;
+    license_url: string | null;
+    license_type: string | null;
+    license_selected_at: string | null;
+    license_updated_at: string | null;
 };
 
 type RawArtGenreRow = {
@@ -126,7 +132,13 @@ export async function fetchArtworkDetailById(
                 work_id,
                 status,
                 created_at,
-                plagiarism_hashes
+                plagiarism_hashes,
+                license_identifier,
+                license_name,
+                license_url,
+                license_type,
+                license_selected_at,
+                license_updated_at
             `)
             .eq("id", artId)
             .eq("owner_id", user.id)
@@ -310,6 +322,15 @@ function mapToArtworkDetail(
         }),
 
         plagiarismHashes: raw.plagiarism_hashes,
+
+        license: {
+            identifier: raw.license_identifier,
+            name: raw.license_name,
+            url: raw.license_url,
+            type: raw.license_type,
+            selectedAt: raw.license_selected_at,
+            updatedAt: raw.license_updated_at,
+        },
 
         creator: creator
             ? {

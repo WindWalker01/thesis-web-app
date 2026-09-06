@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { licenseIdentifierSchema } from "@/features/artwork-licensing/lib/artwork-license-schema";
 
 export const MAX_FILE_SIZE = 96 * 1024 * 1024;
 
@@ -57,6 +58,11 @@ export const formSchema = z.object({
     rightsConfirmed: z.boolean().refine((value) => value === true, {
         message: "You must confirm ownership or authorization.",
     }),
+    // No `.default()` here: react-hook-form supplies the default via
+    // defaultValues, and the upload server action coalesces a missing value to
+    // All Rights Reserved before validating. Keeping input === output avoids a
+    // UseFormReturn generic mismatch.
+    licenseIdentifier: licenseIdentifierSchema,
 });
 
 export type UploadArtworkFormValues = z.infer<typeof formSchema>;

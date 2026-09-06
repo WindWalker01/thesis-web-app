@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
-import { AlertTriangle, CloudUpload, Loader2, Sparkles } from "lucide-react";
+import { AlertTriangle, CloudUpload, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 import { StatusProgress } from "@/features/(user)/upload-artwork/components/status-progress";
 import type { UploadArtworkFormValues } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
+import { ArtworkLicenseSelector } from "@/features/artwork-licensing/components/ArtworkLicenseSelector";
 
 type RegistrationFormProps = {
   form: UseFormReturn<UploadArtworkFormValues>;
@@ -147,6 +148,30 @@ export function RegistrationForm({
                       </FormDescription>
                     </div>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="licenseIdentifier"
+              render={({ field }) => (
+                <FormItem className="rounded-lg border p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <ShieldCheck className="text-primary h-4 w-4" />
+                    <h3 className="text-foreground text-base font-semibold">
+                      License
+                    </h3>
+                  </div>
+                  <p className="text-muted-foreground mb-4 text-sm">
+                    Choose how other people may use your artwork.
+                  </p>
+                  <ArtworkLicenseSelector
+                    id="upload-license"
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
