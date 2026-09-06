@@ -266,6 +266,27 @@ function makeWebScanResult(similarity: number) {
   };
 }
 
+/** Builds a plagiarism API result whose strongest match is a DATABASE match. */
+function makeDbScanResult(similarity: number) {
+  const dbMatch = {
+    type: "database",
+    source: "ArtForgeLab Registry",
+    url: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeffff0000", // UUID of the matched artwork
+    link: null,
+    similarity,
+  };
+  return {
+    success: true,
+    filename: "artwork.png",
+    original_hash: "a1b2c3d4e5f60708",
+    hashes: { transforms: {}, blocks: {} },
+    db: dbMatch,
+    web: null,
+    best_match: dbMatch,
+    other_matches: [],
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Mock wiring
 // ---------------------------------------------------------------------------
@@ -374,7 +395,7 @@ describe("recordArtworkInDatabase → manual review queue", () => {
     });
   });
 
-  it("creates a review for high-similarity (>= flagged threshold) web matches as well", async () => {
+  it("creates a review for high-similarity (>= flagged threshold) web matches instead of rejecting", async () => {
     const ctx = makeCtx();
     serverClientMock.mockResolvedValue(makeUserSupabase(ctx));
     adminClientMock.mockReturnValue(makeAdminSupabase(ctx));
@@ -384,7 +405,62 @@ describe("recordArtworkInDatabase → manual review queue", () => {
       await recordArtworkInDatabase(makeFormData()),
     );
 
-    expect(result.artworkStatus).toBe("flagged");
+    // Web matches are never auto-rejected — held for manual review
+    expect(result.artworkStatus).toBe("under_review");
+    expect(ctx.artworkInserts).toHaveLength(1);
+    expect(ctx.reviewInserts).toHaveLength(1);
+    expect(ctx.reviewInserts[0]).toMatchObject({
+      artwork_id: ARTWORK_ID,
+      status: "pending",
+    });
+  });
+
+  it("auto-rejects a database match at the similarity threshold (no upload, no scan, no review)", async () => {
+    const ctx = makeCtx();
+    serverClientMock.mockResolvedValue(makeUserSupabase(ctx));
+    adminClientMock.mockReturnValue(makeAdminSupabase(ctx));
+    checkPlagiarismWebMock.mockResolvedValue(makeDbScanResult(85));
+
+    const result = await recordArtworkInDatabase(makeFormData());
+
+    expect(result.success).toBe(false);
+    expect(result.message).toMatch(/upload blocked/i);
+    expect(result.message).toContain("85%");
+    // Nothing persisted at all
+    expect(ctx.artworkInserts).toHaveLength(0);
+    expect(ctx.scanInserts).toHaveLength(0);
+    expect(ctx.reviewInserts).toHaveLength(0);
+    // No Cloudinary asset was uploaded either
+    expect(uploadImageMock).not.toHaveBeenCalled();
+  });
+
+  it("auto-rejects an exact 100% database match", async () => {
+    const ctx = makeCtx();
+    serverClientMock.mockResolvedValue(makeUserSupabase(ctx));
+    adminClientMock.mockReturnValue(makeAdminSupabase(ctx));
+    checkPlagiarismWebMock.mockResolvedValue(makeDbScanResult(100));
+
+    const result = await recordArtworkInDatabase(makeFormData());
+
+    expect(result.success).toBe(false);
+    expect(ctx.artworkInserts).toHaveLength(0);
+    expect(ctx.scanInserts).toHaveLength(0);
+    expect(ctx.reviewInserts).toHaveLength(0);
+  });
+
+  it("holds a database match between the review and similarity thresholds for manual review", async () => {
+    const ctx = makeCtx();
+    serverClientMock.mockResolvedValue(makeUserSupabase(ctx));
+    adminClientMock.mockReturnValue(makeAdminSupabase(ctx));
+    checkPlagiarismWebMock.mockResolvedValue(makeDbScanResult(70));
+
+    const result = expectUploadSuccess(
+      await recordArtworkInDatabase(makeFormData()),
+    );
+
+    expect(result.artworkStatus).toBe("under_review");
+    expect(ctx.artworkInserts).toHaveLength(1);
+    expect(ctx.scanInserts).toHaveLength(1);
     expect(ctx.reviewInserts).toHaveLength(1);
     expect(ctx.reviewInserts[0]).toMatchObject({
       artwork_id: ARTWORK_ID,

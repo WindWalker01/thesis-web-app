@@ -18,7 +18,11 @@ import {
   getSimilarityReportMatch,
 } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
 
-import { RecordArtworkInDatabaseResult, GenreScoreLabel } from "../types";
+import {
+  RecordArtworkInDatabaseResult,
+  GenreScoreLabel,
+  ArtworkStatus,
+} from "../types";
 import {
   sha256Hex,
   normalizePerceptualHashToBytes32,
@@ -178,6 +182,11 @@ export async function recordArtworkInDatabase(
     let otherMatches = null;
     let matchSource: "database" | "internet" | null = null;
 
+    // Defaults for the non-scanning path (or when no significant match exists)
+    let artworkStatus: ArtworkStatus = "pending_blockchain";
+    let moderationMessage = "Artwork uploaded successfully and is ready for protection.";
+    let shouldClassify = true;
+
     if (settings.enable_automatic_scanning) {
       console.log("[Similarity Scan] Scan started — calling plagiarism API...");
 
@@ -202,7 +211,10 @@ export async function recordArtworkInDatabase(
         minRenderThreshold: settings.min_render_threshold,
       });
       similarityReport = buildSimilarityReport(result);
-      similarity = similarityReport?.similarityPercentage ?? 0;
+      // The moderation decision must use the PRIMARY match (highest similarity,
+      // database-weighted) — not the display-curated report, which may select a
+      // different match for presentation purposes.
+      similarity = primaryMatch?.similarity ?? 0;
       otherMatches = result.other_matches;
 
       if (
@@ -237,43 +249,41 @@ export async function recordArtworkInDatabase(
         };
       }
 
-      // Hard block: any database match at 100% is an exact duplicate
-      if (
-        primaryMatch?.type === "database" &&
-        typeof primaryMatch.similarity === "number" &&
-        primaryMatch.similarity >= 100
-      ) {
+      matchSource =
+        primaryMatch?.type === "database" || primaryMatch?.type === "internet"
+          ? primaryMatch.type
+          : null;
+
+      // ── Moderation decision (source-aware policy) ────────────────────
+      // Database match at/above the similarity threshold → automatic rejection.
+      // Internet match (any similarity above the manual-review threshold) → manual review.
+      const {
+        artworkStatus: verdict,
+        moderationMessage: verdictMessage,
+        shouldClassify: verdictShouldClassify,
+      } = getArtworkStatusFromSimilarity(similarity, matchSource, {
+        flaggedThreshold: settings.similarity_threshold,
+        manualReviewThreshold: settings.manual_review_threshold,
+      });
+
+      if (verdict === "rejected") {
         console.log(
-          "[Similarity Scan] Hard block triggered — 100% database match",
+          `[Similarity Scan] Auto-rejecting upload — ${similarity}% database match (threshold ${settings.similarity_threshold}%)`,
         );
+        // Hard block BEFORE any Cloudinary upload or database insert —
+        // nothing is persisted for a rejected upload.
         return {
           success: false,
-          message:
-            "Upload blocked. An exact 100% match was detected against a registered artwork in the database.",
+          message: verdictMessage,
           similarityReport,
           otherMatches,
         };
       }
 
-      matchSource =
-        primaryMatch?.type === "database" || primaryMatch?.type === "internet"
-          ? primaryMatch.type
-          : null;
+      artworkStatus = verdict;
+      moderationMessage = verdictMessage;
+      shouldClassify = verdictShouldClassify;
     }
-
-    // Use admin-configured thresholds; fall back to existing hardcoded defaults
-    const { artworkStatus, moderationMessage, shouldClassify } =
-      settings.enable_automatic_scanning
-        ? getArtworkStatusFromSimilarity(similarity, matchSource, {
-            flaggedThreshold: settings.similarity_threshold,
-            manualReviewThreshold: settings.manual_review_threshold,
-          })
-        : {
-            artworkStatus: "pending_blockchain" as const,
-            moderationMessage:
-              "Artwork uploaded successfully and is ready for protection.",
-            shouldClassify: true,
-          };
 
     // Validate perceptual hash (from scan result, or compute from file if scanning disabled)
     let perceptualHash: `0x${string}`;
