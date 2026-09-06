@@ -1,10 +1,16 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { ShieldCheck, TriangleAlert } from "lucide-react";
 import Image from "next/image";
 import { CompareResponse } from "./../types";
 import { SimilarityRing } from "./SimilarityRing";
 import { SimilarityBar } from "./SimilarityBar";
+import { EvidenceNote } from "./EvidenceNote";
+import {
+  getPrimaryScore,
+  isNoEvidenceMatch,
+  getEvidenceSummary,
+  getDominantTransformLabel,
+} from "../lib/match-metrics";
 
 interface CompareModeResultProps {
   previewA: string;
@@ -39,11 +45,26 @@ export function CompareModeResult({
   result,
 }: CompareModeResultProps) {
   const { comparison } = result;
-  const final = comparison.final_similarity;
+  // v2 primary score: percentile-calibrated confidence; falls back to
+  // `final_similarity` on legacy responses.
+  const final = getPrimaryScore(comparison);
+  const noEvidence = isNoEvidenceMatch(comparison);
+  const evidence = getEvidenceSummary(comparison);
+  const dominant = getDominantTransformLabel(comparison.dominant_transform);
+  const lowContent = comparison.low_content_warning === true || result.low_content_warning === true;
   const risk = getRiskLevel(final);
 
   return (
     <div className="space-y-5">
+      {/* v2: either image lacked content-bearing blocks */}
+      {lowContent && (
+        <div className="bg-amber-500/5 border border-amber-500/30 rounded-2xl px-5 py-3 flex items-center gap-2.5 text-amber-500/90">
+          <TriangleAlert size={15} className="shrink-0" />
+          <p className="text-sm">
+            Low image detail detected — these results may be less reliable.
+          </p>
+        </div>
+      )}
       {/* Image comparison row */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_auto_1fr]">
         {/* Image A */}
@@ -86,17 +107,37 @@ export function CompareModeResult({
         {/* Center: scores */}
         <div className="bg-card border-border flex w-full flex-col items-center gap-4 rounded-2xl border p-5 sm:mx-auto sm:w-56 lg:w-48">
           <p className="text-muted-foreground text-[10px] font-bold tracking-widest">
-            FINAL SCORE
+            {noEvidence ? "RESULT" : "FINAL SCORE"}
           </p>
 
-          <SimilarityRing value={final} size={130} />
+          {noEvidence ? (
+            <div className="flex h-[130px] w-[130px] flex-col items-center justify-center gap-2 rounded-full border-2 border-emerald-500/40 bg-emerald-500/5 px-3 text-center">
+              <ShieldCheck size={26} className="text-emerald-400" />
+              <p className="text-[10px] font-semibold leading-tight text-emerald-400">
+                No plagiarism detected
+              </p>
+            </div>
+          ) : (
+            <SimilarityRing value={final} size={130} />
+          )}
 
           <Badge
             variant="outline"
-            className={`w-full justify-center py-1.5 text-[10px] ${risk.className}`}
+            className={`w-full justify-center py-1.5 text-[10px] ${
+              noEvidence
+                ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
+                : risk.className
+            }`}
           >
-            {risk.label}
+            {noEvidence ? "Clean negative" : risk.label}
           </Badge>
+
+          <EvidenceNote evidence={evidence} lowContent={lowContent} className="text-center" />
+          {dominant && !noEvidence && (
+            <p className="text-center text-[11px] text-muted-foreground">
+              Consistent under a {dominant}
+            </p>
+          )}
 
           <div className="w-full space-y-3">
             <div className="text-center">
@@ -179,9 +220,14 @@ export function CompareModeResult({
       <div className="bg-card border-border space-y-5 rounded-2xl border p-4 sm:p-6">
         <p className="text-foreground font-semibold">Similarity Breakdown</p>
         <SimilarityBar
-          label="Final Similarity"
-          value={comparison.final_similarity}
-          sublabel="weighted average of transform + block scores"
+          label="Calibrated Confidence"
+          value={getPrimaryScore(comparison)}
+          sublabel="percentile vs. a baseline of known-unrelated artwork pairs"
+        />
+        <SimilarityBar
+          label="Raw Similarity"
+          value={comparison.raw_similarity ?? comparison.final_similarity}
+          sublabel="consensus algorithm score (uncalibrated)"
         />
         <SimilarityBar
           label="Transform Similarity"
@@ -193,6 +239,36 @@ export function CompareModeResult({
           value={comparison.block_similarity}
           sublabel="compares top-left, top-right, bottom-left, bottom-right, center"
         />
+        {/* v2 explainability: agreement counts behind the score */}
+        {(comparison.block_agreements !== undefined ||
+          comparison.transform_agreements !== undefined) && (
+          <div className="flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-4 text-[11px]">
+            {comparison.block_agreements !== undefined && (
+              <p className="text-muted-foreground">
+                Block agreements:{" "}
+                <span className="text-foreground font-semibold">
+                  {comparison.block_agreements} of 5
+                </span>
+              </p>
+            )}
+            {comparison.transform_agreements !== undefined && (
+              <p className="text-muted-foreground">
+                Transform agreements:{" "}
+                <span className="text-foreground font-semibold">
+                  {comparison.transform_agreements} of 6
+                </span>
+              </p>
+            )}
+            {comparison.content_blocks_used !== undefined && (
+              <p className="text-muted-foreground">
+                Content blocks used:{" "}
+                <span className="text-foreground font-semibold">
+                  {comparison.content_blocks_used} of 5
+                </span>
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

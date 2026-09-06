@@ -94,6 +94,7 @@ export async function checkPlagiarismWeb(
       web: data.web ?? null,
       best_match: data.best_match ?? null,
       other_matches: resolvedOtherMatches,
+      low_content_warning: data.low_content_warning,
     };
 
     if (enriched.db?.type === "database" && isUuidLike(enriched.db.url)) {

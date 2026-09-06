@@ -1,6 +1,7 @@
 export { AnalyzingScreen } from "./components/AnalyzingScreen";
 export { CompareModeResult } from "./components/CompareModeResult";
 export { CompareModeUpload } from "./components/CompareModeUpload";
+export { EvidenceNote } from "./components/EvidenceNote";
 export { HashTable } from "./components/HashTable";
 export { MatchCard } from "./components/MatchCard";
 export { ModeToggle } from "./components/ModeToggle";
@@ -19,8 +20,17 @@ export type {
   SearchResponse,
   SearchMatch,
   HashSet,
+  MatchMetrics,
   OtherSearchMatch,
 } from "./types";
+
+export {
+  getPrimaryScore,
+  isNoEvidenceMatch,
+  getEvidenceSummary,
+  isLowContent,
+  getDominantTransformLabel,
+} from "./lib/match-metrics";
 
 import { PlagiarismWebResult } from "./types";
 

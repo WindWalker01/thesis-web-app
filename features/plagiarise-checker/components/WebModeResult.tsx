@@ -1,13 +1,20 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Hash, AlertCircle, ChevronDown, ChevronRight, Globe, Database } from "lucide-react";
+import { ShieldCheck, Hash, AlertCircle, ChevronDown, ChevronRight, Globe, Database, TriangleAlert } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { SearchResponse, OtherSearchMatch } from "../types";
 import { MatchCard } from "./MatchCard";
 import { HashTable } from "./HashTable";
 import { SimilarityRing } from "./SimilarityRing";
+import { EvidenceNote } from "./EvidenceNote";
+import {
+  getPrimaryScore,
+  isNoEvidenceMatch,
+  getEvidenceSummary,
+  isLowContent,
+} from "../lib/match-metrics";
 import Link from "next/link";
 
 interface WebModeResultProps {
@@ -70,8 +77,18 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
                   </a>
                 </div>
                 <div className="shrink-0 sm:text-right">
-                  <p className="text-sm font-bold text-foreground">{match.similarity.toFixed(1)}%</p>
-                  <p className="text-[10px] text-muted-foreground">similarity</p>
+                  {isNoEvidenceMatch(match) ? (
+                    <>
+                      <p className="text-sm font-semibold text-emerald-400">No plagiarism match found</p>
+                      <EvidenceNote evidence={getEvidenceSummary(match)} lowContent={isLowContent(match)} className="sm:items-end" />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-bold text-foreground">{getPrimaryScore(match).toFixed(1)}%</p>
+                      <p className="text-[10px] text-muted-foreground">confidence</p>
+                      <EvidenceNote evidence={getEvidenceSummary(match)} lowContent={isLowContent(match)} className="sm:items-end" />
+                    </>
+                  )}
                 </div>
               </div>
             );
@@ -87,9 +104,22 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
 
   // The third card always shows the best match — whichever scored higher
   const bestMatch = isBestDb ? result.db : result.web;
+  const bestScore = getPrimaryScore(result.best_match);
+  const bestNoEvidence = isNoEvidenceMatch(result.best_match);
+  const bestEvidence = getEvidenceSummary(result.best_match);
+  const bestLowContent = isLowContent(result.best_match) || result.low_content_warning === true;
 
   return (
     <div className="space-y-5">
+      {/* v2: uploaded image as a whole lacked content-bearing blocks */}
+      {result.low_content_warning && (
+        <div className="bg-amber-500/5 border border-amber-500/30 rounded-2xl px-5 py-3 flex items-center gap-2.5 text-amber-500/90">
+          <TriangleAlert size={15} className="shrink-0" />
+          <p className="text-sm">
+            Low image detail detected in the uploaded artwork — these results may be less reliable.
+          </p>
+        </div>
+      )}
       {/* Top row: submitted image + best match ring + best match summary */}
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_auto_1fr]">
 
@@ -121,7 +151,21 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
         {result.best_match ? (
           <div className="bg-card border border-border rounded-2xl p-5 flex w-full flex-col items-center gap-4 sm:mx-auto sm:w-56 lg:w-48">
             <p className="text-[10px] font-bold tracking-widest text-muted-foreground text-center">BEST MATCH</p>
-            <SimilarityRing value={result.best_match.similarity} size={130} />
+            {bestNoEvidence ? (
+              <div className="flex h-[130px] w-[130px] flex-col items-center justify-center gap-2 rounded-full border-2 border-emerald-500/40 bg-emerald-500/5 px-3 text-center">
+                <ShieldCheck size={26} className="text-emerald-400" />
+                <p className="text-[10px] font-semibold leading-tight text-emerald-400">
+                  No plagiarism match found
+                </p>
+              </div>
+            ) : (
+              <SimilarityRing value={bestScore} size={130} />
+            )}
+            <EvidenceNote
+              evidence={bestNoEvidence ? bestEvidence : null}
+              lowContent={bestLowContent}
+              className="text-center"
+            />
             <div className="w-full text-center space-y-1.5">
               <p className="text-sm font-semibold text-foreground">{result.best_match.source}</p>
               <Badge
@@ -152,7 +196,15 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">{bestMatch.source}</p>
               </div>
-              <SimilarityRing value={bestMatch.similarity} size={52} />
+              <div className="flex items-center gap-2">
+                {isNoEvidenceMatch(bestMatch) ? (
+                  <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-500/30 bg-emerald-500/10">
+                    <ShieldCheck size={9} className="mr-1" /> No evidence
+                  </Badge>
+                ) : (
+                  <SimilarityRing value={getPrimaryScore(bestMatch)} size={52} />
+                )}
+              </div>
             </div>
 
             {/* DB best match: render the registered artwork image */}

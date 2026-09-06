@@ -1,6 +1,11 @@
 import { jsPDF } from "jspdf";
 import type { SearchResponse, SearchMatch } from "@/features/plagiarise-checker";
 import {
+    getPrimaryScore,
+    isNoEvidenceMatch,
+    isLowContent,
+} from "@/features/plagiarise-checker/lib/match-metrics";
+import {
   PDF_REPORT_CRITICAL,
   PDF_REPORT_HIGH,
   PDF_REPORT_MODERATE,
@@ -321,10 +326,17 @@ function drawMatchSummaryCard(
         return y + h;
     }
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(15, 23, 42);
-    doc.text(`${match.similarity.toFixed(1)}%`, x + 5, y + 13);
+    if (isNoEvidenceMatch(match)) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(22, 163, 74);
+        doc.text("No plagiarism match found", x + 5, y + 13);
+    } else {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`${getPrimaryScore(match).toFixed(1)}%`, x + 5, y + 13);
+    }
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
@@ -367,8 +379,13 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const H = doc.internal.pageSize.getHeight();
 
     const best = result.best_match;
-    const bestSimilarity = best?.similarity ?? null;
+    // v2: headline metric is the percentile-calibrated confidence (falls back
+    // to `similarity` on legacy payloads). `raw_similarity_legacy` is never
+    // printed in the report.
+    const bestSimilarity = best ? getPrimaryScore(best) : null;
+    const bestNoEvidence = isNoEvidenceMatch(best);
     const status = getSimilarityStatus(bestSimilarity);
+    const lowContent = isLowContent(best) || result.low_content_warning === true;
 
     const isBestDatabase = best?.type === "database";
     const dbMatch = result.db;
@@ -533,9 +550,11 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
     doc.setTextColor(15, 23, 42);
-    const bestTitle = best
-        ? `${best.similarity.toFixed(1)}% similarity detected`
-        : "No significant match detected";
+    const bestTitle = bestNoEvidence
+        ? "No plagiarism match found"
+        : best
+            ? `${getPrimaryScore(best).toFixed(1)}% similarity detected`
+            : "No significant match detected";
     const titleLines = doc.splitTextToSize(bestTitle, infoW).slice(0, 2);
     doc.text(titleLines, infoX, iy + 4);
 
@@ -559,15 +578,15 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const stats = [
         {
             label: "Best Match",
-            value: best ? `${best.similarity.toFixed(1)}%` : "N/A",
+            value: best ? `${getPrimaryScore(best).toFixed(1)}%` : "N/A",
         },
         {
             label: "Database",
-            value: dbMatch ? `${dbMatch.similarity.toFixed(1)}%` : "N/A",
+            value: dbMatch ? `${getPrimaryScore(dbMatch).toFixed(1)}%` : "N/A",
         },
         {
             label: "Web",
-            value: webMatch ? `${webMatch.similarity.toFixed(1)}%` : "N/A",
+            value: webMatch ? `${getPrimaryScore(webMatch).toFixed(1)}%` : "N/A",
         },
     ];
 
@@ -602,7 +621,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
         ["Original Hash", shortenMiddle(safeValue(result.original_hash), 12, 8), true],
         ["Best Match Type", safeValue(best?.type).toUpperCase(), false],
         ["Best Source", safeValue(best?.source), false],
-        ["Best Similarity", best ? `${best.similarity.toFixed(1)}%` : "N/A", false],
+        ["Best Similarity", best ? `${getPrimaryScore(best).toFixed(1)}%` : "N/A", false],
     ] as const;
 
     leftRows.forEach(([label, value, mono], i) => {
@@ -675,11 +694,13 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     doc.setTextColor(20, 83, 45);
 
     const noticeText = doc.splitTextToSize(
-        best
-            ? `The uploaded image produced a best-match similarity score of ${best.similarity.toFixed(
-                1
-            )}%. This output is intended to support platform-level review and should be interpreted together with source context, artwork history, and manual inspection.`
-            : "No strong best-match result was returned by the analysis engine. This report still documents the scan metadata and generated perceptual fingerprints for review.",
+        bestNoEvidence
+            ? "The analysis found no matching evidence between the uploaded image and any source — zero block or transform agreements — so no plagiarism match is reported. This output should still be interpreted together with source context and manual inspection."
+            : best
+                ? `The uploaded image produced a best-match similarity score of ${getPrimaryScore(best).toFixed(
+                    1
+                )}%. This output is intended to support platform-level review and should be interpreted together with source context, artwork history, and manual inspection.`
+                : "No strong best-match result was returned by the analysis engine. This report still documents the scan metadata and generated perceptual fingerprints for review.",
         colW - 8
     );
 
@@ -716,7 +737,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
                 otherMatchesY,
                 W - 24,
                 `${m.source} (${label})`,
-                `${m.similarity.toFixed(1)}% — ${shortenMiddle(sourceUrl, 24, 16)}`,
+                `${getPrimaryScore(m).toFixed(1)}% — ${shortenMiddle(sourceUrl, 24, 16)}`,
                 {
                     mono: true,
                     isLast: i === otherMatches.length - 1,
@@ -728,15 +749,23 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
         otherMatchesY += 4;
     }
 
-    const declarationText = best
+    const declarationText = bestNoEvidence
         ? `This report documents the plagiarism analysis performed for "${safeValue(
             result.filename
-        )}". The system generated perceptual-hash fingerprints, compared them against internal and web sources, and identified a best-match similarity result of ${best.similarity.toFixed(
-            1
-        )}% from ${safeValue(best.source)}.`
-        : `This report documents the plagiarism analysis performed for "${safeValue(
-            result.filename
-        )}". The system generated perceptual-hash fingerprints and completed the scan flow, but no dominant best-match result was identified in the returned analysis output.`;
+        )}". The system generated perceptual-hash fingerprints and compared them against internal and web sources. No matching evidence was found — zero block or transform agreements — so no plagiarism match is reported.${
+            lowContent ? " Note: the uploaded image had low visual detail, which may reduce result reliability." : ""
+        }`
+        : best
+            ? `This report documents the plagiarism analysis performed for "${safeValue(
+                result.filename
+            )}". The system generated perceptual-hash fingerprints, compared them against internal and web sources, and identified a best-match similarity result of ${getPrimaryScore(best).toFixed(
+                1
+            )}% from ${safeValue(best.source)}.${
+                lowContent ? " Note: the uploaded image had low image detail, which may reduce result reliability." : ""
+            }`
+            : `This report documents the plagiarism analysis performed for "${safeValue(
+                result.filename
+            )}". The system generated perceptual-hash fingerprints and completed the scan flow, but no dominant best-match result was identified in the returned analysis output.`;
 
     const disclaimerText =
         "This document is system-generated for platform review and documentation. Similarity percentages indicate visual similarity based on perceptual hashing and related matching outputs. The report does not, by itself, establish legal infringement or formal copyright liability.";

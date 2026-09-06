@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { updatePassword } from "@/features/(user)/auth/server/auth";
+
 import {
   RecoveryOtpInput,
   RecoveryPasswordInput,
@@ -47,30 +47,27 @@ export function useResetPassword() {
       const code = params.get("code");
 
       // Recovery-link branch (admin-triggered reset, or self-service link):
-      // swap the PKCE code for a recovery session, then show the
-      // "set new password" step directly — no OTP entry needed.
+      // The browser Supabase client was created at module-import time with
+      // detectSessionInUrl: true, so it has already auto-detected the
+      // ?code=xxx PKCE param in the URL and exchanged it. We do NOT call
+      // exchangeCodeForSession again here — the code is already consumed.
+      // Instead we just read the session that was established.
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data } = await supabase.auth.getSession();
 
-        if (error) {
-          // Invalid/expired recovery link — send the user back to the
-          // self-service flow so they can request a fresh one.
+        if (isMounted && data.session?.user?.email) {
+          const userEmail = data.session.user.email;
+          setEmail(userEmail);
+          sessionStorage.setItem("passwordResetEmail", userEmail);
+          sessionStorage.setItem("passwordRecoveryVerified", "true");
+          setOtpVerified(true);
+          setIsHydrated(true);
+        } else {
+          // No session — the code was invalid or expired.
           if (isMounted) {
             router.replace("/forgot-password");
           }
-          return;
         }
-
-        // PASSWORD_RECOVERY should have fired above; fall back to the
-        // session email in case the event was missed.
-        const { data: exchanged } = await supabase.auth.getSession();
-        if (isMounted && exchanged.session?.user?.email) {
-          const userEmail = exchanged.session.user.email;
-          setEmail(userEmail);
-          sessionStorage.setItem("passwordResetEmail", userEmail);
-          setOtpVerified(true);
-        }
-        if (isMounted) setIsHydrated(true);
         return;
       }
 
@@ -161,7 +158,9 @@ export function useResetPassword() {
     setServerError(null);
     setIsUpdatingPassword(true);
 
-    const { error } = await updatePassword(data.password);
+    const { error } = await supabase.auth.updateUser({
+      password: data.password,
+    });
 
     if (error) {
       setServerError(error.message);

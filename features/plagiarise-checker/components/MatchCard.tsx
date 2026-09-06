@@ -1,7 +1,14 @@
 import { Badge } from "@/components/ui/badge";
-import { Database, Globe, ExternalLink, Trophy } from "lucide-react";
+import { Database, Globe, ExternalLink, Trophy, ShieldCheck } from "lucide-react";
 import { SearchMatch } from "../types";
 import { SimilarityRing } from "./SimilarityRing";
+import {
+  getPrimaryScore,
+  isNoEvidenceMatch,
+  getEvidenceSummary,
+  isLowContent,
+} from "../lib/match-metrics";
+import { EvidenceNote } from "./EvidenceNote";
 
 interface MatchCardProps {
   match: SearchMatch;
@@ -16,7 +23,13 @@ function getRiskBadge(similarity: number) {
 
 export function MatchCard({ match, isBest }: MatchCardProps) {
   const isDb = match.type === "database";
-  const risk = getRiskBadge(match.similarity);
+  // v2 primary score: percentile-calibrated confidence (falls back to
+  // `similarity` on legacy responses). `raw_similarity_legacy` is never shown.
+  const score = getPrimaryScore(match);
+  const risk = getRiskBadge(score);
+  const noEvidence = isNoEvidenceMatch(match);
+  const evidence = getEvidenceSummary(match);
+  const lowContent = isLowContent(match);
   const href = match.link ?? match.url;
 
   return (
@@ -52,9 +65,19 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
 
       {/* Body */}
       <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5">
-        {/* Ring */}
+        {/* Ring — or an explicit "no evidence" state for a clean negative */}
         <div className="shrink-0 sm:self-start">
-          <SimilarityRing value={match.similarity} size={100} />
+          {noEvidence ? (
+            <div className="flex h-[100px] w-[100px] flex-col items-center justify-center gap-1.5 rounded-full border-2 border-emerald-500/40 bg-emerald-500/5 px-2 text-center">
+              <ShieldCheck size={20} className="text-emerald-400" />
+              <p className="text-[9px] font-semibold leading-tight text-emerald-400">
+                No plagiarism match found
+              </p>
+            </div>
+          ) : (
+            <SimilarityRing value={score} size={100} />
+          )}
+          <EvidenceNote evidence={evidence} lowContent={lowContent} className="mt-2 max-w-[140px]" />
         </div>
 
         {/* Details */}
