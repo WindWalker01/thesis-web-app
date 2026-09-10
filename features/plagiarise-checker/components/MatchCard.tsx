@@ -6,7 +6,10 @@ import {
   getPrimaryScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
+  getEvidenceDetail,
   isLowContent,
+  getTransformEvidenceStatus,
+  getBlockEvidenceStatus,
 } from "../lib/match-metrics";
 import { EvidenceNote } from "./EvidenceNote";
 
@@ -29,7 +32,10 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
   const risk = getRiskBadge(score);
   const noEvidence = isNoEvidenceMatch(match);
   const evidence = getEvidenceSummary(match);
+  const evidenceDetail = getEvidenceDetail(match);
   const lowContent = isLowContent(match);
+  const transformEvidenceStatus = getTransformEvidenceStatus(match);
+  const blockEvidenceStatus = getBlockEvidenceStatus(match);
   const href = match.link ?? match.url;
 
   return (
@@ -77,7 +83,14 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
           ) : (
             <SimilarityRing value={score} size={100} />
           )}
-          <EvidenceNote evidence={evidence} lowContent={lowContent} className="mt-2 max-w-[140px]" />
+          <EvidenceNote
+            evidence={evidence}
+            evidenceDetail={evidenceDetail}
+            lowContent={lowContent}
+            transformEvidenceStatus={transformEvidenceStatus}
+            blockEvidenceStatus={blockEvidenceStatus}
+            className="mt-2 max-w-[140px]"
+          />
         </div>
 
         {/* Details */}

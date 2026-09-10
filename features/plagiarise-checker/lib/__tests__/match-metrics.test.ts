@@ -3,8 +3,12 @@ import {
   getPrimaryScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
+  getEvidenceDetail,
   isLowContent,
   getDominantTransformLabel,
+  getTransformEvidenceStatus,
+  getBlockEvidenceStatus,
+  getBestScalePair,
 } from "@/features/plagiarise-checker/lib/match-metrics";
 import type { MatchMetrics, SearchMatch, OtherSearchMatch } from "@/features/plagiarise-checker/types";
 
@@ -29,6 +33,38 @@ const v2Positive: MatchMetrics = {
   block_agreements: 3,
   content_blocks_used: 5,
   low_content_warning: false,
+};
+
+/** v3 match with transform evidence absent (likely a crop/zoom copy). */
+const v3CropMatch: MatchMetrics = {
+  raw_similarity: 34.25,
+  raw_similarity_legacy: 60.75,
+  calibrated_confidence: 100,
+  transform_consistency: 0,
+  transform_agreements: 0,
+  block_agreements: 2,
+  content_blocks_used: 5,
+  low_content_warning: false,
+  transform_evidence_status: "absent",
+  block_evidence_status: "checked",
+  best_scale_pair: ["0.625", "0.75"],
+  dominant_transform: null,
+};
+
+/** v3 match with rotation evidence. */
+const v3RotationMatch: MatchMetrics = {
+  raw_similarity: 19.57,
+  raw_similarity_legacy: 55.2,
+  calibrated_confidence: 95,
+  transform_consistency: 1.0,
+  transform_agreements: 4,
+  block_agreements: 3,
+  content_blocks_used: 5,
+  low_content_warning: false,
+  transform_evidence_status: "checked",
+  block_evidence_status: "checked",
+  best_scale_pair: ["1.0", "1.0"],
+  dominant_transform: "180",
 };
 
 /** Pre-v2 payload: none of the new fields exist. */
@@ -90,6 +126,32 @@ describe("getEvidenceSummary", () => {
   });
 });
 
+describe("getEvidenceDetail", () => {
+  it("describes a v3 rotation match with dominant transform", () => {
+    expect(getEvidenceDetail(v3RotationMatch)).toBe(
+      "3 of 5 regions matched, consistent under 180° rotation"
+    );
+  });
+
+  it("notes transform-evidence-absent status for crop matches", () => {
+    expect(getEvidenceDetail(v3CropMatch)).toBe(
+      "2 of 5 regions matched — matched on image content only, no rotation/flip detected (likely a crop)"
+    );
+  });
+
+  it("falls back to basic summary for v2 matches without v3 fields", () => {
+    expect(getEvidenceDetail(v2Positive)).toBe(
+      "3 of 5 regions matched across 4 of 6 transform variants"
+    );
+    expect(getEvidenceDetail(v2CleanNegative)).toBe("0 of 5 regions matched");
+  });
+
+  it("returns null for legacy responses without block_agreements", () => {
+    expect(getEvidenceDetail(legacyMatch)).toBe(null);
+    expect(getEvidenceDetail(null)).toBe(null);
+  });
+});
+
 describe("isLowContent", () => {
   it("is true only when low_content_warning is explicitly true", () => {
     expect(isLowContent({ ...v2CleanNegative, low_content_warning: true })).toBe(true);
@@ -105,10 +167,48 @@ describe("getDominantTransformLabel", () => {
     expect(getDominantTransformLabel("mirror")).toBe("horizontal mirror");
   });
 
-  it("returns null for null, undefined, or unknown values", () => {
+  it("returns null for null/undefined, or unknown values", () => {
     expect(getDominantTransformLabel(null)).toBe(null);
     expect(getDominantTransformLabel(undefined)).toBe(null);
     expect(getDominantTransformLabel("bogus")).toBe(null);
+  });
+});
+
+describe("getTransformEvidenceStatus", () => {
+  it("returns the status for v3 matches", () => {
+    expect(getTransformEvidenceStatus({ ...v2Positive, transform_evidence_status: "absent" })).toBe("absent");
+    expect(getTransformEvidenceStatus({ ...v2Positive, transform_evidence_status: "checked" })).toBe("checked");
+  });
+
+  it("returns null for legacy matches without the field", () => {
+    expect(getTransformEvidenceStatus(v2Positive)).toBe(null);
+    expect(getTransformEvidenceStatus(legacyMatch)).toBe(null);
+    expect(getTransformEvidenceStatus(null)).toBe(null);
+  });
+});
+
+describe("getBlockEvidenceStatus", () => {
+  it("returns the status for v3 matches", () => {
+    expect(getBlockEvidenceStatus({ ...v2Positive, block_evidence_status: "absent" })).toBe("absent");
+    expect(getBlockEvidenceStatus({ ...v2Positive, block_evidence_status: "checked" })).toBe("checked");
+  });
+
+  it("returns null for legacy matches without the field", () => {
+    expect(getBlockEvidenceStatus(v2Positive)).toBe(null);
+    expect(getBlockEvidenceStatus(legacyMatch)).toBe(null);
+    expect(getBlockEvidenceStatus(null)).toBe(null);
+  });
+});
+
+describe("getBestScalePair", () => {
+  it("returns the scale pair for v3 matches", () => {
+    expect(getBestScalePair({ ...v2Positive, best_scale_pair: ["0.625", "0.75"] })).toEqual(["0.625", "0.75"]);
+  });
+
+  it("returns null for legacy matches without the field", () => {
+    expect(getBestScalePair(v2Positive)).toBe(null);
+    expect(getBestScalePair(legacyMatch)).toBe(null);
+    expect(getBestScalePair(null)).toBe(null);
   });
 });
 

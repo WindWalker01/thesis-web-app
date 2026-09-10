@@ -327,7 +327,7 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
           hashes={result.hashes.transforms}
         />
         <HashTable
-          title="Block Regions (Top Left, Top Right, Bottom Left, Bottom Right, Center)"
+          title="Block Regions (Multi-Scale: 0.625, 0.75, 1.0)"
           hashes={result.hashes.blocks}
         />
       </div>

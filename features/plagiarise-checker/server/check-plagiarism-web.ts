@@ -77,7 +77,11 @@ export async function checkPlagiarismWeb(
       if (m.artwork_id && isUuidLike(m.artwork_id)) {
         const resolved = await resolveDbArtworkById(m.artwork_id);
         if (resolved) {
-          return { ...m, url: resolved.imageUrl ?? m.url, link: resolved.imageUrl ?? m.link };
+          return { 
+            ...m, 
+            url: resolved.imageUrl ?? m.url,           // Image URL for <Image> display
+            link: m.link ?? resolved.imageUrl ?? m.url // Keep original link, fallback to imageUrl
+          };
         }
       }
       return m;

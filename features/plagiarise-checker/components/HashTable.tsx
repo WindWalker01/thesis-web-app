@@ -1,17 +1,22 @@
 import { HashSet } from "../types";
-import { BLOCK_LABELS, TRANSFORM_LABELS } from "./hash-labels";
+import { BLOCK_LABELS, TRANSFORM_LABELS, formatBlockKey, isScalePrefixedBlockKey } from "./hash-labels";
 
 interface HashTableProps {
   title: string;
   hashes: Record<string, HashSet>;
 }
 
-function formatKey(key: string) {
+function formatKey(key: string, isBlockTable: boolean) {
+  if (isBlockTable) {
+    return formatBlockKey(key);
+  }
   return TRANSFORM_LABELS[key] ?? BLOCK_LABELS[key] ?? key;
 }
 
 export function HashTable({ title, hashes }: HashTableProps) {
   const entries = Object.entries(hashes);
+  // Detect if this is a block table with scale-prefixed keys (v3)
+  const isBlockTable = entries.some(([key]) => isScalePrefixedBlockKey(key));
   // v2: block regions may carry per-block entropy; only render the column
   // when at least one entry has it (transform tables don't).
   const showEntropy = entries.some(([, val]) => typeof val.entropy === "number");
@@ -33,7 +38,7 @@ export function HashTable({ title, hashes }: HashTableProps) {
               i < entries.length - 1 ? "border-b border-border/50" : ""
             }`}
           >
-            <p className="text-[11px] font-semibold text-foreground">{formatKey(key)}</p>
+            <p className="text-[11px] font-semibold text-foreground">{formatKey(key, isBlockTable)}</p>
             {[val.phash, val.dhash, val.whash].map((h, j) => (
               <p key={j} className="text-[10px] font-mono text-muted-foreground truncate pr-2">{h}</p>
             ))}

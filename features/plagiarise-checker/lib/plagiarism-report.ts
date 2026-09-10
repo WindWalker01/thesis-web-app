@@ -299,7 +299,7 @@ function drawMatchSummaryCard(
     y: number,
     w: number,
     title: string,
-    match: SearchMatch | null,
+    match: SearchMatch | null | undefined,
     accent: [number, number, number]
 ): number {
     const h = 28;

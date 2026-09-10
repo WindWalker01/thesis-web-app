@@ -48,6 +48,48 @@ describe("MatchCard", () => {
     expect(screen.getByText("3 of 5 regions matched across 4 of 6 transform variants")).toBeDefined();
   });
 
+  it("shows enhanced evidence detail with dominant transform for v3 matches", () => {
+    render(
+      <MatchCard
+        match={makeMatch({
+          similarity: 19.57,
+          raw_similarity: 19.57,
+          calibrated_confidence: 95,
+          transform_consistency: 1.0,
+          transform_agreements: 4,
+          block_agreements: 3,
+          dominant_transform: "180",
+        })}
+      />
+    );
+    // Should show "consistent under 180° rotation"
+    expect(screen.getByText("3 of 5 regions matched, consistent under 180° rotation")).toBeDefined();
+  });
+
+  it("notes transform-evidence-absent status for crop matches", () => {
+    render(
+      <MatchCard
+        match={makeMatch({
+          similarity: 34.25,
+          raw_similarity: 34.25,
+          calibrated_confidence: 100,
+          transform_consistency: 0,
+          transform_agreements: 0,
+          block_agreements: 2,
+          content_blocks_used: 5,
+          transform_evidence_status: "absent",
+          block_evidence_status: "checked",
+          best_scale_pair: ["0.625", "0.75"],
+          dominant_transform: null,
+        })}
+      />
+    );
+    // Should show crop-specific message
+    expect(screen.getByText("2 of 5 regions matched — matched on image content only, no rotation/flip detected (likely a crop)")).toBeDefined();
+    // Should also show the separate evidence note about content-only match
+    expect(screen.getByText("Matched on image content only — no rotation/flip detected (likely a crop).")).toBeDefined();
+  });
+
   it("falls back to similarity and skips evidence copy on legacy responses", () => {
     render(
       <MatchCard
@@ -70,5 +112,26 @@ describe("MatchCard", () => {
   it("surfaces the low-content caveat when flagged", () => {
     render(<MatchCard match={makeMatch({ low_content_warning: true })} />);
     expect(screen.getByText(/Low image detail/)).toBeDefined();
+  });
+
+  it("shows best scale pair info for v3 matches", () => {
+    render(
+      <MatchCard
+        match={makeMatch({
+          similarity: 34.25,
+          raw_similarity: 34.25,
+          calibrated_confidence: 100,
+          transform_consistency: 0,
+          transform_agreements: 0,
+          block_agreements: 2,
+          content_blocks_used: 5,
+          transform_evidence_status: "absent",
+          block_evidence_status: "checked",
+          best_scale_pair: ["0.625", "0.75"],
+        })}
+      />
+    );
+    // Evidence note should mention the crop detection
+    expect(screen.getByText("Matched on image content only — no rotation/flip detected (likely a crop).")).toBeDefined();
   });
 });

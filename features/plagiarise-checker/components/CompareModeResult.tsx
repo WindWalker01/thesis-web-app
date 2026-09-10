@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, TriangleAlert } from "lucide-react";
+import { ShieldCheck, TriangleAlert, Info, Hash } from "lucide-react";
 import Image from "next/image";
 import { CompareResponse } from "./../types";
 import { SimilarityRing } from "./SimilarityRing";
@@ -9,7 +9,11 @@ import {
   getPrimaryScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
+  getEvidenceDetail,
   getDominantTransformLabel,
+  getTransformEvidenceStatus,
+  getBlockEvidenceStatus,
+  getBestScalePair,
 } from "../lib/match-metrics";
 
 interface CompareModeResultProps {
@@ -50,8 +54,12 @@ export function CompareModeResult({
   const final = getPrimaryScore(comparison);
   const noEvidence = isNoEvidenceMatch(comparison);
   const evidence = getEvidenceSummary(comparison);
+  const evidenceDetail = getEvidenceDetail(comparison);
   const dominant = getDominantTransformLabel(comparison.dominant_transform);
   const lowContent = comparison.low_content_warning === true || result.low_content_warning === true;
+  const transformEvidenceStatus = getTransformEvidenceStatus(comparison);
+  const blockEvidenceStatus = getBlockEvidenceStatus(comparison);
+  const bestScalePair = getBestScalePair(comparison);
   const risk = getRiskLevel(final);
 
   return (
@@ -132,10 +140,29 @@ export function CompareModeResult({
             {noEvidence ? "Clean negative" : risk.label}
           </Badge>
 
-          <EvidenceNote evidence={evidence} lowContent={lowContent} className="text-center" />
+          <EvidenceNote
+            evidence={evidence}
+            evidenceDetail={evidenceDetail}
+            lowContent={lowContent}
+            transformEvidenceStatus={transformEvidenceStatus}
+            blockEvidenceStatus={blockEvidenceStatus}
+            className="text-center"
+          />
           {dominant && !noEvidence && (
             <p className="text-center text-[11px] text-muted-foreground">
               Consistent under a {dominant}
+            </p>
+          )}
+
+          {/* v3: show best scale pair if available */}
+          {comparison.best_scale_pair && (
+            <p className="text-center text-[11px] text-muted-foreground">
+              Best scale pair: {comparison.best_scale_pair[0]} → {comparison.best_scale_pair[1]}
+            </p>
+          )}
+          {bestScalePair && (
+            <p className="text-center text-[11px] text-muted-foreground">
+              Best scale pair: {bestScalePair[0]} → {bestScalePair[1]}
             </p>
           )}
 

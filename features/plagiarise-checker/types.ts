@@ -2,11 +2,20 @@ export type Stage = "upload" | "analyzing" | "result" | "error";
 export type Mode = "web" | "compare";
 
 /**
+ * Evidence status values for transform and block channels (v3 API).
+ */
+export type EvidenceStatus = "absent" | "checked";
+
+/**
  * Consensus-based scoring fields added by the v2 plagiarism API (backend commit
  * `6f114bb`). All fields are optional so responses from older/unmigrated
  * endpoints (and older cached payloads) remain assignable. When present, they
  * appear identically on `db`, `web`, `best_match`, and every `other_matches`
- * entry (see RESPONSE_STRUCTURE_AUDIT.md).
+ * entry (see RESPONSE_STRUCTURE_AUDIT.md). v3 additions:
+ * - `transform_evidence_status`, `block_evidence_status` (dynamic-reweighting pass)
+ * - `best_scale_pair` (multi-scale pass)
+ * - `dominant_transform` (now on all match objects, not just compare)
+ * - `calibration_loaded`, `background_coincidence_suppressed` (v3 health/debug signals)
  */
 export interface MatchMetrics {
   /** New consensus algorithm's uncalibrated linear score. `0` = no agreeing evidence. */
@@ -15,16 +24,28 @@ export interface MatchMetrics {
   raw_similarity_legacy?: number;
   /** Primary user-facing score: percentile-calibrated against an unrelated-pair baseline. */
   calibrated_confidence?: number;
-  /** 0–1. 0.0 = zero agreeing block/transform pairs (clean negative). */
+  /** 0–1. 0.0 = zero agreeing block/transform pairs (clean negative); 1.0 = all agreeing pairs share one geometric transform. */
   transform_consistency?: number;
   /** 0–6 transform-variant hashes that agreed. */
   transform_agreements?: number;
-  /** 0–5 content-bearing block regions that agreed. */
+  /** 0–5 content-bearing block regions that agreed (per winning scale-pair mesh). */
   block_agreements?: number;
   /** How many blocks of the uploaded image carried enough detail to be used as evidence. */
   content_blocks_used?: number;
   /** True when the uploaded (or compared) image lacked content-bearing blocks. */
   low_content_warning?: boolean;
+  /** v3: whether transform evidence was checked or absent (renormalized onto block channel). */
+  transform_evidence_status?: EvidenceStatus;
+  /** v3: whether block evidence was checked or absent (renormalized onto transform channel). */
+  block_evidence_status?: EvidenceStatus;
+  /** v3: which two scale factors produced the winning block comparison, e.g. ["0.625", "0.75"]. */
+  best_scale_pair?: [string, string] | null;
+  /** v3: transform implied by agreeing blocks ("0", "90", "180", "270", "mirror", "flip") or null. */
+  dominant_transform?: string | null;
+  /** v3: whether calibration config loaded successfully. */
+  calibration_loaded?: boolean;
+  /** v3: true when score was suppressed as likely background/flat-region coincidence. */
+  background_coincidence_suppressed?: boolean;
 }
 
 export interface HashSet {
@@ -33,6 +54,8 @@ export interface HashSet {
   whash: string;
   /** Per-block entropy (only present on block regions, v2 API). */
   entropy?: number;
+  /** v3: per-block similarity score (0–100) for this specific hash comparison. */
+  similarity?: number;
 }
 
 export interface SearchMatch extends MatchMetrics {
@@ -62,6 +85,7 @@ export interface PlagiarismWebResult {
   best_match?: SearchMatch | null;
   hashes: {
     transforms: Record<string, HashSet>;
+    /** v3: block keys are now scale-prefixed, e.g. "0.625:top_left", "1.0:center". */
     blocks: Record<string, HashSet>;
   };
   other_matches: OtherSearchMatch[];
@@ -82,6 +106,7 @@ export interface CheckPlagiarismWebResult extends MatchMetrics {
   hashes?:
     | {
         transforms?: Record<string, HashSet>;
+        /** v3: block keys are now scale-prefixed, e.g. "0.625:top_left". */
         blocks?: Record<string, HashSet>;
       }
     | Record<string, unknown>
@@ -119,12 +144,10 @@ export interface CompareResponse {
     final_similarity: number;
     /** v2: true when config/calibration.json was loaded; false = identity fallback. */
     calibration_loaded?: boolean;
-    /** v2: global resemblance voided because no block corroborated it. */
+    /** v3: global resemblance voided because no block corroborated it. */
     background_coincidence_suppressed?: boolean;
-    /** v2: transform implied by the agreeing blocks ("0".."270", "mirror", "flip") or null. */
-    dominant_transform?: string | null;
   };
-  /** v2: true when either image had no content-bearing blocks. */
+  /** v3: true when either image had no content-bearing blocks. */
   low_content_warning?: boolean;
 }
 
@@ -134,11 +157,12 @@ export interface SearchResponse {
   filename: string;
   success: boolean;
   original_hash: string;
-  db: SearchMatch | null;
-  web: SearchMatch | null;
-  best_match: SearchMatch | null;
+  db?: SearchMatch | null;
+  web?: SearchMatch | null;
+  best_match?: SearchMatch | null;
   hashes: {
     transforms: Record<string, HashSet>;
+    /** v3: block keys are now scale-prefixed, e.g. "0.625:top_left", "1.0:center". */
     blocks: Record<string, HashSet>;
   };
   other_matches: OtherSearchMatch[];
