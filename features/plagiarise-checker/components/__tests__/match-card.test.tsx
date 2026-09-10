@@ -23,8 +23,16 @@ function makeMatch(overrides: Partial<SearchMatch> = {}): SearchMatch {
 }
 
 describe("MatchCard", () => {
-  it("renders the explicit 'No plagiarism match found' state for a clean negative", () => {
+  it("renders the fallback decision score (not a clean negative) for zero consensus + strong legacy", () => {
     render(<MatchCard match={makeMatch()} />);
+    // Option-B fallback: legacy 70.56 >= 60 → shown silently as 70.6%.
+    expect(screen.getByText("70.6%")).toBeDefined();
+    expect(screen.queryByText("No plagiarism match found")).toBeNull();
+    expect(screen.getByText("0 of 5 regions matched")).toBeDefined();
+  });
+
+  it("renders the explicit 'No plagiarism match found' state for a genuine clean negative", () => {
+    render(<MatchCard match={makeMatch({ raw_similarity_legacy: 55 })} />);
     expect(screen.getByText("No plagiarism match found")).toBeDefined();
     expect(screen.getByText("0 of 5 regions matched")).toBeDefined();
   });
@@ -110,7 +118,9 @@ describe("MatchCard", () => {
   });
 
   it("surfaces the low-content caveat when flagged", () => {
-    render(<MatchCard match={makeMatch({ low_content_warning: true })} />);
+    render(
+      <MatchCard match={makeMatch({ low_content_warning: true, raw_similarity_legacy: 55 })} />
+    );
     expect(screen.getByText(/Low image detail/)).toBeDefined();
   });
 

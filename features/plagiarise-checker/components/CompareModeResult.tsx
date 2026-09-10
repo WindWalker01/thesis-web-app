@@ -6,7 +6,7 @@ import { SimilarityRing } from "./SimilarityRing";
 import { SimilarityBar } from "./SimilarityBar";
 import { EvidenceNote } from "./EvidenceNote";
 import {
-  getPrimaryScore,
+  getDecisionScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
   getEvidenceDetail,
@@ -49,10 +49,18 @@ export function CompareModeResult({
   result,
 }: CompareModeResultProps) {
   const { comparison } = result;
-  // v2 primary score: percentile-calibrated confidence; falls back to
-  // `final_similarity` on legacy responses.
-  const final = getPrimaryScore(comparison);
-  const noEvidence = isNoEvidenceMatch(comparison);
+  // Merge top-level Option-B signals (backend returns them beside
+  // `comparison` for /compare) so the decision score sees them.
+  const scoreInput = {
+    ...comparison,
+    fallback_used: comparison.fallback_used ?? result.fallback_used,
+    effective_similarity:
+      comparison.effective_similarity ?? result.effective_similarity,
+  };
+  // Decision score: calibrated confidence normally, legacy value silently
+  // when consensus is zero but legacy clears the fallback gate (Option B).
+  const final = getDecisionScore(scoreInput);
+  const noEvidence = isNoEvidenceMatch(scoreInput);
   const evidence = getEvidenceSummary(comparison);
   const evidenceDetail = getEvidenceDetail(comparison);
   const dominant = getDominantTransformLabel(comparison.dominant_transform);
@@ -248,7 +256,7 @@ export function CompareModeResult({
         <p className="text-foreground font-semibold">Similarity Breakdown</p>
         <SimilarityBar
           label="Calibrated Confidence"
-          value={getPrimaryScore(comparison)}
+          value={final}
           sublabel="percentile vs. a baseline of known-unrelated artwork pairs"
         />
         <SimilarityBar

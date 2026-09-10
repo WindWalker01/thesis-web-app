@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   getPrimaryScore,
+  getDecisionScore,
+  isLegacyFallbackMatch,
+  LEGACY_FALLBACK_MIN_SCORE,
   isNoEvidenceMatch,
   getEvidenceSummary,
   getEvidenceDetail,
@@ -87,8 +90,14 @@ describe("getPrimaryScore", () => {
 });
 
 describe("isNoEvidenceMatch", () => {
-  it("is true for the v2 true-negative tuple (all four metrics zero)", () => {
-    expect(isNoEvidenceMatch(v2CleanNegative)).toBe(true);
+  it("is false for the zero-consensus + strong-legacy shape (Option-B fallback hit, not a clean negative)", () => {
+    expect(isNoEvidenceMatch(v2CleanNegative)).toBe(false);
+  });
+
+  it("is true for a genuine zero tuple with weak legacy below the gate", () => {
+    expect(
+      isNoEvidenceMatch({ ...v2CleanNegative, raw_similarity_legacy: 55 })
+    ).toBe(true);
   });
 
   it("is false when any evidence metric is nonzero", () => {
@@ -233,9 +242,80 @@ describe("shared mapping across response shapes", () => {
 
   it("treats db, web, best_match and other_matches entries the same", () => {
     for (const m of [dbMatch, otherMatch]) {
-      expect(isNoEvidenceMatch(m)).toBe(true);
+      // v2CleanNegative carries legacy 70.56 >= 60 → fallback hit, not clean.
+      expect(isNoEvidenceMatch(m)).toBe(false);
+      expect(getDecisionScore(m)).toBe(70.56);
       expect(getPrimaryScore(m)).toBe(0);
       expect(getEvidenceSummary(m)).toBe("0 of 5 regions matched");
     }
+  });
+});
+
+describe("Option-B legacy fallback (gate = 60, silent)", () => {
+  it("keeps the gate at 60", () => {
+    expect(LEGACY_FALLBACK_MIN_SCORE).toBe(60);
+  });
+
+  // Reported shape: db 62.7 / web 80.23 with zero consensus.
+  const dbFallback = {
+    similarity: 0,
+    raw_similarity: 0,
+    raw_similarity_legacy: 62.7,
+    calibrated_confidence: 0,
+  };
+  const webFallback = {
+    similarity: 0,
+    raw_similarity: 0,
+    raw_similarity_legacy: 80.23,
+    calibrated_confidence: 0,
+  };
+
+  it("fires on zero consensus + strong legacy and returns the legacy value", () => {
+    expect(isLegacyFallbackMatch(dbFallback)).toBe(true);
+    expect(isLegacyFallbackMatch(webFallback)).toBe(true);
+    expect(getDecisionScore(dbFallback)).toBe(62.7);
+    expect(getDecisionScore(webFallback)).toBe(80.23);
+  });
+
+  it("a fallback hit is never a clean negative", () => {
+    expect(isNoEvidenceMatch({ ...v2CleanNegative, similarity: 0 })).toBe(
+      false
+    );
+  });
+
+  it("rejects weak legacy below the gate (stays negative)", () => {
+    const weak = {
+      similarity: 0,
+      raw_similarity: 0,
+      raw_similarity_legacy: 55,
+      calibrated_confidence: 0,
+    };
+    expect(isLegacyFallbackMatch(weak)).toBe(false);
+    expect(getDecisionScore(weak)).toBe(0);
+  });
+
+  it("ignores nonzero consensus (no fallback)", () => {
+    expect(isLegacyFallbackMatch({ ...v2Positive, similarity: 22.4 })).toBe(
+      false
+    );
+    expect(getDecisionScore({ ...v2Positive, similarity: 22.4 })).toBe(99.2);
+  });
+
+  it("trusts the backend fallback_used/effective_similarity signal", () => {
+    const backend = {
+      similarity: 0,
+      raw_similarity: 0,
+      calibrated_confidence: 0,
+      fallback_used: true,
+      effective_similarity: 80.23,
+    };
+    expect(isLegacyFallbackMatch(backend)).toBe(true);
+    expect(getDecisionScore(backend)).toBe(80.23);
+  });
+
+  it("returns 0 for null/undefined", () => {
+    expect(getDecisionScore(null)).toBe(0);
+    expect(getDecisionScore(undefined)).toBe(0);
+    expect(isLegacyFallbackMatch(null)).toBe(false);
   });
 });

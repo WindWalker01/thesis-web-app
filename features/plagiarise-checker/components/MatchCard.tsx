@@ -3,7 +3,7 @@ import { Database, Globe, ExternalLink, Trophy, ShieldCheck } from "lucide-react
 import { SearchMatch } from "../types";
 import { SimilarityRing } from "./SimilarityRing";
 import {
-  getPrimaryScore,
+  getDecisionScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
   getEvidenceDetail,
@@ -26,9 +26,9 @@ function getRiskBadge(similarity: number) {
 
 export function MatchCard({ match, isBest }: MatchCardProps) {
   const isDb = match.type === "database";
-  // v2 primary score: percentile-calibrated confidence (falls back to
-  // `similarity` on legacy responses). `raw_similarity_legacy` is never shown.
-  const score = getPrimaryScore(match);
+  // Decision score: calibrated confidence normally, legacy value silently
+  // when consensus is zero but legacy clears the fallback gate (Option B).
+  const score = getDecisionScore(match);
   const risk = getRiskBadge(score);
   const noEvidence = isNoEvidenceMatch(match);
   const evidence = getEvidenceSummary(match);

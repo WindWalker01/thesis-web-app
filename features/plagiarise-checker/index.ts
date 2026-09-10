@@ -29,6 +29,9 @@ export type {
 
 export {
   getPrimaryScore,
+  getDecisionScore,
+  isLegacyFallbackMatch,
+  LEGACY_FALLBACK_MIN_SCORE,
   isNoEvidenceMatch,
   getEvidenceSummary,
   isLowContent,
