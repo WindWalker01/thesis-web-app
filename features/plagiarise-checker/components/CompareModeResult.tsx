@@ -16,21 +16,33 @@ import {
   getBestScalePair,
 } from "../lib/match-metrics";
 
+import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
+import {
+  DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+  getSimilarityRiskTier,
+} from "../lib/similarity-risk";
+
 interface CompareModeResultProps {
   previewA: string;
   filenameA: string;
   previewB: string;
   filenameB: string;
   result: CompareResponse;
+  /** Admin-synced thresholds (critical = red, moderate = amber). Defaults to shared fallbacks. */
+  thresholds?: SimilarityRiskThresholds;
 }
 
-function getRiskLevel(value: number) {
-  if (value >= 85)
+function getRiskLevel(
+  value: number,
+  thresholds: SimilarityRiskThresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+) {
+  const tier = getSimilarityRiskTier(value, thresholds);
+  if (tier === "critical")
     return {
       label: "High Risk",
       className: "text-red-400 border-red-500/30 bg-red-500/10",
     };
-  if (value >= 60)
+  if (tier === "moderate")
     return {
       label: "Moderate Risk",
       className: "text-amber-400 border-amber-500/30 bg-amber-500/10",
@@ -47,6 +59,7 @@ export function CompareModeResult({
   previewB,
   filenameB,
   result,
+  thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
 }: CompareModeResultProps) {
   const { comparison } = result;
   // Merge top-level Option-B signals (backend returns them beside
@@ -68,7 +81,7 @@ export function CompareModeResult({
   const transformEvidenceStatus = getTransformEvidenceStatus(comparison);
   const blockEvidenceStatus = getBlockEvidenceStatus(comparison);
   const bestScalePair = getBestScalePair(comparison);
-  const risk = getRiskLevel(final);
+  const risk = getRiskLevel(final, thresholds);
 
   return (
     <div className="space-y-5">
@@ -134,7 +147,7 @@ export function CompareModeResult({
               </p>
             </div>
           ) : (
-            <SimilarityRing value={final} size={130} />
+            <SimilarityRing value={final} size={130} thresholds={thresholds} />
           )}
 
           <Badge
@@ -258,21 +271,25 @@ export function CompareModeResult({
           label="Calibrated Confidence"
           value={final}
           sublabel="percentile vs. a baseline of known-unrelated artwork pairs"
+          thresholds={thresholds}
         />
         <SimilarityBar
           label="Raw Similarity"
           value={comparison.raw_similarity ?? comparison.final_similarity}
           sublabel="consensus algorithm score (uncalibrated)"
+          thresholds={thresholds}
         />
         <SimilarityBar
           label="Transform Similarity"
           value={comparison.transform_similarity}
           sublabel="checks 0°, 90°, 180°, 270°, mirror & flip variants"
+          thresholds={thresholds}
         />
         <SimilarityBar
           label="Block Similarity"
           value={comparison.block_similarity}
           sublabel="compares top-left, top-right, bottom-left, bottom-right, center"
+          thresholds={thresholds}
         />
         {/* v2 explainability: agreement counts behind the score */}
         {(comparison.block_agreements !== undefined ||

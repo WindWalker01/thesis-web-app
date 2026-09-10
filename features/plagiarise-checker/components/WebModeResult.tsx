@@ -17,12 +17,16 @@ import {
   isLowContent,
 } from "../lib/match-metrics";
 import Link from "next/link";
+import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
+import { DEFAULT_SIMILARITY_RISK_THRESHOLDS } from "../lib/similarity-risk";
 
 interface WebModeResultProps {
   preview: string;
   result: SearchResponse;
   /** Re-fires the same upload (used for the degraded-state Retry button). */
   onRetry?: () => void;
+  /** Admin-synced thresholds (critical = red, moderate = amber). Defaults to shared fallbacks. */
+  thresholds?: SimilarityRiskThresholds;
 }
 
 function NoMatchNote({ label }: { label: string }) {
@@ -102,7 +106,7 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
   );
 }
 
-export function WebModeResult({ preview, result, onRetry }: WebModeResultProps) {
+export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS }: WebModeResultProps) {
   const hasWebDiagnostics = !!result.web_diagnostics;
 
   // Recompute the best match on the frontend decision score so an old
@@ -176,7 +180,7 @@ export function WebModeResult({ preview, result, onRetry }: WebModeResultProps) 
                 </p>
               </div>
             ) : (
-              <SimilarityRing value={bestScore} size={130} />
+              <SimilarityRing value={bestScore} size={130} thresholds={thresholds} />
             )}
             <EvidenceNote
               evidence={bestNoEvidence ? bestEvidence : null}
@@ -324,7 +328,7 @@ export function WebModeResult({ preview, result, onRetry }: WebModeResultProps) 
         </div>
         {hasWebDiagnostics && <WebOnlineStatus result={result} onRetry={onRetry} />}
         {result.web ? (
-          <MatchCard match={result.web} isBest={!isBestDb} />
+          <MatchCard match={result.web} isBest={!isBestDb} thresholds={thresholds} />
         ) : !hasWebDiagnostics ? (
           <NoMatchNote label="web" />
         ) : result.web_diagnostics?.status === "degraded" ||
@@ -335,7 +339,7 @@ export function WebModeResult({ preview, result, onRetry }: WebModeResultProps) 
 
       {/* DB match full card */}
       {result.db
-        ? <MatchCard match={result.db} isBest={isBestDb} />
+        ? <MatchCard match={result.db} isBest={isBestDb} thresholds={thresholds} />
         : <NoMatchNote label="database" />
       }
 

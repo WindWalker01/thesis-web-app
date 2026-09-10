@@ -1,30 +1,28 @@
+import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
+import {
+  DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+  getSimilarityColor,
+  getSimilarityRiskLabel,
+} from "../lib/similarity-risk";
+
 interface SimilarityRingProps {
   value: number; // 0–100
   label?: string; // line below the number
   size?: number; // svg size in px, default 120
-}
-
-function getColor(value: number) {
-  if (value >= 85) return "#ef4444"; // red  — critical
-  if (value >= 60) return "#f59e0b"; // amber — moderate
-  return "#22c55e"; // green — low / safe
-}
-
-function getRiskLabel(value: number) {
-  if (value >= 85) return "Critical";
-  if (value >= 60) return "Moderate";
-  return "Low Risk";
+  /** Admin-synced thresholds (critical = red, moderate = amber). Defaults to shared fallbacks. */
+  thresholds?: SimilarityRiskThresholds;
 }
 
 export function SimilarityRing({
   value,
   label,
   size = 120,
+  thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
 }: SimilarityRingProps) {
   const r = size * 0.4;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
-  const color = getColor(value);
+  const color = getSimilarityColor(value, thresholds);
   const cx = size / 2;
   const cy = size / 2;
   const fontSize = size * 0.19;
@@ -72,7 +70,7 @@ export function SimilarityRing({
         fontFamily="inherit"
         className="fill-muted-foreground"
       >
-        {label ?? getRiskLabel(value)}
+        {label ?? getSimilarityRiskLabel(value, thresholds)}
       </text>
     </svg>
   );

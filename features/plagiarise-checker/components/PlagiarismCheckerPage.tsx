@@ -21,9 +21,13 @@ import {
 } from "@/features/plagiarise-checker";
 
 import { usePlagiarismChecker } from "@/features/plagiarise-checker/hooks/use-plagiarism-checker";
+import { useSimilarityRiskThresholds } from "@/features/plagiarise-checker/hooks/use-similarity-risk-thresholds";
 
 export default function PlagiarismCheckerPage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  // Admin-synced color boundaries: critical (similarity_threshold) = red,
+  // moderate (manual_review_threshold) = amber, below = green.
+  const thresholds = useSimilarityRiskThresholds();
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 12);
@@ -275,6 +279,7 @@ export default function PlagiarismCheckerPage() {
               <WebModeResult
                 preview={webPreview}
                 result={webResult}
+                thresholds={thresholds}
                 onRetry={
                   webFile ? () => handleWebUpload(webFile) : undefined
                 }
@@ -309,6 +314,7 @@ export default function PlagiarismCheckerPage() {
                 previewB={previewB}
                 filenameB={fileB?.name ?? compareResult.image2}
                 result={compareResult}
+                thresholds={thresholds}
               />
             )}
           </>

@@ -1,17 +1,19 @@
+import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
+import {
+  DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+  getSimilarityColor,
+} from "../lib/similarity-risk";
+
 interface SimilarityBarProps {
   label: string;
   value: number;       // 0–100
   sublabel?: string;
+  /** Admin-synced thresholds (critical = red, moderate = amber). Defaults to shared fallbacks. */
+  thresholds?: SimilarityRiskThresholds;
 }
 
-function getColor(value: number) {
-  if (value >= 85) return "#ef4444";
-  if (value >= 60) return "#f59e0b";
-  return "#22c55e";
-}
-
-export function SimilarityBar({ label, value, sublabel }: SimilarityBarProps) {
-  const color = getColor(value);
+export function SimilarityBar({ label, value, sublabel, thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS }: SimilarityBarProps) {
+  const color = getSimilarityColor(value, thresholds);
 
   return (
     <div className="space-y-1.5">

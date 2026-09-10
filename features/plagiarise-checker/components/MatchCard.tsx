@@ -13,23 +13,35 @@ import {
 } from "../lib/match-metrics";
 import { EvidenceNote } from "./EvidenceNote";
 
+import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
+import {
+  DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+  getSimilarityRiskTier,
+} from "../lib/similarity-risk";
+
 interface MatchCardProps {
   match: SearchMatch;
   isBest?: boolean;
+  /** Admin-synced thresholds (critical = red, moderate = amber). Defaults to shared fallbacks. */
+  thresholds?: SimilarityRiskThresholds;
 }
 
-function getRiskBadge(similarity: number) {
-  if (similarity >= 85) return { label: "Critical Match", className: "text-red-400 border-red-500/30 bg-red-500/10" };
-  if (similarity >= 60) return { label: "Moderate Match", className: "text-amber-400 border-amber-500/30 bg-amber-500/10" };
+function getRiskBadge(
+  similarity: number,
+  thresholds: SimilarityRiskThresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+) {
+  const tier = getSimilarityRiskTier(similarity, thresholds);
+  if (tier === "critical") return { label: "Critical Match", className: "text-red-400 border-red-500/30 bg-red-500/10" };
+  if (tier === "moderate") return { label: "Moderate Match", className: "text-amber-400 border-amber-500/30 bg-amber-500/10" };
   return { label: "Low Match", className: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" };
 }
 
-export function MatchCard({ match, isBest }: MatchCardProps) {
+export function MatchCard({ match, isBest, thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS }: MatchCardProps) {
   const isDb = match.type === "database";
   // Decision score: calibrated confidence normally, legacy value silently
   // when consensus is zero but legacy clears the fallback gate (Option B).
   const score = getDecisionScore(match);
-  const risk = getRiskBadge(score);
+  const risk = getRiskBadge(score, thresholds);
   const noEvidence = isNoEvidenceMatch(match);
   const evidence = getEvidenceSummary(match);
   const evidenceDetail = getEvidenceDetail(match);
@@ -81,7 +93,7 @@ export function MatchCard({ match, isBest }: MatchCardProps) {
               </p>
             </div>
           ) : (
-            <SimilarityRing value={score} size={100} />
+            <SimilarityRing value={score} size={100} thresholds={thresholds} />
           )}
           <EvidenceNote
             evidence={evidence}
