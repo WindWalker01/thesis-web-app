@@ -56,6 +56,8 @@ export async function checkPlagiarismWeb(
     const res = await fetch(`${API_BASE}/plagiarism/check/web`, {
       method: "POST",
       body: formData,
+      // Backend may poll Cloudinary readiness (up to ~15s extra); allow 90s.
+      signal: AbortSignal.timeout(90_000),
     });
 
     if (!res.ok) {
@@ -99,6 +101,9 @@ export async function checkPlagiarismWeb(
       best_match: data.best_match ?? null,
       other_matches: resolvedOtherMatches,
       low_content_warning: data.low_content_warning,
+      // Additive backend fields: pass through; tolerate legacy responses.
+      web_warning: data.web_warning ?? null,
+      web_diagnostics: data.web_diagnostics ?? undefined,
     };
 
     if (enriched.db?.type === "database" && isUuidLike(enriched.db.url)) {

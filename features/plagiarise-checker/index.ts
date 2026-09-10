@@ -10,6 +10,7 @@ export { SimilarityRing } from "./components/SimilarityRing";
 export { UploadZone } from "./components/UploadZone";
 export { WebModeResult } from "./components/WebModeResult";
 export { WebModeUpload } from "./components/WebModeUpload";
+export { OnlineCheckChip, WebOnlineStatus } from "./components/WebOnlineStatus";
 
 export { usePlagiarismChecker } from "./hooks/use-plagiarism-checker";
 
@@ -22,6 +23,8 @@ export type {
   HashSet,
   MatchMetrics,
   OtherSearchMatch,
+  WebDiagnostics,
+  WebDiagnosticsStatus,
 } from "./types";
 
 export {
@@ -72,6 +75,8 @@ export async function checkPlagiarismWeb(
     {
       method: "POST",
       body: formData,
+      // Backend may poll Cloudinary readiness (up to ~15s extra); allow 90s.
+      signal: AbortSignal.timeout(90_000),
     },
   );
 

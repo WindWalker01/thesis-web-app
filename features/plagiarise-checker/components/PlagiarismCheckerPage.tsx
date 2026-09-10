@@ -41,6 +41,7 @@ export default function PlagiarismCheckerPage() {
     errorTime,
     exportingPdf,
     copyConfirmed,
+    webFile,
     webPreview,
     webResult,
     fileA,
@@ -271,7 +272,13 @@ export default function PlagiarismCheckerPage() {
               <AnalyzingScreen progress={0} mode="web" indeterminate />
             )}
             {stage === "result" && webPreview && webResult && (
-              <WebModeResult preview={webPreview} result={webResult} />
+              <WebModeResult
+                preview={webPreview}
+                result={webResult}
+                onRetry={
+                  webFile ? () => handleWebUpload(webFile) : undefined
+                }
+              />
             )}
           </>
         )}

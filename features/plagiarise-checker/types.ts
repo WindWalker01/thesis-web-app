@@ -91,6 +91,48 @@ export interface PlagiarismWebResult {
   other_matches: OtherSearchMatch[];
   /** True when the uploaded image lacked content-bearing blocks (v2 API). */
   low_content_warning?: boolean;
+  /**
+   * Additive backend field on POST /plagiarism/check/web.
+   * Always present on new responses; absent on legacy cached payloads.
+   */
+  web_warning?: string | null;
+  /** Disambiguates `web: null` (no plagiarism vs degraded check). Optional for legacy cache tolerance. */
+  web_diagnostics?: WebDiagnostics;
+}
+
+/**
+ * Online (Serper/Cloudinary) branch status for POST /plagiarism/check/web.
+ * - ok: web match rendered normally.
+ * - no_matches: online images checked, none similar.
+ * - no_candidates: reverse search returned zero candidates.
+ * - degraded / not_attempted: online check incomplete; db result still valid.
+ */
+export type WebDiagnosticsStatus =
+  | "ok"
+  | "no_matches"
+  | "no_candidates"
+  | "degraded"
+  | "not_attempted";
+
+export interface WebDiagnostics {
+  status: WebDiagnosticsStatus;
+  cloudinary_ready?: boolean;
+  readiness_attempts?: number;
+  /** Last HTTP status of the Cloudinary HEAD poll (200/206 = ready, 404 = propagating). */
+  readiness_status?: number | null;
+  readiness_ms?: number;
+  payload_keys?: string[];
+  list_key?: string;
+  serp_returned?: number;
+  /** Candidates actually attempted (capped at 60). */
+  attempted?: number;
+  hashed_ok?: number;
+  hashed_failed?: number;
+  url_keys_seen?: string[];
+  /** Grouped failure causes, e.g. {"fetch_timeout:<host>": 4}. Render generically. */
+  failure_reasons?: Record<string, number>;
+  /** Present when status === "degraded". */
+  error?: string;
 }
 
 /**
@@ -168,4 +210,8 @@ export interface SearchResponse {
   other_matches: OtherSearchMatch[];
   /** True when the uploaded image lacked content-bearing blocks (v2 API). */
   low_content_warning?: boolean;
+  /** Additive backend field; null when the online branch needs no warning. Optional for legacy cache tolerance. */
+  web_warning?: string | null;
+  /** Disambiguates `web: null`. Optional for legacy cache tolerance. */
+  web_diagnostics?: WebDiagnostics;
 }

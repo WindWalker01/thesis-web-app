@@ -81,4 +81,71 @@ describe("checkPlagiarismWeb - other_matches enrichment", () => {
     // link should preserve original source link (not Cloudinary URL)
     expect(enrichedMatch.link).toBe("https://marketplace.com/artwork/123");
   });
+
+  it("passes through web_warning/web_diagnostics and uses a 90s timeout", async () => {
+    mockSupabaseResponse.data = null;
+    mockSupabaseResponse.error = null;
+
+    const mockApiResponse: PlagiarismWebResult = {
+      filename: "test.jpg",
+      success: true,
+      original_hash: "abc123",
+      hashes: { transforms: {}, blocks: {} },
+      other_matches: [],
+      web: null,
+      db: null,
+      web_warning: "Online check skipped...",
+      web_diagnostics: {
+        status: "degraded",
+        cloudinary_ready: false,
+        readiness_status: 404,
+        error: "cloudinary_url_not_ready",
+      },
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockApiResponse,
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const formData = new FormData();
+    formData.append("file", new File([new ArrayBuffer(10)], "test.jpg", { type: "image/jpeg" }));
+
+    const result = await checkPlagiarismWeb(null, formData);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.web_warning).toBe("Online check skipped...");
+    expect(result.data?.web_diagnostics?.status).toBe("degraded");
+    expect(mockFetch).toHaveBeenCalledOnce();
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("tolerates legacy responses without web_warning/web_diagnostics", async () => {
+    mockSupabaseResponse.data = null;
+    mockSupabaseResponse.error = null;
+
+    const legacy = {
+      filename: "test.jpg",
+      success: true,
+      original_hash: "abc123",
+      hashes: { transforms: {}, blocks: {} },
+      other_matches: [],
+    } as unknown as PlagiarismWebResult;
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => legacy }),
+    );
+
+    const formData = new FormData();
+    formData.append("file", new File([new ArrayBuffer(10)], "test.jpg", { type: "image/jpeg" }));
+
+    const result = await checkPlagiarismWeb(null, formData);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.web_warning).toBeNull();
+    expect(result.data?.web_diagnostics).toBeUndefined();
+  });
 });

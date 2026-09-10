@@ -9,6 +9,7 @@ import { MatchCard } from "./MatchCard";
 import { HashTable } from "./HashTable";
 import { SimilarityRing } from "./SimilarityRing";
 import { EvidenceNote } from "./EvidenceNote";
+import { OnlineCheckChip, WebOnlineStatus } from "./WebOnlineStatus";
 import {
   getPrimaryScore,
   isNoEvidenceMatch,
@@ -20,6 +21,8 @@ import Link from "next/link";
 interface WebModeResultProps {
   preview: string;
   result: SearchResponse;
+  /** Re-fires the same upload (used for the degraded-state Retry button). */
+  onRetry?: () => void;
 }
 
 function NoMatchNote({ label }: { label: string }) {
@@ -99,8 +102,9 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
   );
 }
 
-export function WebModeResult({ preview, result }: WebModeResultProps) {
+export function WebModeResult({ preview, result, onRetry }: WebModeResultProps) {
   const isBestDb = result.best_match?.type === "database";
+  const hasWebDiagnostics = !!result.web_diagnostics;
 
   // The third card always shows the best match — whichever scored higher
   const bestMatch = isBestDb ? result.db : result.web;
@@ -299,11 +303,22 @@ export function WebModeResult({ preview, result }: WebModeResultProps) {
         )}
       </div>
 
-      {/* Web match full card */}
-      {result.web
-        ? <MatchCard match={result.web} isBest={!isBestDb} />
-        : <NoMatchNote label="web" />
-      }
+      {/* Web match full card — status-driven; db always renders below */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">Online sources</p>
+          <OnlineCheckChip result={result} />
+        </div>
+        {hasWebDiagnostics && <WebOnlineStatus result={result} onRetry={onRetry} />}
+        {result.web ? (
+          <MatchCard match={result.web} isBest={!isBestDb} />
+        ) : !hasWebDiagnostics ? (
+          <NoMatchNote label="web" />
+        ) : result.web_diagnostics?.status === "degraded" ||
+          result.web_diagnostics?.status === "not_attempted" ? null : (
+          <NoMatchNote label="web" />
+        )}
+      </div>
 
       {/* DB match full card */}
       {result.db
