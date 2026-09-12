@@ -2,7 +2,6 @@ import type {
   SearchMatch,
   CheckPlagiarismWebResult,
 } from "@/features/plagiarise-checker/types";
-import { getDecisionScore } from "@/features/plagiarise-checker/lib/match-metrics";
 import {
   DB_MATCH_DISPLAY_THRESHOLD,
   MIN_RENDER_THRESHOLD,
@@ -45,13 +44,7 @@ function normalizeMatch(
 ): NormalizedSimilarityMatch | null {
   if (!match) return null;
 
-  // Decision score: calibrated confidence normally, legacy value silently
-  // when consensus is zero but legacy clears the fallback gate (Option B).
-  // Falls back to the raw `similarity` echo for payloads lacking metrics.
-  const decision = getDecisionScore(match);
-  const similarity = toNullableNumber(
-    decision > 0 ? decision : match.similarity,
-  );
+  const similarity = toNullableNumber(match.similarity);
   const type = toNullableString(match.type);
   const source = toNullableString(match.source);
   const link = toNullableString(match.link);

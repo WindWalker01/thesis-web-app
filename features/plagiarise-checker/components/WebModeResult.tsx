@@ -11,7 +11,7 @@ import { SimilarityRing } from "./SimilarityRing";
 import { EvidenceNote } from "./EvidenceNote";
 import { OnlineCheckChip, WebOnlineStatus } from "./WebOnlineStatus";
 import {
-  getDecisionScore,
+  getPrimaryScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
   isLowContent,
@@ -91,7 +91,7 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
                     </>
                   ) : (
                     <>
-                      <p className="text-sm font-bold text-foreground">{getDecisionScore(match).toFixed(1)}%</p>
+                      <p className="text-sm font-bold text-foreground">{getPrimaryScore(match).toFixed(1)}%</p>
                       <p className="text-[10px] text-muted-foreground">confidence</p>
                       <EvidenceNote evidence={getEvidenceSummary(match)} lowContent={isLowContent(match)} className="sm:items-end" />
                     </>
@@ -109,26 +109,13 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
 export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS }: WebModeResultProps) {
   const hasWebDiagnostics = !!result.web_diagnostics;
 
-  // Recompute the best match on the frontend decision score so an old
-  // backend's `best_match` (picked on raw calibrated_confidence) can't hide
-  // an Option-B fallback hit in db/web. New backends already agree.
-  const dbScore = getDecisionScore(result.db);
-  const webScore = getDecisionScore(result.web);
-  const bestCandidate =
-    webScore > dbScore
-      ? (result.web ?? result.best_match)
-      : dbScore > 0 || !result.web
-        ? (result.db ?? result.best_match)
-        : (result.best_match ?? result.db);
-  const isBestDb = bestCandidate?.type === "database";
-
   // The third card always shows the best match — whichever scored higher
-  const bestMatch =
-    isBestDb && result.db ? result.db : !isBestDb && result.web ? result.web : bestCandidate;
-  const bestScore = getDecisionScore(bestCandidate);
-  const bestNoEvidence = isNoEvidenceMatch(bestCandidate);
-  const bestEvidence = getEvidenceSummary(bestCandidate);
-  const bestLowContent = isLowContent(bestCandidate) || result.low_content_warning === true;
+  const isBestDb = result.best_match?.type === "database";
+  const bestMatch = isBestDb ? result.db : result.web;
+  const bestScore = getPrimaryScore(result.best_match);
+  const bestNoEvidence = isNoEvidenceMatch(result.best_match);
+  const bestEvidence = getEvidenceSummary(result.best_match);
+  const bestLowContent = isLowContent(result.best_match) || result.low_content_warning === true;
 
   return (
     <div className="space-y-5">
@@ -169,7 +156,7 @@ export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_S
         </div>
 
         {/* Best match ring */}
-        {bestCandidate ? (
+        {result.best_match ? (
           <div className="bg-card border border-border rounded-2xl p-5 flex w-full flex-col items-center gap-4 sm:mx-auto sm:w-56 lg:w-48">
             <p className="text-[10px] font-bold tracking-widest text-muted-foreground text-center">BEST MATCH</p>
             {bestNoEvidence ? (
@@ -188,7 +175,7 @@ export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_S
               className="text-center"
             />
             <div className="w-full text-center space-y-1.5">
-              <p className="text-sm font-semibold text-foreground">{bestCandidate.source}</p>
+              <p className="text-sm font-semibold text-foreground">{result.best_match.source}</p>
               <Badge
                 variant="outline"
                 className={`text-[10px] capitalize ${isBestDb
@@ -196,7 +183,7 @@ export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_S
                   : "text-sky-400 border-sky-500/30 bg-sky-500/10"
                   }`}
               >
-                {bestCandidate.type}
+                {result.best_match.type}
               </Badge>
             </div>
           </div>
@@ -223,7 +210,7 @@ export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_S
                     <ShieldCheck size={9} className="mr-1" /> No evidence
                   </Badge>
                 ) : (
-                  <SimilarityRing value={getDecisionScore(bestMatch)} size={52} />
+                  <SimilarityRing value={getPrimaryScore(bestMatch)} size={52} />
                 )}
               </div>
             </div>

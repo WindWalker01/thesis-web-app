@@ -12,23 +12,6 @@
 import { TRANSFORM_LABELS } from "@/features/plagiarise-checker/components/hash-labels";
 import type { MatchMetrics } from "@/features/plagiarise-checker/types";
 
-/**
- * Option-B legacy-fallback gate: when the consensus pipeline returns zero,
- * fall back to `raw_similarity_legacy` only if it clears this threshold.
- * Mirrors the backend `LEGACY_FALLBACK_MIN_SCORE` default (60.0). The score
- * is surfaced silently as the decision score — no badge/copy.
- */
-export const LEGACY_FALLBACK_MIN_SCORE = 60;
-
-type ScoreLike = {
-  similarity?: number | null;
-  calibrated_confidence?: number | null;
-  raw_similarity?: number | null;
-  raw_similarity_legacy?: number | null;
-  fallback_used?: boolean | null;
-  effective_similarity?: number | null;
-};
-
 /**ś
  * The headline "how confident are we this is plagiarism" number.
  * Prefers the percentile-calibrated score; falls back to `similarity` for
@@ -36,60 +19,10 @@ type ScoreLike = {
  * transitional metric that produced background false positives.
  */
 export function getPrimaryScore(
-  match:
-    | {
-        calibrated_confidence?: number | null;
-        similarity?: number | null;
-      }
-    | null
-    | undefined
+  match: { calibrated_confidence?: number; similarity?: number } | null | undefined
 ): number {
   if (!match) return 0;
   return match.calibrated_confidence ?? match.similarity ?? 0;
-}
-
-function toFiniteNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-/**
- * Option-B fallback check: true when the consensus scores are zero
- * (`similarity` and `raw_similarity` both ≤ 0 / missing-as-zero) and
- * `raw_similarity_legacy` clears {@link LEGACY_FALLBACK_MIN_SCORE}.
- * Trusts an explicit backend `fallback_used: true` signal; otherwise
- * recomputes locally so backends without the new fields still work.
- */
-export function isLegacyFallbackMatch(
-  match: ScoreLike | null | undefined
-): boolean {
-  if (!match) return false;
-  if (match.fallback_used === true) return true;
-  const similarity = toFiniteNumber(match.similarity) ?? 0;
-  const raw = toFiniteNumber(match.raw_similarity) ?? 0;
-  const legacy = toFiniteNumber(match.raw_similarity_legacy);
-  if (similarity > 0 || raw > 0) return false;
-  if (legacy === null) return false;
-  return legacy >= LEGACY_FALLBACK_MIN_SCORE;
-}
-
-/**
- * Decision score used for all plagiarism flag/display/rank logic.
- * Returns the backend `effective_similarity` when the fallback applies,
- * else the legacy value when the gate fires locally, else the normal
- * `getPrimaryScore()` value. Silent — callers render this number directly
- * with no extra badge/copy.
- */
-export function getDecisionScore(
-  match: ScoreLike | null | undefined
-): number {
-  if (!match) return 0;
-  if (isLegacyFallbackMatch(match)) {
-    const effective = toFiniteNumber(match.effective_similarity);
-    if (effective !== null) return effective;
-    const legacy = toFiniteNumber(match.raw_similarity_legacy);
-    if (legacy !== null) return legacy;
-  }
-  return getPrimaryScore(match);
 }
 
 /**
@@ -103,8 +36,6 @@ export function getDecisionScore(
  */
 export function isNoEvidenceMatch(match: MatchMetrics | null | undefined): boolean {
   if (!match) return false;
-  // A fallback hit is a positive by definition — never a clean negative.
-  if (isLegacyFallbackMatch(match)) return false;
   const { raw_similarity, transform_consistency, block_agreements, transform_agreements } = match;
   if (
     raw_similarity === undefined ||

@@ -6,7 +6,7 @@ import { SimilarityRing } from "./SimilarityRing";
 import { SimilarityBar } from "./SimilarityBar";
 import { EvidenceNote } from "./EvidenceNote";
 import {
-  getDecisionScore,
+  getPrimaryScore,
   isNoEvidenceMatch,
   getEvidenceSummary,
   getEvidenceDetail,
@@ -62,18 +62,10 @@ export function CompareModeResult({
   thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
 }: CompareModeResultProps) {
   const { comparison } = result;
-  // Merge top-level Option-B signals (backend returns them beside
-  // `comparison` for /compare) so the decision score sees them.
-  const scoreInput = {
-    ...comparison,
-    fallback_used: comparison.fallback_used ?? result.fallback_used,
-    effective_similarity:
-      comparison.effective_similarity ?? result.effective_similarity,
-  };
-  // Decision score: calibrated confidence normally, legacy value silently
-  // when consensus is zero but legacy clears the fallback gate (Option B).
-  const final = getDecisionScore(scoreInput);
-  const noEvidence = isNoEvidenceMatch(scoreInput);
+  // v2 primary score: percentile-calibrated confidence; falls back to
+  // `final_similarity` on legacy responses.
+  const final = getPrimaryScore(comparison);
+  const noEvidence = isNoEvidenceMatch(comparison);
   const evidence = getEvidenceSummary(comparison);
   const evidenceDetail = getEvidenceDetail(comparison);
   const dominant = getDominantTransformLabel(comparison.dominant_transform);

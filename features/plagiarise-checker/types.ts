@@ -46,17 +46,6 @@ export interface MatchMetrics {
   calibration_loaded?: boolean;
   /** v3: true when score was suppressed as likely background/flat-region coincidence. */
   background_coincidence_suppressed?: boolean;
-  /**
-   * Backend Option-B signal: consensus scores were zero but
-   * `raw_similarity_legacy` cleared the fallback gate. Optional for
-   * legacy-cache tolerance.
-   */
-  fallback_used?: boolean;
-  /**
-   * Backend-computed decision score (legacy value when `fallback_used`).
-   * Optional for legacy-cache tolerance.
-   */
-  effective_similarity?: number;
 }
 
 export interface HashSet {
@@ -202,10 +191,6 @@ export interface CompareResponse {
   };
   /** v3: true when either image had no content-bearing blocks. */
   low_content_warning?: boolean;
-  /** Backend Option-B signal for /compare (beside `comparison`). */
-  fallback_used?: boolean;
-  /** Backend-computed decision score for /compare. */
-  effective_similarity?: number;
 }
 
 // ─── Web / DB Search ──────────────────────────────────────────────────────────

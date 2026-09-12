@@ -1,7 +1,7 @@
 import { jsPDF } from "jspdf";
 import type { SearchResponse, SearchMatch } from "@/features/plagiarise-checker";
 import {
-    getDecisionScore,
+    getPrimaryScore,
     isNoEvidenceMatch,
     isLowContent,
 } from "@/features/plagiarise-checker/lib/match-metrics";
@@ -335,7 +335,7 @@ function drawMatchSummaryCard(
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
         doc.setTextColor(15, 23, 42);
-        doc.text(`${getDecisionScore(match).toFixed(1)}%`, x + 5, y + 13);
+        doc.text(`${getPrimaryScore(match).toFixed(1)}%`, x + 5, y + 13);
     }
 
     doc.setFont("helvetica", "normal");
@@ -379,9 +379,10 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const H = doc.internal.pageSize.getHeight();
 
     const best = result.best_match;
-    // Decision score: calibrated confidence normally, legacy value silently
-    // when consensus is zero but legacy clears the fallback gate (Option B).
-    const bestSimilarity = best ? getDecisionScore(best) : null;
+    // v2: headline metric is the percentile-calibrated confidence (falls back
+    // to `similarity` on legacy payloads). `raw_similarity_legacy` is never
+    // printed in the report.
+    const bestSimilarity = best ? getPrimaryScore(best) : null;
     const bestNoEvidence = isNoEvidenceMatch(best);
     const status = getSimilarityStatus(bestSimilarity);
     const lowContent = isLowContent(best) || result.low_content_warning === true;
@@ -552,7 +553,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const bestTitle = bestNoEvidence
         ? "No plagiarism match found"
         : best
-            ? `${getDecisionScore(best).toFixed(1)}% similarity detected`
+            ? `${getPrimaryScore(best).toFixed(1)}% similarity detected`
             : "No significant match detected";
     const titleLines = doc.splitTextToSize(bestTitle, infoW).slice(0, 2);
     doc.text(titleLines, infoX, iy + 4);
@@ -577,15 +578,15 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const stats = [
         {
             label: "Best Match",
-            value: best ? `${getDecisionScore(best).toFixed(1)}%` : "N/A",
+            value: best ? `${getPrimaryScore(best).toFixed(1)}%` : "N/A",
         },
         {
             label: "Database",
-            value: dbMatch ? `${getDecisionScore(dbMatch).toFixed(1)}%` : "N/A",
+            value: dbMatch ? `${getPrimaryScore(dbMatch).toFixed(1)}%` : "N/A",
         },
         {
             label: "Web",
-            value: webMatch ? `${getDecisionScore(webMatch).toFixed(1)}%` : "N/A",
+            value: webMatch ? `${getPrimaryScore(webMatch).toFixed(1)}%` : "N/A",
         },
     ];
 
@@ -620,7 +621,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
         ["Original Hash", shortenMiddle(safeValue(result.original_hash), 12, 8), true],
         ["Best Match Type", safeValue(best?.type).toUpperCase(), false],
         ["Best Source", safeValue(best?.source), false],
-        ["Best Similarity", best ? `${getDecisionScore(best).toFixed(1)}%` : "N/A", false],
+        ["Best Similarity", best ? `${getPrimaryScore(best).toFixed(1)}%` : "N/A", false],
     ] as const;
 
     leftRows.forEach(([label, value, mono], i) => {
@@ -696,7 +697,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
         bestNoEvidence
             ? "The analysis found no matching evidence between the uploaded image and any source — zero block or transform agreements — so no plagiarism match is reported. This output should still be interpreted together with source context and manual inspection."
             : best
-                ? `The uploaded image produced a best-match similarity score of ${getDecisionScore(best).toFixed(
+                ? `The uploaded image produced a best-match similarity score of ${getPrimaryScore(best).toFixed(
                     1
                 )}%. This output is intended to support platform-level review and should be interpreted together with source context, artwork history, and manual inspection.`
                 : "No strong best-match result was returned by the analysis engine. This report still documents the scan metadata and generated perceptual fingerprints for review.",
@@ -736,7 +737,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
                 otherMatchesY,
                 W - 24,
                 `${m.source} (${label})`,
-                `${getDecisionScore(m).toFixed(1)}% — ${shortenMiddle(sourceUrl, 24, 16)}`,
+                `${getPrimaryScore(m).toFixed(1)}% — ${shortenMiddle(sourceUrl, 24, 16)}`,
                 {
                     mono: true,
                     isLast: i === otherMatches.length - 1,
@@ -757,7 +758,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
         : best
             ? `This report documents the plagiarism analysis performed for "${safeValue(
                 result.filename
-            )}". The system generated perceptual-hash fingerprints, compared them against internal and web sources, and identified a best-match similarity result of ${getDecisionScore(best).toFixed(
+            )}". The system generated perceptual-hash fingerprints, compared them against internal and web sources, and identified a best-match similarity result of ${getPrimaryScore(best).toFixed(
                 1
             )}% from ${safeValue(best.source)}.${
                 lowContent ? " Note: the uploaded image had low image detail, which may reduce result reliability." : ""
