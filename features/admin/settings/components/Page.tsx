@@ -64,8 +64,16 @@ export default function SettingsPage() {
     title: string;
     description: string;
     onConfirm: () => void;
+    onCancel?: () => void;
     variant?: "default" | "destructive";
   }>({ open: false, title: "", description: "", onConfirm: () => {} });
+
+  // Live slider thumb positions while dragging. Kept separate from
+  // `dirtyChanges` so confirmation dialogs only fire once on release
+  // (`onCommit`) instead of on every intermediate tick (`onChange`).
+  const [sliderPreviews, setSliderPreviews] = useState<Map<string, number>>(
+    new Map(),
+  );
 
   // Fetch settings on mount
   const fetchSettings = useCallback(async () => {
@@ -95,6 +103,16 @@ export default function SettingsPage() {
     [settings, dirtyChanges],
   );
 
+  // Display value for sliders: live drag position wins while dragging,
+  // otherwise fall back to the last committed (dirty / saved) value.
+  const getSliderValue = useCallback(
+    (key: string): number => {
+      if (sliderPreviews.has(key)) return sliderPreviews.get(key)!;
+      return Number(getValue(key));
+    },
+    [sliderPreviews, getValue],
+  );
+
   // Helper: get setting definition
   const getSettingDef = useCallback(
     (key: string): SettingDefinition | undefined => {
@@ -121,6 +139,15 @@ export default function SettingsPage() {
               return next;
             });
           },
+          onCancel: () => {
+            // Revert the thumb to the last committed value.
+            setSliderPreviews((prev) => {
+              if (!prev.has(key)) return prev;
+              const next = new Map(prev);
+              next.delete(key);
+              return next;
+            });
+          },
         });
         return;
       }
@@ -132,6 +159,34 @@ export default function SettingsPage() {
       });
     },
     [getSettingDef],
+  );
+
+  // Live slider preview while dragging — no side effects, no dialog.
+  const handleSliderPreview = useCallback((key: string, value: number) => {
+    setSliderPreviews((prev) => {
+      const next = new Map(prev);
+      next.set(key, value);
+      return next;
+    });
+  }, []);
+
+  const clearSliderPreview = useCallback((key: string) => {
+    setSliderPreviews((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Map(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
+  // Fired once when the user lets go of the slider. This is the only place
+  // where a slider change can open the confirmation dialog.
+  const handleSliderCommit = useCallback(
+    (key: string, value: SettingValue) => {
+      clearSliderPreview(key);
+      handleChange(key, value);
+    },
+    [clearSliderPreview, handleChange],
   );
 
   // Handle save
@@ -165,6 +220,7 @@ export default function SettingsPage() {
   // Handle discard
   const handleDiscard = useCallback(() => {
     setDirtyChanges(new Map());
+    setSliderPreviews(new Map());
     toast.info("Changes discarded");
   }, []);
 
@@ -207,9 +263,9 @@ export default function SettingsPage() {
     (setting: SettingDefinition): string | undefined => {
       if (activeTab !== "similarity") return undefined;
 
-      const autoApproval = Number(getValue("automatic_approval_threshold"));
-      const manualReview = Number(getValue("manual_review_threshold"));
-      const similarity = Number(getValue("similarity_threshold"));
+      const autoApproval = Number(getSliderValue("automatic_approval_threshold"));
+      const manualReview = Number(getSliderValue("manual_review_threshold"));
+      const similarity = Number(getSliderValue("similarity_threshold"));
 
       switch (setting.key) {
         case "automatic_approval_threshold":
@@ -234,15 +290,17 @@ export default function SettingsPage() {
           return undefined;
       }
     },
-    [activeTab, getValue],
+    [activeTab, getSliderValue],
   );
 
   // ── Workflow info card for similarity tab ────────────────────────
 
   const WorkflowInfoCard = () => {
-    const autoApproval = Number(getValue("automatic_approval_threshold"));
-    const manualReview = Number(getValue("manual_review_threshold"));
-    const similarity = Number(getValue("similarity_threshold"));
+    const autoApproval = Number(
+      getSliderValue("automatic_approval_threshold"),
+    );
+    const manualReview = Number(getSliderValue("manual_review_threshold"));
+    const similarity = Number(getSliderValue("similarity_threshold"));
 
     return (
       <div className="border-border bg-card rounded-lg border p-4 sm:p-5">
@@ -397,12 +455,13 @@ export default function SettingsPage() {
             <div className="space-y-1">
               <SettingSlider
                 label={setting.label}
-                value={Number(value)}
+                value={getSliderValue(setting.key)}
                 min={setting.min ?? 0}
                 max={setting.max ?? 100}
                 step={setting.step}
                 unit={setting.unit}
-                onChange={(v) => handleChange(setting.key, Number(v))}
+                onChange={(v) => handleSliderPreview(setting.key, Number(v))}
+                onCommit={(v) => handleSliderCommit(setting.key, Number(v))}
               />
             </div>
           );
@@ -502,7 +561,7 @@ export default function SettingsPage() {
           );
       }
     },
-    [getValue, handleChange, renderCommunityRecognitionThresholds],
+    [getValue, handleChange, renderCommunityRecognitionThresholds, getSliderValue, handleSliderCommit, handleSliderPreview],
   );
 
   // ── Helper: determine if a setting should be visible ────────────
@@ -806,8 +865,11 @@ export default function SettingsPage() {
       {/* Confirmation Dialog */}
       <ConfirmDialog
         open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        onOpenChange={(open) =>
+          setConfirmDialog((prev) => ({ ...prev, open }))
+        }
         onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
         title={confirmDialog.title}
         description={confirmDialog.description}
         variant={confirmDialog.variant}

@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { SettingSlider } from "./SettingSlider";
 import {
   normalizeCommunityRecognitionThresholds,
@@ -64,3 +64,36 @@ describe("SettingSlider", () => {
     expect(slider.className).toContain("[&::-moz-range-track]:bg-muted");
   });
 });
+
+  it("fires onCommit only on release, not for every change tick", () => {
+    const onChange = vi.fn();
+    const onCommit = vi.fn();
+    render(
+      <SettingSlider
+        label="Similarity threshold"
+        value={40}
+        min={0}
+        max={100}
+        step={1}
+        unit="%"
+        onChange={onChange}
+        onCommit={onCommit}
+      />,
+    );
+
+    const slider = screen.getByRole("slider", {
+      name: "Similarity threshold",
+    });
+
+    // Simulate dragging across several intermediate values.
+    fireEvent.change(slider, { target: { value: "41" } });
+    fireEvent.change(slider, { target: { value: "42" } });
+    fireEvent.change(slider, { target: { value: "43" } });
+
+    expect(onChange).toHaveBeenCalledTimes(3);
+    expect(onCommit).not.toHaveBeenCalled();
+
+    // Letting go of the slider commits once with the final value.
+    fireEvent.pointerUp(slider);
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });

@@ -12,6 +12,13 @@ type SettingSliderProps = {
   step?: number;
   unit?: string;
   onChange: (value: SettingValue) => void;
+  /**
+   * Fired once when the user releases the slider (pointer up / touch end /
+   * keyboard release). When provided, confirmation-style side effects should
+   * live here so dragging doesn't spam dialogs — `onChange` stays as the
+   * lightweight live preview.
+   */
+  onCommit?: (value: SettingValue) => void;
   disabled?: boolean;
 };
 
@@ -23,6 +30,7 @@ export function SettingSlider({
   step = 1,
   unit,
   onChange,
+  onCommit,
   disabled,
 }: SettingSliderProps) {
   const id = `slider-${label.toLowerCase().replace(/\s+/g, "-")}`;
@@ -51,6 +59,15 @@ export function SettingSlider({
           onChange={(e) => {
             const val = Number(e.target.value);
             onChange(val);
+          }}
+          onPointerUp={(e) => {
+            onCommit?.(Number((e.target as HTMLInputElement).value));
+          }}
+          onTouchEnd={(e) => {
+            onCommit?.(Number((e.target as HTMLInputElement).value));
+          }}
+          onKeyUp={(e) => {
+            onCommit?.(Number((e.target as HTMLInputElement).value));
           }}
           disabled={disabled}
           className={cn(
