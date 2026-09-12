@@ -317,13 +317,6 @@ export async function verifyArtworkOwnership(
         onChainWork.evidenceHash,
         "Confirms the evidence bundle has not changed.",
       ),
-      compareExact(
-        "revocation_status",
-        "Revocation status",
-        "active",
-        onChainWork.revoked ? "revoked" : "active",
-        "A revoked on-chain record should not be treated as fully verified.",
-      ),
     ];
 
     const allMatched = comparisons.every((item) => item.matches);

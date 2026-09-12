@@ -21,7 +21,6 @@ export type VerifyComparisonKey =
     | "perceptual_hash"
     | "author_id_hash"
     | "evidence_hash"
-    | "revocation_status";
 
 export type VerifyComparisonItem = {
     key: VerifyComparisonKey;
