@@ -91,7 +91,7 @@ function MatchCard({
         />
       </div>
 
-      {previewUrl && match.type === "database" ? (
+      {previewUrl ? (
         <div className="border-border bg-muted relative mb-4 aspect-[16/10] w-full overflow-hidden rounded-xl border">
           <Image
             src={previewUrl}
