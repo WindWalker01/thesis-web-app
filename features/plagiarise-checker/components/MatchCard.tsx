@@ -39,7 +39,7 @@ function getRiskBadge(
 export function MatchCard({ match, isBest, thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS }: MatchCardProps) {
   const isDb = match.type === "database";
   // v2 primary score: percentile-calibrated confidence (falls back to
-  //similarity on legacy responses). aw_similarity_legacy is never shown.
+  // `similarity` on legacy responses). `raw_similarity_legacy` is never shown.
   const score = getPrimaryScore(match);
   const risk = getRiskBadge(score, thresholds);
   const noEvidence = isNoEvidenceMatch(match);
