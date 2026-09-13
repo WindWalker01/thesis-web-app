@@ -92,7 +92,7 @@ function OtherMatchesSection({ matches }: { matches: OtherSearchMatch[] }) {
                   ) : (
                     <>
                       <p className="text-sm font-bold text-foreground">{getPrimaryScore(match).toFixed(1)}%</p>
-                      <p className="text-[10px] text-muted-foreground">confidence</p>
+                      <p className="text-[10px] text-muted-foreground">similarity</p>
                       <EvidenceNote evidence={getEvidenceSummary(match)} lowContent={isLowContent(match)} className="sm:items-end" />
                     </>
                   )}

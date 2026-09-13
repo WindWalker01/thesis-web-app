@@ -62,8 +62,9 @@ export function CompareModeResult({
   thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
 }: CompareModeResultProps) {
   const { comparison } = result;
-  // v2 primary score: percentile-calibrated confidence; falls back to
-  // `final_similarity` on legacy responses.
+  // Raw primary score for compare responses: the compare endpoint has no
+  // `similarity` field, so `final_similarity` is the raw field used --
+  // consistent with the raw `similarity` field used by /upload-artwork moderation.
   const final = getPrimaryScore(comparison);
   const noEvidence = isNoEvidenceMatch(comparison);
   const evidence = getEvidenceSummary(comparison);
@@ -260,9 +261,9 @@ export function CompareModeResult({
       <div className="bg-card border-border space-y-5 rounded-2xl border p-4 sm:p-6">
         <p className="text-foreground font-semibold">Similarity Breakdown</p>
         <SimilarityBar
-          label="Calibrated Confidence"
+          label="Similarity"
           value={final}
-          sublabel="percentile vs. a baseline of known-unrelated artwork pairs"
+          sublabel="primary raw match score"
           thresholds={thresholds}
         />
         <SimilarityBar

@@ -379,9 +379,9 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     const H = doc.internal.pageSize.getHeight();
 
     const best = result.best_match;
-    // v2: headline metric is the percentile-calibrated confidence (falls back
-    // to `similarity` on legacy payloads). `raw_similarity_legacy` is never
-    // printed in the report.
+    // Raw `similarity` field -- the same score the /upload-artwork moderation
+    // pipeline thresholds on. `raw_similarity_legacy` is never printed in the
+    // report.
     const bestSimilarity = best ? getPrimaryScore(best) : null;
     const bestNoEvidence = isNoEvidenceMatch(best);
     const status = getSimilarityStatus(bestSimilarity);

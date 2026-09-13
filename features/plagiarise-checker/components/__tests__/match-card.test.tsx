@@ -30,7 +30,7 @@ describe("MatchCard", () => {
   });
 
 
-  it("shows the calibrated confidence as the headline score for a real match", () => {
+  it("shows the raw similarity as the headline score for a real match", () => {
     render(
       <MatchCard
         match={makeMatch({
@@ -43,8 +43,11 @@ describe("MatchCard", () => {
         })}
       />
     );
-    // 99.2 (calibrated_confidence), not 22.4 (similarity) and never 70.56 (legacy)
-    expect(screen.getByText("99.2%")).toBeDefined();
+    // 22.4 (raw `similarity`, as used by upload-artwork moderation) -- not 99.2
+    // (calibrated_confidence) and never 70.56 (legacy)
+    expect(screen.getByText("22.4%")).toBeDefined();
+    expect(screen.queryByText(/99\.2/)).toBeNull();
+    expect(screen.queryByText(/99\.2%/)).toBeNull();
     expect(screen.queryByText(/70\.56/)).toBeNull();
     expect(screen.getByText("3 of 5 regions matched across 4 of 6 transform variants")).toBeDefined();
   });

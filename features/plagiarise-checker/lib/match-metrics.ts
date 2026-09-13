@@ -12,17 +12,22 @@
 import { TRANSFORM_LABELS } from "@/features/plagiarise-checker/components/hash-labels";
 import type { MatchMetrics } from "@/features/plagiarise-checker/types";
 
-/**ś
- * The headline "how confident are we this is plagiarism" number.
- * Prefers the percentile-calibrated score; falls back to `similarity` for
- * legacy responses. Never surfaces `raw_similarity_legacy`, which is the
- * transitional metric that produced background false positives.
+/**
+ * The headline similarity number shown to users and compared against the
+ * similarity-risk thresholds. Reads the raw `similarity` field, the same
+ * value the /upload-artwork moderation pipeline thresholds on.
+ *
+ * For /compare responses (which have no `similarity` field) it falls back to
+ * `final_similarity`. `calibrated_confidence` and `raw_similarity_legacy` are
+ * never read.
  */
 export function getPrimaryScore(
-  match: { calibrated_confidence?: number; similarity?: number } | null | undefined
+  match: MatchMetrics & { similarity?: number; final_similarity?: number } | null | undefined
 ): number {
   if (!match) return 0;
-  return match.calibrated_confidence ?? match.similarity ?? 0;
+  // Prefer raw similarity field (same as upload-artwork), fall back to
+  // final_similarity for compare responses that lack similarity.
+  return match.similarity ?? match.final_similarity ?? 0;
 }
 
 /**

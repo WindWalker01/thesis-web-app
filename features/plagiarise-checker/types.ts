@@ -22,7 +22,7 @@ export interface MatchMetrics {
   raw_similarity?: number;
   /** Old single-minimum-distance algorithm score. Transitional only — never surface in UI. */
   raw_similarity_legacy?: number;
-  /** Primary user-facing score: percentile-calibrated against an unrelated-pair baseline. */
+  /** Raw `similarity` field -- the same score the /upload-artwork moderation pipeline thresholds on. `calibrated_confidence` is never surfaced in the UI. */
   calibrated_confidence?: number;
   /** 0–1. 0.0 = zero agreeing block/transform pairs (clean negative); 1.0 = all agreeing pairs share one geometric transform. */
   transform_consistency?: number;

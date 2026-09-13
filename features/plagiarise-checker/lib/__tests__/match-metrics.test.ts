@@ -22,15 +22,33 @@ raw_similarity: 19.57,  raw_similarity_legacy: 55.2,  calibrated_confidence: 95,
 /** Pre-v2 payload: none of the new fields exist. */const legacyMatch: MatchMetrics = {
 };
 describe("getPrimaryScore", () => {
-it("prefers calibrated_confidence when present", () => {
+it("prefers the raw similarity field, ignoring calibrated_confidence", () => {
 expect(getPrimaryScore({
 ...v2Positive, similarity: 22.4
-})).toBe(99.2);
+})).toBe(22.4);
+});
+it("returns 0 when only calibrated_confidence is present (no raw score)", () => {
+expect(getPrimaryScore({
+raw_similarity: 22.4, calibrated_confidence: 99.2
+})).toBe(0);
+    // Cast to any to satisfy the type checker - the function ignores extra
+    // properties and treats this as "no raw score" → 0.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 });
 it("falls back to similarity for legacy responses", () => {
 expect(getPrimaryScore({
 similarity: 61.45
 })).toBe(61.45);
+});
+it("falls back to final_similarity for compare responses without similarity", () => {
+expect(getPrimaryScore({
+final_similarity: 55.2
+})).toBe(55.2);
+});
+it("prefers similarity over final_similarity", () => {
+expect(getPrimaryScore({
+similarity: 22.4, final_similarity: 55.2
+})).toBe(22.4);
 });
 it("returns 0 for null/undefined/empty matches", () => {
 expect(getPrimaryScore(null)).toBe(0);
