@@ -143,7 +143,10 @@ function coerceJSONValue(key: string, raw: unknown): unknown {
   }
 }
 
-// ── Simple in-memory cache (only within a single server request) ───────
+// Runtime settings are intentionally re-read from the database each time.
+// A module-level cache can retain stale admin values across requests and cause
+// uploads to keep enforcing an old similarity threshold after the admin changes
+// the setting in the dashboard.
 
 let cachedSettings: RuntimeSettings | null = null;
 
@@ -151,11 +154,10 @@ let cachedSettings: RuntimeSettings | null = null;
  * Read all system settings from the database, merge with defaults, and
  * return a fully typed RuntimeSettings object.
  *
- * Safe to call multiple times per request — results are cached.
+ * Always refresh from the persisted source instead of reusing a stale in-memory
+ * snapshot. This ensures uploads use the latest admin-configured thresholds.
  */
 export async function getRuntimeSettings(): Promise<RuntimeSettings> {
-  if (cachedSettings) return cachedSettings;
-
   const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
