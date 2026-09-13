@@ -66,6 +66,11 @@ export interface SearchMatch extends MatchMetrics {
   similarity: number;
   imageUrl?: string | null; // resolved Cloudinary URL (only for DB matches)
   title?: string | null;    // resolved artwork title (only for DB matches)
+  authorName?: string | null; // resolved owner display name (only for DB matches)
+  registeredAt?: string | null; // resolved registration date ISO string (only for DB matches)
+  status?: string | null;     // resolved artwork lifecycle status (only for DB matches)
+  licenseName?: string | null; // resolved license name (only for DB matches)
+  communityUrl?: string | null; // resolved public community post URL, only for DB matches
 }
 
 export interface OtherSearchMatch extends MatchMetrics {

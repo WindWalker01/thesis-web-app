@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, Hash, AlertCircle, ChevronDown, ChevronRight, Globe, Database, TriangleAlert } from "lucide-react";
+import { ShieldCheck, Hash, AlertCircle, ChevronDown, ChevronRight, Globe, Database, TriangleAlert, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { SearchResponse, OtherSearchMatch } from "../types";
@@ -17,6 +17,7 @@ import {
   isLowContent,
 } from "../lib/match-metrics";
 import Link from "next/link";
+import { formatDate } from "@/lib/client-utils";
 import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
 import { DEFAULT_SIMILARITY_RISK_THRESHOLDS } from "../lib/similarity-risk";
 
@@ -236,22 +237,55 @@ export function WebModeResult({ preview, result, onRetry, thresholds = DEFAULT_S
                 </div>
               )}
 
-              {/* DB: Cloudinary image URL or fallback UUID */}
-              {isBestDb && (
+              {/* DB: resolved author (full name, else username) */}
+              {isBestDb && bestMatch.authorName && (
                 <div>
-                  <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">IMAGE URL</p>
-                  {bestMatch.imageUrl ? (
-                    <Link
-                      href={bestMatch.imageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary font-mono break-all underline underline-offset-2 hover:opacity-75 transition-opacity"
-                    >
-                      {bestMatch.imageUrl}
-                    </Link>
-                  ) : (
-                    <p className="text-sm text-muted-foreground font-mono break-all">{bestMatch.url}</p>
+                  <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">AUTHOR</p>
+                  <p className="text-sm text-foreground font-medium">{bestMatch.authorName}</p>
+                </div>
+              )}
+
+              {/* DB: registration date of the matched artwork */}
+              {isBestDb && bestMatch.registeredAt && (
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">REGISTERED</p>
+                  <p className="text-sm text-foreground font-medium">{formatDate(bestMatch.registeredAt)}</p>
+                </div>
+              )}
+
+              {/* DB: lifecycle status + license */}
+              {isBestDb && (bestMatch.status || bestMatch.licenseName) && (
+                <div className="flex flex-wrap gap-6">
+                  {bestMatch.status && (
+                    <div>
+                      <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">STATUS</p>
+                      <Badge variant="outline" className="text-[10px] capitalize text-indigo-400 border-indigo-500/30 bg-indigo-500/10">
+                        {bestMatch.status.replace(/_/g, " ")}
+                      </Badge>
+                    </div>
                   )}
+                  {bestMatch.licenseName && (
+                    <div>
+                      <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">LICENSE</p>
+                      <p className="text-sm text-foreground font-medium">{bestMatch.licenseName}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DB: link to the public community post when published */}
+              {isBestDb && bestMatch.communityUrl && (
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest text-muted-foreground mb-1">COMMUNITY POST</p>
+                  <Link
+                    href={bestMatch.communityUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary font-medium underline underline-offset-2 hover:opacity-75 transition-opacity inline-flex items-center gap-1"
+                  >
+                    View in Community
+                    <ExternalLink size={10} className="shrink-0" />
+                  </Link>
                 </div>
               )}
 
