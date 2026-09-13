@@ -2,7 +2,13 @@
 
 import type { CompareResponse } from "@/features/plagiarise-checker/types";
 
-const API_BASE = process.env.DIGITAL_ART_API_URL ?? "http://localhost:8000";
+const API_BASE =
+  // Prefer the server-only URL, then the public one, then localhost (dev).
+  // Never let prod silently fall back to the server's own localhost:8000
+  // when only the public URL is configured.
+  process.env.DIGITAL_ART_API_URL ??
+  process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL ??
+  "http://localhost:8000";
 
 /**
  * Server action: submit two files for direct image-to-image comparison.
@@ -22,6 +28,8 @@ export async function checkPlagiarismCompare(
     const res = await fetch(`${API_BASE}/plagiarism/compare`, {
       method: "POST",
       body: formData,
+      // Backend may read large images; allow 90s like web-mode checks.
+      signal: AbortSignal.timeout(90_000),
     });
 
     if (!res.ok) {

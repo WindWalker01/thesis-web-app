@@ -14,6 +14,11 @@ export { OnlineCheckChip, WebOnlineStatus } from "./components/WebOnlineStatus";
 
 export { usePlagiarismChecker } from "./hooks/use-plagiarism-checker";
 
+// Client-direct analysis transport & error mapping. See lib/api-client.ts for
+// why comparison uploads bypass Server Actions.
+export { checkPlagiarismCompareFiles } from "./lib/api-client";
+export { describeAnalysisError } from "./lib/analysis-errors";
+
 export type {
   Stage,
   Mode,

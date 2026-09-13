@@ -8,7 +8,8 @@ import type {
   SearchResponse,
 } from "@/features/plagiarise-checker/types";
 import { checkPlagiarismWeb } from "@/features/plagiarise-checker/server/check-plagiarism-web";
-import { checkPlagiarismCompare } from "@/features/plagiarise-checker/server/check-plagiarism-compare";
+import { checkPlagiarismCompareFiles } from "@/features/plagiarise-checker/lib/api-client";
+import { describeAnalysisError } from "@/features/plagiarise-checker/lib/analysis-errors";
 import { generatePlagiarismReportPdf } from "@/features/plagiarise-checker/lib/plagiarism-report";
 
 export function usePlagiarismChecker() {
@@ -64,7 +65,7 @@ export function usePlagiarismChecker() {
       setWebResult(result.data);
       setStage("result");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setError(describeAnalysisError(err));
       setErrorTime(new Date());
       setStage("error");
     }
@@ -120,20 +121,16 @@ export function usePlagiarismChecker() {
     setStage("analyzing");
 
     try {
-      const formData = new FormData();
-      formData.append("file1", fileA);
-      formData.append("file2", fileB);
+      // Sent browser → backend directly: the Server Action path routes both
+      // files through the Next.js server, whose serverless request-body cap
+      // (e.g. Vercel's 4.5 MB function payload) rejects larger image pairs
+      // before the action ever runs.
+      const result = await checkPlagiarismCompareFiles(fileA, fileB);
 
-      const result = await checkPlagiarismCompare(null, formData);
-
-      if (!result.success || !result.data) {
-        throw new Error(result.error ?? "An unexpected error occurred.");
-      }
-
-      setCompareResult(result.data);
+      setCompareResult(result);
       setStage("result");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setError(describeAnalysisError(err));
       setErrorTime(new Date());
       setStage("error");
     }
