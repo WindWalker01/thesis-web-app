@@ -11,7 +11,8 @@ import {
     ACCEPTED_CLASSIFY_TYPES,
     MAX_CLASSIFY_FILE_SIZE,
 } from "@/features/classify/schemas/classification-schema";
-import { classifyArtwork } from "@/features/classify/server/classify-artwork";
+import { classifyArtworkFile } from "@/features/classify/lib/api-client";
+import { describeAnalysisError } from "@/lib/analysis-errors";
 import type { ClassificationLabel } from "@/features/classify/types";
 
 export function useClassification() {
@@ -106,19 +107,28 @@ export function useClassification() {
         setServerMessage("");
 
         startTransition(async () => {
-            const formData = new FormData();
-            formData.append("file", values.file);
+            // Sent browser → backend directly: the Server Action path routes
+            // the file through the Next.js server, whose serverless
+            // request-body cap (e.g. Vercel's 4.5 MB function payload)
+            // rejects larger files before the action ever runs.
+            try {
+                const response = await classifyArtworkFile(values.file);
 
-            const response = await classifyArtwork(formData);
+                if (!response.success) {
+                    form.setError("root", { message: response.message });
+                    setServerMessage(response.message);
+                    return;
+                }
 
-            if (!response.success) {
-                form.setError("root", { message: response.message });
+                setResult(response.predictions);
                 setServerMessage(response.message);
-                return;
+            } catch (err) {
+                // Defensive: the helper surfaces transport failures as
+                // results, but map unexpected throws into guidance anyway.
+                const message = describeAnalysisError(err);
+                form.setError("root", { message });
+                setServerMessage(message);
             }
-
-            setResult(response.predictions);
-            setServerMessage(response.message);
         });
     }
 

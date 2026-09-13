@@ -43,6 +43,16 @@ export async function deleteArtworkImageFromCloudinary(
   }
 }
 
+export async function downloadCloudinaryAsset(
+  secureUrl: string
+): Promise<Buffer> {
+  const response = await fetch(secureUrl, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Failed to load the stored image (${response.status}).`);
+  }
+  return Buffer.from(await response.arrayBuffer());
+}
+
 export async function uploadArtworkImageToCloudinary(params: {
   fileBuffer: Buffer;
   fileName: string;

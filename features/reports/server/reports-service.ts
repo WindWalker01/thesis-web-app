@@ -324,19 +324,18 @@ export async function requestEvidenceWithAudit(
 
 // ========== EVIDENCE UPLOAD ==========
 
-export async function uploadEvidence(
+/**
+ * Shared authorization for evidence uploads: verifies the report exists,
+ * that the uploader is the reporter or an admin, and that the report is not
+ * in a terminal status. Returns the report plus the admin determination
+ * (which decides whether reporter-side audit/notification is created).
+ */
+async function authorizeEvidenceUpload(
   supabase: SupabaseClient,
-  data: {
-    reportId: string;
-    userId: string;
-    fileName: string;
-    mimeType: string | null;
-    description: string | null;
-    fileBuffer: ArrayBuffer;
-  },
-): Promise<ReportEvidence> {
-  // Verify report exists and belongs to user or user is admin
-  const report = await repo.getReportById(supabase, data.reportId);
+  reportId: string,
+  userId: string,
+): Promise<{ report: Report; isAdmin: boolean }> {
+  const report = await repo.getReportById(supabase, reportId);
   if (!report) {
     throw new Error("Report not found");
   }
@@ -349,13 +348,140 @@ export async function uploadEvidence(
         .data?.role === "admin"
     : false;
 
-  if (report.reporter_id !== data.userId && !isAdmin) {
+  if (report.reporter_id !== userId && !isAdmin) {
     throw new Error("Not authorized to upload evidence to this report");
   }
 
   if (isTerminalStatus(report.status)) {
     throw new Error("Cannot upload evidence to a report with a final status");
   }
+
+  return { report, isAdmin };
+}
+
+/**
+ * Step 1 of the browser-direct evidence upload: issues a signed Supabase
+ * Storage upload ticket so the raw file goes straight from the browser to
+ * Storage, bypassing the Next.js server (serverless hosts cap function
+ * request bodies at ~4.5 MB, which rejects larger evidence files sent
+ * through route handlers).
+ */
+export async function createEvidenceUploadTicket(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    userId: string;
+    fileName: string;
+    mimeType: string | null;
+    size: number;
+  },
+): Promise<{ storagePath: string; token: string }> {
+  await authorizeEvidenceUpload(supabase, data.reportId, data.userId);
+
+  const storagePath = `reports/${data.reportId}/${Date.now()}_${data.fileName}`;
+
+  const adminClient = createSupabaseAdminClient();
+  const { data: signed, error } = await adminClient.storage
+    .from("report-evidence")
+    .createSignedUploadUrl(storagePath);
+
+  if (error || !signed) {
+    throw new Error(
+      `Failed to create the upload ticket: ${error?.message ?? "unknown error"}`,
+    );
+  }
+
+  return { storagePath: signed.path, token: signed.token };
+}
+
+/**
+ * Step 3 of the browser-direct evidence upload: records the evidence row for
+ * a file the client already PUT directly to Supabase Storage (ticket from
+ * {@link createEvidenceUploadTicket}). Authorization is re-verified.
+ */
+export async function finalizeEvidenceUpload(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    userId: string;
+    storagePath: string;
+    fileName: string;
+    mimeType: string | null;
+    description: string | null;
+  },
+): Promise<ReportEvidence> {
+  const { report, isAdmin } = await authorizeEvidenceUpload(
+    supabase,
+    data.reportId,
+    data.userId,
+  );
+
+  const adminClient = createSupabaseAdminClient();
+  const { data: urlData } = adminClient.storage
+    .from("report-evidence")
+    .getPublicUrl(data.storagePath);
+
+  // Insert evidence record
+  const evidence = await repo.insertReportEvidence(supabase, {
+    report_id: data.reportId,
+    uploaded_by: data.userId,
+    file_url: urlData.publicUrl,
+    file_name: data.fileName,
+    mime_type: data.mimeType,
+    description: data.description ?? null,
+  });
+
+  // If reporter uploaded, notify admins
+  if (!isAdmin) {
+    // Create audit record.
+    //
+    // NOTE: This intentionally uses `admin_id: data.userId` (the reporter's
+    // own id) for user-originated actions. `report_actions` serves as the
+    // report activity/audit log, and the RLS policy
+    // "Reporters can record evidence on own reports" allows a reporter to
+    // INSERT user-originated action types (`evidence_uploaded`,
+    // `report_created`) ONLY when:
+    //   - admin_id equals auth.uid() (self-attribution), and
+    //   - the report belongs to the current user.
+    // Admin-only action types remain restricted to the admin-only INSERT
+    // policy.
+    await createAuditRecord(supabase, {
+      report_id: data.reportId,
+      admin_id: data.userId,
+      action: "evidence_uploaded",
+      previous_status: null,
+      new_status: null,
+      notes: `Uploaded: ${data.fileName}`,
+    });
+
+    await createAdminNotification(supabase, {
+      type: "report_submitted",
+      title: "New Evidence Uploaded",
+      message: `The reporter uploaded evidence to report "${report.title}".`,
+      reportId: data.reportId,
+    });
+  }
+
+  return evidence;
+}
+
+export async function uploadEvidence(
+  supabase: SupabaseClient,
+  data: {
+    reportId: string;
+    userId: string;
+    fileName: string;
+    mimeType: string | null;
+    description: string | null;
+    fileBuffer: ArrayBuffer;
+  },
+): Promise<ReportEvidence> {
+  // Verify report exists and belongs to user or user is admin
+  const { report, isAdmin } = await authorizeEvidenceUpload(
+    supabase,
+    data.reportId,
+    data.userId,
+  );
 
   // Upload file to Supabase Storage
   const storagePath = `reports/${data.reportId}/${Date.now()}_${data.fileName}`;

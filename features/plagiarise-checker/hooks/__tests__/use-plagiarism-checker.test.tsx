@@ -7,18 +7,20 @@ import type {
   SearchResponse,
 } from "@/features/plagiarise-checker/types";
 
-const { mockCompareFiles, mockWebCheck, mockReportPdf } = vi.hoisted(() => ({
+const { mockCompareFiles, mockWebFile, mockEnrich, mockReportPdf } = vi.hoisted(() => ({
   mockCompareFiles: vi.fn(),
-  mockWebCheck: vi.fn(),
+  mockWebFile: vi.fn(),
+  mockEnrich: vi.fn(),
   mockReportPdf: vi.fn(),
 }));
 
 vi.mock("@/features/plagiarise-checker/lib/api-client", () => ({
   checkPlagiarismCompareFiles: mockCompareFiles,
+  checkPlagiarismWebFile: mockWebFile,
 }));
 
-vi.mock("@/features/plagiarise-checker/server/check-plagiarism-web", () => ({
-  checkPlagiarismWeb: mockWebCheck,
+vi.mock("@/features/plagiarise-checker/server/enrich-web-matches", () => ({
+  enrichWebMatches: mockEnrich,
 }));
 
 vi.mock("@/features/plagiarise-checker/lib/plagiarism-report", () => ({
@@ -146,7 +148,7 @@ describe("usePlagiarismChecker — compare mode transport", () => {
   });
 });
 
-describe("usePlagiarismChecker — web mode (unchanged server-action path)", () => {
+describe("usePlagiarismChecker — web mode (browser-direct path)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     URL.createObjectURL = vi.fn().mockReturnValue(
@@ -159,8 +161,10 @@ describe("usePlagiarismChecker — web mode (unchanged server-action path)", () 
     vi.unstubAllGlobals();
   });
 
-  it("still routes web uploads through the server action with a FormData file", async () => {
-    mockWebCheck.mockResolvedValue({ success: true, data: makeSearchResponse() });
+  it("sends web uploads browser→backend directly, enriching via a JSON-only server action", async () => {
+    const raw = makeSearchResponse();
+    mockWebFile.mockResolvedValue(raw);
+    mockEnrich.mockImplementation(async (r: SearchResponse) => r);
 
     const { result } = renderHook(() => usePlagiarismChecker());
 
@@ -169,12 +173,28 @@ describe("usePlagiarismChecker — web mode (unchanged server-action path)", () 
       await result.current.handleWebUpload(file);
     });
 
-    expect(mockWebCheck).toHaveBeenCalledOnce();
+    expect(mockWebFile).toHaveBeenCalledOnce();
+    expect(mockWebFile).toHaveBeenCalledWith(file);
+    expect(mockEnrich).toHaveBeenCalledWith(raw);
     expect(mockCompareFiles).not.toHaveBeenCalled();
-
-    const [, formData] = mockWebCheck.mock.calls[0] as [unknown, FormData];
-    expect(formData.get("file")).toBe(file);
     expect(result.current.stage).toBe("result");
-    expect(result.current.webResult).toEqual(makeSearchResponse());
+    expect(result.current.webResult).toEqual(raw);
+  });
+
+  it("maps transport failures on the web path to actionable guidance", async () => {
+    mockWebFile.mockRejectedValue(
+      new Error("An unexpected response was received from the server."),
+    );
+    mockEnrich.mockImplementation(async (r: SearchResponse) => r);
+
+    const { result } = renderHook(() => usePlagiarismChecker());
+
+    await act(async () => {
+      await result.current.handleWebUpload(makeFile("w.png"));
+    });
+
+    expect(result.current.stage).toBe("error");
+    expect(result.current.error).toMatch(/too large/i);
+    expect(result.current.errorTime).toBeInstanceOf(Date);
   });
 });

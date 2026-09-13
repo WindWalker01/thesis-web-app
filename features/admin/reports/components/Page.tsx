@@ -24,6 +24,7 @@ import { BanUserDialog } from "./BanUserDialog";
 import { ReportsPageSkeleton } from "./page-skeleton";
 import { ReportsInfoBanner } from "./InfoBanner";
 import { ReportsStatusDescription } from "./StatusDescription";
+import { uploadReportEvidence } from "@/features/reports/lib/upload-report-evidence";
 import type { ReportFilters as FilterState } from "../types";
 
 const DEFAULT_FILTERS: FilterState = {
@@ -176,23 +177,12 @@ export default function ReportsManagementPage() {
 
   const handleUploadEvidence = useCallback(async (file: File, description?: string) => {
     if (!selectedReportId) return;
-    const formData = new FormData();
-    formData.append("file", file);
-    if (description) {
-      formData.append("description", description);
-    }
     try {
-      const response = await fetch(`/api/reports/${selectedReportId}/evidence`, {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Evidence uploaded successfully");
-        await refetchDetail();
-      } else {
-        toast.error(result.error?.message ?? "Failed to upload evidence");
-      }
+      // Browser-direct upload (signed Supabase Storage ticket): the raw file
+      // never passes through the Next.js server (request-body cap).
+      await uploadReportEvidence({ reportId: selectedReportId, file, description });
+      toast.success("Evidence uploaded successfully");
+      await refetchDetail();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to upload evidence");
     }

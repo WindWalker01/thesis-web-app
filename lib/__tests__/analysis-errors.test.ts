@@ -19,7 +19,7 @@ describe("describeAnalysisError", () => {
     );
   });
 
-  it("maps timeouts and aborts to retry guidance", () => {
+  it("maps timeouts and aborts (incl. DOMException, which is not an Error) to retry guidance", () => {
     const timeout = new DOMException(
       "The operation was aborted due to timeout",
       "TimeoutError",

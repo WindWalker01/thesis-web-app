@@ -49,6 +49,7 @@ vi.mock("@/features/plagiarise-checker", () => ({
 vi.mock("@/features/(user)/upload-artwork/server/upload-image", () => ({
   uploadArtworkImageToCloudinary: vi.fn(),
   deleteArtworkImageFromCloudinary: vi.fn(),
+  downloadCloudinaryAsset: vi.fn(),
 }));
 
 vi.mock("@/features/admin/settings/lib/runtime-settings", () => ({
@@ -66,6 +67,7 @@ import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
   uploadArtworkImageToCloudinary,
   deleteArtworkImageFromCloudinary,
+  downloadCloudinaryAsset,
 } from "@/features/(user)/upload-artwork/server/upload-image";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 import { fetchGenreClassification } from "@/features/(user)/upload-artwork/server/fetch-genre";
@@ -221,19 +223,8 @@ function makeAdminSupabase(ctx: Ctx) {
 // Fixtures
 // ---------------------------------------------------------------------------
 
-function makeTestFile(): File {
-  const bytes = new TextEncoder().encode("fake image bytes for hashing");
-  const file = new File([bytes], "artwork.png", { type: "image/png" });
-  if (typeof file.arrayBuffer !== "function") {
-    (
-      file as unknown as { arrayBuffer: () => Promise<ArrayBuffer> }
-    ).arrayBuffer = async () =>
-      bytes.buffer.slice(
-        bytes.byteOffset,
-        bytes.byteOffset + bytes.byteLength,
-      ) as ArrayBuffer;
-  }
-  return file;
+function makeTestFileBytes(): Uint8Array {
+  return new TextEncoder().encode("fake image bytes for hashing");
 }
 
 function makeFormData(): FormData {
@@ -241,7 +232,17 @@ function makeFormData(): FormData {
   formData.append("title", "Test artwork upload");
   formData.append("description", "regression test");
   formData.append("rightsConfirmed", "true");
-  formData.append("file", makeTestFile());
+  // Metadata-only contract: the raw file never reaches the server action;
+  // the action re-downloads the exact bytes from Cloudinary.
+  formData.append("cloudinaryPublicId", "registered-arts/artwork");
+  formData.append("cloudinaryAssetId", "asset-1");
+  formData.append(
+    "cloudinarySecureUrl",
+    "https://res.cloudinary.com/test-cloud/image/upload/v1/registered-arts/artwork.png",
+  );
+  formData.append("fileName", "artwork.png");
+  formData.append("mimeType", "image/png");
+  formData.append("fileSize", "28");
   return formData;
 }
 
@@ -308,6 +309,8 @@ const uploadImageMock = uploadArtworkImageToCloudinary as unknown as ReturnType<
 >;
 const deleteImageMock =
   deleteArtworkImageFromCloudinary as unknown as ReturnType<typeof vi.fn>;
+const downloadAssetMock =
+  downloadCloudinaryAsset as unknown as ReturnType<typeof vi.fn>;
 const getRuntimeSettingsMock = getRuntimeSettings as unknown as ReturnType<
   typeof vi.fn
 >;
@@ -329,11 +332,9 @@ beforeEach(() => {
     min_render_threshold: 60,
   });
 
-  uploadImageMock.mockResolvedValue({
-    assetId: "asset-1",
-    secureUrl: "https://cdn.example.com/artwork.png",
-    publicId: "registered-arts/artwork",
-  });
+  downloadAssetMock.mockResolvedValue(
+    Buffer.from(makeTestFileBytes().buffer as ArrayBuffer),
+  );
   deleteImageMock.mockResolvedValue(undefined);
 
   fetchGenreMock.mockResolvedValue({ success: true, results: [] });

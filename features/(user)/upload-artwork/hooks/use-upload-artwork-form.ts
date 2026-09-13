@@ -9,12 +9,14 @@ import { useRouter } from "next/navigation";
 import {
   ACCEPTED_TYPES,
   MAX_FILE_SIZE,
+  MAX_FILE_SIZE_MB,
   formSchema,
   type UploadArtworkFormValues,
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
 import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
 import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
+import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
 import { submitArtworkGenres } from "../server/submit-artwork-genre";
 import type {
   UploadArtworkStep,
@@ -281,7 +283,9 @@ export function useUploadArtworkForm() {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      form.setError("file", { message: "File must be 5MB or smaller." });
+      form.setError("file", {
+        message: `File must be ${MAX_FILE_SIZE_MB}MB or smaller.`,
+      });
       return;
     }
 
@@ -368,12 +372,40 @@ export function useUploadArtworkForm() {
       setStepStatus(STEP_KEYS.upload, "active");
       setProcessingMessage("Uploading your artwork...");
 
+      // Browser-direct storage upload: the raw file goes straight to
+      // Cloudinary (signed upload) so it never passes through the Next.js
+      // server, whose serverless request-body cap (e.g. Vercel's 4.5 MB
+      // function payload) rejects larger files before the action runs.
+      let uploaded;
+      try {
+        uploaded = await uploadFileToCloudinary(
+          values.file,
+          "registered-arts",
+        );
+      } catch (uploadError) {
+        setStepStatus(STEP_KEYS.upload, "error");
+        setProcessingState("error");
+        const message =
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Failed to upload your artwork.";
+        setProcessingMessage(message);
+        form.setError("root", { message });
+        return;
+      }
+
       const formData = new FormData();
       formData.append("title", values.title);
       formData.append("description", values.description ?? "");
       formData.append("rightsConfirmed", String(values.rightsConfirmed));
       formData.append("licenseIdentifier", values.licenseIdentifier);
-      formData.append("file", values.file);
+      // Metadata-only contract: the action re-downloads the exact bytes.
+      formData.append("cloudinaryPublicId", uploaded.publicId);
+      formData.append("cloudinaryAssetId", uploaded.assetId ?? "");
+      formData.append("cloudinarySecureUrl", uploaded.secureUrl);
+      formData.append("fileName", values.file.name);
+      formData.append("mimeType", values.file.type);
+      formData.append("fileSize", String(uploaded.bytes));
 
       setStepStatus(STEP_KEYS.upload, "done");
       setStepStatus(STEP_KEYS.review, "active");

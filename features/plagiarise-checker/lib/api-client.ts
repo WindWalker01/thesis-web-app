@@ -1,4 +1,7 @@
-import type { CompareResponse } from "@/features/plagiarise-checker/types";
+import type {
+  CompareResponse,
+  PlagiarismWebResult,
+} from "@/features/plagiarise-checker/types";
 
 /**
  * Direct browser → backend transport for the two-image "Direct Comparison".
@@ -45,6 +48,47 @@ export async function checkPlagiarismCompareFiles(
 
     const error = await response.json();
     throw new Error(error.detail ?? "Failed to compare images");
+  }
+
+  return response.json();
+}
+
+/**
+ * Direct browser → backend transport for single-file web plagiarism checks
+ * (same rationale as {@link checkPlagiarismCompareFiles}: serverless
+ * request-body caps reject larger files on the Server Action path).
+ *
+ * DB-match enrichment (UUID → Cloudinary URL/title) happens separately in the
+ * JSON-only `enrichWebMatches` server action, which cannot hit the cap.
+ */
+export async function checkPlagiarismWebFile(
+  file: File,
+): Promise<PlagiarismWebResult> {
+  const apiBase = process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL;
+  if (!apiBase) {
+    throw new Error("Plagiarism API URL is not configured.");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${apiBase}/plagiarism/check/web`, {
+    method: "POST",
+    body: formData,
+    // Backend may poll Cloudinary readiness (up to ~15s extra); allow 90s.
+    signal: AbortSignal.timeout(90_000),
+  });
+
+  if (!response.ok) {
+    // Guard against HTML error pages from HF proxy
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+      throw new Error(`Server error (${response.status}): ${text.slice(0, 200)}`);
+    }
+
+    const error = await response.json();
+    throw new Error(error.detail ?? "Failed to check plagiarism");
   }
 
   return response.json();

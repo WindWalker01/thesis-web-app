@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveAccount } from "@/lib/account-status";
 import { editProfileSchema } from "../schemas/edit-profile-schema";
-import { uploadArtworkImageToCloudinary } from "@/features/(user)/upload-artwork/server/upload-image";
+import { cloudinaryAssetMetadataSchema } from "@/lib/cloudinary/metadata-schema";
 
 type UpdateProfileResult =
     | { success: true; message: string }
@@ -95,45 +95,46 @@ export async function updateUserAvatar(
             return { success: false, message: "Your account is currently suspended or banned. You cannot update your avatar." };
         }
 
-        const file = formData.get("avatar");
+        // Browser-direct transport: the image was already uploaded to
+        // Cloudinary by the client (signed upload); this action only records
+        // the metadata, so the file never passes through the serverless
+        // request-body cap.
+        const parsed = cloudinaryAssetMetadataSchema.safeParse({
+            publicId: formData.get("publicId"),
+            secureUrl: formData.get("secureUrl"),
+            bytes: Number(formData.get("bytes")),
+            mimeType: formData.get("mimeType"),
+        });
 
-        if (!(file instanceof File) || file.size === 0) {
-            return { success: false, message: "No image file provided." };
+        if (!parsed.success) {
+            return {
+                success: false,
+                message:
+                    parsed.error.issues[0]?.message ?? "Invalid image metadata.",
+            };
         }
 
+        // Preserve the previous avatar constraints server-side.
         const MAX_SIZE = 5 * 1024 * 1024;
-        if (file.size > MAX_SIZE) {
+        if (parsed.data.bytes > MAX_SIZE) {
             return { success: false, message: "Image must be 5 MB or smaller." };
         }
 
         const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-        if (!ALLOWED_TYPES.includes(file.type)) {
+        if (!ALLOWED_TYPES.includes(parsed.data.mimeType ?? "")) {
             return { success: false, message: "Only JPG, PNG, and WebP are supported." };
-        }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const fileBuffer = Buffer.from(arrayBuffer);
-
-        const uploaded = await uploadArtworkImageToCloudinary({
-            fileBuffer,
-            fileName: file.name,
-            folder: "profile-images",
-        });
-
-        if (!uploaded.secureUrl) {
-            return { success: false, message: "Image upload failed." };
         }
 
         const { error: updateError } = await supabase
             .from("users")
-            .update({ c_profile_image: uploaded.secureUrl })
+            .update({ c_profile_image: parsed.data.secureUrl })
             .eq("id", userId);
 
         if (updateError) {
             return { success: false, message: updateError.message };
         }
 
-        return { success: true, imageUrl: uploaded.secureUrl };
+        return { success: true, imageUrl: parsed.data.secureUrl };
     } catch (err) {
         return {
             success: false,

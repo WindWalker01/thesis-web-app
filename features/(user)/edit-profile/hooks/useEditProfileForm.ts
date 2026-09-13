@@ -14,6 +14,8 @@ import {
     updateUserProfile,
     updateUserAvatar,
 } from "../server/edit-profile";
+import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
+import { describeAnalysisError } from "@/lib/analysis-errors";
 import { profileKeys } from "@/features/(user)/profile/hooks/useFetchProfile";
 import type { UserProfile } from "@/features/(user)/profile/server/profile";
 
@@ -52,6 +54,23 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Preserve the previous avatar constraints, now enforced client-side
+        // since the image uploads browser-direct to Cloudinary.
+        const MAX_SIZE = 5 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+            const message = "Image must be 5 MB or smaller.";
+            setAvatarError(message);
+            toast.error("Profile Image upload failed", { description: message });
+            return;
+        }
+
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+            const message = "Only JPG, PNG, and WebP are supported.";
+            setAvatarError(message);
+            toast.error("Profile Image upload failed", { description: message });
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = (ev) => setAvatarPreview(ev.target?.result as string);
         reader.readAsDataURL(file);
@@ -59,24 +78,38 @@ export function useEditProfileForm({ profile }: UseEditProfileFormProps) {
         setAvatarError(null);
         setIsUploadingAvatar(true);
 
-        const fd = new FormData();
-        fd.append("avatar", file);
+        try {
+            // Browser-direct storage upload (signed) — the raw file never
+            // passes through the Next.js server.
+            const uploaded = await uploadFileToCloudinary(file, "profile-images");
 
-        const result = await updateUserAvatar(fd);
+            const fd = new FormData();
+            fd.append("publicId", uploaded.publicId);
+            fd.append("secureUrl", uploaded.secureUrl);
+            fd.append("bytes", String(uploaded.bytes));
+            fd.append("mimeType", file.type);
 
-        setIsUploadingAvatar(false);
+            const result = await updateUserAvatar(fd);
 
-        if (!result.success) {
-            setAvatarError(result.message);
-            toast.error("Profile Image upload failed", {
-                description: result.message,
-            });
+            if (!result.success) {
+                setAvatarError(result.message);
+                toast.error("Profile Image upload failed", {
+                    description: result.message,
+                });
+                setAvatarPreview(profile.profileImage);
+                return;
+            }
+
+            toast.success("Profile Image updated!");
+            await queryClient.invalidateQueries({ queryKey: profileKeys.current() });
+        } catch (err) {
+            const message = describeAnalysisError(err);
+            setAvatarError(message);
+            toast.error("Profile Image upload failed", { description: message });
             setAvatarPreview(profile.profileImage);
-            return;
+        } finally {
+            setIsUploadingAvatar(false);
         }
-
-        toast.success("Profile Image updated!");
-        await queryClient.invalidateQueries({ queryKey: profileKeys.current() });
     }
 
     // ── Form submit ────────────────────────────────────────────────────────────

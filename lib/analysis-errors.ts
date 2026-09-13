@@ -1,8 +1,12 @@
 /**
- * Maps transport-level failures of a plagiarism analysis request into
- * actionable user-facing messages. Detection errors reported by the backend
- * itself (e.g. JSON `detail` fields, "Server error (500): ...") are surfaced
- * verbatim so users can copy them into an error report.
+ * Maps transport-level failures of a server-bound request (server action,
+ * route handler, or direct backend call) into actionable user-facing
+ * messages. Detection errors reported by the backend itself (e.g. JSON
+ * `detail` fields, "Server error (500): ...") are surfaced verbatim so users
+ * can copy them into an error report.
+ *
+ * Shared across features so every upload/analysis surface maps errors the
+ * same way.
  */
 export function describeAnalysisError(err: unknown): string {
   // DOMException (what AbortSignal.timeout throws) is not an `Error` subclass,

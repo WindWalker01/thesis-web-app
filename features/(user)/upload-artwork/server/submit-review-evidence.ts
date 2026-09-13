@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
+import * as z from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { v2 as cloudinary, type UploadApiResponse } from "cloudinary";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_SECRET,
-});
 
 export type ReviewEvidenceFile = {
   url: string;
@@ -72,42 +66,55 @@ export async function submitReviewEvidence(
       return { success: false, message: "Additional information is not currently requested for this artwork" };
     }
 
-    // Upload files to Cloudinary
-    const files: ReviewEvidenceFile[] = [];
-    const fileEntries = Array.from(formData.entries()).filter(
-      ([key, value]) => key.startsWith("file_") && value instanceof File
-    );
+    // Browser-direct transport: the evidence files were already uploaded to
+    // Cloudinary by the client (signed upload), bypassing the serverless
+    // request-body cap. The action only receives their metadata.
+    const rawFiles = formData.get("files");
+    let uploadedFiles: Array<{
+      publicId: string;
+      secureUrl: string;
+      name: string;
+      type: string;
+      size: number;
+    }> = [];
 
-    for (const [, file] of fileEntries) {
-      const f = file as File;
-      if (f.size === 0) continue;
+    if (typeof rawFiles === "string" && rawFiles.length > 0) {
+      try {
+        const parsed = z
+          .array(
+            z.object({
+              publicId: z.string().min(1).max(512),
+              secureUrl: z.string().url(),
+              name: z.string().min(1).max(255),
+              type: z.string().max(128),
+              size: z.number().int().nonnegative(),
+            }),
+          )
+          .safeParse(JSON.parse(rawFiles));
 
-      const buffer = Buffer.from(await f.arrayBuffer());
-      const result = await new Promise<UploadApiResponse>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: "review-evidence",
-            resource_type: "auto",
-            use_filename: true,
-            unique_filename: true,
-            filename_override: f.name,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else if (!result) reject(new Error("Upload failed"));
-            else resolve(result);
-          }
-        );
-        stream.end(buffer);
-      });
+        if (!parsed.success) {
+          return {
+            success: false,
+            message:
+              "One or more evidence uploads were invalid. Please try again.",
+          };
+        }
 
-      files.push({
-        url: result.secure_url,
-        name: f.name,
-        type: f.type,
-        size: f.size,
-      });
+        uploadedFiles = parsed.data;
+      } catch {
+        return {
+          success: false,
+          message: "Invalid evidence upload data. Please try again.",
+        };
+      }
     }
+
+    const files: ReviewEvidenceFile[] = uploadedFiles.map((f) => ({
+      url: f.secureUrl,
+      name: f.name,
+      type: f.type,
+      size: f.size,
+    }));
 
     // Get admin users for notification
     const { data: admins } = await adminSupabase

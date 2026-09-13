@@ -7,9 +7,14 @@ import { requireActiveAccount } from "@/lib/account-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import {
-  uploadArtworkImageToCloudinary,
+  downloadCloudinaryAsset,
   deleteArtworkImageFromCloudinary,
 } from "@/features/(user)/upload-artwork/server/upload-image";
+import { cloudinaryAssetMetadataSchema } from "@/lib/cloudinary/metadata-schema";
+import {
+  ACCEPTED_TYPES,
+  MAX_FILE_SIZE,
+} from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
   buildSimilarityReport,
@@ -90,14 +95,24 @@ export async function recordArtworkInDatabase(
       rawLicenseIdentifier.trim() !== ""
         ? rawLicenseIdentifier
         : DEFAULT_LICENSE_ID;
-    const file = formData.get("file");
+    // Browser-direct transport: the raw file was already uploaded to
+    // Cloudinary by the client (signed upload), bypassing the serverless
+    // request-body cap. The action receives storage metadata and
+    // re-downloads the exact bytes so hashing/scanning stays byte-faithful.
+    const assetMeta = cloudinaryAssetMetadataSchema.safeParse({
+      publicId: formData.get("cloudinaryPublicId"),
+      assetId: formData.get("cloudinaryAssetId") || null,
+      secureUrl: formData.get("cloudinarySecureUrl"),
+      bytes: Number(formData.get("fileSize")),
+      fileName: formData.get("fileName") ?? undefined,
+      mimeType: formData.get("mimeType") ?? undefined,
+    });
 
-    const parsed = formSchema.safeParse({
+    const parsed = formSchema.omit({ file: true }).safeParse({
       title,
       description,
       rightsConfirmed,
       licenseIdentifier,
-      file,
     });
 
     if (!parsed.success) {
@@ -110,9 +125,62 @@ export async function recordArtworkInDatabase(
       };
     }
 
-    const validFile = parsed.data.file;
-    const arrayBuffer = await validFile.arrayBuffer();
-    const fileBuffer = Buffer.from(arrayBuffer);
+    if (!assetMeta.success) {
+      return {
+        success: false,
+        message:
+          assetMeta.error.issues[0]?.message ??
+          "Stored image metadata is missing or invalid.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    if (
+      !ACCEPTED_TYPES.includes(
+        assetMeta.data.mimeType as (typeof ACCEPTED_TYPES)[number],
+      )
+    ) {
+      return {
+        success: false,
+        message: "Unsupported file format for the stored image.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    // ── Step 0: Re-download the exact uploaded bytes from Cloudinary ──────
+    let fileBuffer: Buffer;
+    try {
+      fileBuffer = await downloadCloudinaryAsset(assetMeta.data.secureUrl);
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to load the stored image.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    if (fileBuffer.length > MAX_FILE_SIZE) {
+      return {
+        success: false,
+        message: "Stored image exceeds the maximum allowed file size.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    // Node's Buffer is a valid BlobPart at runtime; cast satisfies the DOM
+    // File typings (Buffer.buffer is ArrayBufferLike, not ArrayBuffer).
+    const validFile = new File(
+      [fileBuffer as unknown as BlobPart],
+      assetMeta.data.fileName ?? "artwork",
+      { type: assetMeta.data.mimeType ?? "application/octet-stream" },
+    );
 
     const authorIdHash = ethers.keccak256(
       ethers.toUtf8Bytes(userId),
@@ -278,8 +346,10 @@ export async function recordArtworkInDatabase(
         console.log(
           `[Similarity Scan] Auto-rejecting upload — ${similarity}% database match (threshold ${settings.similarity_threshold}%)`,
         );
-        // Hard block BEFORE any Cloudinary upload or database insert —
-        // nothing is persisted for a rejected upload.
+        // Hard block BEFORE any database insert — nothing is persisted for a
+        // rejected upload. The asset was uploaded browser-direct before this
+        // action ran, so remove it from storage as well.
+        await deleteArtworkImageFromCloudinary(assetMeta.data.publicId);
         return {
           success: false,
           message: verdictMessage,
@@ -349,15 +419,14 @@ export async function recordArtworkInDatabase(
     ) as `0x${string}`;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Step 4: Upload image to Cloudinary
+    // Step 4: Storage metadata — the asset was already uploaded browser-direct
+    // (signed upload) before this action was invoked.
     // ─────────────────────────────────────────────────────────────────────────
-    console.log("[Artwork Registration] Uploading image to Cloudinary...");
-    const uploadedImage = await uploadArtworkImageToCloudinary({
-      fileBuffer,
-      fileName: validFile.name,
-      folder: "registered-arts",
-    });
-    console.log("[Artwork Registration] Cloudinary upload complete");
+    const uploadedImage = {
+      assetId: assetMeta.data.assetId ?? null,
+      secureUrl: assetMeta.data.secureUrl,
+      publicId: assetMeta.data.publicId,
+    };
 
     // ─────────────────────────────────────────────────────────────────────────
     // Step 5: Insert the registered_arts record

@@ -25,6 +25,8 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { submitReviewEvidence } from "@/features/(user)/upload-artwork/server/submit-review-evidence";
+import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
+import { describeAnalysisError } from "@/lib/analysis-errors";
 import type { ReviewStatus, ReviewActionType, ReviewEvidence } from "@/features/admin/artwork-verification/types";
 
 interface VerificationStatusCardProps {
@@ -119,10 +121,28 @@ export function VerificationStatusCard({
 
     setIsSubmitting(true);
     try {
+      // Browser-direct storage upload (signed): the raw files go straight to
+      // Cloudinary so they never pass through the Next.js server, whose
+      // serverless request-body cap rejects larger uploads.
+      const uploads = await Promise.all(
+        files.map(async (file) => {
+          const uploaded = await uploadFileToCloudinary(
+            file,
+            "review-evidence",
+            { resourceType: "auto" },
+          );
+          return {
+            publicId: uploaded.publicId,
+            secureUrl: uploaded.secureUrl,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+          };
+        }),
+      );
+
       const formData = new FormData();
-      files.forEach((file, index) => {
-        formData.append(`file_${index}`, file);
-      });
+      formData.append("files", JSON.stringify(uploads));
 
       const result = await submitReviewEvidence(reviewId, message, formData);
       if (result.success) {
@@ -133,8 +153,8 @@ export function VerificationStatusCard({
       } else {
         toast.error(result.message);
       }
-    } catch {
-      toast.error("Failed to submit evidence");
+    } catch (err) {
+      toast.error(describeAnalysisError(err));
     } finally {
       setIsSubmitting(false);
     }

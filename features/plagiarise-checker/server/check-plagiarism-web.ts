@@ -1,40 +1,12 @@
 "use server";
 
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { SearchResponse, PlagiarismWebResult } from "@/features/plagiarise-checker/types";
+import { enrichWebMatches } from "@/features/plagiarise-checker/server/enrich-web-matches";
+import type {
+  SearchResponse,
+  PlagiarismWebResult,
+} from "@/features/plagiarise-checker/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL;
-
-interface ResolvedDbInfo {
-  imageUrl: string | null;
-  title: string | null;
-}
-
-async function resolveDbArtworkById(artworkId: string): Promise<ResolvedDbInfo | null> {
-  try {
-    const supabase = createSupabaseAdminClient();
-
-    const { data, error } = await supabase
-      .from("registered_arts")
-      .select("id, title, c_secure_url")
-      .eq("id", artworkId)
-      .maybeSingle();
-
-    if (error || !data) return null;
-
-    return {
-      imageUrl: data.c_secure_url ?? null,
-      title: data.title,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function isUuidLike(value: string | null | undefined): value is string {
-  if (!value) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 /**
  * Server action: submit a file for web plagiarism checking.
@@ -74,24 +46,9 @@ export async function checkPlagiarismWeb(
       return { success: false, error: "Plagiarism check was not successful." };
     }
 
-    // ── Enrich DB match: resolve UUID → Cloudinary imageUrl + title ──
-    const otherMatches = (data.other_matches ?? []).map(async (m) => {
-      if (m.artwork_id && isUuidLike(m.artwork_id)) {
-        const resolved = await resolveDbArtworkById(m.artwork_id);
-        if (resolved) {
-          return { 
-            ...m, 
-            url: resolved.imageUrl ?? m.url,           // Image URL for <Image> display
-            link: m.link ?? resolved.imageUrl ?? m.url // Keep original link, fallback to imageUrl
-          };
-        }
-      }
-      return m;
-    });
-
-    const resolvedOtherMatches = await Promise.all(otherMatches);
-
-    const enriched: SearchResponse = {
+    // ── Enrich DB matches via the JSON-only server action (shared with the
+    // browser-direct web path) ──
+    const enriched = await enrichWebMatches({
       filename: data.filename,
       success: data.success,
       original_hash: data.original_hash,
@@ -99,22 +56,12 @@ export async function checkPlagiarismWeb(
       db: data.db ?? null,
       web: data.web ?? null,
       best_match: data.best_match ?? null,
-      other_matches: resolvedOtherMatches,
+      other_matches: data.other_matches ?? [],
       low_content_warning: data.low_content_warning,
       // Additive backend fields: pass through; tolerate legacy responses.
       web_warning: data.web_warning ?? null,
       web_diagnostics: data.web_diagnostics ?? undefined,
-    };
-
-    if (enriched.db?.type === "database" && isUuidLike(enriched.db.url)) {
-      const resolved = await resolveDbArtworkById(enriched.db.url);
-      if (resolved) {
-        enriched.db = { ...enriched.db, imageUrl: resolved.imageUrl, title: resolved.title };
-        if (enriched.best_match?.type === "database") {
-          enriched.best_match = { ...enriched.best_match, imageUrl: resolved.imageUrl, title: resolved.title };
-        }
-      }
-    }
+    });
 
     return { success: true, data: enriched };
   } catch (err) {

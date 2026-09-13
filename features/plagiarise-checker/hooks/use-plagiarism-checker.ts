@@ -7,9 +7,10 @@ import type {
   CompareResponse,
   SearchResponse,
 } from "@/features/plagiarise-checker/types";
-import { checkPlagiarismWeb } from "@/features/plagiarise-checker/server/check-plagiarism-web";
+import { checkPlagiarismWebFile } from "@/features/plagiarise-checker/lib/api-client";
+import { enrichWebMatches } from "@/features/plagiarise-checker/server/enrich-web-matches";
 import { checkPlagiarismCompareFiles } from "@/features/plagiarise-checker/lib/api-client";
-import { describeAnalysisError } from "@/features/plagiarise-checker/lib/analysis-errors";
+import { describeAnalysisError } from "@/lib/analysis-errors";
 import { generatePlagiarismReportPdf } from "@/features/plagiarise-checker/lib/plagiarism-report";
 
 export function usePlagiarismChecker() {
@@ -53,16 +54,13 @@ export function usePlagiarismChecker() {
     setStage("analyzing");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      // Sent browser → backend directly (same transport rationale as compare
+      // mode); DB-match enrichment runs in the JSON-only enrichWebMatches
+      // server action, which cannot hit serverless request-body caps.
+      const raw = await checkPlagiarismWebFile(file);
+      const result = await enrichWebMatches(raw);
 
-      const result = await checkPlagiarismWeb(null, formData);
-
-      if (!result.success || !result.data) {
-        throw new Error(result.error ?? "An unexpected error occurred.");
-      }
-
-      setWebResult(result.data);
+      setWebResult(result);
       setStage("result");
     } catch (err) {
       setError(describeAnalysisError(err));
