@@ -40,8 +40,9 @@ export async function uploadFileToCloudinary(
       {
         method: "POST",
         body: formData,
-        // Large artwork files over slow links; generous but bounded.
-        signal: AbortSignal.timeout(120_000),
+        // 10-min ceiling for very large files on slow links; still bounds a
+        // hung request.
+        signal: AbortSignal.timeout(600_000),
       },
     );
   } catch (err) {
