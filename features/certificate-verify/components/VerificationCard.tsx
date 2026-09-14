@@ -159,6 +159,33 @@ export function VerificationCard({ data }: { data: CertificateVerification }) {
             <Row label="Issued">{formatDate(issuedAt)}</Row>
           </Section>
 
+          {/* Rights & Licensing */}
+          <Section title="Rights & Licensing">
+            <Row label="Usage License">
+              <span className="font-semibold text-slate-900 dark:text-white">
+                {data.license.name}
+              </span>
+            </Row>
+            <Row label="Terms">
+              <span className="text-xs text-slate-600 dark:text-slate-400">
+                {data.license.description}
+              </span>
+            </Row>
+            {data.license.url ? (
+              <Row label="Legal Code">
+                <a
+                  href={data.license.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  View license terms
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </Row>
+            ) : null}
+          </Section>
+
           {/* Fingerprint & chain */}
           <Section title="Fingerprint & Blockchain">
             {perceptualHash ? (

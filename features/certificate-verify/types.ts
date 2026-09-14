@@ -1,5 +1,13 @@
 export type CertificateVerificationStatus = "Valid" | "Pending" | "Revoked";
 
+export type CertificateLicense = {
+    identifier: string;
+    name: string;
+    shortHandle: string;
+    url: string | null;
+    description: string;
+};
+
 /**
  * Public verification payload — safe to expose to anyone who scans the QR.
  *
@@ -24,6 +32,7 @@ export type PublicCertificateVerification = {
     transactionHash: string | null;
     polygonScanUrl: string | null;
     issuedAt: string;
+    license: CertificateLicense;
     isOwner: false;
 };
 
