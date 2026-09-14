@@ -86,24 +86,22 @@ export async function GET(
     );
   }
 
-  let fileResponse: Response;
+  let upstream: Response;
   try {
-    fileResponse = await fetch(artwork.c_secure_url);
-  } catch {
+    upstream = await fetch(artwork.c_secure_url, { signal: AbortSignal.timeout(8_000) });
+  } catch (err) {
     return NextResponse.json(
       { error: "Failed to download the original artwork." },
       { status: 502 },
     );
   }
 
-  if (!fileResponse.ok) {
+  if (!upstream.ok || !upstream.body) {
     return NextResponse.json(
       { error: "Failed to download the original artwork." },
       { status: 502 },
     );
   }
-
-  const blob = await fileResponse.arrayBuffer();
 
   const extension =
     artwork.evidence?.mime?.split("/")[1] ||
@@ -115,18 +113,21 @@ export async function GET(
     artwork.title,
     extension,
   );
+
   const contentType =
     artwork.evidence?.mime ||
-    fileResponse.headers.get("content-type") ||
+    upstream.headers.get("content-type") ||
     "application/octet-stream";
 
-  return new NextResponse(blob, {
+  const headers = new Headers(upstream.headers);
+  headers.set("Content-Type", contentType);
+  headers.set("Content-Disposition", `attachment; filename="${encodeURIComponent(
+    filename,
+  )}"`);
+  headers.set("Cache-Control", "private, no-store");
+
+  return new NextResponse(upstream.body, {
     status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
-      "Content-Length": blob.byteLength.toString(),
-      "Cache-Control": "private, no-store",
-    },
+    headers,
   });
 }

@@ -14,13 +14,22 @@ export async function fetchGenreClassification(
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(
-        `${process.env.DIGITAL_ART_API_URL}/classify/`,
-        {
-            method: "POST",
-            body: formData,
-        },
-    );
+    let response: Response;
+    try {
+        response = await fetch(
+            `${process.env.DIGITAL_ART_API_URL}/classify/`,
+            {
+                method: "POST",
+                body: formData,
+                signal: AbortSignal.timeout(8_000),
+            },
+        );
+    } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+            throw new Error("Genre classification request timed out.");
+        }
+        throw err instanceof Error ? err : new Error(String(err));
+    }
 
     if (!response.ok) {
         let message = "Failed to classify art genre";

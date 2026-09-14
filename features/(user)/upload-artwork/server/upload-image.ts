@@ -46,10 +46,20 @@ export async function deleteArtworkImageFromCloudinary(
 export async function downloadCloudinaryAsset(
   secureUrl: string
 ): Promise<Buffer> {
-  const response = await fetch(secureUrl, { cache: "no-store" });
+  let response: Response;
+  try {
+    response = await fetch(secureUrl, { cache: "no-store", signal: AbortSignal.timeout(8_000) });
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("Timed out while downloading the stored image.");
+    }
+    throw err instanceof Error ? err : new Error(String(err));
+  }
+
   if (!response.ok) {
     throw new Error(`Failed to load the stored image (${response.status}).`);
   }
+
   return Buffer.from(await response.arrayBuffer());
 }
 

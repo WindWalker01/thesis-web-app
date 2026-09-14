@@ -76,11 +76,28 @@ export async function classifyArtwork(
       };
     }
 
-    const response = await fetch(`${baseUrl}/classify/`, {
-      method: "POST",
-      body: requestBody,
-      cache: "no-store",
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${baseUrl}/classify/`, {
+        method: "POST",
+        body: requestBody,
+        cache: "no-store",
+        signal: AbortSignal.timeout(8_000),
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        return {
+          success: false,
+          message: "Classification request timed out.",
+        };
+      }
+
+      return {
+        success: false,
+        message:
+          err instanceof Error ? err.message : "Unexpected error while classifying artwork.",
+      };
+    }
 
     console.log("Classify status:", response.status);
     console.log("Classify content-type:", response.headers.get("content-type"));

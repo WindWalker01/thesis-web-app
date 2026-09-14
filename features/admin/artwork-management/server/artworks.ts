@@ -17,7 +17,10 @@ import { SIMILARITY_THRESHOLD, MULTIPLE_MATCHES_THRESHOLD } from "../types";
 // ========== HELPERS ==========
 
 async function verifyAdmin(supabase: SupabaseClient): Promise<string> {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Not authenticated");
 
   const { data: profile } = await supabase
@@ -30,9 +33,10 @@ async function verifyAdmin(supabase: SupabaseClient): Promise<string> {
   return user.id;
 }
 
-function mapSortToQuery(
-  sortBy: ArtworkSortOption
-): { column: string; order: "asc" | "desc" } {
+function mapSortToQuery(sortBy: ArtworkSortOption): {
+  column: string;
+  order: "asc" | "desc";
+} {
   switch (sortBy) {
     case "newest":
       return { column: "created_at", order: "desc" };
@@ -52,13 +56,18 @@ function mapSortToQuery(
 }
 
 function computeNeedsReview(
-  scan: { best_similarity_percentage: number | null; total_matches: number; success: boolean } | null,
+  scan: {
+    best_similarity_percentage: number | null;
+    total_matches: number;
+    success: boolean;
+  } | null,
   reportCount: number,
   artworkStatus: string,
-  reviewStatus: string | null
+  reviewStatus: string | null,
 ): boolean {
   if (reviewStatus === "pending" || reviewStatus === "needs_info") return true;
-  if ((scan?.best_similarity_percentage ?? 0) >= SIMILARITY_THRESHOLD) return true;
+  if ((scan?.best_similarity_percentage ?? 0) >= SIMILARITY_THRESHOLD)
+    return true;
   if ((scan?.total_matches ?? 0) >= MULTIPLE_MATCHES_THRESHOLD) return true;
   if (reportCount > 0) return true;
   if (artworkStatus === "blockchain_failed") return true;
@@ -66,14 +75,18 @@ function computeNeedsReview(
 }
 
 function getReviewConditions(
-  scan: { best_similarity_percentage: number | null; total_matches: number } | null,
+  scan: {
+    best_similarity_percentage: number | null;
+    total_matches: number;
+  } | null,
   reportCount: number,
   artworkStatus: string,
-  reviewStatus: string | null
+  reviewStatus: string | null,
 ): string[] {
   const conditions: string[] = [];
   if (reviewStatus === "pending") conditions.push("Awaiting manual review");
-  if (reviewStatus === "needs_info") conditions.push("Additional evidence requested");
+  if (reviewStatus === "needs_info")
+    conditions.push("Additional evidence requested");
   if ((scan?.best_similarity_percentage ?? 0) >= SIMILARITY_THRESHOLD) {
     conditions.push(`High similarity (${scan!.best_similarity_percentage}%)`);
   }
@@ -81,14 +94,15 @@ function getReviewConditions(
     conditions.push(`Multiple similarity matches (${scan!.total_matches})`);
   }
   if (reportCount > 0) conditions.push(`${reportCount} active report(s)`);
-  if (artworkStatus === "blockchain_failed") conditions.push("Blockchain verification failed");
+  if (artworkStatus === "blockchain_failed")
+    conditions.push("Blockchain verification failed");
   return conditions;
 }
 
 // ========== LIST ==========
 
 export async function getArtworksList(
-  params: ArtworksQueryParams
+  params: ArtworksQueryParams,
 ): Promise<PaginatedArtworksResponse> {
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
@@ -100,23 +114,21 @@ export async function getArtworksList(
 
   // Build query for registered_arts with related data
   // Use admin client to bypass RLS — ensures admins see ALL registered artworks
-  let query = adminSupabase
-    .from("registered_arts")
-    .select(
-      `
+  let query = adminSupabase.from("registered_arts").select(
+    `
       id, title, description, c_secure_url, c_asset_id,
       file_hash, perceptual_hash, status, created_at, updated_at,
       owner:users!registered_arts_owner_id_fkey (
         id, username, first_name, last_name, c_profile_image
       )
     `,
-      { count: "exact" }
-    );
+    { count: "exact" },
+  );
 
   // Apply search
   if (params.search) {
     query = query.or(
-      `title.ilike.%${params.search}%,description.ilike.%${params.search}%,file_hash.ilike.%${params.search}%,perceptual_hash.ilike.%${params.search}%`
+      `title.ilike.%${params.search}%,description.ilike.%${params.search}%,file_hash.ilike.%${params.search}%,perceptual_hash.ilike.%${params.search}%`,
     );
     // Also search by owner username - we'll add a filter for that
   }
@@ -137,7 +149,7 @@ export async function getArtworksList(
   // Apply owner filter
   if (params.owner) {
     query = query.or(
-      `owner.username.ilike.%${params.owner}%,owner.first_name.ilike.%${params.owner}%,owner.last_name.ilike.%${params.owner}%`
+      `owner.username.ilike.%${params.owner}%,owner.first_name.ilike.%${params.owner}%,owner.last_name.ilike.%${params.owner}%`,
     );
   }
 
@@ -165,160 +177,219 @@ export async function getArtworksList(
   if (error) throw new Error(`Failed to fetch artworks: ${error.message}`);
 
   if (!artworks || artworks.length === 0) {
-    return { items: [], total: 0, page: params.page, limit: params.limit, totalPages: 0 };
+    return {
+      items: [],
+      total: 0,
+      page: params.page,
+      limit: params.limit,
+      totalPages: 0,
+    };
+  }
+  // Batch-fetch related data for all artworks to avoid N+1 queries
+  const artworkIds = artworks.map((a: any) => a.id);
+
+  const { data: posts } = await adminSupabase
+    .from("art_posts")
+    .select(
+      "id, art_id, visibility, is_archived, is_nsfw, upvote_count, downvote_count, score",
+    )
+    .in("art_id", artworkIds);
+
+  const { data: scans } = await adminSupabase
+    .from("art_similarity_scans")
+    .select(
+      "id, art_id, status, best_similarity_percentage, total_matches, success",
+    )
+    .in("art_id", artworkIds);
+
+  const { data: reviews } = await adminSupabase
+    .from("artwork_reviews")
+    .select("id, artwork_id, status")
+    .in("artwork_id", artworkIds);
+
+  const { data: artGenresAll } = await adminSupabase
+    .from("art_genres")
+    .select("art_id, genre_id")
+    .in("art_id", artworkIds);
+
+  const genreIds = Array.from(
+    new Set((artGenresAll ?? []).map((g: any) => g.genre_id)),
+  );
+  let genreMap: Record<number, string> = {};
+  if (genreIds.length > 0) {
+    const { data: genreNames } = await adminSupabase
+      .from("genres")
+      .select("id, name")
+      .in("id", genreIds);
+    (genreNames ?? []).forEach((g: any) => {
+      genreMap[g.id] = g.name;
+    });
   }
 
-  // Fetch additional data for each artwork
-  const items = await Promise.all(
-    artworks.map(async (art: any) => {
-      const artworkId = art.id;
+  const postIds = (posts ?? []).map((p: any) => p.id).filter(Boolean);
+  const { data: reportsAll } = await adminSupabase
+    .from("reports")
+    .select("id, reported_art_post_id")
+    .in("reported_art_post_id", postIds.length ? postIds : ["__none__"]);
 
-      // Fetch art_post (use admin client to bypass RLS)
-      const { data: post } = await adminSupabase
-        .from("art_posts")
-        .select("id, visibility, is_archived, is_nsfw, upvote_count, downvote_count, score")
-        .eq("art_id", artworkId)
-        .maybeSingle();
+  const postsByArtId: Record<string, any> = {};
+  (posts ?? []).forEach((p: any) => {
+    if (!postsByArtId[p.art_id]) postsByArtId[p.art_id] = p;
+  });
 
-      // Fetch similarity scan (use admin client to bypass RLS)
-      const { data: scan } = await adminSupabase
-        .from("art_similarity_scans")
-        .select("id, status, best_similarity_percentage, total_matches, success")
-        .eq("art_id", artworkId)
-        .maybeSingle();
+  const scansByArtId: Record<string, any> = {};
+  (scans ?? []).forEach((s: any) => {
+    scansByArtId[s.art_id] = s;
+  });
 
-      // Fetch review (use admin client to bypass RLS)
-      const { data: review } = await adminSupabase
-        .from("artwork_reviews")
-        .select("id, status")
-        .eq("artwork_id", artworkId)
-        .maybeSingle();
+  const reviewsByArtId: Record<string, any> = {};
+  (reviews ?? []).forEach((r: any) => {
+    reviewsByArtId[r.artwork_id] = r;
+  });
 
-      // Fetch genres (use admin client to bypass RLS)
-      const { data: artGenres } = await adminSupabase
-        .from("art_genres")
-        .select("genre_id")
-        .eq("art_id", artworkId);
-      let genres: Array<{ id: number; name: string }> = [];
-      if (artGenres && artGenres.length > 0) {
-        const genreIds = artGenres.map((g: any) => g.genre_id);
-        const { data: genreNames } = await adminSupabase
-          .from("genres")
-          .select("id, name")
-          .in("id", genreIds);
-        genres = (genreNames ?? []).map((g: any) => ({ id: g.id, name: g.name }));
-      }
+  const genresByArtId: Record<string, Array<{ id: number; name: string }>> = {};
+  (artGenresAll ?? []).forEach((ag: any) => {
+    const name = genreMap[ag.genre_id] ?? null;
+    if (!genresByArtId[ag.art_id]) genresByArtId[ag.art_id] = [];
+    if (name) genresByArtId[ag.art_id].push({ id: ag.genre_id, name });
+  });
 
-      // Count reports via art_posts (use admin client to bypass RLS)
-      let reportCount = 0;
-      if (post) {
-        const { count: rc } = await adminSupabase
-          .from("reports")
-          .select("*", { count: "exact", head: true })
-          .eq("reported_art_post_id", post.id);
-        reportCount = rc ?? 0;
-      }
+  const reportCountByPostId: Record<string, number> = {};
+  (reportsAll ?? []).forEach((r: any) => {
+    reportCountByPostId[r.reported_art_post_id] =
+      (reportCountByPostId[r.reported_art_post_id] ?? 0) + 1;
+  });
 
-      // Apply visibility filter
-      if (params.visibility && params.visibility !== "all" && post) {
-        if (post.visibility !== params.visibility) return null;
-      }
+  // Build items from batched maps
+  const items = artworks.map((art: any) => {
+    const artworkId = art.id;
+    const post = postsByArtId[artworkId] ?? null;
+    const scan = scansByArtId[artworkId] ?? null;
+    const review = reviewsByArtId[artworkId] ?? null;
+    const genres = genresByArtId[artworkId] ?? [];
+    const reportCount = post ? (reportCountByPostId[post.id] ?? 0) : 0;
 
-      // Apply archived filter
-      // Note: artworks without an art_post are treated as "not archived"
-      // because archiving only exists on art_posts, not registered_arts.
-      if (params.archived === "true" && (!post || !post.is_archived)) return null;
-      if (params.archived === "false" && post?.is_archived) return null;
+    // Apply visibility filter
+    if (params.visibility && params.visibility !== "all" && post) {
+      if (post.visibility !== params.visibility) return null;
+    }
 
-      // Apply has_reports filter
-      if (params.has_reports === "true" && reportCount === 0) return null;
-      if (params.has_reports === "false" && reportCount > 0) return null;
+    // Apply archived filter
+    // Note: artworks without an art_post are treated as "not archived"
+    // because archiving only exists on art_posts, not registered_arts.
+    if (params.archived === "true" && (!post || !post.is_archived)) return null;
+    if (params.archived === "false" && post?.is_archived) return null;
 
-      // Apply has_similarity_scan filter
-      if (params.has_similarity_scan === "true" && !scan) return null;
-      if (params.has_similarity_scan === "false" && scan) return null;
+    // Apply has_reports filter
+    if (params.has_reports === "true" && reportCount === 0) return null;
+    if (params.has_reports === "false" && reportCount > 0) return null;
 
-      // Apply high_similarity filter
-      if (params.high_similarity === "true" && (scan?.best_similarity_percentage ?? 0) < SIMILARITY_THRESHOLD) return null;
-      if (params.high_similarity === "false" && (scan?.best_similarity_percentage ?? 0) >= SIMILARITY_THRESHOLD) return null;
+    // Apply has_similarity_scan filter
+    if (params.has_similarity_scan === "true" && !scan) return null;
+    if (params.has_similarity_scan === "false" && scan) return null;
 
-      // Apply has_blockchain filter
-      const hasBlockchain = !!(art.tx_hash && art.status === "active");
-      if (params.has_blockchain === "true" && !hasBlockchain) return null;
-      if (params.has_blockchain === "false" && hasBlockchain) return null;
+    // Apply high_similarity filter
+    if (
+      params.high_similarity === "true" &&
+      (scan?.best_similarity_percentage ?? 0) < SIMILARITY_THRESHOLD
+    )
+      return null;
+    if (
+      params.high_similarity === "false" &&
+      (scan?.best_similarity_percentage ?? 0) >= SIMILARITY_THRESHOLD
+    )
+      return null;
 
-      // Apply has_evidence filter
-      const hasEvidence = !!(art.evidence_hash || art.evidence);
-      if (params.has_evidence === "true" && !hasEvidence) return null;
-      if (params.has_evidence === "false" && hasEvidence) return null;
+    // Apply has_blockchain filter
+    const hasBlockchain = !!(art.tx_hash && art.status === "active");
+    if (params.has_blockchain === "true" && !hasBlockchain) return null;
+    if (params.has_blockchain === "false" && hasBlockchain) return null;
 
-      // Apply similarity_status filter
-      if (params.similarity_status && params.similarity_status !== "all" && scan) {
-        const sim = scan.best_similarity_percentage ?? 0;
-        if (params.similarity_status === "high" && sim < 75) return null;
-        if (params.similarity_status === "medium" && (sim < 50 || sim >= 75)) return null;
-        if (params.similarity_status === "low" && sim >= 50) return null;
-        if (params.similarity_status === "none" && scan) return null;
-      }
+    // Apply has_evidence filter
+    const hasEvidence = !!(art.evidence_hash || art.evidence);
+    if (params.has_evidence === "true" && !hasEvidence) return null;
+    if (params.has_evidence === "false" && hasEvidence) return null;
+
+    // Apply similarity_status filter
+    if (
+      params.similarity_status &&
+      params.similarity_status !== "all" &&
+      scan
+    ) {
+      const sim = scan.best_similarity_percentage ?? 0;
+      if (params.similarity_status === "high" && sim < 75) return null;
+      if (params.similarity_status === "medium" && (sim < 50 || sim >= 75))
+        return null;
+      if (params.similarity_status === "low" && sim >= 50) return null;
       if (params.similarity_status === "none" && scan) return null;
+    }
+    if (params.similarity_status === "none" && scan) return null;
 
-      // Compute needs_review
-      const needsReview = computeNeedsReview(scan, reportCount, art.status, review?.status ?? null);
+    // Compute needs_review
+    const needsReview = computeNeedsReview(
+      scan,
+      reportCount,
+      art.status,
+      review?.status ?? null,
+    );
 
-      // Apply genre filter (after fetch)
-      if (params.genre) {
-        const hasGenre = genres.some(
-          (g) => g.name.toLowerCase() === params.genre!.toLowerCase()
-        );
-        if (!hasGenre) return null;
+    // Apply genre filter (after fetch)
+    if (params.genre) {
+      const hasGenre = genres.some(
+        (g) => g.name.toLowerCase() === params.genre!.toLowerCase(),
+      );
+      if (!hasGenre) return null as unknown as ArtworkListItem;
+    }
+
+    // Apply search on owner username
+    if (params.search) {
+      const searchLower = params.search.toLowerCase();
+      const ownerMatch =
+        art.owner?.username?.toLowerCase().includes(searchLower) ||
+        art.owner?.first_name?.toLowerCase().includes(searchLower) ||
+        art.owner?.last_name?.toLowerCase().includes(searchLower);
+      if (
+        !ownerMatch &&
+        !art.title.toLowerCase().includes(searchLower) &&
+        !(art.description?.toLowerCase().includes(searchLower) ?? false)
+      ) {
+        const initialMatch =
+          art.title?.toLowerCase().includes(searchLower) ||
+          art.description?.toLowerCase().includes(searchLower) ||
+          art.file_hash?.toLowerCase().includes(searchLower) ||
+          art.perceptual_hash?.toLowerCase().includes(searchLower) ||
+          art.id?.toLowerCase().includes(searchLower) ||
+          (art.tx_hash?.toLowerCase().includes(searchLower) ?? false) ||
+          (art.work_id?.toLowerCase().includes(searchLower) ?? false);
+        if (!initialMatch && !ownerMatch)
+          return null as unknown as ArtworkListItem;
       }
+    }
 
-      // Apply search on owner username
-      if (params.search) {
-        const searchLower = params.search.toLowerCase();
-        const ownerMatch =
-          art.owner?.username?.toLowerCase().includes(searchLower) ||
-          art.owner?.first_name?.toLowerCase().includes(searchLower) ||
-          art.owner?.last_name?.toLowerCase().includes(searchLower);
-        if (!ownerMatch && !art.title.toLowerCase().includes(searchLower) && !(art.description?.toLowerCase().includes(searchLower) ?? false)) {
-          // Already matched by the initial query, but we need to check owner too
-          // Actually the initial query only checked title, description, hashes
-          // So we need to also check owner fields
-          const initialMatch =
-            art.title?.toLowerCase().includes(searchLower) ||
-            art.description?.toLowerCase().includes(searchLower) ||
-            art.file_hash?.toLowerCase().includes(searchLower) ||
-            art.perceptual_hash?.toLowerCase().includes(searchLower) ||
-            art.id?.toLowerCase().includes(searchLower) ||
-            (art.tx_hash?.toLowerCase().includes(searchLower) ?? false) ||
-            (art.work_id?.toLowerCase().includes(searchLower) ?? false);
-          if (!initialMatch && !ownerMatch) return null;
-        }
-      }
+    return {
+      id: art.id,
+      title: art.title,
+      description: art.description,
+      c_secure_url: art.c_secure_url,
+      c_asset_id: art.c_asset_id,
+      file_hash: art.file_hash,
+      perceptual_hash: art.perceptual_hash,
+      status: art.status,
+      created_at: art.created_at,
+      updated_at: art.updated_at,
+      owner: art.owner,
+      art_post: post ?? null,
+      scan: scan ?? null,
+      review: review ?? null,
+      genres,
+      report_count: reportCount,
+      needs_review: needsReview,
+    } as ArtworkListItem;
+  });
 
-      return {
-        id: art.id,
-        title: art.title,
-        description: art.description,
-        c_secure_url: art.c_secure_url,
-        c_asset_id: art.c_asset_id,
-        file_hash: art.file_hash,
-        perceptual_hash: art.perceptual_hash,
-        status: art.status,
-        created_at: art.created_at,
-        updated_at: art.updated_at,
-        owner: art.owner,
-        art_post: post ?? null,
-        scan: scan ?? null,
-        review: review ?? null,
-        genres,
-        report_count: reportCount,
-        needs_review: needsReview,
-      } as ArtworkListItem;
-    })
+  const filteredItems = items.filter(
+    (item): item is ArtworkListItem => item !== null,
   );
-
-  const filteredItems = items.filter((item): item is ArtworkListItem => item !== null);
 
   // Sort by aggregated fields
   if (sortColumn === "best_similarity_percentage") {
@@ -329,7 +400,9 @@ export async function getArtworksList(
     });
   } else if (sortColumn === "report_count") {
     filteredItems.sort((a, b) => {
-      return ascending ? a.report_count - b.report_count : b.report_count - a.report_count;
+      return ascending
+        ? a.report_count - b.report_count
+        : b.report_count - a.report_count;
     });
   } else if (sortColumn === "upvote_count") {
     filteredItems.sort((a, b) => {
@@ -341,9 +414,10 @@ export async function getArtworksList(
 
   return {
     items: filteredItems,
-    total: filteredItems.length < params.limit && filteredItems.length > 0
-      ? (params.page - 1) * params.limit + filteredItems.length
-      : count ?? 0,
+    total:
+      filteredItems.length < params.limit && filteredItems.length > 0
+        ? (params.page - 1) * params.limit + filteredItems.length
+        : (count ?? 0),
     page: params.page,
     limit: params.limit,
     totalPages: Math.ceil((count ?? 0) / params.limit),
@@ -353,7 +427,7 @@ export async function getArtworksList(
 // ========== DETAIL ==========
 
 export async function getArtworkDetail(
-  artworkId: string
+  artworkId: string,
 ): Promise<ArtworkDetail | null> {
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
@@ -372,7 +446,7 @@ export async function getArtworkDetail(
       owner:users!registered_arts_owner_id_fkey (
         id, username, first_name, last_name, email, c_profile_image, is_verified
       )
-    `
+    `,
     )
     .eq("id", artworkId)
     .single();
@@ -383,7 +457,9 @@ export async function getArtworkDetail(
   // Fetch art_post (use admin client to bypass RLS)
   const { data: post } = await adminSupabase
     .from("art_posts")
-    .select("id, visibility, is_archived, is_nsfw, upvote_count, downvote_count, score, created_at")
+    .select(
+      "id, visibility, is_archived, is_nsfw, upvote_count, downvote_count, score, created_at",
+    )
     .eq("art_id", artworkId)
     .maybeSingle();
 
@@ -405,7 +481,7 @@ export async function getArtworkDetail(
       reviewer:users!artwork_reviews_reviewer_id_fkey (
         id, first_name, last_name, username
       )
-    `
+    `,
     )
     .eq("artwork_id", artworkId)
     .maybeSingle();
@@ -420,7 +496,7 @@ export async function getArtworkDetail(
         admin:users!artwork_review_actions_admin_id_fkey (
           id, first_name, last_name, username
         )
-      `
+      `,
       )
       .eq("review_id", (review as any).id)
       .order("created_at", { ascending: false });
@@ -457,7 +533,7 @@ export async function getArtworkDetail(
         reporter:users!reports_reporter_id_fkey (
           id, first_name, last_name, username, c_profile_image
         )
-      `
+      `,
       )
       .eq("reported_art_post_id", post.id)
       .order("created_at", { ascending: false });
@@ -479,7 +555,7 @@ export async function getArtworkDetail(
     scan as any,
     reportCount,
     art.status,
-    reviewStatus
+    reviewStatus,
   );
   const needsReview = conditions.length > 0;
 
@@ -567,7 +643,7 @@ export async function getArtworkStats(): Promise<ArtworkStats> {
     .from("reports")
     .select("reported_art_post_id");
   const uniqueReportedPosts = new Set(
-    (reportedArtData ?? []).map((r: any) => r.reported_art_post_id)
+    (reportedArtData ?? []).map((r: any) => r.reported_art_post_id),
   );
 
   // Similarity matches (scans with matches)
@@ -611,7 +687,7 @@ export async function getArtworkStats(): Promise<ArtworkStats> {
 
 export async function getArtworkReports(
   artworkId: string,
-  postId: string | null
+  postId: string | null,
 ): Promise<any[]> {
   if (!postId) return [];
   const supabase = await createSupabaseServerClient();
@@ -625,7 +701,7 @@ export async function getArtworkReports(
       reporter:users!reports_reporter_id_fkey (
         id, first_name, last_name, username, c_profile_image
       )
-    `
+    `,
     )
     .eq("reported_art_post_id", postId)
     .order("created_at", { ascending: false });
@@ -634,7 +710,7 @@ export async function getArtworkReports(
 }
 
 export async function getArtworkSimilarityScan(
-  artworkId: string
+  artworkId: string,
 ): Promise<any> {
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
@@ -649,7 +725,7 @@ export async function getArtworkSimilarityScan(
 }
 
 export async function getArtworkNotifications(
-  artworkId: string
+  artworkId: string,
 ): Promise<any[]> {
   const supabase = await createSupabaseServerClient();
   await verifyAdmin(supabase);
