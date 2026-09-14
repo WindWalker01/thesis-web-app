@@ -20,7 +20,7 @@ export const DECISION_ARTWORK_ACTIONS: Record<
   ("keep_artwork" | "remove_artwork" | "restore_artwork" | "mark_nsfw" | "rerun_plagiarism")[]
 > = {
   no_violation: ["keep_artwork"],
-  copyright_confirmed: ["remove_artwork", "rerun_plagiarism"],
+  copyright_confirmed: ["remove_artwork"],
   guideline_violation: ["remove_artwork", "mark_nsfw"],
   insufficient_evidence: ["keep_artwork"],
   false_report: ["keep_artwork"],
@@ -151,6 +151,13 @@ export type CombinationValidationResult =
 /**
  * Validates that the selected decision, artwork actions, and user actions
  * form a legal combination. This runs server-side for security.
+ * Rules enforced:
+ * - Each action must belong to the decision's allowed set.
+ * - Passive decisions (no_violation, insufficient_evidence, false_report)
+ *   cannot carry active actions.
+ * - Artwork actions are strictly one-of (e.g. remove_artwork OR mark_nsfw).
+ * - User actions are strictly one-of (warn OR suspend OR ban).
+ * - "rerun_plagiarism" is not offered in the resolution workflow.
  */
 export function validateActionCombination(
   decision: ReportDecisionValue,
@@ -174,6 +181,25 @@ export function validateActionCombination(
         reason: `Decision "${decision}" does not allow user actions: ${userActions.join(", ")}.`,
       };
     }
+  }
+
+  // Artwork actions are strictly one-of — removing an artwork and keeping it
+  // visible (e.g. NSFW-blurred) are contradictory moderation outcomes.
+  if (artworkActions.filter((a) => a !== "keep_artwork").length > 1) {
+    const activeArtwork = artworkActions.filter((a) => a !== "keep_artwork");
+    return {
+      valid: false,
+      reason: `Only one artwork action can be selected per resolution, got: ${activeArtwork.join(", ")}.`,
+    };
+  }
+
+  // User actions are strictly one-of — warning and suspending/banning the
+  // same account in a single resolution is not a coherent moderation outcome.
+  if (userActions.length > 1) {
+    return {
+      valid: false,
+      reason: `Only one user action can be selected per resolution, got: ${userActions.join(", ")}.`,
+    };
   }
 
   // Validate each action is in the allowed set

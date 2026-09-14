@@ -13,6 +13,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
 import { logModerationAction, resolveReport } from "@/features/reports/server/reports-service";
 import { resolveReportSchema } from "@/features/reports/schemas/report-schemas";
+import { validateActionCombination } from "@/features/reports/lib/moderation-recommendations";
 
 export async function POST(
   request: NextRequest,
@@ -87,6 +88,21 @@ export async function POST(
           userReason: resolveUserReason,
         } = parsed.data;
 
+        // Enforce decision/action combination rules (one user action max,
+        // passive decisions carry no active actions, rerun_plagiarism not
+        // offered in resolutions). Server-side to protect against crafted calls.
+        const combination = validateActionCombination(
+          resolveDecision as Parameters<typeof validateActionCombination>[0],
+          resolveArtworkActions,
+          resolveUserActions
+        );
+        if (!combination.valid) {
+          return NextResponse.json(
+            { success: false, error: { message: combination.reason } },
+            { status: 400 }
+          );
+        }
+
         // Idempotency check
         const report = await serverSupabase.from("reports").select("status").eq("id", reportId).single();
         if (report?.data?.status === "resolved") {
@@ -113,6 +129,14 @@ export async function POST(
               await supabase.from("art_posts").update({ is_nsfw: true }).eq("art_id", artworkId);
               await logModerationAction(serverSupabase, { reportId, adminId, action: "artwork_nsfw", notes: resolveArtworkReason ?? "Marked NSFW." });
             } else if (awAction === "rerun_plagiarism") {
+              // Guard: skip if a scan is already pending/running for this artwork
+              const { data: existingScan } = await supabase
+                .from("art_similarity_scans")
+                .select("id")
+                .eq("art_id", artworkId)
+                .in("status", ["pending", "running"])
+                .maybeSingle();
+              if (existingScan) continue;
               await supabase.from("art_similarity_scans").insert({ art_id: artworkId, owner_id: (await supabase.from("registered_arts").select("owner_id").eq("id", artworkId).single()).data?.owner_id, status: "pending", success: false, total_matches: 0 });
               await logModerationAction(serverSupabase, { reportId, adminId, action: "plagiarism_scan_rerun", notes: resolveArtworkReason ?? "Scan re-run." });
             }

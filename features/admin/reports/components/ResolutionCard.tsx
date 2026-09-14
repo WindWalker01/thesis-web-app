@@ -241,7 +241,17 @@ export function ResolutionCard({
                         <Checkbox
                           checked={artworkChecks[a.action] ?? a.checked}
                           onCheckedChange={(checked) =>
-                            setArtworkChecks((prev) => ({ ...prev, [a.action]: !!checked }))
+                            // Artwork actions are strictly one-of — selecting one
+                            // clears any other selected (visible) artwork action.
+                            setArtworkChecks(() => {
+                              if (!checked) return { [a.action]: false };
+                              const next: Record<string, boolean> = {};
+                              for (const other of recommendations.artworkActions) {
+                                if (other.action === "restore_artwork" && !artworkIsArchived) continue;
+                                next[other.action] = other.action === a.action;
+                              }
+                              return next;
+                            })
                           }
                           className="h-3.5 w-3.5"
                         />
@@ -263,7 +273,16 @@ export function ResolutionCard({
                       <Checkbox
                         checked={userChecks[u.action] ?? u.checked}
                         onCheckedChange={(checked) =>
-                          setUserChecks((prev) => ({ ...prev, [u.action]: !!checked }))
+                          // User actions are strictly one-of — selecting one
+                          // clears any other selected user action.
+                          setUserChecks(() => {
+                            if (!checked) return { [u.action]: false };
+                            const next: Record<string, boolean> = {};
+                            for (const other of recommendations.userActions) {
+                              next[other.action] = other.action === u.action;
+                            }
+                            return next;
+                          })
                         }
                         className="h-3.5 w-3.5"
                       />
