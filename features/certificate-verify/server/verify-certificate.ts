@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthUser } from "@/lib/server-utils";
+import { resolveLicense } from "@/features/artwork-licensing/lib/licenses";
 import { readOnChainWork } from "./read-onchain-work";
 import type {
     CertificateVerificationResult,
@@ -25,6 +26,7 @@ type RegisteredArtRow = {
     status: string;
     chain: string | null;
     tx_hash: string | null;
+    license_identifier: string | null;
 };
 
 /**
@@ -56,7 +58,8 @@ export async function verifyCertificate(
                 created_at,
                 status,
                 chain,
-                tx_hash
+                tx_hash,
+                license_identifier
             `,
         )
         .eq("id", parsed.data)
@@ -88,6 +91,8 @@ export async function verifyCertificate(
     const certificateStatus: PublicCertificateVerification["certificateStatus"] =
         revoked ? "Revoked" : valid ? "Valid" : "Pending";
 
+    const resolvedLicense = resolveLicense(data.license_identifier);
+
     const publicPayload: PublicCertificateVerification = {
         valid,
         revoked,
@@ -103,6 +108,13 @@ export async function verifyCertificate(
         transactionHash: txHash,
         polygonScanUrl: txHash ? `${POLYGONSCAN_BASE}/${txHash}` : null,
         issuedAt: data.created_at,
+        license: {
+            identifier: resolvedLicense.id,
+            name: resolvedLicense.name,
+            shortHandle: resolvedLicense.shortHandle,
+            url: resolvedLicense.url,
+            description: resolvedLicense.description,
+        },
         isOwner: false,
     };
 

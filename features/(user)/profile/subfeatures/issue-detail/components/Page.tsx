@@ -294,7 +294,7 @@ export default function IssueDetailPage({ id }: Props) {
                     className="inline-flex w-fit items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-2 text-base font-semibold text-blue-500 transition-colors hover:bg-blue-500/15"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    View blockchain transaction
+                    View proof of authorship
                   </a>
                 ) : null}
               </div>
