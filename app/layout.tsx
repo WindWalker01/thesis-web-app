@@ -5,6 +5,7 @@ import "@/app/globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ReactQueryClientProvider } from "@/providers/react-query-provider";
+import { ConnectionIssueModal } from "@/components/blocks/connection-issue-modal";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 
 const geistSans = Geist({
@@ -54,6 +55,7 @@ export default function RootLayout({
         >
           <ReactQueryClientProvider>
             {children}
+            <ConnectionIssueModal />
             <Toaster position="top-center" />
           </ReactQueryClientProvider>
         </ThemeProvider>
