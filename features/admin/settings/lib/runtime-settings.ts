@@ -13,6 +13,7 @@
  * Now supports JSON object settings via the isJSON flag in SettingDefinition.
  */
 
+import { cache } from "react";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { DEFAULT_SETTINGS } from "@/features/admin/settings/constants";
 import {
@@ -157,7 +158,20 @@ let cachedSettings: RuntimeSettings | null = null;
  * Always refresh from the persisted source instead of reusing a stale in-memory
  * snapshot. This ensures uploads use the latest admin-configured thresholds.
  */
-export async function getRuntimeSettings(): Promise<RuntimeSettings> {
+/**
+ * Per-request memoization.
+ *
+ * `getRuntimeSettings` is called multiple times within a single server render
+ * (e.g. `generateMetadata` in `app/layout.tsx` AND the layout/server component
+ * that renders the page). React's `cache()` deduplicates those calls so only
+ * ONE Supabase query runs per request, while each new request still fetches
+ * fresh values from the database (preserving the "no stale snapshot" guarantee
+ * above). A time-based TTL cache was intentionally avoided for that reason.
+ *
+ * Note: dedup only applies within a single request/render scope. In plain
+ * Node contexts (unit tests, scripts) each invocation executes normally.
+ */
+const getRuntimeSettingsCached = cache(async (): Promise<RuntimeSettings> => {
   const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
@@ -184,7 +198,10 @@ export async function getRuntimeSettings(): Promise<RuntimeSettings> {
 
   cachedSettings = merged as RuntimeSettings;
   return cachedSettings!;
-}
+});
+
+export const getRuntimeSettings: () => Promise<RuntimeSettings> =
+  getRuntimeSettingsCached;
 
 /**
  * Get default runtime settings when DB fetch fails.

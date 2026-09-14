@@ -2031,6 +2031,12 @@ CREATE INDEX "idx_registered_arts_phash" ON "public"."registered_arts" USING "bt
 CREATE INDEX "idx_registered_arts_status" ON "public"."registered_arts" USING "btree" ("status");
 
 
+-- Partial index supporting the plagiarism checker's candidate lookup
+-- (plagiarism_hashes IS NOT NULL AND status != 'removed'). Turns a full
+-- sequential scan over registered_arts into an index scan, preventing
+-- Supabase API Gateway 504s as the table grows.
+CREATE INDEX "idx_registered_arts_plagiarism_candidates" ON "public"."registered_arts" USING "btree" ("status") WHERE ("plagiarism_hashes" IS NOT NULL);
+
 
 CREATE INDEX "idx_registered_arts_tx_hash" ON "public"."registered_arts" USING "btree" ("tx_hash");
 
