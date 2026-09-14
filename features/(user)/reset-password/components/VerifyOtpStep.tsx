@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Controller, type UseFormReturn } from "react-hook-form";
-import { ArrowLeft, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertCircle, Loader2, MailCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,12 +14,17 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-import { RecoveryOtpInput } from "../schemas/reset-password-schema";
+import {
+  OTP_MAX_LENGTH,
+  RecoveryOtpInput,
+} from "../schemas/reset-password-schema";
 
 interface VerifyOtpStepProps {
   email: string;
   serverError: string | null;
   isCheckingOtp: boolean;
+  /** Optional: lets the user correct the email they confirmed earlier. */
+  onChangeEmail?: () => void;
   form: UseFormReturn<RecoveryOtpInput>;
   onSubmit: (data: RecoveryOtpInput) => void | Promise<void>;
 }
@@ -28,26 +33,32 @@ export function VerifyOtpStep({
   email,
   serverError,
   isCheckingOtp,
+  onChangeEmail,
   form,
   onSubmit,
 }: VerifyOtpStepProps) {
   return (
-    <Card className="overflow-hidden border-slate-700/50 bg-slate-800/50 p-0 shadow-2xl backdrop-blur-sm">
+    <Card className="border-border/60 bg-card/80 shadow-xl backdrop-blur-sm">
       <CardContent className="p-0">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-5 p-6 md:p-8"
         >
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-bold text-white">Enter reset code</h1>
-            <p className="mt-1 text-base text-slate-400">
-              Enter the 6-digit code sent to{" "}
-              <strong className="text-white">{email}</strong>.
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <MailCheck className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="mt-4 text-2xl font-bold text-foreground">
+              Enter reset code
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Enter the code sent to{" "}
+              <span className="font-medium text-foreground">{email}</span>.
             </p>
           </div>
 
           {serverError && (
-            <Alert className="border-red-500/30 bg-red-500/10 text-red-400">
+            <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="ml-2">
                 {serverError}
@@ -55,26 +66,24 @@ export function VerifyOtpStep({
             </Alert>
           )}
 
-          <div className="space-y-1.5">
-            <Label className="text-center text-slate-300">6-digit OTP</Label>
+          <div className="space-y-2">
+            <Label className="flex justify-center text-muted-foreground">
+              Verification code
+            </Label>
 
             <Controller
               name="token"
               control={form.control}
               render={({ field }) => (
                 <InputOTP
-                  maxLength={6}
+                  maxLength={OTP_MAX_LENGTH}
                   value={field.value}
                   onChange={field.onChange}
                   containerClassName="justify-center"
                 >
                   <InputOTPGroup>
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <InputOTPSlot
-                        key={i}
-                        index={i}
-                        className="border-slate-600/60 bg-slate-900/60 text-white"
-                      />
+                    {Array.from({ length: OTP_MAX_LENGTH }).map((_, i) => (
+                      <InputOTPSlot key={i} index={i} />
                     ))}
                   </InputOTPGroup>
                 </InputOTP>
@@ -82,7 +91,7 @@ export function VerifyOtpStep({
             />
 
             {form.formState.errors.token && (
-              <p className="text-sm text-red-400">
+              <p className="text-center text-sm text-destructive">
                 {form.formState.errors.token.message}
               </p>
             )}
@@ -91,7 +100,7 @@ export function VerifyOtpStep({
           <Button
             type="submit"
             disabled={isCheckingOtp}
-            className="h-11 w-full bg-blue-600 font-semibold text-white hover:bg-blue-500"
+            className="h-11 w-full font-semibold"
           >
             {isCheckingOtp ? (
               <>
@@ -99,17 +108,28 @@ export function VerifyOtpStep({
                 Verifying...
               </>
             ) : (
-              "Verify OTP"
+              "Verify code"
             )}
           </Button>
 
-          <Link
-            href="/forgot-password"
-            className="flex items-center justify-center gap-1.5 text-base text-slate-400 transition-colors hover:text-slate-200"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Forgot Password
-          </Link>
+          <div className="flex flex-col items-center gap-2">
+            {onChangeEmail && (
+              <button
+                type="button"
+                onClick={onChangeEmail}
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Use a different email
+              </button>
+            )}
+            <Link
+              href="/forgot-password"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Forgot Password
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>

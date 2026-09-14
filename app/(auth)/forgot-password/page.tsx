@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, AlertCircle, MailCheck, ArrowLeft } from "lucide-react";
+import { Loader2, MailCheck, KeyRound, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +23,6 @@ export default function ForgotPasswordPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState<string | null>(null);
   /* const [captchaToken, setCaptchaToken] = useState<string | null>(null); */
-
-  /* const turnstileRef = useRef<TurnstileInstance | null>(null); */
 
   const {
     register,
@@ -61,23 +59,25 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <Card className="border-slate-700/50 bg-slate-800/50 p-6 text-center backdrop-blur-sm">
-        <CardContent className="space-y-4 pt-2">
-          <MailCheck className="mx-auto h-12 w-12 text-blue-500" />
-          <h1 className="text-2xl font-bold text-white">Check your email</h1>
-          <p className="text-base text-slate-400">
-            We sent a 6-digit password reset code to{" "}
-            <strong className="text-white">{emailSent}</strong>.
+      <Card className="border-border/60 bg-card/80 text-center shadow-xl backdrop-blur-sm">
+        <CardContent className="space-y-4 p-6 pt-2">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10">
+            <MailCheck className="h-7 w-7 text-green-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
+          <p className="text-sm text-muted-foreground">
+            We sent a password reset code to{" "}
+            <span className="font-medium text-foreground">{emailSent}</span>.
           </p>
           <div className="space-y-2">
             <Button
               type="button"
               onClick={() => router.push("/reset-password")}
-              className="w-full bg-blue-600 font-semibold text-white hover:bg-blue-500"
+              className="h-11 w-full font-semibold"
             >
               Enter OTP Code
             </Button>
-            <p className="text-sm text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Didn&apos;t receive it? Check your spam folder or{" "}
               <button
                 type="button"
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                   /* setCaptchaToken(null);
                                     turnstileRef.current?.reset(); */
                 }}
-                className="text-blue-400 underline hover:text-blue-300"
+                className="font-medium text-primary underline hover:text-primary/80"
               >
                 try again
               </button>
@@ -99,41 +99,47 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <Card className="overflow-hidden border-slate-700/50 bg-slate-800/50 p-0 shadow-2xl backdrop-blur-sm">
+    <Card className="border-border/60 bg-card/80 shadow-xl backdrop-blur-sm">
       <CardContent className="p-0">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-5 p-6 md:p-8"
         >
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-bold text-white">Forgot password?</h1>
-            <p className="mt-1 text-base text-slate-400">
-              {"Enter your email and we'll send you a 6-digit reset code."}
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="mt-4 text-2xl font-bold text-foreground">
+              Forgot password?
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {"Enter your email and we'll send you a reset code."}
             </p>
           </div>
 
           {serverError && (
-            <Alert className="border-red-500/30 bg-red-500/10 text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="ml-2">
-                {serverError}
-              </AlertDescription>
+            <Alert variant="destructive">
+              <AlertDescription>{serverError}</AlertDescription>
             </Alert>
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-slate-300">
+            <Label htmlFor="email" className="text-foreground">
               Email address
             </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              {...register("email")}
-              className="h-11 border-slate-600/60 bg-slate-900/60 text-white placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500"
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                {...register("email")}
+                className="h-11 pl-10"
+              />
+            </div>
             {errors.email && (
-              <p className="text-sm text-red-400">{errors.email.message}</p>
+              <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
           </div>
 
@@ -157,7 +163,7 @@ export default function ForgotPasswordPage() {
           <Button
             type="submit"
             disabled={isSubmitting /* || !captchaToken */}
-            className="h-11 w-full cursor-pointer bg-blue-600 font-semibold text-white transition-all duration-200 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-11 w-full font-semibold"
           >
             {isSubmitting ? (
               <>
@@ -169,13 +175,22 @@ export default function ForgotPasswordPage() {
             )}
           </Button>
 
-          <Link
-            href="/login"
-            className="flex items-center justify-center gap-1.5 text-base text-slate-400 transition-colors hover:text-slate-200"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Sign In
-          </Link>
+          <div className="flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={() => router.push("/reset-password")}
+              className="flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              <KeyRound className="h-4 w-4" />
+              Already have a code?
+            </button>
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Back to Sign In
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>

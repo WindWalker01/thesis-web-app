@@ -1,10 +1,25 @@
 import { z } from "zod";
 
+/**
+ * Supabase email OTP length is configured server-side (dashboard /
+ * `supabase/config.toml` -> `otp_length`) and can be either 6 or 8 digits.
+ * The UI therefore accepts both lengths so the flow works regardless of the
+ * server-side setting.
+ */
+export const OTP_MIN_LENGTH = 6;
+export const OTP_MAX_LENGTH = 8;
+
 export const recoveryOtpSchema = z.object({
   token: z
     .string()
-    .length(6, "OTP must be exactly 6 digits")
-    .regex(/^\d+$/, "OTP must contain only numbers"),
+    .regex(
+      new RegExp(`^\\d{${OTP_MIN_LENGTH},${OTP_MAX_LENGTH}}$`),
+      `OTP must be ${OTP_MIN_LENGTH} or ${OTP_MAX_LENGTH} digits`,
+    ),
+});
+
+export const recoveryEmailSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
 });
 
 export const recoveryPasswordSchema = z
@@ -22,4 +37,5 @@ export const recoveryPasswordSchema = z
   });
 
 export type RecoveryOtpInput = z.infer<typeof recoveryOtpSchema>;
+export type RecoveryEmailInput = z.infer<typeof recoveryEmailSchema>;
 export type RecoveryPasswordInput = z.infer<typeof recoveryPasswordSchema>;

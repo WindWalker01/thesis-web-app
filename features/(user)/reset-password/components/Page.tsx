@@ -14,6 +14,7 @@ import { useResetPassword } from "../hooks/useResetPassword";
 
 import { ResetPasswordLoading } from "./ResetPasswordLoading";
 import { ResetPasswordSuccess } from "./ResetPasswordSuccess";
+import { EnterEmailStep } from "./EnterEmailStep";
 import { VerifyOtpStep } from "./VerifyOtpStep";
 import { SetNewPasswordStep } from "./SetNewPasswordStep";
 
@@ -42,11 +43,21 @@ export default function ResetPasswordPage() {
     }
 
     if (!flow.otpVerified) {
+        if (flow.needsEmail) {
+            return (
+                <EnterEmailStep
+                    serverError={flow.serverError}
+                    onSubmit={flow.confirmEmailForRecovery}
+                />
+            );
+        }
+
         return (
             <VerifyOtpStep
                 email={flow.email}
                 serverError={flow.serverError}
                 isCheckingOtp={flow.isCheckingOtp}
+                onChangeEmail={flow.restartWithEmailEntry}
                 form={otpForm}
                 onSubmit={flow.verifyOtp}
             />
@@ -57,6 +68,7 @@ export default function ResetPasswordPage() {
         <SetNewPasswordStep
             serverError={flow.serverError}
             isUpdatingPassword={flow.isUpdatingPassword}
+            isOAuthAccount={flow.authProvider === "google"}
             form={passwordForm}
             onSubmit={flow.submitNewPassword}
         />

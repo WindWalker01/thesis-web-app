@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 
-import {
-  RecoveryOtpInput,
-  RecoveryPasswordInput,
-} from "../schemas/reset-password-schema";
+import { RecoveryOtpInput, RecoveryPasswordInput } from "../schemas/reset-password-schema";
+import { isOAuthOnlyUser } from "./user-identity";
 
 export function useResetPassword() {
   const router = useRouter();
@@ -19,6 +17,28 @@ export function useResetPassword() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  // True when the user landed on /reset-password without any recovery
+  // context (no ?code= and no stored email) — e.g. they already received a
+  // code (self-requested or admin-triggered) and must confirm their email
+  // before it can be verified. Replaces the old hard redirect back to
+  // /forgot-password.
+  const [needsEmail, setNeedsEmail] = useState(false);
+  // "google" | "email" | null — whether the account signing in via the
+  // recovery session is OAuth-only (i.e. setting a password for the first
+  // time). Persisted so the hint survives a refresh mid-flow.
+  const [authProvider, setAuthProvider] = useState<"google" | "email" | null>(
+    null,
+  );
+
+  const applyAuthProvider = (user: Parameters<typeof isOAuthOnlyUser>[0]) => {
+    if (isOAuthOnlyUser(user)) {
+      setAuthProvider("google");
+      sessionStorage.setItem("passwordResetAuthProvider", "google");
+    } else {
+      setAuthProvider("email");
+      sessionStorage.setItem("passwordResetAuthProvider", "email");
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -37,6 +57,7 @@ export function useResetPassword() {
             setEmail(userEmail);
             sessionStorage.setItem("passwordResetEmail", userEmail);
             sessionStorage.setItem("passwordRecoveryVerified", "true");
+            applyAuthProvider(session.user);
             setOtpVerified(true);
           }
         },
@@ -60,6 +81,7 @@ export function useResetPassword() {
           setEmail(userEmail);
           sessionStorage.setItem("passwordResetEmail", userEmail);
           sessionStorage.setItem("passwordRecoveryVerified", "true");
+          applyAuthProvider(data.session.user);
           setOtpVerified(true);
           setIsHydrated(true);
         } else {
@@ -80,6 +102,12 @@ export function useResetPassword() {
       if (storedEmail) {
         if (isMounted) {
           setEmail(storedEmail);
+          const storedProvider = sessionStorage.getItem(
+            "passwordResetAuthProvider",
+          );
+          if (storedProvider === "google" || storedProvider === "email") {
+            setAuthProvider(storedProvider);
+          }
           if (storedVerified === "true") {
             setOtpVerified(true);
           }
@@ -88,9 +116,11 @@ export function useResetPassword() {
         return;
       }
 
-      // No recovery context at all — redirect to the self-service page.
+      // No recovery context at all — let the user confirm their email so
+      // they can enter an existing code (self-service or admin-triggered).
       if (isMounted) {
-        router.replace("/forgot-password");
+        setNeedsEmail(true);
+        setIsHydrated(true);
       }
     };
 
@@ -109,6 +139,7 @@ export function useResetPassword() {
     const handleUnload = async () => {
       sessionStorage.removeItem("passwordResetEmail");
       sessionStorage.removeItem("passwordRecoveryVerified");
+      sessionStorage.removeItem("passwordResetAuthProvider");
       await supabase.auth.signOut();
     };
 
@@ -133,7 +164,7 @@ export function useResetPassword() {
     setServerError(null);
     setIsCheckingOtp(true);
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data: otpData, error } = await supabase.auth.verifyOtp({
       email,
       token: data.token,
       type: "recovery",
@@ -148,6 +179,7 @@ export function useResetPassword() {
     // The PASSWORD_RECOVERY listener above also flips otpVerified; this
     // explicit set covers any timing gap.
     sessionStorage.setItem("passwordRecoveryVerified", "true");
+    applyAuthProvider(otpData.user);
     setOtpVerified(true);
     setIsCheckingOtp(false);
   };
@@ -170,6 +202,7 @@ export function useResetPassword() {
 
     sessionStorage.removeItem("passwordResetEmail");
     sessionStorage.removeItem("passwordRecoveryVerified");
+    sessionStorage.removeItem("passwordResetAuthProvider");
 
     await supabase.auth.signOut();
 
@@ -182,8 +215,28 @@ export function useResetPassword() {
     }, 1500);
   };
 
+  const confirmEmailForRecovery = (data: { email: string }): void => {
+    setServerError(null);
+    setEmail(data.email);
+    sessionStorage.setItem("passwordResetEmail", data.email);
+    setNeedsEmail(false);
+  };
+
+  // Lets the user go back from the OTP step and correct the email they
+  // entered (also clears any stored verification state).
+  const restartWithEmailEntry = (): void => {
+    sessionStorage.removeItem("passwordResetEmail");
+    sessionStorage.removeItem("passwordRecoveryVerified");
+    sessionStorage.removeItem("passwordResetAuthProvider");
+    setEmail("");
+    setOtpVerified(false);
+    setNeedsEmail(true);
+  };
+
   return {
     email,
+    authProvider,
+    needsEmail,
     serverError,
     otpVerified,
     isCheckingOtp,
@@ -191,6 +244,8 @@ export function useResetPassword() {
     isSuccess,
     isHydrated,
     setServerError,
+    confirmEmailForRecovery,
+    restartWithEmailEntry,
     verifyOtp,
     submitNewPassword,
   };
