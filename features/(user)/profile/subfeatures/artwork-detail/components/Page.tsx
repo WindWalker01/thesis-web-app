@@ -260,7 +260,7 @@ export default function ArtworkDetailPage({ id }: Props) {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-base font-semibold text-blue-500 transition-colors hover:bg-blue-500/15 sm:w-auto"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  View blockchain transaction
+                  View proof of authorship
                 </a>
               ) : null}
 
@@ -315,7 +315,7 @@ export default function ArtworkDetailPage({ id }: Props) {
           <section className="border-border/70 bg-card/85 overflow-hidden rounded-3xl border backdrop-blur-xl">
             <SectionHeader
               icon={<BadgeCheck className="h-4 w-4" />}
-              title="Registration Overview"
+              title="Immutable Proof of Authorship"
             />
 
             <div className="grid gap-3 p-4 md:grid-cols-2 md:p-5">
