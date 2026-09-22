@@ -9,6 +9,8 @@ import {
   CloudUpload,
   FileImage,
   ImageIcon,
+  Loader2,
+  RefreshCw,
   X,
 } from "lucide-react";
 
@@ -72,6 +74,9 @@ export default function UploadArtworkPage() {
     genreSuggestions,
     handleGenreSubmit,
     otherMatchesReport,
+    isRetryingBlockchain,
+    blockchainFailed,
+    retryBlockchain,
   } = useUploadArtworkForm();
 
   const previewUrl = useArtworkFilePreview(watchedFile);
@@ -336,6 +341,27 @@ export default function UploadArtworkPage() {
                       {processingState === "success" ? (
                         <Button asChild className="w-full sm:w-auto">
                           <Link href="/dashboard">Go to dashboard</Link>
+                        </Button>
+                      ) : null}
+
+                      {blockchainFailed ? (
+                        <Button
+                          type="button"
+                          className="w-full sm:w-auto"
+                          onClick={retryBlockchain}
+                          disabled={isRetryingBlockchain}
+                        >
+                          {isRetryingBlockchain ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Retrying...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              Retry blockchain registration
+                            </>
+                          )}
                         </Button>
                       ) : null}
 

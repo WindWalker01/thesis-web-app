@@ -16,6 +16,7 @@ import {
 import { DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
 import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
 import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
+import { retryArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/retry-artwork-blockchain";
 import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
 import { submitArtworkGenres } from "../server/submit-artwork-genre";
 import type {
@@ -110,6 +111,8 @@ export function useUploadArtworkForm() {
     useState<ProcessingState>("idle");
   const [processingMessage, setProcessingMessage] = useState("");
   const [steps, setSteps] = useState<UploadArtworkStep[]>(createInitialSteps());
+  const [isRetryingBlockchain, setIsRetryingBlockchain] = useState(false);
+  const [blockchainFailed, setBlockchainFailed] = useState(false);
 
   // Confirm upload modal state
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -173,6 +176,8 @@ export function useUploadArtworkForm() {
     setGenreSuggestions([]);
     setPendingGenreArtworkId(null);
     setGenreModalOpen(false);
+    setBlockchainFailed(false);
+    setIsRetryingBlockchain(false);
   }
 
   // ── Step-transition helpers ────────────────────────────────────────────────
@@ -364,6 +369,7 @@ export function useUploadArtworkForm() {
     setSimilarityReport(null);
     setGenreSuggestions([]);
     setPendingGenreArtworkId(null);
+    setBlockchainFailed(false);
 
     setProcessingState("processing");
     setSteps(createInitialSteps());
@@ -464,6 +470,7 @@ export function useUploadArtworkForm() {
           setStepStatus(STEP_KEYS.protect, "error");
           setProcessingState("error");
           setProcessingMessage(blockchainResult.message);
+          setBlockchainFailed(true);
           form.setError("root", { message: blockchainResult.message });
           return;
         }
@@ -497,6 +504,64 @@ export function useUploadArtworkForm() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  /**
+   * Re-attempts the blockchain write after a transient failure (e.g. a
+   * JSON-RPC "could not coalesce" error). The artwork's hashes are already
+   * persisted in the database, so the retry action only needs the artwork id.
+   * On success it continues the same pipeline as a first-time clean-path
+   * registration (opens the genre-tagging modal).
+   */
+  async function retryBlockchain() {
+    if (!pendingGenreArtworkId) return;
+
+    setIsRetryingBlockchain(true);
+    form.clearErrors("root");
+    setBlockchainFailed(false);
+
+    setProcessingState("processing");
+    setStepStatus(STEP_KEYS.protect, "active");
+    updateStepText(
+      STEP_KEYS.protect,
+      "Recording artwork on blockchain...",
+      "Your artwork is now being written to the blockchain registry.",
+    );
+    setProcessingMessage("Retrying blockchain registration...");
+
+    try {
+      const result = await retryArtworkOnBlockchain({
+        artworkId: pendingGenreArtworkId,
+      });
+
+      if (!result.success) {
+        setStepStatus(STEP_KEYS.protect, "error");
+        setProcessingState("error");
+        setProcessingMessage(result.message);
+        setBlockchainFailed(true);
+        form.setError("root", { message: result.message });
+        return;
+      }
+
+      markBlockchainDone();
+      setGenreModalOpen(true);
+
+      form.reset({
+        title: "",
+        description: "",
+        rightsConfirmed: false,
+        licenseIdentifier: DEFAULT_LICENSE_ID,
+      });
+      setPendingValues(null);
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+
+      router.refresh();
+    } finally {
+      setIsRetryingBlockchain(false);
     }
   }
 
@@ -538,5 +603,8 @@ export function useUploadArtworkForm() {
     confirmUpload,
     handleGenreSubmit,
     otherMatchesReport,
+    isRetryingBlockchain,
+    blockchainFailed,
+    retryBlockchain,
   };
 }
