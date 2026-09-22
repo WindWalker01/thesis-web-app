@@ -15,6 +15,8 @@ import {
   Hash,
   ScrollText,
   ExternalLink,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 
 import { HashInfoRow } from "./HashInfoRow";
@@ -28,10 +30,12 @@ import { DownloadOriginalButton } from "./DownloadOriginalButton";
 import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
 import { LicenseSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/LicenseSection";
+import { GenresSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/GenresSection";
 import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
 import { useArtworkReview } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkReview";
 import { ArtworkRecognitionProfile } from "@/features/(user)/community/components/ArtworkRecognitionProfile";
 import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
+import { useRetryArtworkBlockchain } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
 import type { ArtworkDetail } from "@/features/(user)/profile/types";
 
 type Props = {
@@ -75,6 +79,15 @@ export default function ArtworkDetailPage({ id }: Props) {
   const { data: reviewData, refetch: refetchReview } = useArtworkReview(id);
   const { profile: recognitionProfile, isLoading: recognitionLoading } =
     useArtworkRecognitionProfile(id);
+
+  const { canRetry, isRetrying, retry } = useRetryArtworkBlockchain({
+    artId: id,
+    status: art?.status ?? "",
+    txHash: art?.txHash,
+    chain: art?.chain,
+    workId: art?.workId,
+    blockNumber: art?.blockNumber,
+  });
 
   if (isLoading) {
     return <ArtworkDetailPageSkeleton />;
@@ -252,6 +265,22 @@ export default function ArtworkDetailPage({ id }: Props) {
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              {canRetry ? (
+                <button
+                  type="button"
+                  onClick={retry}
+                  disabled={isRetrying}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary bg-primary px-4 py-2 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-60 sm:w-auto"
+                >
+                  {isRetrying ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  {isRetrying ? "Retrying..." : "Retry blockchain registration"}
+                </button>
+              ) : null}
+
               {txUrl ? (
                 <a
                   href={txUrl}
@@ -360,6 +389,10 @@ export default function ArtworkDetailPage({ id }: Props) {
             artistName={buildArtistDisplayName(art.creator)}
             showChangeControl
           />
+        </div>
+
+        <div className="mt-6">
+          <GenresSection artId={art.id} genres={art.genres} />
         </div>
 
         {recognitionProfile && !recognitionLoading ? (

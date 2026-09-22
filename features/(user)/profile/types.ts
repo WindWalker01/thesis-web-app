@@ -13,6 +13,11 @@ export type ArtworkStatus =
 
 export type ProfileScope = "gallery" | "issues";
 
+export type Genre = {
+  id: number;
+  name: string;
+};
+
 export type Artwork = {
   id: string;
   title: string;
@@ -101,6 +106,7 @@ export type ArtworkDetail = {
   description: string | null;
   img: string | null;
   category: string;
+  genres: Genre[];
   uploadDate: string;
   createdAt: string;
   ownershipStatus: OwnershipStatus;
@@ -188,6 +194,7 @@ export type IssueDetail = {
   description: string | null;
   img: string | null;
   category: string;
+  genres: Genre[];
   uploadDate: string;
   createdAt: string;
   ownershipStatus: OwnershipStatus;

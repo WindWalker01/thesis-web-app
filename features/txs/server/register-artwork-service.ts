@@ -15,6 +15,7 @@
 
 import { ethers } from "ethers";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { formatBlockchainError } from "./blockchain-error";
 
 // ── Configuration ──
 
@@ -217,7 +218,7 @@ export async function registerArtworkOnBlockchain(
       workId: workId.toString(),
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Blockchain registration failed.";
+    const message = formatBlockchainError(error);
 
     // Mark as failed so it can be retried
     await supabase

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2, ShieldAlert } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, ShieldAlert, RefreshCw, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
 import ConfirmActionModal from "@/features/(user)/settings/components/ConfirmActionModal";
 import { EditArtworkDialog } from "../../../components/EditArtworkDialog";
 import { useArtworkActions } from "../hooks/useArtworkActions";
+import { useRetryArtworkBlockchain } from "../hooks/useRetryArtworkBlockchain";
 
 type Props = {
     artId: string;
@@ -66,6 +67,19 @@ export function ArtworkActionsMenu({
         redirectOnDelete,
     });
 
+    const {
+        canRetry: canRetryBlockchain,
+        isRetrying: isRetryingBlockchain,
+        retry: retryBlockchain,
+    } = useRetryArtworkBlockchain({
+        artId,
+        status,
+        txHash,
+        chain,
+        workId,
+        blockNumber,
+    });
+
     function openEditModal() {
         // Close menu first, then open dialog after Radix finishes animating out
         setMenuOpen(false);
@@ -75,6 +89,11 @@ export function ArtworkActionsMenu({
     function openDeleteModal() {
         setMenuOpen(false);
         setTimeout(() => setDeleteOpen(true), 0);
+    }
+
+    function openRetryBlockchain() {
+        setMenuOpen(false);
+        retryBlockchain();
     }
 
     return (
@@ -113,6 +132,24 @@ export function ArtworkActionsMenu({
                                 and deletion are disabled.
                             </div>
                         </>
+                    ) : null}
+
+                    {canRetryBlockchain ? (
+                        <DropdownMenuItem
+                            onSelect={(e) => {
+                                e.preventDefault();
+                                openRetryBlockchain();
+                            }}
+                            disabled={isRetryingBlockchain}
+                            className="flex cursor-pointer items-center gap-2"
+                        >
+                            {isRetryingBlockchain ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-4 w-4" />
+                            )}
+                            Retry blockchain registration
+                        </DropdownMenuItem>
                     ) : null}
 
                     <DropdownMenuSeparator />

@@ -10,6 +10,11 @@ export const DELETABLE_ARTWORK_STATUSES = [
     "pending_blockchain",
 ] as const;
 
+export const BLOCKCHAIN_RETRYABLE_STATUSES = [
+    "pending_blockchain",
+    "blockchain_failed",
+] as const;
+
 type ArtworkPermissionInput = {
     status: string;
     txHash?: string | null;
@@ -45,5 +50,13 @@ export function canDeleteArtwork(input: ArtworkPermissionInput) {
 
     return DELETABLE_ARTWORK_STATUSES.includes(
         input.status as (typeof DELETABLE_ARTWORK_STATUSES)[number]
+    );
+}
+
+export function canRetryBlockchain(input: ArtworkPermissionInput) {
+    if (hasBlockchainRecord(input)) return false;
+
+    return BLOCKCHAIN_RETRYABLE_STATUSES.includes(
+        input.status as (typeof BLOCKCHAIN_RETRYABLE_STATUSES)[number]
     );
 }

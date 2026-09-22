@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type {
     ArtworkDetail,
+    Genre,
     IssueSimilarityScan,
     SimilarityReport,
 } from "../../../types";
@@ -158,22 +159,27 @@ export async function fetchArtworkDetailById(
             return { success: false, message: artGenresError.message };
         }
 
-        let category = "Uncategorized";
-        const firstGenreId = ((artGenres ?? []) as RawArtGenreRow[])[0]?.genre_id;
+        const genreRows = (artGenres ?? []) as RawArtGenreRow[];
+        const genreIds = genreRows.map((row) => row.genre_id);
 
-        if (firstGenreId !== undefined) {
-            const { data: genre, error: genreError } = await supabase
+        let genres: Genre[] = [];
+        if (genreIds.length > 0) {
+            const { data: genreData, error: genreError } = await supabase
                 .from("genres")
                 .select("id, name")
-                .eq("id", firstGenreId)
-                .maybeSingle();
+                .in("id", genreIds);
 
             if (genreError) {
                 return { success: false, message: genreError.message };
             }
 
-            category = (genre as RawGenreRow | null)?.name ?? "Uncategorized";
+            genres = ((genreData ?? []) as RawGenreRow[]).map((genre) => ({
+                id: genre.id,
+                name: genre.name,
+            }));
         }
+
+        const category = genres[0]?.name ?? "Uncategorized";
 
         const { data: creator, error: creatorError } = await supabase
             .from("users")
@@ -254,6 +260,7 @@ export async function fetchArtworkDetailById(
             artwork: mapToArtworkDetail(
                 data as RawArtworkDetailRow,
                 category,
+                genres,
                 (creator as RawUserRow | null) ?? null,
                 mappedScan,
                 similarityReport
@@ -270,6 +277,7 @@ export async function fetchArtworkDetailById(
 function mapToArtworkDetail(
     raw: RawArtworkDetailRow,
     category: string,
+    genres: Genre[],
     creator: RawUserRow | null,
     similarityScan: IssueSimilarityScan | null,
     similarityReport: SimilarityReport | null
@@ -288,6 +296,7 @@ function mapToArtworkDetail(
         description: raw.description,
         img: raw.c_secure_url,
         category,
+        genres,
         uploadDate: formatUploadDate(raw.created_at),
         createdAt: raw.created_at,
         ownershipStatus: mapOwnershipStatus(raw.status, raw.tx_hash),

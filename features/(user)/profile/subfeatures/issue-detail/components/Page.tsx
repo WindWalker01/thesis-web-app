@@ -17,6 +17,8 @@ import {
   Ban,
   Boxes,
   ExternalLink,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 
 import { useIssueDetailPage } from "../hooks/useIssueDetailPage";
@@ -38,6 +40,8 @@ import {
 import { MetricCard } from "./MetricCard";
 import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
 import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
+import { GenresSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/GenresSection";
+import { useRetryArtworkBlockchain } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
 
 type Props = {
   id: string;
@@ -60,6 +64,15 @@ function getStatusIcon(status: ArtworkStatus) {
 
 export default function IssueDetailPage({ id }: Props) {
   const { issue, isLoading, error, refetch } = useIssueDetailPage(id);
+
+  const { canRetry, isRetrying, retry } = useRetryArtworkBlockchain({
+    artId: id,
+    status: issue?.status ?? "",
+    txHash: issue?.txHash,
+    chain: issue?.chain,
+    workId: issue?.workId,
+    blockNumber: issue?.blockNumber,
+  });
 
   if (isLoading) {
     return <IssueDetailPageSkeleton />;
@@ -297,6 +310,22 @@ export default function IssueDetailPage({ id }: Props) {
                     View proof of authorship
                   </a>
                 ) : null}
+
+                {canRetry ? (
+                  <button
+                    type="button"
+                    onClick={retry}
+                    disabled={isRetrying}
+                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-primary bg-primary px-3.5 py-2 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-60"
+                  >
+                    {isRetrying ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    {isRetrying ? "Retrying..." : "Retry blockchain registration"}
+                  </button>
+                ) : null}
               </div>
             </section>
           </div>
@@ -307,6 +336,10 @@ export default function IssueDetailPage({ id }: Props) {
             scan={issue.similarityScan}
             report={issue.similarityReport}
           />
+        </div>
+
+        <div className="mt-6">
+          <GenresSection artId={issue.id} genres={issue.genres} />
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
