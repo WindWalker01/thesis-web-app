@@ -219,7 +219,6 @@ export default function ArtworkVerificationPage() {
           onToggleFilters={() => setFiltersOpen(!filtersOpen)}
           filtersOpen={filtersOpen}
           isLoading={reviewsLoading}
-          totalCount={total}
         />
 
         {/* Filters Panel */}

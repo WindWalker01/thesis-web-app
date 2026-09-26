@@ -13,7 +13,6 @@ interface ReviewToolbarProps {
   onToggleFilters: () => void;
   filtersOpen: boolean;
   isLoading: boolean;
-  totalCount: number;
 }
 
 export function ReviewToolbar({
@@ -24,7 +23,6 @@ export function ReviewToolbar({
   onToggleFilters,
   filtersOpen,
   isLoading,
-  totalCount,
 }: ReviewToolbarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
