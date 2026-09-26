@@ -200,7 +200,7 @@ export async function POST(
         }
 
         // Step 3: Resolve the report
-        const resolution = await resolveReport(serverSupabase, {
+        await resolveReport(serverSupabase, {
           reportId,
           adminId,
           decision: resolveDecision as "no_violation" | "guideline_violation" | "copyright_confirmed" | "insufficient_evidence" | "false_report",
