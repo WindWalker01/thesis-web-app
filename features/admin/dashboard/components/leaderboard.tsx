@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ShieldCheck, Trophy, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TopArtist } from "../types";
+import Image from "next/image";
 
 type Props = {
   artists: TopArtist[];
@@ -54,12 +55,14 @@ export function Leaderboard({ artists }: Props) {
               </div>
 
               {/* Avatar */}
-              <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+              <div className="relative h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
                 {artist.avatar ? (
-                  <img
+                  <Image
                     src={artist.avatar}
                     alt={artist.first_name || artist.username}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="36px"
+                    className="object-cover"
                   />
                 ) : (
                   <span className="text-sm font-bold text-muted-foreground">
