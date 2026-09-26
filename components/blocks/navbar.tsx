@@ -11,7 +11,6 @@ import {
   User as UserIcon,
   Menu,
   X,
-  Award,
   Flag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
