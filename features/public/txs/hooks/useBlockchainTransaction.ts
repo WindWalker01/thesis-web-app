@@ -69,7 +69,7 @@ export function useBlockchainTransactions(): UseBlockchainTransactionsResult {
 
   const data = query.data;
 
-  const items = data?.items ?? [];
+  const items = useMemo(() => data?.items ?? [], [data?.items]);
 
   const filteredItems = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
