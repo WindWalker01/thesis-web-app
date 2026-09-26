@@ -17,7 +17,6 @@ import {
   Settings2,
   ShieldCheck,
   User as UserIcon,
-  PanelLeftIcon,
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
 import { Button } from "@/components/ui/button";
