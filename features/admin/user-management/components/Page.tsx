@@ -453,6 +453,7 @@ export default function UserManagementPage() {
     [users, bulkSelection],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function identities
   const table = useReactTable({
     data: users,
     columns,
