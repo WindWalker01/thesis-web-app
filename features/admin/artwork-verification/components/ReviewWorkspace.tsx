@@ -83,7 +83,9 @@ export default function ArtworkReviewWorkspace() {
 
   // Use ref to track reviewNotes for keyboard handler without re-registering effect
   const reviewNotesRef = useRef(reviewNotes);
-  reviewNotesRef.current = reviewNotes;
+  useEffect(() => {
+    reviewNotesRef.current = reviewNotes;
+  }, [reviewNotes]);
 
   // Update notes when detail loads
   useEffect(() => {
