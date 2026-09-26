@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import GoogleIcon from "@/components/google-icon";
 import { useRegisterForm } from "../hooks/useRegisterForm";
-import { Circle } from "lucide-react";
 import { ValidationChecklist } from "./ValidationChecklist";
 /* import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { useRef } from "react"; */
