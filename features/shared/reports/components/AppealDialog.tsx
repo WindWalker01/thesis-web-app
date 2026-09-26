@@ -20,7 +20,7 @@ type AppealDialogProps = {
   disabled?: boolean;
 };
 
-export function AppealDialog({ reportId, onSubmit, disabled = false }: AppealDialogProps) {
+export function AppealDialog({ onSubmit, disabled = false }: AppealDialogProps) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
