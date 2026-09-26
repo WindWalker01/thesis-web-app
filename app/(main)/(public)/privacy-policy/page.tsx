@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
   ShieldCheck, Database, Eye, Lock, UserCheck, RefreshCw, Globe,
-  FileText, BrainCircuit,
+  FileText,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -178,7 +178,7 @@ export default function PrivacyPolicyPage() {
 
           <Reveal className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/20 rounded-full px-4 py-1.5 mb-4">
-              <FileText className="w-3 h-3 text-blue-400" />
+  FileText,
               <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Full Policy</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-black mb-3">Full Privacy Policy</h2>
