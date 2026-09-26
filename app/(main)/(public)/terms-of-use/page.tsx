@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
   AlertTriangle, FileText, ShieldCheck, Scale, UserCheck,
-  ThumbsUp, Flag, RefreshCw, Globe, BookOpen, Mail,
+  ThumbsUp, Flag, RefreshCw, Globe, Mail,
   Share2Icon, MapPin, BrainCircuit, FileClockIcon, Users, Blocks,
 } from "lucide-react";
 
