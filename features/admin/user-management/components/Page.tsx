@@ -149,7 +149,7 @@ export default function UserManagementPage() {
       sort,
     });
 
-  const { stats, isLoading: statsLoading } = useUserManagementStats();
+  const { stats } = useUserManagementStats();
 
   const { user: selectedUser, isLoading: userLoading } =
     useUserDetail(selectedUserId);
