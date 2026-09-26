@@ -8,7 +8,6 @@ import { NewMessagesButton } from "./NewMessagesButton";
 import { useChatScroll } from "@/features/shared/reports/hooks/useChatScroll";
 import { useTypingIndicator } from "@/features/shared/reports/hooks/useTypingIndicator";
 import { useReadReceipts } from "@/features/shared/reports/hooks/useReadReceipts";
-import { useDesktopNotification } from "@/features/shared/reports/hooks/useDesktopNotification";
 import { ChatInput } from "./ChatInput";
 import type { ChatMessage as ChatMessageType, RealtimeConnectionStatus } from "@/features/shared/reports/types";
 
@@ -69,12 +68,6 @@ export function ChatContainer({
     enabled: !disabled,
   });
 
-  // Desktop notifications
-  const { notifyNewMessage } = useDesktopNotification({
-    reportId,
-    reportTitle,
-    enabled: true,
-  });
 
 
   // Get display name for a user
@@ -103,15 +96,6 @@ export function ChatContainer({
     });
   }, [typingUsers, messages, getDisplayName]);
 
-  // Handle new message notification
-  const handleIncomingMessage = useCallback(
-    (comment: ChatMessageType) => {
-      if (comment.user_id !== currentUserId && !document.hasFocus()) {
-        notifyNewMessage(comment, comment.is_admin);
-      }
-    },
-    [currentUserId, notifyNewMessage]
-  );
 
   return (
     <div className="flex h-full flex-col bg-gradient-to-b from-background to-background/95">
