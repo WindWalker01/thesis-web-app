@@ -6,7 +6,6 @@ import {
   ShieldCheck, Database, Eye, Lock, UserCheck, RefreshCw, Globe,
   FileText,
 } from "lucide-react";
-import Image from "next/image";
 
 /* ── Canva-style scroll-up reveal ── */
 function Reveal({
