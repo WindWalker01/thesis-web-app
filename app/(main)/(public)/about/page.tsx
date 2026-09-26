@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import {
   BrainCircuitIcon,
-  BrainCircuit,
   ShieldCheck,
   Fingerprint,
   Users,
