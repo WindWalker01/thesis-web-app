@@ -2,9 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import ArtworkReviewWorkspace from "@/features/admin/artwork-verification/components/ReviewWorkspace";
 
-export default async function ArtworkReviewWorkspaceRoute({
-  params,
-}: {
+export default async function ArtworkReviewWorkspaceRoute(_props: {
   params: Promise<{ id: string }>;
 }) {
   const supabase = await createSupabaseServerClient();
