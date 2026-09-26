@@ -77,7 +77,6 @@ export function ReportDrawer({
 }: ReportDrawerProps) {
   const [showTimeline, setShowTimeline] = useState(false);
   const [showResolution, setShowResolution] = useState(false);
-  const [isModeratingArtwork, setIsModeratingArtwork] = useState(false);
   const [activeLeftTab, setActiveLeftTab] = useState<"chat" | "evidence">("chat");
   const [currentUserId, setCurrentUserId] = useState<string>("");
 
