@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/client-utils";
-import type { ReviewStatus } from "../types";
 
 interface StatusDescriptionProps {
   status: string;
