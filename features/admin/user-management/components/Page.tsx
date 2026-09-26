@@ -1428,12 +1428,14 @@ export default function UserManagementPage() {
                             key={art.id}
                             className="border-border flex items-center gap-3 rounded-lg border p-3"
                           >
-                            <div className="bg-muted h-14 w-14 shrink-0 overflow-hidden rounded-md">
+                            <div className="bg-muted relative h-14 w-14 shrink-0 overflow-hidden rounded-md">
                               {art.c_secure_url ? (
-                                <img
+                                <Image
                                   src={art.c_secure_url}
                                   alt={art.title}
-                                  className="h-full w-full object-cover"
+                                  fill
+                                  sizes="56px"
+                                  className="object-cover"
                                 />
                               ) : (
                                 <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs">
