@@ -448,6 +448,8 @@ export default function UserManagementPage() {
         enableSorting: false,
       },
     ],
+    // Handlers are defined later in the component; cells close over them lazily.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid TDZ by keeping handler defs below columns
     [users, bulkSelection],
   );
 
