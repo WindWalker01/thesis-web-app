@@ -68,7 +68,6 @@ export async function signOut() {
 
 export async function forgotPassword(
   email: string,
-  captchaToken?: string | null,
 ) {
   const parsed = forgotPasswordSchema.safeParse({ email });
 
