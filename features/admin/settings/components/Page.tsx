@@ -765,7 +765,7 @@ export default function SettingsPage() {
         </div>
       );
     },
-    [renderSetting, renderSettingCard, expandedGroups],
+    [renderSetting, renderSettingCard, expandedGroups, isSettingVisible],
   );
 
   const totalDirtyCount = dirtyChanges.size;
