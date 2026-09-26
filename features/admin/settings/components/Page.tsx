@@ -41,6 +41,15 @@ import { SettingSelect } from "./SettingSelect";
 import { SettingDateTime } from "./SettingDateTime";
 import { ConfirmDialog } from "./ConfirmDialog";
 
+const MAINTENANCE_CHILD_KEYS = new Set([
+  "maintenance_message",
+  "scheduled_maintenance",
+  "scheduled_maintenance_start",
+  "scheduled_maintenance_end",
+  "allow_admin_login_during_maintenance",
+  "display_countdown",
+]);
+
 export default function SettingsPage() {
   // Data state
   const [settings, setSettings] = useState<Record<string, SettingValue> | null>(
@@ -591,15 +600,6 @@ export default function SettingsPage() {
   // so only the main toggle is visible. When maintenance_mode is ON,
   // all configuration fields appear (with scheduled datetime fields
   // further gated by scheduled_maintenance).
-  const MAINTENANCE_CHILD_KEYS = new Set([
-    "maintenance_message",
-    "scheduled_maintenance",
-    "scheduled_maintenance_start",
-    "scheduled_maintenance_end",
-    "allow_admin_login_during_maintenance",
-    "display_countdown",
-  ]);
-
   const isSettingVisible = useCallback(
     (setting: SettingDefinition): boolean => {
       // Gate scheduled datetime fields by BOTH maintenance_mode AND scheduled_maintenance.
