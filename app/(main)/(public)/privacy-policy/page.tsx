@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
   ShieldCheck, Database, Eye, Lock, UserCheck, RefreshCw, Globe,
-  BookOpen, Mail, Share2Icon, MapPin,
+  Mail, Share2Icon, MapPin,
   FileText, Scale, FileClockIcon, Users, Blocks, BrainCircuit,
 } from "lucide-react";
 import Image from "next/image";
