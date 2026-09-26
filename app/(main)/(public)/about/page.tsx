@@ -12,7 +12,6 @@ import {
   FileText,
   FileClockIcon,
   Scale,
-  MapPin,
 } from "lucide-react";
 
 /* ── Canva-style scroll reveal ── */
