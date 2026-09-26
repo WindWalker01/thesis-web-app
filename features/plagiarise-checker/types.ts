@@ -1,4 +1,4 @@
-export type Stage = "upload" | "analyzing" | "result" | "error";
+export type Stage = "upload" | "preview" | "analyzing" | "summary" | "result" | "error";
 export type Mode = "web" | "compare";
 
 /**

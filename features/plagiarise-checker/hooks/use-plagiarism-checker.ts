@@ -10,6 +10,7 @@ import type {
 import { checkPlagiarismWebFile } from "@/features/plagiarise-checker/lib/api-client";
 import { enrichWebMatches } from "@/features/plagiarise-checker/server/enrich-web-matches";
 import { checkPlagiarismCompareFiles } from "@/features/plagiarise-checker/lib/api-client";
+import { readImageDimensions, type ArtworkFileMeta } from "@/features/plagiarise-checker/lib/file-metadata";
 import { describeAnalysisError } from "@/lib/analysis-errors";
 import { generatePlagiarismReportPdf } from "@/features/plagiarise-checker/lib/plagiarism-report";
 
@@ -24,6 +25,8 @@ export function usePlagiarismChecker() {
   // Web mode state
   const [webFile, setWebFile] = useState<File | null>(null);
   const [webPreview, setWebPreview] = useState<string | null>(null);
+  const [webFileMeta, setWebFileMeta] = useState<ArtworkFileMeta | null>(null);
+  const [webFileError, setWebFileError] = useState<string | null>(null);
   const [webResult, setWebResult] = useState<SearchResponse | null>(null);
 
   // Compare mode state
@@ -44,10 +47,46 @@ export function usePlagiarismChecker() {
 
   // ── Handlers: Web mode ─────────────────────────────────────────────────────
 
-  const handleWebUpload = useCallback(async (file: File) => {
+  // Selecting an artwork only prepares it for review — the scan does not start
+  // until the user explicitly confirms via handleAnalyzeWeb.
+  const handleWebSelect = useCallback((file: File) => {
+    const looksLikeImage =
+      file.type.startsWith("image/") ||
+      /\.(png|jpe?g|webp|avif|gif|bmp|tiff?|svg)$/i.test(file.name);
+
+    if (!looksLikeImage) {
+      setWebFileError(
+        "Please select an image file (PNG, JPG, WEBP, AVIF, GIF, BMP, TIFF, or SVG).",
+      );
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setWebFileError("The selected file exceeds the 50 MB limit.");
+      return;
+    }
+
     if (webPreview) URL.revokeObjectURL(webPreview);
     setWebFile(file);
     setWebPreview(URL.createObjectURL(file));
+    setWebResult(null);
+    setWebFileError(null);
+    setWebFileMeta({ size: file.size, type: file.type, width: null, height: null });
+    setError(null);
+    setErrorTime(null);
+    setStage("preview");
+
+    // Resolve intrinsic dimensions in the background — never block preview.
+    void readImageDimensions(file).then((dims) => {
+      if (dims) {
+        setWebFileMeta((prev) =>
+          prev ? { ...prev, width: dims.width, height: dims.height } : prev,
+        );
+      }
+    });
+  }, [webPreview]);
+
+  const handleAnalyzeWeb = useCallback(async () => {
+    if (!webFile) return;
     setWebResult(null);
     setError(null);
     setErrorTime(null);
@@ -57,17 +96,25 @@ export function usePlagiarismChecker() {
       // Sent browser → backend directly (same transport rationale as compare
       // mode); DB-match enrichment runs in the JSON-only enrichWebMatches
       // server action, which cannot hit serverless request-body caps.
-      const raw = await checkPlagiarismWebFile(file);
+      const raw = await checkPlagiarismWebFile(webFile);
       const result = await enrichWebMatches(raw);
 
       setWebResult(result);
-      setStage("result");
+      setStage("summary");
     } catch (err) {
       setError(describeAnalysisError(err));
       setErrorTime(new Date());
       setStage("error");
     }
-  }, [webPreview]);
+  }, [webFile]);
+
+  const handleViewAnalysis = useCallback(() => {
+    setStage("result");
+  }, []);
+
+  const handleBackToSummary = useCallback(() => {
+    setStage("summary");
+  }, []);
 
   // ── Export PDF ─────────────────────────────────────────────────────────────
 
@@ -142,6 +189,8 @@ export function usePlagiarismChecker() {
     setErrorTime(null);
     setCompareResult(null);
     setWebResult(null);
+    setWebFileMeta(null);
+    setWebFileError(null);
     if (webPreview) { URL.revokeObjectURL(webPreview); setWebPreview(null); setWebFile(null); }
     if (previewA) { URL.revokeObjectURL(previewA); setPreviewA(null); setFileA(null); }
     if (previewB) { URL.revokeObjectURL(previewB); setPreviewB(null); setFileB(null); }
@@ -179,6 +228,8 @@ export function usePlagiarismChecker() {
     copyConfirmed,
     webFile,
     webPreview,
+    webFileMeta,
+    webFileError,
     webResult,
     fileA,
     fileB,
@@ -187,7 +238,10 @@ export function usePlagiarismChecker() {
     compareResult,
 
     // Handlers
-    handleWebUpload,
+    handleWebSelect,
+    handleAnalyzeWeb,
+    handleViewAnalysis,
+    handleBackToSummary,
     handleExportPdf,
     handleCompareUploadA,
     handleCompareUploadB,

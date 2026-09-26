@@ -39,16 +39,16 @@ function getRiskLevel(
   const tier = getSimilarityRiskTier(value, thresholds);
   if (tier === "critical")
     return {
-      label: "High Risk",
+      label: "High similarity",
       className: "text-red-400 border-red-500/30 bg-red-500/10",
     };
   if (tier === "moderate")
     return {
-      label: "Moderate Risk",
+      label: "Moderate similarity",
       className: "text-amber-400 border-amber-500/30 bg-amber-500/10",
     };
   return {
-    label: "Low Risk",
+    label: "Low similarity",
     className: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
   };
 }

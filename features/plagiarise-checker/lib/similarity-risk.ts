@@ -75,7 +75,7 @@ export function getSimilarityRiskLabel(
   thresholds?: Partial<SimilarityRiskThresholds> | null,
 ): string {
   const tier = getSimilarityRiskTier(value, thresholds);
-  if (tier === "critical") return "Critical";
-  if (tier === "moderate") return "Moderate";
-  return "Low Risk";
+  if (tier === "critical") return "High similarity";
+  if (tier === "moderate") return "Moderate similarity";
+  return "Low similarity";
 }

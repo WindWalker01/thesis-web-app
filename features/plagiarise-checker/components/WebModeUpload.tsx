@@ -1,11 +1,12 @@
-import { Globe, Info } from "lucide-react";
+import { AlertCircle, Globe, Info } from "lucide-react";
 import { UploadZone } from "./UploadZone";
 
 interface WebModeUploadProps {
   onUpload: (file: File) => void;
+  error?: string | null;
 }
 
-export function WebModeUpload({ onUpload }: WebModeUploadProps) {
+export function WebModeUpload({ onUpload, error }: WebModeUploadProps) {
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       {/* Upload card */}
@@ -20,6 +21,12 @@ export function WebModeUpload({ onUpload }: WebModeUploadProps) {
           </div>
         </div>
         <UploadZone onUpload={onUpload} />
+        {error && (
+          <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
+            <AlertCircle size={15} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
       </div>
 
       {/* What we check */}

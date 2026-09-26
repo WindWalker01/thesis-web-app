@@ -330,7 +330,7 @@ function drawMatchSummaryCard(
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
         doc.setTextColor(22, 163, 74);
-        doc.text("No plagiarism match found", x + 5, y + 13);
+        doc.text("No significant similarity found", x + 5, y + 13);
     } else {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(11);
@@ -551,7 +551,7 @@ export async function generatePlagiarismReportPdf(data: PlagiarismReportData) {
     doc.setFontSize(13);
     doc.setTextColor(15, 23, 42);
     const bestTitle = bestNoEvidence
-        ? "No plagiarism match found"
+        ? "No significant similarity found"
         : best
             ? `${getPrimaryScore(best).toFixed(1)}% similarity detected`
             : "No significant match detected";

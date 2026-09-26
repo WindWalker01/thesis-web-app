@@ -135,8 +135,7 @@ describe("WebModeResult online-check migration", () => {
     delete (r as Partial<SearchResponse>).web_warning;
     render(<WebModeResult preview={PREVIEW} result={r} />);
     expect(screen.getByTestId("online-check-chip")).toHaveTextContent("Online check");
-    expect(screen.getByText("No web match found.")).toBeDefined();
-    expect(screen.getByText("No database match found.")).toBeDefined();
+    expect(screen.getAllByText("No significant similarity found.").length).toBeGreaterThanOrEqual(2);
   });
 });
 

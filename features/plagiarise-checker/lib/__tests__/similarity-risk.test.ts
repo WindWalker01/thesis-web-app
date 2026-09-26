@@ -14,23 +14,23 @@ describe("similarity-risk", () => {
     });
   });
 
-  it("marks values at/above critical as red/Critical", () => {
+  it("marks values at/above critical as red/High similarity", () => {
     expect(getSimilarityRiskTier(80)).toBe("critical");
     expect(getSimilarityColor(80)).toBe("#ef4444");
-    expect(getSimilarityRiskLabel(80)).toBe("Critical");
+    expect(getSimilarityRiskLabel(80)).toBe("High similarity");
     expect(getSimilarityRiskTier(95)).toBe("critical");
   });
 
-  it("marks the moderate band as amber/Moderate (below critical)", () => {
+  it("marks the moderate band as amber/Moderate similarity (below critical)", () => {
     expect(getSimilarityRiskTier(79.9)).toBe("moderate");
     expect(getSimilarityColor(60)).toBe("#f59e0b");
-    expect(getSimilarityRiskLabel(60)).toBe("Moderate");
+    expect(getSimilarityRiskLabel(60)).toBe("Moderate similarity");
   });
 
-  it("marks values below moderate as green/Low Risk", () => {
+  it("marks values below moderate as green/Low similarity", () => {
     expect(getSimilarityRiskTier(59.9)).toBe("low");
     expect(getSimilarityColor(10)).toBe("#22c55e");
-    expect(getSimilarityRiskLabel(10)).toBe("Low Risk");
+    expect(getSimilarityRiskLabel(10)).toBe("Low similarity");
   });
 
   it("honours custom admin thresholds", () => {

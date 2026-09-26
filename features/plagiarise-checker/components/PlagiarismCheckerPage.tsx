@@ -12,10 +12,12 @@ import {
 } from "lucide-react";
 
 import {
+  ArtworkPreview,
   ModeToggle,
   AnalyzingScreen,
   WebModeUpload,
   WebModeResult,
+  SimilaritySummary,
   CompareModeUpload,
   CompareModeResult,
 } from "@/features/plagiarise-checker";
@@ -47,13 +49,18 @@ export default function PlagiarismCheckerPage() {
     copyConfirmed,
     webFile,
     webPreview,
+    webFileMeta,
+    webFileError,
     webResult,
     fileA,
     fileB,
     previewA,
     previewB,
     compareResult,
-    handleWebUpload,
+    handleWebSelect,
+    handleAnalyzeWeb,
+    handleViewAnalysis,
+    handleBackToSummary,
     handleExportPdf,
     handleCompareUploadA,
     handleCompareUploadB,
@@ -271,18 +278,38 @@ export default function PlagiarismCheckerPage() {
         {/* ── Web Search Mode ── */}
         {mode === "web" && stage !== "error" && (
           <>
-            {stage === "upload" && <WebModeUpload onUpload={handleWebUpload} />}
+            {stage === "upload" && (
+              <WebModeUpload onUpload={handleWebSelect} error={webFileError} />
+            )}
+            {stage === "preview" && webPreview && webFileMeta && (
+              <ArtworkPreview
+                preview={webPreview}
+                filename={webFile?.name ?? "artwork"}
+                meta={webFileMeta}
+                onReplace={handleReset}
+                onAnalyze={handleAnalyzeWeb}
+              />
+            )}
             {stage === "analyzing" && (
               <AnalyzingScreen progress={0} mode="web" indeterminate />
+            )}
+            {stage === "summary" && webPreview && webResult && (
+              <SimilaritySummary
+                preview={webPreview}
+                filename={webFile?.name ?? webResult.filename}
+                result={webResult}
+                thresholds={thresholds}
+                onViewAnalysis={handleViewAnalysis}
+                onReset={handleReset}
+              />
             )}
             {stage === "result" && webPreview && webResult && (
               <WebModeResult
                 preview={webPreview}
                 result={webResult}
                 thresholds={thresholds}
-                onRetry={
-                  webFile ? () => handleWebUpload(webFile) : undefined
-                }
+                onRetry={webFile ? () => handleAnalyzeWeb() : undefined}
+                onBackToSummary={handleBackToSummary}
               />
             )}
           </>

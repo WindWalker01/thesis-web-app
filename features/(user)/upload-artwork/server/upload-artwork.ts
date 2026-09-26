@@ -17,6 +17,11 @@ import {
 } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
 import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
 import {
+  isUuidLike,
+  resolveDbArtworkById,
+} from "@/features/plagiarise-checker/server/resolve-db-artwork";
+import type { OtherSearchMatch } from "@/features/plagiarise-checker/types";
+import {
   buildSimilarityReport,
   buildSimilarityScanInsert,
   getPrimarySimilarityMatch,
@@ -54,13 +59,6 @@ async function rollbackArtworkInsert(params: {
   }
 
   await supabase.from("registered_arts").delete().eq("id", artworkId);
-}
-
-function isUuidLike(value: string | null | undefined): value is string {
-  if (!value) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
 }
 
 export async function recordArtworkInDatabase(
@@ -255,7 +253,7 @@ export async function recordArtworkInDatabase(
     let reportMatch;
     let similarityReport = null;
     let similarity = 0;
-    let otherMatches = null;
+    let otherMatches: OtherSearchMatch[] | null = null;
     let matchSource: "database" | "internet" | null = null;
 
     // Defaults for the non-scanning path (or when no significant match exists)
@@ -298,30 +296,19 @@ export async function recordArtworkInDatabase(
         reportMatch?.type === "database" &&
         isUuidLike(reportMatch.url)
       ) {
-        const adminSupabase = createSupabaseAdminClient();
-
-        const { data: matchedArtwork, error: matchedArtworkError } =
-          await adminSupabase
-            .from("registered_arts")
-            .select("id, title, c_secure_url")
-            .eq("id", reportMatch.url)
-            .maybeSingle();
-
-        if (matchedArtworkError) {
-          return {
-            success: false,
-            message: matchedArtworkError.message,
-            similarityReport,
-            otherMatches,
-          };
-        }
+        const resolved = await resolveDbArtworkById(reportMatch.url);
 
         similarityReport = {
           ...similarityReport,
-          matchedArtworkId: matchedArtwork?.id ?? reportMatch.url,
-          matchedArtworkTitle: matchedArtwork?.title ?? null,
-          matchedArtworkImageUrl: matchedArtwork?.c_secure_url ?? null,
-          previewImageUrl: matchedArtwork?.c_secure_url ?? null,
+          matchedArtworkId: reportMatch.url,
+          matchedArtworkTitle: resolved?.title ?? null,
+          matchedArtworkImageUrl: resolved?.imageUrl ?? null,
+          matchedArtworkAuthorName: resolved?.authorName ?? null,
+          matchedArtworkRegisteredAt: resolved?.registeredAt ?? null,
+          matchedArtworkStatus: resolved?.status ?? null,
+          matchedArtworkLicenseName: resolved?.licenseName ?? null,
+          matchedArtworkCommunityUrl: resolved?.communityUrl ?? null,
+          previewImageUrl: resolved?.imageUrl ?? null,
         };
       }
 
@@ -329,6 +316,26 @@ export async function recordArtworkInDatabase(
         primaryMatch?.type === "database" || primaryMatch?.type === "internet"
           ? primaryMatch.type
           : null;
+
+      // Enrich other database matches with artwork image URLs so the
+      // "Other matches" grid can render actual thumbnails (not UUIDs).
+      if (otherMatches && otherMatches.length > 0) {
+        otherMatches = await Promise.all(
+          otherMatches.map(async (match) => {
+            if (match.artwork_id && isUuidLike(match.artwork_id)) {
+              const resolved = await resolveDbArtworkById(match.artwork_id);
+              if (resolved?.imageUrl) {
+                return {
+                  ...match,
+                  url: resolved.imageUrl,
+                  link: match.link ?? resolved.imageUrl,
+                };
+              }
+            }
+            return match;
+          }),
+        );
+      }
 
       // ── Moderation decision (source-aware policy) ────────────────────
       // Database match at/above the similarity threshold → automatic rejection.

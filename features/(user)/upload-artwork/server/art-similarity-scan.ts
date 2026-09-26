@@ -17,6 +17,13 @@ export type SimilarityReport = {
   matchedArtworkId: string | null;
   matchedArtworkTitle: string | null;
   matchedArtworkImageUrl: string | null;
+  matchedArtworkAuthorName: string | null;
+  matchedArtworkRegisteredAt: string | null;
+  matchedArtworkStatus: string | null;
+  matchedArtworkLicenseName: string | null;
+  matchedArtworkCommunityUrl: string | null;
+  matchedRegions: number | null;
+  transformVariants: number | null;
   minCombinedDistance: number | null;
   averageCombinedDistance: number | null;
   maxCombinedDistance: number | null;
@@ -29,6 +36,8 @@ export type NormalizedSimilarityMatch = {
   link: string | null;
   url: string | null;
   similarity: number | null;
+  blockAgreements: number | null;
+  transformAgreements: number | null;
 };
 
 function toNullableString(value: unknown): string | null {
@@ -49,6 +58,8 @@ function normalizeMatch(
   const source = toNullableString(match.source);
   const link = toNullableString(match.link);
   const url = toNullableString(match.url);
+  const blockAgreements = toNullableNumber(match.block_agreements);
+  const transformAgreements = toNullableNumber(match.transform_agreements);
 
   if (!type && !source && !link && !url && similarity === null) {
     return null;
@@ -60,6 +71,8 @@ function normalizeMatch(
     link,
     url,
     similarity,
+    blockAgreements,
+    transformAgreements,
   };
 }
 
@@ -188,6 +201,13 @@ export function buildSimilarityReport(
     matchedArtworkId: best.type === "database" ? best.url : null,
     matchedArtworkTitle: null,
     matchedArtworkImageUrl: null,
+    matchedArtworkAuthorName: null,
+    matchedArtworkRegisteredAt: null,
+    matchedArtworkStatus: null,
+    matchedArtworkLicenseName: null,
+    matchedArtworkCommunityUrl: null,
+    matchedRegions: best.blockAgreements,
+    transformVariants: best.transformAgreements,
     minCombinedDistance: null,
     averageCombinedDistance: null,
     maxCombinedDistance: null,

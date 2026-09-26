@@ -161,23 +161,39 @@ describe("usePlagiarismChecker — web mode (browser-direct path)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("sends web uploads browser→backend directly, enriching via a JSON-only server action", async () => {
+  it("selecting an artwork prepares it for review without starting a scan", async () => {
+    const { result } = renderHook(() => usePlagiarismChecker());
+
+    const file = makeFile("w.png");
+    act(() => {
+      result.current.handleWebSelect(file);
+    });
+
+    expect(mockWebFile).not.toHaveBeenCalled();
+    expect(mockEnrich).not.toHaveBeenCalled();
+    expect(result.current.stage).toBe("preview");
+    expect(result.current.webFile).toBe(file);
+  });
+
+  it("analyzing runs the scan and lands on the summary stage", async () => {
     const raw = makeSearchResponse();
     mockWebFile.mockResolvedValue(raw);
     mockEnrich.mockImplementation(async (r: SearchResponse) => r);
 
     const { result } = renderHook(() => usePlagiarismChecker());
 
-    const file = makeFile("w.png");
+    act(() => {
+      result.current.handleWebSelect(makeFile("w.png"));
+    });
+
     await act(async () => {
-      await result.current.handleWebUpload(file);
+      await result.current.handleAnalyzeWeb();
     });
 
     expect(mockWebFile).toHaveBeenCalledOnce();
-    expect(mockWebFile).toHaveBeenCalledWith(file);
     expect(mockEnrich).toHaveBeenCalledWith(raw);
     expect(mockCompareFiles).not.toHaveBeenCalled();
-    expect(result.current.stage).toBe("result");
+    expect(result.current.stage).toBe("summary");
     expect(result.current.webResult).toEqual(raw);
   });
 
@@ -189,12 +205,30 @@ describe("usePlagiarismChecker — web mode (browser-direct path)", () => {
 
     const { result } = renderHook(() => usePlagiarismChecker());
 
+    act(() => {
+      result.current.handleWebSelect(makeFile("w.png"));
+    });
+
     await act(async () => {
-      await result.current.handleWebUpload(makeFile("w.png"));
+      await result.current.handleAnalyzeWeb();
     });
 
     expect(result.current.stage).toBe("error");
     expect(result.current.error).toMatch(/too large/i);
     expect(result.current.errorTime).toBeInstanceOf(Date);
+  });
+
+  it("rejects non-image files and surfaces a validation error", async () => {
+    const { result } = renderHook(() => usePlagiarismChecker());
+
+    act(() => {
+      result.current.handleWebSelect(
+        new File([new ArrayBuffer(8)], "notes.txt", { type: "text/plain" }),
+      );
+    });
+
+    expect(result.current.stage).toBe("upload");
+    expect(result.current.webFileError).toMatch(/image file/i);
+    expect(mockWebFile).not.toHaveBeenCalled();
   });
 });

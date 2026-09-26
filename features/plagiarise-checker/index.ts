@@ -3,7 +3,16 @@ export { CompareModeResult } from "./components/CompareModeResult";
 export { CompareModeUpload } from "./components/CompareModeUpload";
 export { EvidenceNote } from "./components/EvidenceNote";
 export { HashTable } from "./components/HashTable";
-export { MatchCard } from "./components/MatchCard";
+export { ArtworkMatchCard } from "./components/artwork-match-card";
+export type { ArtworkMatchSourceType } from "./components/artwork-match-card";
+export { ArtworkPreview } from "./components/artwork-preview";
+export { OtherMatches } from "./components/other-matches";
+export { PerceptualHashDetails } from "./components/perceptual-hash-details";
+export { RegisteredArtworkMatch } from "./components/registered-artwork-match";
+export type { RegisteredArtworkMatchVariant } from "./components/registered-artwork-match";
+export { SimilaritySummary } from "./components/similarity-summary";
+export { SimilarityTooltip } from "./components/similarity-tooltip";
+export { WebSourceMatch } from "./components/web-source-match";
 export { ModeToggle } from "./components/ModeToggle";
 export { SimilarityBar } from "./components/SimilarityBar";
 export { SimilarityRing } from "./components/SimilarityRing";
@@ -18,6 +27,9 @@ export { usePlagiarismChecker } from "./hooks/use-plagiarism-checker";
 // for why analysis uploads bypass Server Actions.
 export { checkPlagiarismCompareFiles, checkPlagiarismWebFile } from "./lib/api-client";
 export { describeAnalysisError } from "@/lib/analysis-errors";
+
+export { formatFileSize, readImageDimensions } from "./lib/file-metadata";
+export type { ArtworkFileMeta } from "./lib/file-metadata";
 
 export type {
   Stage,
