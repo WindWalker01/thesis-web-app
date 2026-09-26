@@ -107,7 +107,7 @@ export const ComparisonViewer = memo(function ComparisonViewer({
     setOriginalLoaded(false);
     setComparedLoaded(false);
     preloadedRef.current = false;
-  }, [setHasError]);
+  }, [setHasError, setOriginalLoaded, setComparedLoaded]);
 
   // Error state
   if (hasError) {
