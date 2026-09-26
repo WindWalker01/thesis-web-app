@@ -14,8 +14,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
-} from "@/features/(user)/auth/schemas/auth-schema";
-import { forgotPassword } from "@/features/(user)/auth/server/auth";
+} from "@/features/user/auth/schemas/auth-schema";
+import { forgotPassword } from "@/features/user/auth/server/auth";
 /* import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
  */
 export default function ForgotPasswordPage() {

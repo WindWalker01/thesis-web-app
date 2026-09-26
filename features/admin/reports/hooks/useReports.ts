@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { AdminReportListItem, ReportStatistics } from "@/features/reports/types";
+import type { AdminReportListItem, ReportStatistics } from "@/features/shared/reports/types";
 
 interface UseReportsParams {
   page: number;

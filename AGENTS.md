@@ -35,13 +35,11 @@ Before finalizing significant changes, always run `npm run lint` and `npm run bu
   - `(auth)`: Login, registration, password recovery request UI
   - `(main)`: The core application layouts, dashboard, and artwork interfaces
   - `(recovery)`: Flows related to password reset
-- `features`: Domain-first feature modules encapsulating functional domains:
-  - `(user)`: User specific features (e.g. user authentication forms/actions, dashboard settings, profile details, artwork uploading flows, certificate generator layouts)
-  - `classify`: Core backend artwork classification queries and helpers
-  - `image-classification`: Dashboard interfaces for evaluating artwork classes
-  - `plagiarise-checker`: Web-based plagiarism checking logic
-  - `txs`: Transaction queries and blockchain event fetching
-  - `verify-artwork`: Artwork certificate and registration validation mechanisms
+- `features`: Audience-oriented feature modules (domain logic colocated under each audience):
+  - `admin/`: Admin-only UI and server actions (dashboard, artwork management/verification, user management, admin reports, settings)
+  - `user/`: Authenticated user product surfaces (auth, dashboard, profile, settings, community, upload-artwork, verify-artwork, artwork-licensing, etc.)
+  - `public/`: Unauthenticated / open tools (classify, plagiarise-checker, txs, image-classification)
+  - `shared/`: Cross-audience domain only — `reports/`, `certificate/` (generator + verify), `similarity/`
 - `components`: Shared UI primitives and block templates:
   - `ui`: Primitive components (e.g. button, input, dialog, popover)
   - `blocks`: Combined components and reusable layout structures
@@ -58,7 +56,8 @@ Before finalizing significant changes, always run `npm run lint` and `npm run bu
 ## 4) Architectural Rules
 
 - **Separation of Concerns (SoC)**: Keep route files inside `app/` thin. Route page files should serve as declarative entry points, with visual components and feature-specific operations imported from `features/`.
-- **Domain Co-location**: Place all components, query/mutation hooks, validation schemas, server actions, and domain-specific typings inside the corresponding directory under `features/.../` rather than polluting shared spaces.
+- **Domain Co-location**: Place all components, query/mutation hooks, validation schemas, server actions, and domain-specific typings inside the corresponding directory under `features/admin|user|public/.../`. Put cross-audience schemas/types/pure helpers under `features/shared/{reports,certificate,similarity}/` only when two audiences share them.
+- **Audience placement**: Prefer `admin` / `user` / `public` based on who owns the UI end-to-end. Do not force shared domains into a single audience folder.
 - **Client vs. Server Components**: Default to Next.js Server Components. Declare `"use client"` only at the top of files requiring interactivity (state, context hooks, window/browser API usage, framer-motion animations, forms).
 - **Import Aliasing**: Use direct relative pathing or configured import aliases where appropriate.
 
@@ -73,7 +72,7 @@ Before finalizing significant changes, always run `npm run lint` and `npm run bu
 - **Smart Contract Interactions**:
   - Connect to the RPC endpoint using `ethers.JsonRpcProvider` verifying the `AMOY_RPC_URL`.
   - For validation of certificate or ownership registry, verify inputs against the deployed contract address (`ARTWORK_REGISTRY`).
-  - Never execute transactions with the system private key (`SYSTEM_PRIVATE_KEY`) directly on the client side. Ensure private keys are strictly accessed on the server (e.g. within Server Actions `upload-artwork/server/record-artwork-blockchain.ts`).
+  - Never execute transactions with the system private key (`SYSTEM_PRIVATE_KEY`) directly on the client side. Ensure private keys are strictly accessed on the server (e.g. within Server Actions `features/user/upload-artwork/server/record-artwork-blockchain.ts`).
 - **Defensive Input Validation**:
   - All form submissions, URL search params, and external API requests must validate against strict **Zod** schemas.
 - **Cloudflare Turnstile**:

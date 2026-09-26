@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
-import * as repo from "@/features/reports/server/reports-repository";
+import * as repo from "@/features/shared/reports/server/reports-repository";
 
 export async function GET(
   _request: NextRequest,

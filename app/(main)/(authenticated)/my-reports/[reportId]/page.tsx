@@ -2,23 +2,23 @@
 
 import { use, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useReportDetail } from "@/features/reports/hooks/useReportDetail";
-import { useRealtimeMessages } from "@/features/reports/hooks/useRealtimeMessages";
-import { useUploadEvidence } from "@/features/reports/hooks/useUploadEvidence";
-import { useAppealReport } from "@/features/reports/hooks/useAppealReport";
-import { StatusBadge } from "@/features/reports/components/StatusBadge";
-import { Timeline } from "@/features/reports/components/Timeline";
-import { ChatContainer } from "@/features/reports/components/ChatContainer";
-import { EvidenceGallery } from "@/features/reports/components/EvidenceGallery";
-import { DecisionCard } from "@/features/reports/components/DecisionCard";
-import ReportDetailSkeleton from "@/features/reports/components/ReportDetailSkeleton";
+import { useReportDetail } from "@/features/shared/reports/hooks/useReportDetail";
+import { useRealtimeMessages } from "@/features/shared/reports/hooks/useRealtimeMessages";
+import { useUploadEvidence } from "@/features/shared/reports/hooks/useUploadEvidence";
+import { useAppealReport } from "@/features/shared/reports/hooks/useAppealReport";
+import { StatusBadge } from "@/features/shared/reports/components/StatusBadge";
+import { Timeline } from "@/features/shared/reports/components/Timeline";
+import { ChatContainer } from "@/features/shared/reports/components/ChatContainer";
+import { EvidenceGallery } from "@/features/shared/reports/components/EvidenceGallery";
+import { DecisionCard } from "@/features/shared/reports/components/DecisionCard";
+import ReportDetailSkeleton from "@/features/shared/reports/components/ReportDetailSkeleton";
 
 import {
   REPORT_TYPE_LABELS,
   formatDateTime,
   formatTimeAgo,
   isTerminalStatus,
-} from "@/features/reports/lib/report-utils";
+} from "@/features/shared/reports/lib/report-utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect } from "react";

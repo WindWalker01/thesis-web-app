@@ -24,7 +24,7 @@ import { BanUserDialog } from "./BanUserDialog";
 import { ReportsPageSkeleton } from "./page-skeleton";
 import { ReportsInfoBanner } from "./InfoBanner";
 import { ReportsStatusDescription } from "./StatusDescription";
-import { uploadReportEvidence } from "@/features/reports/lib/upload-report-evidence";
+import { uploadReportEvidence } from "@/features/shared/reports/lib/upload-report-evidence";
 import type { ReportFilters as FilterState } from "../types";
 
 const DEFAULT_FILTERS: FilterState = {

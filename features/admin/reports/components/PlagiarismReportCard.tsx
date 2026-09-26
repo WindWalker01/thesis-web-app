@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate, truncateHash } from "@/lib/client-utils";
-import type { AdminReportDetail, MatchedArtworkRef } from "@/features/reports/types";
+import type { AdminReportDetail, MatchedArtworkRef } from "@/features/shared/reports/types";
 
 /** Metadata snapshot written when a copyright report comes from the checker. */
 export type PlagiarismReportMetadata = {

@@ -11,6 +11,14 @@ export default defineConfig({
     include: ["**/*.{test,spec}.{ts,tsx}"],
     // `tests/` is reserved for Playwright E2E specs (see tests/README.md).
     // Exclude it so Vitest never attempts to load Playwright test files.
-    exclude: ["node_modules", ".next", "dist", "tests"],
+    exclude: [
+      "node_modules",
+      ".next",
+      "dist",
+      "tests",
+      ".kilo",
+      "playwright-report",
+      "test-results",
+    ],
   },
 });

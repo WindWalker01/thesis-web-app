@@ -21,8 +21,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ReportStatusBadge } from "./ReportStatusBadge";
-import { VALID_STATUS_TRANSITIONS } from "@/features/reports/types";
-import type { ReportStatus } from "@/features/reports/types";
+import { VALID_STATUS_TRANSITIONS } from "@/features/shared/reports/types";
+import type { ReportStatus } from "@/features/shared/reports/types";
 
 // ---------------------------------------------------------------------------
 // Contextual labels + icons for each status transition

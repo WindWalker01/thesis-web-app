@@ -6,7 +6,7 @@
 // function context, so the segment config covers them.
 export const maxDuration = 300;
 
-import UploadArtworkPage from "@/features/(user)/upload-artwork/components/page";
+import UploadArtworkPage from "@/features/user/upload-artwork/components/page";
 
 export default function Page() {
     return (

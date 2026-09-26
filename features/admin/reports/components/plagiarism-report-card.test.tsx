@@ -5,7 +5,7 @@ import {
   PlagiarismReportCard,
   isPlagiarismReport,
 } from "./PlagiarismReportCard";
-import type { AdminReportDetail } from "@/features/reports/types";
+import type { AdminReportDetail } from "@/features/shared/reports/types";
 
 function makeDetail(
   overrides: Partial<AdminReportDetail> = {}

@@ -11,7 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
-import type { ReportStatistics } from "@/features/reports/types";
+import type { ReportStatistics } from "@/features/shared/reports/types";
 
 interface ReportStatsCardsProps {
   stats: ReportStatistics | undefined;

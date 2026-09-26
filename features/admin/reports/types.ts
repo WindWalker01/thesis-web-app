@@ -15,7 +15,7 @@ import type {
   AdminReportsQuery,
   ModerationSummary,
   ActionRecommendation,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 // Re-export shared types for convenience
 export type {
@@ -109,4 +109,4 @@ export const ACTION_LABELS: Record<string, string> = {
 };
 
 // Report type labels (re-exporting from shared)
-export { REPORT_TYPE_LABELS } from "@/features/reports/types";
+export { REPORT_TYPE_LABELS } from "@/features/shared/reports/types";

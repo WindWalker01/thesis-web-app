@@ -42,15 +42,15 @@ import {
   PlagiarismReportCard,
   isPlagiarismReport,
 } from "./PlagiarismReportCard";
-import { Timeline } from "@/features/reports/components/Timeline";
-import { ChatContainer } from "@/features/reports/components/ChatContainer";
-import { useRealtimeMessages } from "@/features/reports/hooks/useRealtimeMessages";
+import { Timeline } from "@/features/shared/reports/components/Timeline";
+import { ChatContainer } from "@/features/shared/reports/components/ChatContainer";
+import { useRealtimeMessages } from "@/features/shared/reports/hooks/useRealtimeMessages";
 import type {
   AdminReportDetail,
   ReportStatus,
   ReportAction,
-} from "@/features/reports/types";
-import { REPORT_TYPE_LABELS } from "@/features/reports/types";
+} from "@/features/shared/reports/types";
+import { REPORT_TYPE_LABELS } from "@/features/shared/reports/types";
 
 interface ReportDrawerProps {
   open: boolean;

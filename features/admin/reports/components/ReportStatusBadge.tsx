@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/client-utils";
-import type { ReportStatus } from "@/features/reports/types";
+import type { ReportStatus } from "@/features/shared/reports/types";
 
 const STATUS_CONFIG: Record<ReportStatus, { label: string; color: string; bg: string; border: string; dot: string }> = {
   pending_review: { label: "Pending Review", color: "text-yellow-700", bg: "bg-yellow-100", border: "border-yellow-200", dot: "bg-yellow-500" },

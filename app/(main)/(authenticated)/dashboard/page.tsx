@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/server-utils";
 import { isAdminUser } from "@/lib/account-status";
-import DashboardPage from "@/features/(user)/dashboard/components/Page";
+import DashboardPage from "@/features/user/dashboard/components/Page";
 
 export default async function Page() {
   const user = await getAuthUser();

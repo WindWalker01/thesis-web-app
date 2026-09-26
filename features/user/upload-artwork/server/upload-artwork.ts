@@ -1,0 +1,656 @@
+"use server";
+
+import { ethers } from "ethers";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account-status";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { formSchema } from "@/features/user/upload-artwork/schemas/artwork-schema";
+import {
+  downloadCloudinaryAsset,
+  deleteArtworkImageFromCloudinary,
+} from "@/features/user/upload-artwork/server/upload-image";
+import { cloudinaryAssetMetadataSchema } from "@/lib/cloudinary/metadata-schema";
+import {
+  ACCEPTED_TYPES,
+  MAX_FILE_SIZE,
+} from "@/features/user/upload-artwork/schemas/artwork-schema";
+import { checkPlagiarismWeb } from "@/features/public/plagiarise-checker";
+import {
+  isUuidLike,
+  resolveDbArtworkById,
+} from "@/features/public/plagiarise-checker/server/resolve-db-artwork";
+import type { OtherSearchMatch } from "@/features/public/plagiarise-checker/types";
+import {
+  buildSimilarityReport,
+  buildSimilarityScanInsert,
+  getPrimarySimilarityMatch,
+  getSimilarityReportMatch,
+} from "@/features/user/upload-artwork/server/art-similarity-scan";
+
+import {
+  RecordArtworkInDatabaseResult,
+  GenreScoreLabel,
+  ArtworkStatus,
+} from "../types";
+import {
+  sha256Hex,
+  normalizePerceptualHashToBytes32,
+  stableStringify,
+} from "@/features/user/upload-artwork/lib/artwork-hashing";
+import { getArtworkStatusFromSimilarity } from "@/features/user/upload-artwork/lib/moderation-policy";
+import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
+import { fetchGenreClassification } from "./fetch-genre";
+import { getLicense, DEFAULT_LICENSE_ID } from "@/features/user/artwork-licensing/lib/licenses";
+
+async function rollbackArtworkInsert(params: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  artworkId: string;
+  cloudinaryPublicId?: string | null;
+}) {
+  const { supabase, artworkId, cloudinaryPublicId } = params;
+  console.log(
+    `[Artwork Registration] Rolling back artwork insert: ${artworkId}`,
+  );
+
+  // Delete Cloudinary asset if we have a public ID (non-blocking)
+  if (cloudinaryPublicId) {
+    await deleteArtworkImageFromCloudinary(cloudinaryPublicId);
+  }
+
+  await supabase.from("registered_arts").delete().eq("id", artworkId);
+}
+
+export async function recordArtworkInDatabase(
+  formData: FormData,
+): Promise<RecordArtworkInDatabaseResult> {
+  console.log("[Artwork Registration] Registration started");
+
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    // Verify account is active
+    let userId: string;
+    try {
+      userId = await requireActiveAccount();
+    } catch {
+      console.log("[Artwork Registration] Account is suspended or banned");
+      return {
+        success: false,
+        message:
+          "Your account is currently suspended or banned. You cannot upload artwork.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    const title = formData.get("title");
+    const description = formData.get("description");
+    const rightsConfirmed = formData.get("rightsConfirmed") === "true";
+    const rawLicenseIdentifier = formData.get("licenseIdentifier");
+    const licenseIdentifier =
+      typeof rawLicenseIdentifier === "string" &&
+      rawLicenseIdentifier.trim() !== ""
+        ? rawLicenseIdentifier
+        : DEFAULT_LICENSE_ID;
+    // Browser-direct transport: the raw file was already uploaded to
+    // Cloudinary by the client (signed upload), bypassing the serverless
+    // request-body cap. The action receives storage metadata and
+    // re-downloads the exact bytes so hashing/scanning stays byte-faithful.
+    const assetMeta = cloudinaryAssetMetadataSchema.safeParse({
+      publicId: formData.get("cloudinaryPublicId"),
+      assetId: formData.get("cloudinaryAssetId") || null,
+      secureUrl: formData.get("cloudinarySecureUrl"),
+      bytes: Number(formData.get("fileSize")),
+      fileName: formData.get("fileName") ?? undefined,
+      mimeType: formData.get("mimeType") ?? undefined,
+    });
+
+    const parsed = formSchema.omit({ file: true }).safeParse({
+      title,
+      description,
+      rightsConfirmed,
+      licenseIdentifier,
+    });
+
+    if (!parsed.success) {
+      const firstIssue = parsed.error.issues[0];
+      return {
+        success: false,
+        message: firstIssue?.message ?? "Invalid form submission.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    if (!assetMeta.success) {
+      return {
+        success: false,
+        message:
+          assetMeta.error.issues[0]?.message ??
+          "Stored image metadata is missing or invalid.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    if (
+      !ACCEPTED_TYPES.includes(
+        assetMeta.data.mimeType as (typeof ACCEPTED_TYPES)[number],
+      )
+    ) {
+      return {
+        success: false,
+        message: "Unsupported file format for the stored image.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    // ── Step 0: Re-download the exact uploaded bytes from Cloudinary ──────
+    let fileBuffer: Buffer;
+    try {
+      fileBuffer = await downloadCloudinaryAsset(assetMeta.data.secureUrl);
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to load the stored image.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    if (fileBuffer.length > MAX_FILE_SIZE) {
+      return {
+        success: false,
+        message: "Stored image exceeds the maximum allowed file size.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    // Node's Buffer is a valid BlobPart at runtime; cast satisfies the DOM
+    // File typings (Buffer.buffer is ArrayBufferLike, not ArrayBuffer).
+    const validFile = new File(
+      [fileBuffer as unknown as BlobPart],
+      assetMeta.data.fileName ?? "artwork",
+      { type: assetMeta.data.mimeType ?? "application/octet-stream" },
+    );
+
+    const authorIdHash = ethers.keccak256(
+      ethers.toUtf8Bytes(userId),
+    ) as `0x${string}`;
+
+    const fileHash = ethers.keccak256(fileBuffer) as `0x${string}`;
+
+    const { data: existingArtwork, error: existingError } = await supabase
+      .from("registered_arts")
+      .select("id")
+      .eq("owner_id", userId)
+      .eq("file_hash", fileHash)
+      .maybeSingle();
+
+    if (existingError) {
+      return {
+        success: false,
+        message: existingError.message,
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    if (existingArtwork) {
+      return {
+        success: false,
+        message: "This artwork has already been registered by your account.",
+        similarityReport: null,
+        otherMatches: null,
+      };
+    }
+
+    // ── Load runtime settings for similarity thresholds ──────────────
+    const settings = await getRuntimeSettings();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 1: Check for duplicate file (only if enabled in settings)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (settings.enable_duplicate_file_detection) {
+      const { data: existingArtwork, error: existingError } = await supabase
+        .from("registered_arts")
+        .select("id")
+        .eq("owner_id", userId)
+        .eq("file_hash", fileHash)
+        .maybeSingle();
+
+      if (existingError) {
+        return {
+          success: false,
+          message: existingError.message,
+          similarityReport: null,
+          otherMatches: null,
+        };
+      }
+
+      if (existingArtwork) {
+        return {
+          success: false,
+          message: "This artwork has already been registered by your account.",
+          similarityReport: null,
+          otherMatches: null,
+        };
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 2: Run the plagiarism/similarity scan (only if automatic scanning
+    //          is enabled in settings)
+    // ─────────────────────────────────────────────────────────────────────────
+    let result;
+    let primaryMatch;
+    let reportMatch;
+    let similarityReport = null;
+    let similarity = 0;
+    let otherMatches: OtherSearchMatch[] | null = null;
+    let matchSource: "database" | "internet" | null = null;
+
+    // Defaults for the non-scanning path (or when no significant match exists)
+    let artworkStatus: ArtworkStatus = "pending_blockchain";
+    let moderationMessage = "Artwork uploaded successfully and is ready for protection.";
+    let shouldClassify = true;
+
+    if (settings.enable_automatic_scanning) {
+      console.log("[Similarity Scan] Scan started — calling plagiarism API...");
+
+      result = await checkPlagiarismWeb(validFile);
+      console.log("[Similarity Scan] Scan completed — API response received");
+
+      if (!result.success) {
+        console.log(
+          "[Similarity Scan] Plagiarism check failed — no artwork created",
+        );
+        return {
+          success: false,
+          message: "Unexpected server error during similarity checking.",
+          similarityReport: null,
+          otherMatches: null,
+        };
+      }
+
+      primaryMatch = getPrimarySimilarityMatch(result);
+      reportMatch = getSimilarityReportMatch(result, {
+        databaseRenderThreshold: settings.db_match_display_threshold,
+        minRenderThreshold: settings.min_render_threshold,
+      });
+      const builtReport = buildSimilarityReport(result);
+      // The user's own artwork is already in Cloudinary (the client uploads
+      // before calling this action), so carry its URL through for reports.
+      similarityReport = builtReport
+        ? { ...builtReport, originalArtworkUrl: assetMeta.data.secureUrl }
+        : null;
+      // The moderation decision must use the PRIMARY match (highest similarity,
+      // database-weighted) — not the display-curated report, which may select a
+      // different match for presentation purposes.
+      similarity = primaryMatch?.similarity ?? 0;
+      otherMatches = result.other_matches;
+
+      if (
+        similarityReport &&
+        reportMatch?.type === "database" &&
+        isUuidLike(reportMatch.url)
+      ) {
+        const resolved = await resolveDbArtworkById(reportMatch.url);
+
+        similarityReport = {
+          ...similarityReport,
+          matchedArtworkId: reportMatch.url,
+          matchedArtworkTitle: resolved?.title ?? null,
+          matchedArtworkImageUrl: resolved?.imageUrl ?? null,
+          matchedArtworkAuthorName: resolved?.authorName ?? null,
+          matchedArtworkRegisteredAt: resolved?.registeredAt ?? null,
+          matchedArtworkStatus: resolved?.status ?? null,
+          matchedArtworkLicenseName: resolved?.licenseName ?? null,
+          matchedArtworkCommunityUrl: resolved?.communityUrl ?? null,
+          previewImageUrl: resolved?.imageUrl ?? null,
+        };
+      }
+
+      matchSource =
+        primaryMatch?.type === "database" || primaryMatch?.type === "internet"
+          ? primaryMatch.type
+          : null;
+
+      // Enrich other database matches with artwork image URLs so the
+      // "Other matches" grid can render actual thumbnails (not UUIDs).
+      if (otherMatches && otherMatches.length > 0) {
+        otherMatches = await Promise.all(
+          otherMatches.map(async (match) => {
+            if (match.artwork_id && isUuidLike(match.artwork_id)) {
+              const resolved = await resolveDbArtworkById(match.artwork_id);
+              if (resolved?.imageUrl) {
+                return {
+                  ...match,
+                  url: resolved.imageUrl,
+                  link: match.link ?? resolved.imageUrl,
+                };
+              }
+            }
+            return match;
+          }),
+        );
+      }
+
+      // ── Moderation decision (source-aware policy) ────────────────────
+      // Database match at/above the similarity threshold → automatic rejection.
+      // Internet match (any similarity above the manual-review threshold) → manual review.
+      const {
+        artworkStatus: verdict,
+        moderationMessage: verdictMessage,
+        shouldClassify: verdictShouldClassify,
+      } = getArtworkStatusFromSimilarity(similarity, matchSource, {
+        flaggedThreshold: settings.similarity_threshold,
+        manualReviewThreshold: settings.manual_review_threshold,
+      });
+
+      if (verdict === "rejected") {
+        console.log(
+          `[Similarity Scan] Auto-rejecting upload — ${similarity}% database match (threshold ${settings.similarity_threshold}%)`,
+        );
+        // Hard block BEFORE any database insert — nothing is persisted for a
+        // rejected upload. The asset was uploaded browser-direct before this
+        // action ran, so remove it from storage as well.
+        await deleteArtworkImageFromCloudinary(assetMeta.data.publicId);
+        return {
+          success: false,
+          message: verdictMessage,
+          similarityReport,
+          otherMatches,
+        };
+      }
+
+      artworkStatus = verdict;
+      moderationMessage = verdictMessage;
+      shouldClassify = verdictShouldClassify;
+    }
+
+    // Validate perceptual hash (from scan result, or compute from file if scanning disabled)
+    let perceptualHash: `0x${string}`;
+    if (result && settings.enable_automatic_scanning) {
+      if (
+        typeof result.original_hash !== "string" ||
+        result.original_hash.trim().length === 0
+      ) {
+        console.log(
+          "[Similarity Scan] Missing perceptual hash from API response",
+        );
+        return {
+          success: false,
+          message: "Missing perceptual hash from similarity checking service.",
+          similarityReport,
+          otherMatches,
+        };
+      }
+
+      try {
+        perceptualHash = normalizePerceptualHashToBytes32(result.original_hash);
+      } catch (error) {
+        return {
+          success: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Invalid perceptual hash format.",
+          similarityReport,
+          otherMatches,
+        };
+      }
+    } else {
+      // When scanning is disabled, compute a hash from the file buffer
+      perceptualHash = ethers.keccak256(fileBuffer) as `0x${string}`;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 3: Build evidence
+    // ─────────────────────────────────────────────────────────────────────────
+    const evidence = {
+      v: 1,
+      internalUserIdHash: authorIdHash,
+      filename: validFile.name,
+      mime: validFile.type,
+      size: fileBuffer.length,
+      sha256: "0x" + sha256Hex(fileBuffer),
+      phashAlgo: "phash",
+      phash: perceptualHash,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    const evidenceHash = ethers.keccak256(
+      ethers.toUtf8Bytes(stableStringify(evidence)),
+    ) as `0x${string}`;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 4: Storage metadata — the asset was already uploaded browser-direct
+    // (signed upload) before this action was invoked.
+    // ─────────────────────────────────────────────────────────────────────────
+    const uploadedImage = {
+      assetId: assetMeta.data.assetId ?? null,
+      secureUrl: assetMeta.data.secureUrl,
+      publicId: assetMeta.data.publicId,
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 5: Insert the registered_arts record
+    // ─────────────────────────────────────────────────────────────────────────
+    console.log("[Artwork Registration] Inserting artwork into database...");
+
+    // The form schema defaults the identifier to All Rights Reserved and only
+    // allows supported values, so this resolution is always safe.
+    const license = getLicense(parsed.data.licenseIdentifier);
+
+    const { data, error } = await supabase
+      .from("registered_arts")
+      .insert({
+        owner_id: userId,
+        title: parsed.data.title,
+        description: parsed.data.description || null,
+        c_asset_id: uploadedImage.assetId,
+        c_secure_url: uploadedImage.secureUrl,
+        file_hash: fileHash,
+        perceptual_hash: perceptualHash,
+        author_id_hash: authorIdHash,
+        evidence_hash: evidenceHash,
+        evidence,
+        chain: null,
+        tx_hash: null,
+        block_number: null,
+        work_id: null,
+        status: artworkStatus,
+        plagiarism_hashes: result?.hashes ?? null,
+        license_identifier: license.id,
+        license_name: license.name,
+        license_url: license.url,
+        license_type: license.type,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      const isDuplicate =
+        error.code === "23505" ||
+        error.message.toLowerCase().includes("duplicate") ||
+        error.message.toLowerCase().includes("unique");
+
+      console.error("[Artwork Registration] Database insert error:", error);
+
+      // Clean up the Cloudinary asset since the DB insert failed
+      if (uploadedImage.publicId) {
+        console.log(
+          `[Artwork Registration] Cleaning up Cloudinary asset: ${uploadedImage.publicId}`,
+        );
+        await deleteArtworkImageFromCloudinary(uploadedImage.publicId);
+      }
+
+      return {
+        success: false,
+        message: isDuplicate
+          ? "This artwork has already been registered by your account."
+          : error.message,
+        similarityReport,
+        otherMatches,
+      };
+    }
+
+    const insertedArtworkId = data.id;
+    console.log(
+      `[Artwork Registration] Artwork inserted: ${insertedArtworkId}`,
+    );
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 6: Create the art_similarity_scans record (only when scanning ran)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (result && settings.enable_automatic_scanning) {
+      console.log("[Similarity Scan] Creating scan record...");
+
+      const scanInsertPayload = buildSimilarityScanInsert({
+        artId: insertedArtworkId,
+        ownerId: userId,
+        result,
+        status: "completed",
+      });
+
+      const { error: scanInsertError } = await supabase
+        .from("art_similarity_scans")
+        .insert(scanInsertPayload);
+
+      if (scanInsertError) {
+        console.error(
+          "[Similarity Scan] Failed to create scan record:",
+          scanInsertError,
+        );
+        await rollbackArtworkInsert({
+          supabase,
+          artworkId: insertedArtworkId,
+          cloudinaryPublicId: uploadedImage.publicId,
+        });
+        return {
+          success: false,
+          message: scanInsertError.message,
+          similarityReport,
+          otherMatches,
+        };
+      }
+
+      console.log("[Similarity Scan] Scan record created with full results");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 7: Create artwork_reviews record for admin verification if needed
+    // Artworks with 'flagged' or 'under_review' status require admin review
+    // ─────────────────────────────────────────────────────────────────────────
+    if (artworkStatus === "flagged" || artworkStatus === "under_review") {
+      console.log(
+        "[Artwork Verification] Creating review record for admin verification...",
+      );
+
+      // The artwork_reviews table only has an admin-scoped INSERT RLS policy
+      // (artwork_reviews_insert_admin). The uploading artist is not an admin,
+      // so this write MUST use the service-role admin client — otherwise the
+      // insert is rejected (Postgres 42501) and the artwork silently never
+      // enters the Admin Artwork Verification queue.
+      const adminSupabase = createSupabaseAdminClient();
+
+      // Idempotency guard: artwork_reviews.artwork_id has a UNIQUE constraint,
+      // and the scan/review event may be processed more than once (e.g. a
+      // retried submission). Never create a duplicate review for an artwork.
+      const { data: existingReview, error: existingReviewError } =
+        await adminSupabase
+          .from("artwork_reviews")
+          .select("id")
+          .eq("artwork_id", insertedArtworkId)
+          .maybeSingle();
+
+      if (existingReviewError) {
+        console.error(
+          `[Artwork Verification] Failed to check existing review for artwork ${insertedArtworkId}:`,
+          existingReviewError,
+        );
+      }
+
+      if (existingReview) {
+        console.log(
+          `[Artwork Verification] Review already exists for artwork ${insertedArtworkId} — skipping insert`,
+        );
+      } else {
+        const { error: reviewInsertError } = await adminSupabase
+          .from("artwork_reviews")
+          .insert({
+            artwork_id: insertedArtworkId,
+            status: "pending",
+            reviewer_id: null,
+            assigned_at: null,
+          });
+
+        if (reviewInsertError) {
+          console.error(
+            `[Artwork Verification] Failed to create review record for artwork ${insertedArtworkId}:`,
+            reviewInsertError,
+          );
+          // Don't rollback the entire upload - the artwork and scan still exist
+          // The review can be created manually by an admin if needed
+        } else {
+          console.log(
+            "[Artwork Verification] Review record created successfully",
+          );
+        }
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Step 8: Fetch genre suggestions
+    // ─────────────────────────────────────────────────────────────────────────
+    let genreSuggestions: GenreScoreLabel[] = [];
+
+    if (shouldClassify) {
+      try {
+        const genreResult = await fetchGenreClassification(validFile);
+
+        if (genreResult.success) {
+          // Pass all classifier labels through — the modal curates display.
+          genreSuggestions = genreResult.results;
+        }
+      } catch {
+        // Non-fatal: genre suggestions are a convenience, not a hard requirement.
+        genreSuggestions = [];
+      }
+    }
+
+    console.log("[Artwork Registration] Registration completed successfully");
+
+    return {
+      success: true,
+      artworkId: insertedArtworkId,
+      fileHash,
+      perceptualHash,
+      authorIdHash,
+      evidenceHash,
+      imageUrl: uploadedImage.secureUrl,
+      message: moderationMessage,
+      similarityReport,
+      artworkStatus,
+      genreSuggestions,
+      otherMatches,
+    };
+  } catch (error) {
+    console.error("[Artwork Registration] Unexpected error:", error);
+
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to save artwork.",
+      similarityReport: null,
+      otherMatches: null,
+    };
+  }
+}

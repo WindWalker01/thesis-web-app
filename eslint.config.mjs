@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Playwright test files (not React components)
     "tests/**",
+    // Local tooling / generated artifacts (gitignored)
+    ".kilo/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

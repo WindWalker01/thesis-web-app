@@ -2,7 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { resolveMatchedArtworksForReports } from "@/features/reports/server/reports-repository";
+import { resolveMatchedArtworksForReports } from "@/features/shared/reports/server/reports-repository";
 import { formatTimeAgo } from "@/lib/client-utils";
 import type {
   AdminDashboardResult,

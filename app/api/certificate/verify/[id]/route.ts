@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { verifyCertificate } from "@/features/certificate-verify/server/verify-certificate";
+import { verifyCertificate } from "@/features/shared/certificate/verify/server/verify-certificate";
 
 export async function GET(
     _request: NextRequest,

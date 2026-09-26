@@ -1,0 +1,255 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import type {
+  Stage,
+  Mode,
+  CompareResponse,
+  SearchResponse,
+} from "@/features/public/plagiarise-checker/types";
+import { checkPlagiarismWebFile } from "@/features/public/plagiarise-checker/lib/api-client";
+import { enrichWebMatches } from "@/features/public/plagiarise-checker/server/enrich-web-matches";
+import { checkPlagiarismCompareFiles } from "@/features/public/plagiarise-checker/lib/api-client";
+import { readImageDimensions, type ArtworkFileMeta } from "@/features/public/plagiarise-checker/lib/file-metadata";
+import { describeAnalysisError } from "@/lib/analysis-errors";
+import { generatePlagiarismReportPdf } from "@/features/public/plagiarise-checker/lib/plagiarism-report";
+
+export function usePlagiarismChecker() {
+  const [mode, setMode] = useState<Mode>("web");
+  const [stage, setStage] = useState<Stage>("upload");
+  const [error, setError] = useState<string | null>(null);
+  const [errorTime, setErrorTime] = useState<Date | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [copyConfirmed, setCopyConfirmed] = useState(false);
+
+  // Web mode state
+  const [webFile, setWebFile] = useState<File | null>(null);
+  const [webPreview, setWebPreview] = useState<string | null>(null);
+  const [webFileMeta, setWebFileMeta] = useState<ArtworkFileMeta | null>(null);
+  const [webFileError, setWebFileError] = useState<string | null>(null);
+  const [webResult, setWebResult] = useState<SearchResponse | null>(null);
+
+  // Compare mode state
+  const [fileA, setFileA] = useState<File | null>(null);
+  const [fileB, setFileB] = useState<File | null>(null);
+  const [previewA, setPreviewA] = useState<string | null>(null);
+  const [previewB, setPreviewB] = useState<string | null>(null);
+  const [compareResult, setCompareResult] = useState<CompareResponse | null>(null);
+
+  // Revoke all object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (webPreview) URL.revokeObjectURL(webPreview);
+      if (previewA) URL.revokeObjectURL(previewA);
+      if (previewB) URL.revokeObjectURL(previewB);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Handlers: Web mode ─────────────────────────────────────────────────────
+
+  // Selecting an artwork only prepares it for review — the scan does not start
+  // until the user explicitly confirms via handleAnalyzeWeb.
+  const handleWebSelect = useCallback((file: File) => {
+    const looksLikeImage =
+      file.type.startsWith("image/") ||
+      /\.(png|jpe?g|webp|avif|gif|bmp|tiff?|svg)$/i.test(file.name);
+
+    if (!looksLikeImage) {
+      setWebFileError(
+        "Please select an image file (PNG, JPG, WEBP, AVIF, GIF, BMP, TIFF, or SVG).",
+      );
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setWebFileError("The selected file exceeds the 50 MB limit.");
+      return;
+    }
+
+    if (webPreview) URL.revokeObjectURL(webPreview);
+    setWebFile(file);
+    setWebPreview(URL.createObjectURL(file));
+    setWebResult(null);
+    setWebFileError(null);
+    setWebFileMeta({ size: file.size, type: file.type, width: null, height: null });
+    setError(null);
+    setErrorTime(null);
+    setStage("preview");
+
+    // Resolve intrinsic dimensions in the background — never block preview.
+    void readImageDimensions(file).then((dims) => {
+      if (dims) {
+        setWebFileMeta((prev) =>
+          prev ? { ...prev, width: dims.width, height: dims.height } : prev,
+        );
+      }
+    });
+  }, [webPreview]);
+
+  const handleAnalyzeWeb = useCallback(async () => {
+    if (!webFile) return;
+    setWebResult(null);
+    setError(null);
+    setErrorTime(null);
+    setStage("analyzing");
+
+    try {
+      // Sent browser → backend directly (same transport rationale as compare
+      // mode); DB-match enrichment runs in the JSON-only enrichWebMatches
+      // server action, which cannot hit serverless request-body caps.
+      const raw = await checkPlagiarismWebFile(webFile);
+      const result = await enrichWebMatches(raw);
+
+      setWebResult(result);
+      setStage("summary");
+    } catch (err) {
+      setError(describeAnalysisError(err));
+      setErrorTime(new Date());
+      setStage("error");
+    }
+  }, [webFile]);
+
+  const handleViewAnalysis = useCallback(() => {
+    setStage("result");
+  }, []);
+
+  const handleBackToSummary = useCallback(() => {
+    setStage("summary");
+  }, []);
+
+  // ── Export PDF ─────────────────────────────────────────────────────────────
+
+  const handleExportPdf = useCallback(async () => {
+    if (!webResult) return;
+    setExportingPdf(true);
+    try {
+      await generatePlagiarismReportPdf({
+        result: webResult,
+        submittedImagePreview: webPreview ?? undefined,
+        checkedAt: new Date(),
+      });
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [webResult, webPreview]);
+
+  // ── Handlers: Compare mode ─────────────────────────────────────────────────
+
+  const handleCompareUploadA = useCallback((file: File) => {
+    if (previewA) URL.revokeObjectURL(previewA);
+    setFileA(file);
+    setPreviewA(URL.createObjectURL(file));
+  }, [previewA]);
+
+  const handleCompareUploadB = useCallback((file: File) => {
+    if (previewB) URL.revokeObjectURL(previewB);
+    setFileB(file);
+    setPreviewB(URL.createObjectURL(file));
+  }, [previewB]);
+
+  const handleClearA = useCallback(() => {
+    if (previewA) URL.revokeObjectURL(previewA);
+    setFileA(null);
+    setPreviewA(null);
+  }, [previewA]);
+
+  const handleClearB = useCallback(() => {
+    if (previewB) URL.revokeObjectURL(previewB);
+    setFileB(null);
+    setPreviewB(null);
+  }, [previewB]);
+
+  const handleCompare = useCallback(async () => {
+    if (!fileA || !fileB) return;
+    setCompareResult(null);
+    setError(null);
+    setErrorTime(null);
+    setStage("analyzing");
+
+    try {
+      // Sent browser → backend directly: the Server Action path routes both
+      // files through the Next.js server, whose serverless request-body cap
+      // (e.g. Vercel's 4.5 MB function payload) rejects larger image pairs
+      // before the action ever runs.
+      const result = await checkPlagiarismCompareFiles(fileA, fileB);
+
+      setCompareResult(result);
+      setStage("result");
+    } catch (err) {
+      setError(describeAnalysisError(err));
+      setErrorTime(new Date());
+      setStage("error");
+    }
+  }, [fileA, fileB]);
+
+  // ── Reset ──────────────────────────────────────────────────────────────────
+
+  const handleReset = useCallback(() => {
+    setStage("upload");
+    setError(null);
+    setErrorTime(null);
+    setCompareResult(null);
+    setWebResult(null);
+    setWebFileMeta(null);
+    setWebFileError(null);
+    if (webPreview) { URL.revokeObjectURL(webPreview); setWebPreview(null); setWebFile(null); }
+    if (previewA) { URL.revokeObjectURL(previewA); setPreviewA(null); setFileA(null); }
+    if (previewB) { URL.revokeObjectURL(previewB); setPreviewB(null); setFileB(null); }
+  }, [webPreview, previewA, previewB]);
+
+  const handleModeChange = useCallback((m: Mode) => {
+    handleReset();
+    setMode(m);
+  }, [handleReset]);
+
+  const handleCopyErrorReport = useCallback(async () => {
+    const report = [
+      `Plagiarism Detection — Error Report`,
+      `────────────────────────────────────`,
+      `Mode:      ${mode === "web" ? "Web Search" : "Direct Comparison"}`,
+      `Time:      ${errorTime?.toISOString() ?? new Date().toISOString()}`,
+      `Status:    Analysis failed — pending manual review`,
+      ``,
+      `Error Detail:`,
+      error ?? "Unknown error",
+    ].join("\n");
+
+    await navigator.clipboard.writeText(report);
+    setCopyConfirmed(true);
+    setTimeout(() => setCopyConfirmed(false), 2000);
+  }, [mode, errorTime, error]);
+
+  return {
+    // State
+    mode,
+    stage,
+    error,
+    errorTime,
+    exportingPdf,
+    copyConfirmed,
+    webFile,
+    webPreview,
+    webFileMeta,
+    webFileError,
+    webResult,
+    fileA,
+    fileB,
+    previewA,
+    previewB,
+    compareResult,
+
+    // Handlers
+    handleWebSelect,
+    handleAnalyzeWeb,
+    handleViewAnalysis,
+    handleBackToSummary,
+    handleExportPdf,
+    handleCompareUploadA,
+    handleCompareUploadB,
+    handleClearA,
+    handleClearB,
+    handleCompare,
+    handleReset,
+    handleModeChange,
+    handleCopyErrorReport,
+  };
+}

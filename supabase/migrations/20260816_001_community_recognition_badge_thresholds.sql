@@ -36,7 +36,7 @@ CREATE INDEX IF NOT EXISTS idx_community_recognition_badge_thresholds_enabled
 ON public.community_recognition_badge_thresholds (is_enabled);
 
 -- Insert default thresholds seed row
--- These defaults match the hardcoded values in features/(user)/community/server/artist-reputation.ts
+-- These defaults match the hardcoded values in features/user/community/server/artist-reputation.ts
 INSERT INTO public.community_recognition_badge_thresholds (id, thresholds, is_enabled)
 VALUES (
   gen_random_uuid(),

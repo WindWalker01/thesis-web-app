@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { AdminReportDetail } from "@/features/reports/types";
+import type { AdminReportDetail } from "@/features/shared/reports/types";
 
 export function useReportDetail(reportId: string | null) {
   return useQuery<AdminReportDetail>({

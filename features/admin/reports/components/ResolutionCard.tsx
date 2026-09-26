@@ -10,15 +10,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeAgo } from "@/lib/client-utils";
 import { cn } from "@/lib/client-utils";
 import { toast } from "sonner";
-import { REPORT_TYPE_LABELS, DECISION_LABELS } from "@/features/reports/types";
-import { getRecommendedActions } from "@/features/reports/types";
+import { REPORT_TYPE_LABELS, DECISION_LABELS } from "@/features/shared/reports/types";
+import { getRecommendedActions } from "@/features/shared/reports/types";
 import type {
   ReportStatus,
   ReportType,
   ReportDecision,
   ReportDecisionValue,
   ActionRecommendation,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 interface ResolutionCardProps {
   reportId: string;

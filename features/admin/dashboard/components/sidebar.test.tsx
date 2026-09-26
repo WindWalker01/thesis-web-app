@@ -29,7 +29,7 @@ vi.mock("@/features/admin/artwork-verification/hooks/useReviews", () => ({
   usePendingReviewCount: () => ({ data: 3 }),
 }));
 
-vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
+vi.mock("@/features/user/auth/hooks/useAuth", () => ({
   useAuth: () => ({
     user: { email: "admin@example.com" },
     signOut: signOutMock,

@@ -7,7 +7,7 @@ import {
   registerArtworkOnBlockchain as sharedRegisterArtwork,
   createBlockchainSuccessNotification,
   createBlockchainFailureNotification,
-} from "@/features/txs/server/register-artwork-service";
+} from "@/features/public/txs/server/register-artwork-service";
 import type {
   ReviewQueueItem,
   ReviewDetail,

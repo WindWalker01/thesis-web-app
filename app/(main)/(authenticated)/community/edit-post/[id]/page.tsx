@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-import PostEditorForm from "@/features/(user)/community/subfeatures/community-post-crud/components/PostForm";
-import { getPostEditorData } from "@/features/(user)/community/subfeatures/community-post-crud/server/create-post";
+import PostEditorForm from "@/features/user/community/subfeatures/community-post-crud/components/PostForm";
+import { getPostEditorData } from "@/features/user/community/subfeatures/community-post-crud/server/create-post";
 
 type EditPageProps = {
     params: Promise<{

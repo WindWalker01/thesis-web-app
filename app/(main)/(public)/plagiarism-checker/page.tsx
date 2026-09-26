@@ -1,5 +1,5 @@
 "use client";
-import PlagiarismCheckerPage from "@/features/plagiarise-checker/components/PlagiarismCheckerPage";
+import PlagiarismCheckerPage from "@/features/public/plagiarise-checker/components/PlagiarismCheckerPage";
 
 export default function PlagiarismCheckPage() {
   return (

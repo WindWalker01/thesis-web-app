@@ -115,34 +115,35 @@ app/                          # Next.js App Router (thin route files)
 ├── api/                      #   API route handlers
 └── maintenance/              #   Maintenance mode page
 
-features/                     # Domain-first feature modules
-├── (user)/                   #   User-specific features
+features/                     # Audience-oriented feature modules
+├── admin/                    #   Admin-only UI & server actions
+│   ├── dashboard/            #     Analytics and statistics
+│   ├── artwork-verification/ #     Verification pipeline & reviews
+│   ├── artwork-management/   #     Artwork CRUD & blockchain details
+│   ├── user-management/      #     User moderation
+│   ├── reports/              #     Admin report management
+│   └── settings/             #     Platform settings
+├── user/                     #   Authenticated user product surfaces
 │   ├── auth/                 #     Login, register, authentication hooks
 │   ├── upload-artwork/       #     Artwork upload pipeline
 │   ├── dashboard/            #     User dashboard
 │   ├── profile/              #     Profile management
 │   ├── settings/             #     Account settings
 │   ├── community/            #     Community & social features
+│   ├── artwork-licensing/    #     License selection & display
+│   ├── verify-artwork/       #     On-chain artwork ownership verification
 │   ├── report-infringement/  #     Report filing interface
 │   ├── reset-password/       #     Password recovery forms
 │   └── notifications-navbar/ #     Notification system
-├── admin/                    #   Admin features
-│   ├── dashboard/            #     Analytics and statistics
-│   ├── artwork-verification/ #     Verification pipeline & reviews
-│   ├── artwork-management/   #     Artwork CRUD & blockchain details
-│   ├── user-management/      #     User moderation
-│   ├── reports/              #     Report management
-│   └── settings/             #     Platform settings
-├── classify/                 #   ML artwork classification
-├── image-classification/     #   Image classification types
-├── plagiarise-checker/       #   Plagiarism detection engine
-├── certificate-generator/    #   PDF certificate generation
-├── certificate-verify/       #   Certificate verification
-├── verify-artwork/           #   On-chain artwork verification
-├── reports/                  #   Shared report components & hooks
-├── report-submit/            #   Report submission logic
-├── txs/                      #   Blockchain transaction queries
-└── shared/                   #   Shared utilities
+├── public/                   #   Unauthenticated / open tools
+│   ├── classify/             #     ML artwork classification
+│   ├── image-classification/ #     Image classification types
+│   ├── plagiarise-checker/   #     Plagiarism detection engine
+│   └── txs/                  #     Blockchain transaction queries
+└── shared/                   #   Cross-audience domain only
+    ├── reports/              #     Shared report components, hooks, schemas
+    ├── certificate/          #     PDF generator + public verify
+    └── similarity/           #     Shared similarity thresholds
 
 components/                   # Shared UI primitives and blocks
 ├── ui/                       #   Atomic UI components (button, input, etc.)
