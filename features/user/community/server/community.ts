@@ -73,11 +73,6 @@ type ArtGenreRow = {
     genres: { name: string } | { name: string }[] | null;
 };
 
-type SimilarityScanRow = {
-    art_id: string;
-    best_similarity_percentage: number | null;
-};
-
 function toSingleObject<T>(value: T | T[] | null): T | null {
     if (!value) return null;
     return Array.isArray(value) ? (value[0] ?? null) : value;
