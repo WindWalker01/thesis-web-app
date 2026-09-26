@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import {
   AlertTriangle, FileText, ShieldCheck, Scale, UserCheck,
   ThumbsUp, Flag, RefreshCw, Globe, 
-  Users, Blocks,
+  Blocks,
 } from "lucide-react";
 
 /* ── Canva-style scroll reveal ── */
