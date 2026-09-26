@@ -111,19 +111,6 @@ export default function ArtworkVerificationPage() {
     setDialogOpen(true);
   }, []);
 
-  const handleAssign = useCallback(async (reviewId: string) => {
-    try {
-      const result = await assignReviewer(reviewId, "__self__");
-      if (result.success) {
-        toast.success(result.message);
-        invalidateAll();
-      } else {
-        toast.error(result.message);
-      }
-    } catch {
-      toast.error("Failed to assign review");
-    }
-  }, [invalidateAll]);
 
   const handleUnassign = useCallback(async (reviewId: string) => {
     try {
