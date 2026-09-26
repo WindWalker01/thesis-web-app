@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import NavBar from "@/components/blocks/navbar";
 import { useEffect, useRef } from "react";
 import {
   BrainCircuitIcon,
