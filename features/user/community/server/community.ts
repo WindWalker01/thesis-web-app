@@ -92,19 +92,6 @@ type ArtistStats = {
     reputation: ArtistReputation;
 };
 
-/**
- * Artwork-level enrichment data needed to build the Artwork Recognition Profile.
- * Fetched in batch after the main post query to avoid N+1 queries.
- * Each value maps to a verifiable database field — no derived scores.
- */
-type ArtworkEnrichment = {
-    /** Map of art_id → best similarity percentage (or null if no scan). */
-    similarityByArtId: Map<string, number | null>;
-    /** Map of post_id → count of open (unresolved) reports. */
-    openReportCountByPostId: Map<string, number>;
-    /** Set of post_ids that are in the featured (top) band. */
-    featuredPostIds: Set<string>;
-};
 
 /**
  * Aggregate each artist's engagement from the public, non-archived, active rows
@@ -203,7 +190,6 @@ function mapPosts(
     categoryByArtId: Map<string, string>,
     currentUserId: string | null,
     statsByArtist: Map<string, ArtistStats>,
-    enrichment: ArtworkEnrichment,
 ): Post[] {
     const posts: Post[] = [];
 
@@ -301,88 +287,6 @@ const ART_POST_SELECT = `
   )
 `;
 
-/**
- * Fetch artwork-level enrichment data (similarity scans and open report
- * counts) in batch to avoid N+1 queries. Also determines which posts are in
- * the featured (top) band based on score.
- */
-async function fetchArtworkEnrichment(
-    supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-    rows: ArtPostRow[],
-): Promise<ArtworkEnrichment> {
-    const artIds = Array.from(new Set(rows.map((row) => row.art_id)));
-    const postIds = Array.from(new Set(rows.map((row) => row.id)));
-
-    // --- Batch fetch similarity scans ---
-    const similarityByArtId = new Map<string, number | null>();
-
-    if (artIds.length > 0) {
-        const { data: scanRows, error: scanError } = await supabase
-            .from("art_similarity_scans")
-            .select("art_id, best_similarity_percentage")
-            .in("art_id", artIds);
-
-        if (scanError) {
-            throw new Error(scanError.message);
-        }
-
-        for (const row of (scanRows ?? []) as SimilarityScanRow[]) {
-            // Keep the first (most recent) scan per art_id
-            if (!similarityByArtId.has(row.art_id)) {
-                similarityByArtId.set(row.art_id, row.best_similarity_percentage);
-            }
-        }
-
-        // Ensure all art_ids have an entry (null = no scan)
-        for (const artId of artIds) {
-            if (!similarityByArtId.has(artId)) {
-                similarityByArtId.set(artId, null);
-            }
-        }
-    }
-
-    // --- Batch fetch open report counts ---
-    const openReportCountByPostId = new Map<string, number>();
-
-    if (postIds.length > 0) {
-        const { data: reportRows, error: reportError } = await supabase
-            .from("reports")
-            .select("reported_art_post_id, status")
-            .in("reported_art_post_id", postIds)
-            .eq("status", "pending_review");
-
-        if (reportError) {
-            throw new Error(reportError.message);
-        }
-
-        for (const row of (reportRows ?? []) as {
-            reported_art_post_id: string;
-            status: string;
-        }[]) {
-            const current = openReportCountByPostId.get(row.reported_art_post_id) ?? 0;
-            openReportCountByPostId.set(row.reported_art_post_id, current + 1);
-        }
-    }
-
-    // --- Determine featured posts (top 5 by score among public, non-archived) ---
-    const featuredPostIds = new Set<string>();
-    const eligibleForFeatured = rows
-        .filter((row) => row.visibility === "public" && !row.is_archived)
-        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-        .slice(0, 5);
-
-    for (const row of eligibleForFeatured) {
-        if ((row.score ?? 0) >= FEATURED_WORTHY_MIN_SCORE) {
-            featuredPostIds.add(row.id);
-        }
-    }
-
-    return {
-        similarityByArtId,
-        openReportCountByPostId,
-        featuredPostIds,
-    };
-}
 
 export async function getCommunityFeedData(): Promise<CommunityPageData> {
     const supabase = await createSupabaseServerClient();
@@ -471,15 +375,11 @@ export async function getCommunityFeedData(): Promise<CommunityPageData> {
         }
     }
 
-    // Fetch artwork enrichment (similarity scans, open reports, featured)
-    const enrichment = await fetchArtworkEnrichment(supabase, mergedRows);
-
     const allPosts = mapPosts(
         mergedRows,
         categoryByArtId,
         user?.id ?? null,
         buildArtistStatsMap((publicRows ?? []) as ArtPostRow[]),
-        enrichment,
     );
 
     // Filter out NSFW posts unless the user has opted in.
@@ -599,8 +499,7 @@ export async function getCommunityPostById(
     }
 
     const categoryByArtId = await getCategoryForArt(supabase, row.art_id);
-    const enrichment = await fetchArtworkEnrichment(supabase, [row]);
-    const [post] = mapPosts([row], categoryByArtId, currentUserId, new Map(), enrichment);
+    const [post] = mapPosts([row], categoryByArtId, currentUserId, new Map());
 
     if (!post) return null;
 
