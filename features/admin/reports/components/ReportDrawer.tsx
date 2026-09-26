@@ -103,45 +103,6 @@ export function ReportDrawer({
     enabled: open && !!detail && !!currentUserId,
   });
 
-  // Handle artwork moderation from the report drawer
-  const handleModerateArtwork = async (action: string, reason: string) => {
-    if (!detail) return;
-    const artworkId =
-      detail.reported_art_post?.registered_arts?.id ??
-      detail.matched_artwork?.id;
-    if (!artworkId) {
-      toast.error("No associated artwork found for this report");
-      return;
-    }
-
-    setIsModeratingArtwork(true);
-    try {
-      const response = await fetch(
-        `/api/admin/reports/${detail.report.id}/moderate-artwork`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action,
-            reason,
-            notes: reason,
-            artworkId,
-          }),
-        }
-      );
-      const result = await response.json();
-      if (result.success) {
-        toast.success(result.message);
-        await onRefresh();
-      } else {
-        toast.error(result.error?.message ?? "Moderation action failed");
-      }
-    } catch {
-      toast.error("Failed to moderate artwork");
-    } finally {
-      setIsModeratingArtwork(false);
-    }
-  };
 
   const reporterName = detail
     ? `${detail.reporter.first_name} ${detail.reporter.last_name ?? ""}`.trim()
