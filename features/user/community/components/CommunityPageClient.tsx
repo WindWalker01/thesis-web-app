@@ -29,7 +29,6 @@ import type { CommunityPageData } from "../types";
 export default function CommunityPageClient({
   authed,
   currentUserId,
-  currentUsername,
   posts,
   stats,
 }: CommunityPageData) {
