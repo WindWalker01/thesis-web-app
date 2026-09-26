@@ -23,10 +23,11 @@ export function useReportArtworkModal({
 }: UseReportModalArgs) {
   const formId = useId();
 
-  const [reason, setReason] = useState<ReportReason>("copyright");
-  const [details, setDetails] = useState("");
-  const [context, setContext] = useState("");
+  const [reason, setReasonState] = useState<ReportReason>("copyright");
+  const [details, setDetailsState] = useState("");
+  const [context, setContextState] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [prevOpen, setPrevOpen] = useState(open);
 
   const needsContext = reason === "copyright" || reason === "other";
 
@@ -40,19 +41,38 @@ export function useReportArtworkModal({
     },
   });
 
-  useEffect(() => {
-    if (!open) {
-      setReason("copyright");
-      setDetails("");
-      setContext("");
+  // Reset form fields when the modal opens (adjust during render, not in an effect).
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setReasonState("copyright");
+      setDetailsState("");
+      setContextState("");
       setError(null);
+    }
+  }
+
+  // Clear mutation cache when opening; avoid setState in this effect.
+  useEffect(() => {
+    if (open) {
       reset();
     }
   }, [open, reset]);
 
-  useEffect(() => {
-    if (error) setError(null);
-  }, [reason, details, context]);
+  const setReason = (value: ReportReason) => {
+    setReasonState(value);
+    setError(null);
+  };
+
+  const setDetails = (value: string) => {
+    setDetailsState(value);
+    setError(null);
+  };
+
+  const setContext = (value: string) => {
+    setContextState(value);
+    setError(null);
+  };
 
   function getPayload(): ReportArtworkInput {
     return {
