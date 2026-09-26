@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
   AlertTriangle, FileText, ShieldCheck, Scale, UserCheck,
-  ThumbsUp, Flag, RefreshCw, Globe, 
-  
+  ThumbsUp, Flag, RefreshCw, Globe,
 } from "lucide-react";
 
 /* ── Canva-style scroll reveal ── */
