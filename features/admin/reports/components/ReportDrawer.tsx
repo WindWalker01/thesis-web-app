@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import Image from "next/image";
 import {
-  User,
   ChevronDown,
   Loader2,
   AlertCircle,
