@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import NavBar from "@/components/blocks/navbar";
 import { useEffect, useRef } from "react";
 import {
   ShieldCheck, Database, Eye, Lock, UserCheck, RefreshCw, Globe,
