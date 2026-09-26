@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, TriangleAlert, Hash } from "lucide-react";
+import { ShieldCheck, TriangleAlert } from "lucide-react";
 import Image from "next/image";
 import { CompareResponse } from "./../types";
 import { SimilarityRing } from "./SimilarityRing";
