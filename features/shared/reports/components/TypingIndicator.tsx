@@ -1,7 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/client-utils";
-
 type TypingIndicatorProps = {
   displayName: string;
 };
