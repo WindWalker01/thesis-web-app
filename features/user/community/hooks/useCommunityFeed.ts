@@ -238,6 +238,8 @@ export function useCommunityFeed({
             filteredPosts,
             featuredPosts,
             availableFilters,
+        },
+        refs: {
             filtersButtonRef,
             filtersMenuRef,
         },
