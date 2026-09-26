@@ -12,7 +12,6 @@ import {
   FileText,
   FileClockIcon,
   Scale,
-  Share2Icon,
   Globe,
   MapPin,
 } from "lucide-react";
