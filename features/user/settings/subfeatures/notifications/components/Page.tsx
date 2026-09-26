@@ -23,13 +23,10 @@ export default function NotificationsPage() {
         filtered,
         unreadCount,
         isLoading,
-        error,
         markAllRead,
         clearAll,
         markOneRead,
         deleteOne,
-        isMarkingAllRead,
-        isClearingAll,
     } = useNotificationsPage();
 
     return (
