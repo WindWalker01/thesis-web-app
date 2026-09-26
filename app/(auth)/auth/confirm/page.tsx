@@ -21,7 +21,6 @@ export default function AuthCallbackPage() {
             const params = new URLSearchParams(window.location.search);
 
             const urlError = params.get("error_description");
-            const email = params.get("email");
 
             if (urlError) {
                 setStatus("error");
