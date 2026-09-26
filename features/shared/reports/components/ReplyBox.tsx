@@ -15,7 +15,6 @@ type ReplyBoxProps = {
 };
 
 export function ReplyBox({
-  reportId,
   onSend,
   onUploadEvidence,
   disabled = false,
