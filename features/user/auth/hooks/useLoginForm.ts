@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "./useAuth";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { signInSchema, type SignInInput } from "@/features/(user)/auth/schemas/auth-schema";
+import { signInSchema, type SignInInput } from "@/features/user/auth/schemas/auth-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";

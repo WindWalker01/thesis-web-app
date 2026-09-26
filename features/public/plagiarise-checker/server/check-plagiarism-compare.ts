@@ -1,6 +1,6 @@
 "use server";
 
-import type { CompareResponse } from "@/features/plagiarise-checker/types";
+import type { CompareResponse } from "@/features/public/plagiarise-checker/types";
 
 const API_BASE =
   // Prefer the server-only URL, then the public one, then localhost (dev).

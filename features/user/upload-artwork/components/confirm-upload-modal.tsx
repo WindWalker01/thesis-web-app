@@ -19,7 +19,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import type { UploadArtworkFormValues } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
+import type { UploadArtworkFormValues } from "@/features/user/upload-artwork/schemas/artwork-schema";
 
 type ConfirmUploadModalProps = {
     open: boolean;

@@ -15,13 +15,13 @@ import {
     deleteArtwork,
     updateArtworkMetadata,
 } from "../server/edit-artwork";
-import { artworkKeys } from "@/features/(user)/profile/hooks/useFetchProfileArtworks";
+import { artworkKeys } from "@/features/user/profile/hooks/useFetchProfileArtworks";
 import { artworkDetailKeys } from "./useArtworkDetailPage";
 import {
     canDeleteArtwork,
     canEditArtwork,
     hasBlockchainRecord,
-} from "@/features/(user)/profile/lib/artwork-permissions";
+} from "@/features/user/profile/lib/artwork-permissions";
 
 type UseArtworkActionsParams = {
     artId: string;

@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useUserReports } from "@/features/reports/hooks/useUserReports";
-import { useUnreadCount } from "@/features/reports/hooks/useUnreadCount";
-import { ReportCard } from "@/features/reports/components/ReportCard";
-import { ReportCardSkeleton } from "@/features/reports/components/ReportCardSkeleton";
+import { useUserReports } from "@/features/shared/reports/hooks/useUserReports";
+import { useUnreadCount } from "@/features/shared/reports/hooks/useUnreadCount";
+import { ReportCard } from "@/features/shared/reports/components/ReportCard";
+import { ReportCardSkeleton } from "@/features/shared/reports/components/ReportCardSkeleton";
 import {
   ReportFilters,
   type FiltersState,
-} from "@/features/reports/components/ReportFilters";
-import { DashboardStatsCards } from "@/features/reports/components/DashboardStatsCards";
-import { EmptyState } from "@/features/reports/components/EmptyState";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+} from "@/features/shared/reports/components/ReportFilters";
+import { DashboardStatsCards } from "@/features/shared/reports/components/DashboardStatsCards";
+import { EmptyState } from "@/features/shared/reports/components/EmptyState";
+import { useAuth } from "@/features/user/auth/hooks/useAuth";
 import { Flag, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

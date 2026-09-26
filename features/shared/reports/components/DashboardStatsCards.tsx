@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Report } from "@/features/reports/types";
+import type { Report } from "@/features/shared/reports/types";
 import { cn } from "@/lib/client-utils";
 
 // ── Icons (inline to avoid too many lucide imports) ──

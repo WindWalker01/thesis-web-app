@@ -22,14 +22,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
-import LogoutButton from "@/features/(user)/auth/components/LogoutButton";
+import { useAuth } from "@/features/user/auth/hooks/useAuth";
+import LogoutButton from "@/features/user/auth/components/LogoutButton";
 
-import { useNotifications } from "@/features/(user)/notifications-navbar/hooks/useNotification";
-import { useUnreadCount } from "@/features/reports/hooks/useUnreadCount";
-import { getNotificationUI } from "@/features/(user)/notifications-navbar/lib/notification-ui";
-import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
-import { useCurrentUserProfile } from "@/features/(user)/profile/hooks/useFetchProfile";
+import { useNotifications } from "@/features/user/notifications-navbar/hooks/useNotification";
+import { useUnreadCount } from "@/features/shared/reports/hooks/useUnreadCount";
+import { getNotificationUI } from "@/features/user/notifications-navbar/lib/notification-ui";
+import { formatNotificationTime } from "@/features/user/notifications-navbar/lib/format-time";
+import { useCurrentUserProfile } from "@/features/user/profile/hooks/useFetchProfile";
 import { Logo } from "@/components/blocks/Logo";
 import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 

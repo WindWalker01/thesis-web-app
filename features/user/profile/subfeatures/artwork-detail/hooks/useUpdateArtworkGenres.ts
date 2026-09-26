@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { updateArtworkGenres } from "../server/update-artwork-genres";
-import { artworkKeys } from "@/features/(user)/profile/hooks/useFetchProfileArtworks";
+import { artworkKeys } from "@/features/user/profile/hooks/useFetchProfileArtworks";
 import { artworkDetailKeys } from "./useArtworkDetailPage";
 
 type UseUpdateArtworkGenresReturn = {

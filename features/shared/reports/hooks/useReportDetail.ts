@@ -7,7 +7,7 @@ import type {
   ReportComment,
   ReportDecision,
   ReportAction,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 export type ReportDetailData = {
   report: Report;

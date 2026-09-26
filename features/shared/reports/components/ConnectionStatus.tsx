@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/client-utils";
-import type { RealtimeConnectionStatus as RealtimeConnectionStatusType } from "@/features/reports/types";
+import type { RealtimeConnectionStatus as RealtimeConnectionStatusType } from "@/features/shared/reports/types";
 
 type ConnectionStatusProps = {
   status: RealtimeConnectionStatusType;

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { reportDetailKeys } from "./useReportDetail";
-import { uploadReportEvidence } from "@/features/reports/lib/upload-report-evidence";
+import { uploadReportEvidence } from "@/features/shared/reports/lib/upload-report-evidence";
 
 export function useUploadEvidence() {
   const queryClient = useQueryClient();

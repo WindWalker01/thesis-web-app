@@ -20,7 +20,7 @@ import {
   MAX_FILE_SIZE_MB,
   RECOMMENDED_FORMAT_LABELS,
   SUPPORTED_FORMAT_LABELS,
-} from "@/features/(user)/upload-artwork/schemas/artwork-schema";
+} from "@/features/user/upload-artwork/schemas/artwork-schema";
 
 type ArtworkDropzoneProps = {
   file: File | undefined;

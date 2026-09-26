@@ -16,8 +16,8 @@ import {
 } from "../server/edit-profile";
 import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
 import { describeAnalysisError } from "@/lib/analysis-errors";
-import { profileKeys } from "@/features/(user)/profile/hooks/useFetchProfile";
-import type { UserProfile } from "@/features/(user)/profile/server/profile";
+import { profileKeys } from "@/features/user/profile/hooks/useFetchProfile";
+import type { UserProfile } from "@/features/user/profile/server/profile";
 
 type UseEditProfileFormProps = {
     profile: UserProfile;

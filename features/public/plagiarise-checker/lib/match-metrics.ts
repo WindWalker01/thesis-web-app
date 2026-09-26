@@ -9,8 +9,8 @@
  * behavior.
  */
 
-import { TRANSFORM_LABELS } from "@/features/plagiarise-checker/components/hash-labels";
-import type { MatchMetrics } from "@/features/plagiarise-checker/types";
+import { TRANSFORM_LABELS } from "@/features/public/plagiarise-checker/components/hash-labels";
+import type { MatchMetrics } from "@/features/public/plagiarise-checker/types";
 
 /**
  * The headline similarity number shown to users and compared against the

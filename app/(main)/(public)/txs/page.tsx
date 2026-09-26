@@ -1,4 +1,4 @@
-import BlockchainTransactionsPage from "@/features/txs/components/Page";
+import BlockchainTransactionsPage from "@/features/public/txs/components/Page";
 
 export default function Page(){
     return(

@@ -1,5 +1,5 @@
 import type { SimilarityReport } from "../server/art-similarity-scan";
-import type { PlagiarismMatchContext } from "@/features/plagiarise-checker/lib/match-source";
+import type { PlagiarismMatchContext } from "@/features/public/plagiarise-checker/lib/match-source";
 
 /**
  * Adapts an upload-flow similarity report into the shared plagiarism match

@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReportStatus } from "@/features/reports/types";
-import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT_COLORS } from "@/features/reports/lib/report-utils";
+import type { ReportStatus } from "@/features/shared/reports/types";
+import { STATUS_LABELS, STATUS_COLORS, STATUS_DOT_COLORS } from "@/features/shared/reports/lib/report-utils";
 import { cn } from "@/lib/client-utils";
 
 type StatusBadgeProps = {

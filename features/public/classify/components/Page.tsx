@@ -38,9 +38,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
-import { useClassification } from "@/features/classify/hooks/useClassification";
-import { CLASSIFY_ACCEPT_ATTR } from "@/features/classify/schemas/classification-schema";
-import type { ClassificationLabel } from "@/features/classify/types";
+import { useClassification } from "@/features/public/classify/hooks/useClassification";
+import { CLASSIFY_ACCEPT_ATTR } from "@/features/public/classify/schemas/classification-schema";
+import type { ClassificationLabel } from "@/features/public/classify/types";
 
 /** How many results to show before the "Show more" button appears. */
 const VISIBLE_LIMIT = 10;

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import type { ReportComment, ChatMessage } from "@/features/reports/types";
-import { useRealtimeMessages } from "@/features/reports/hooks/useRealtimeMessages";
+import type { ReportComment, ChatMessage } from "@/features/shared/reports/types";
+import { useRealtimeMessages } from "@/features/shared/reports/hooks/useRealtimeMessages";
 
 // ---------------------------------------------------------------------------
 // Mock the Supabase browser client so the hook's Realtime subscription is
@@ -361,7 +361,7 @@ describe("useRealtimeMessages — realtime / reconciliation", () => {
 
     // Start the send but keep POST pending
     let sendPromise:
-      Promise<import("@/features/reports/types").ChatMessage> | undefined;
+      Promise<import("@/features/shared/reports/types").ChatMessage> | undefined;
     act(() => {
       sendPromise = result.current.sendMessage("race message");
     });

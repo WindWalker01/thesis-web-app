@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { ArtworkLicenseSelector } from "./ArtworkLicenseSelector";
-import { LICENSE_DISCLAIMER } from "@/features/artwork-licensing/lib/licenses";
+import { LICENSE_DISCLAIMER } from "@/features/user/artwork-licensing/lib/licenses";
 
 describe("ArtworkLicenseSelector", () => {
   it("preselects the current license and renders its description", () => {

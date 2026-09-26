@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ConfirmActionModal from "@/features/(user)/settings/components/ConfirmActionModal";
+import ConfirmActionModal from "@/features/user/settings/components/ConfirmActionModal";
 import { EditArtworkDialog } from "../../../components/EditArtworkDialog";
 import { useArtworkActions } from "../hooks/useArtworkActions";
 import { useRetryArtworkBlockchain } from "../hooks/useRetryArtworkBlockchain";

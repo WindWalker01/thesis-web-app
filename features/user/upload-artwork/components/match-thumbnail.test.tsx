@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { MatchThumbnail } from "@/features/(user)/upload-artwork/components/match-thumbnail";
+import { MatchThumbnail } from "@/features/user/upload-artwork/components/match-thumbnail";
 
 describe("MatchThumbnail", () => {
   it("renders the 'Very Similar' tier at >= 90", () => {

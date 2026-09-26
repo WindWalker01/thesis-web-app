@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { ArtworkLicenseSelector } from "./ArtworkLicenseSelector";
-import { LICENSE_DISCLAIMER } from "@/features/artwork-licensing/lib/licenses";
+import { LICENSE_DISCLAIMER } from "@/features/user/artwork-licensing/lib/licenses";
 
 describe("ArtworkLicenseSelector (dropdown variant)", () => {
   it("renders a compact combobox instead of radio cards", () => {

@@ -4,7 +4,7 @@ import {
   getSimilarityColor,
   getSimilarityRiskLabel,
   getSimilarityRiskTier,
-} from "@/features/plagiarise-checker/lib/similarity-risk";
+} from "@/features/public/plagiarise-checker/lib/similarity-risk";
 
 describe("similarity-risk", () => {
   it("uses shared admin defaults (critical 80, moderate 60)", () => {

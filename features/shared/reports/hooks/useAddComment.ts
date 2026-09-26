@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addCommentSchema } from "@/features/reports/schemas/report-schemas";
+import { addCommentSchema } from "@/features/shared/reports/schemas/report-schemas";
 import { reportDetailKeys } from "./useReportDetail";
-import type { ReportComment } from "@/features/reports/types";
+import type { ReportComment } from "@/features/shared/reports/types";
 
 type AddCommentInput = {
   reportId: string;

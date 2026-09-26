@@ -5,7 +5,7 @@ import { getPublicSimilarityRiskThresholds } from "@/features/admin/settings/ser
 import {
   DEFAULT_SIMILARITY_RISK_THRESHOLDS,
   type SimilarityRiskThresholds,
-} from "@/features/plagiarise-checker/lib/similarity-risk";
+} from "@/features/public/plagiarise-checker/lib/similarity-risk";
 
 /**
  * Loads the admin-synced similarity risk thresholds

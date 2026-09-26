@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import type { ReportEvidence } from "@/features/reports/types";
+import type { ReportEvidence } from "@/features/shared/reports/types";
 import { Button } from "@/components/ui/button";
-import { formatDateTime, getFileIcon } from "@/features/reports/lib/report-utils";
-import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES, isAllowedFileType } from "@/features/reports/schemas/report-schemas";
+import { formatDateTime, getFileIcon } from "@/features/shared/reports/lib/report-utils";
+import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES, isAllowedFileType } from "@/features/shared/reports/schemas/report-schemas";
 import { toast } from "sonner";
 import { cn } from "@/lib/client-utils";
 

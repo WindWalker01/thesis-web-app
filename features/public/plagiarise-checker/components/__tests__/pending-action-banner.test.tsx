@@ -5,17 +5,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const reportMock = vi.fn();
 const uploadMock = vi.fn();
 
-vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
+vi.mock("@/features/user/auth/hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: true, user: null, loading: false }),
 }));
 
 // Mock by resolved module path (the component uses relative imports, which
 // resolve to these files from its own directory).
-vi.mock("@/features/plagiarise-checker/server/report-plagiarism-match", () => ({
+vi.mock("@/features/public/plagiarise-checker/server/report-plagiarism-match", () => ({
   reportPlagiarismMatch: (args: unknown) => reportMock(args),
 }));
 vi.mock(
-  "@/features/plagiarise-checker/server/request-plagiarism-manual-review",
+  "@/features/public/plagiarise-checker/server/request-plagiarism-manual-review",
   () => ({ requestPlagiarismManualReview: vi.fn() }),
 );
 vi.mock("@/lib/cloudinary/direct-upload", () => ({

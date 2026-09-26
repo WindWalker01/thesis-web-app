@@ -4,15 +4,15 @@ import { render, screen } from "@testing-library/react";
 
 // The detailed report now renders a MatchActionButton, which depends on auth
 // and the Next.js router. Mock them so the report can render without env.
-vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
+vi.mock("@/features/user/auth/hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: true, user: { id: "user-1" }, loading: false }),
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
-import { SimilarityReportDetailed } from "@/features/(user)/upload-artwork/components/similarity-report-detailed";
-import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+import { SimilarityReportDetailed } from "@/features/user/upload-artwork/components/similarity-report-detailed";
+import type { SimilarityReport } from "@/features/user/upload-artwork/server/art-similarity-scan";
 
 function makeReport(overrides: Partial<SimilarityReport> = {}): SimilarityReport {
   return {

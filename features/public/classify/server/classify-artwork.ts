@@ -1,10 +1,10 @@
 "use server";
 
-import { classificationSchema } from "@/features/classify/schemas/classification-schema";
+import { classificationSchema } from "@/features/public/classify/schemas/classification-schema";
 import type {
   ClassifyArtworkResult,
   ClassificationLabel,
-} from "@/features/classify/types";
+} from "@/features/public/classify/types";
 
 function normalizePredictions(payload: unknown): ClassificationLabel[] {
   if (!payload || typeof payload !== "object") return [];

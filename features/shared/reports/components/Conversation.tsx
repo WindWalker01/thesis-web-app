@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { ReportComment } from "@/features/reports/types";
-import { formatDateTime } from "@/features/reports/lib/report-utils";
+import type { ReportComment } from "@/features/shared/reports/types";
+import { formatDateTime } from "@/features/shared/reports/lib/report-utils";
 import { cn } from "@/lib/client-utils";
 
 type ConversationProps = {

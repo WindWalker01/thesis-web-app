@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Flag, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import { useAuth } from "@/features/user/auth/hooks/useAuth";
 import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
 import type { PlagiarismMatchContext } from "../lib/match-source";
 import { fileToPreviewDataUrl } from "../lib/image-preview";

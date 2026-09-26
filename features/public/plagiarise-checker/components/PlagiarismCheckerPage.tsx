@@ -20,12 +20,12 @@ import {
   SimilaritySummary,
   CompareModeUpload,
   CompareModeResult,
-} from "@/features/plagiarise-checker";
+} from "@/features/public/plagiarise-checker";
 
-import { PendingActionBanner } from "@/features/plagiarise-checker/components/pending-action-banner";
+import { PendingActionBanner } from "@/features/public/plagiarise-checker/components/pending-action-banner";
 
-import { usePlagiarismChecker } from "@/features/plagiarise-checker/hooks/use-plagiarism-checker";
-import { useSimilarityRiskThresholds } from "@/features/plagiarise-checker/hooks/use-similarity-risk-thresholds";
+import { usePlagiarismChecker } from "@/features/public/plagiarise-checker/hooks/use-plagiarism-checker";
+import { useSimilarityRiskThresholds } from "@/features/public/plagiarise-checker/hooks/use-similarity-risk-thresholds";
 
 export default function PlagiarismCheckerPage() {
   const [isScrolled, setIsScrolled] = useState(false);

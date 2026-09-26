@@ -6,13 +6,13 @@ import type {
   Mode,
   CompareResponse,
   SearchResponse,
-} from "@/features/plagiarise-checker/types";
-import { checkPlagiarismWebFile } from "@/features/plagiarise-checker/lib/api-client";
-import { enrichWebMatches } from "@/features/plagiarise-checker/server/enrich-web-matches";
-import { checkPlagiarismCompareFiles } from "@/features/plagiarise-checker/lib/api-client";
-import { readImageDimensions, type ArtworkFileMeta } from "@/features/plagiarise-checker/lib/file-metadata";
+} from "@/features/public/plagiarise-checker/types";
+import { checkPlagiarismWebFile } from "@/features/public/plagiarise-checker/lib/api-client";
+import { enrichWebMatches } from "@/features/public/plagiarise-checker/server/enrich-web-matches";
+import { checkPlagiarismCompareFiles } from "@/features/public/plagiarise-checker/lib/api-client";
+import { readImageDimensions, type ArtworkFileMeta } from "@/features/public/plagiarise-checker/lib/file-metadata";
 import { describeAnalysisError } from "@/lib/analysis-errors";
-import { generatePlagiarismReportPdf } from "@/features/plagiarise-checker/lib/plagiarism-report";
+import { generatePlagiarismReportPdf } from "@/features/public/plagiarise-checker/lib/plagiarism-report";
 
 export function usePlagiarismChecker() {
   const [mode, setMode] = useState<Mode>("web");

@@ -5,7 +5,7 @@ import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArtworkLicenseDisplay } from "@/features/artwork-licensing/components/ArtworkLicenseDisplay";
+import { ArtworkLicenseDisplay } from "@/features/user/artwork-licensing/components/ArtworkLicenseDisplay";
 import { ChangeLicenseDialog } from "./ChangeLicenseDialog";
 
 type LicenseSectionProps = {

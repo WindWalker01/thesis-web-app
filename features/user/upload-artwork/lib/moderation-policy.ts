@@ -1,4 +1,4 @@
-import { ArtworkStatus } from "@/features/(user)/upload-artwork/types";
+import { ArtworkStatus } from "@/features/user/upload-artwork/types";
 
 /**
  * Centralizes the moderation decision derived from the similarity score and match source.

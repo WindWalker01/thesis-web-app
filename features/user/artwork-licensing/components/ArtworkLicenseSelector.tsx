@@ -21,7 +21,7 @@ import {
   type ArtworkLicense,
   type LicenseIdentifier,
   type LicensePermissionLabel,
-} from "@/features/artwork-licensing/lib/licenses";
+} from "@/features/user/artwork-licensing/lib/licenses";
 
 type ArtworkLicenseSelectorVariant = "cards" | "dropdown";
 

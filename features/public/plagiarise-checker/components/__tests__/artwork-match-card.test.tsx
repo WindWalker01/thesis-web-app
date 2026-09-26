@@ -4,15 +4,15 @@ import { render, screen, fireEvent } from "@testing-library/react";
 
 // The match card now renders a MatchActionButton, which depends on auth and
 // the Next.js router. Mock them so the card can render without providers/env.
-vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
+vi.mock("@/features/user/auth/hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: false, user: null, loading: false }),
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
-import { ArtworkMatchCard } from "@/features/plagiarise-checker/components/artwork-match-card";
-import type { SearchMatch } from "@/features/plagiarise-checker/types";
+import { ArtworkMatchCard } from "@/features/public/plagiarise-checker/components/artwork-match-card";
+import type { SearchMatch } from "@/features/public/plagiarise-checker/types";
 
 function makeMatch(overrides: Partial<SearchMatch> = {}): SearchMatch {
   return {

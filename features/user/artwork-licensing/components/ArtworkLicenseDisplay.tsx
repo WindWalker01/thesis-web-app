@@ -5,7 +5,7 @@ import {
   LICENSE_DISCLAIMER,
   permissionChecklist,
   resolveLicense,
-} from "@/features/artwork-licensing/lib/licenses";
+} from "@/features/user/artwork-licensing/lib/licenses";
 
 type ArtworkLicenseDisplayProps = {
   /** Stored license identifier; unknown/missing values resolve to ARR. */

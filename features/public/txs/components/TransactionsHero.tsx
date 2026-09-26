@@ -2,7 +2,7 @@ import { Blocks } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { truncateHash } from "@/lib/client-utils";
-import type { BlockchainTxSource } from "@/features/txs/types";
+import type { BlockchainTxSource } from "@/features/public/txs/types";
 
 function FeatureStat({
     title,

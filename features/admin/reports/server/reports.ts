@@ -7,11 +7,11 @@ export {
   getAdminReportsList,
   getAdminReportDetail,
   getReportStatistics,
-} from "@/features/reports/server/reports-repository";
+} from "@/features/shared/reports/server/reports-repository";
 
 export {
   isAdminUser,
   updateReportStatusWithAudit,
   addCommentWithAudit,
   requestEvidenceWithAudit,
-} from "@/features/reports/server/reports-service";
+} from "@/features/shared/reports/server/reports-service";

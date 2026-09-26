@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireActiveAccount } from "@/lib/account-status";
-import { isUuidLike } from "@/features/plagiarise-checker/server/resolve-db-artwork";
+import { isUuidLike } from "@/features/public/plagiarise-checker/server/resolve-db-artwork";
 
 const reportPlagiarismMatchSchema = z.object({
   /** Matched registered artwork UUID (internal match). */

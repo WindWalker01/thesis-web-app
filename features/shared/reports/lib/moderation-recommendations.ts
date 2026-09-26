@@ -11,7 +11,7 @@ import type {
   ReportDecisionValue,
   ActionRecommendation,
   ReportStatus,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 // ---- Decision → Allowed Artwork Actions ----
 

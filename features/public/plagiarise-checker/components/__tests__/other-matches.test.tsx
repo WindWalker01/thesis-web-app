@@ -1,8 +1,8 @@
 import * as React from "react";
 import { describe, expect, it } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { OtherMatches } from "@/features/plagiarise-checker/components/other-matches";
-import type { OtherSearchMatch } from "@/features/plagiarise-checker/types";
+import { OtherMatches } from "@/features/public/plagiarise-checker/components/other-matches";
+import type { OtherSearchMatch } from "@/features/public/plagiarise-checker/types";
 
 function makeMatch(overrides: Partial<OtherSearchMatch> = {}): OtherSearchMatch {
   return {

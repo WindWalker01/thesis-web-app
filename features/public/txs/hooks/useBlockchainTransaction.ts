@@ -9,7 +9,7 @@ import type {
   BlockchainStatusFilter,
   BlockchainTransactionItem,
   BlockchainTxSource,
-} from "@/features/txs/types";
+} from "@/features/public/txs/types";
 
 type UseBlockchainTransactionsResult = {
   items: BlockchainTransactionItem[];

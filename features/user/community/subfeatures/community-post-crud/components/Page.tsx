@@ -1,4 +1,4 @@
-import PostEditorForm from "@/features/(user)/community/subfeatures/community-post-crud/components/PostForm";
+import PostEditorForm from "@/features/user/community/subfeatures/community-post-crud/components/PostForm";
 import { getPostEditorData } from "../server/create-post";
 
 type CreatePostPageProps = {

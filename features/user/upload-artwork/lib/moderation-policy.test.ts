@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getArtworkStatusFromSimilarity } from "@/features/(user)/upload-artwork/lib/moderation-policy";
+import { getArtworkStatusFromSimilarity } from "@/features/user/upload-artwork/lib/moderation-policy";
 
 const DEFAULT_OPTIONS = {
   flaggedThreshold: 80,

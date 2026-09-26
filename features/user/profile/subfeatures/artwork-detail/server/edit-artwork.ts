@@ -5,7 +5,7 @@ import { editArtworkSchema } from "../../../schemas/edit-artwork-schema";
 import {
     canDeleteArtwork,
     canEditArtwork,
-} from "@/features/(user)/profile/lib/artwork-permissions";
+} from "@/features/user/profile/lib/artwork-permissions";
 
 type ActionResult =
     | { success: true; message: string }

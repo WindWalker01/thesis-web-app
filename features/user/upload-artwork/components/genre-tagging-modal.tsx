@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/client-utils";
-import type { GenreScoreLabel } from "@/features/(user)/upload-artwork/types";
+import type { GenreScoreLabel } from "@/features/user/upload-artwork/types";
 
 // A confirmed selection always has a classifier index — no custom tags.
 export type SelectedGenre = {

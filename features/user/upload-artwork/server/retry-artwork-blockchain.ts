@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   registerArtworkOnBlockchain as sharedRegisterArtwork,
-} from "@/features/txs/server/register-artwork-service";
+} from "@/features/public/txs/server/register-artwork-service";
 
 type RetryArtworkOnBlockchainInput = {
   artworkId: string;

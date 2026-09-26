@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { ReportComment } from "@/features/reports/types";
+import type { ReportComment } from "@/features/shared/reports/types";
 
 type UseDesktopNotificationOptions = {
   reportId: string;

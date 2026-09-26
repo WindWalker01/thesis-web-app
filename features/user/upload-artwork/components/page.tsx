@@ -32,16 +32,16 @@ import {
   ACCEPT_ATTR,
   RECOMMENDED_FORMAT_LABELS,
   SUPPORTED_FORMAT_LABELS,
-} from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import type { OtherSearchMatch } from "@/features/plagiarise-checker/types";
-import { useUploadArtworkForm } from "@/features/(user)/upload-artwork/hooks/use-upload-artwork-form";
-import { useArtworkFilePreview } from "@/features/(user)/upload-artwork/hooks/use-artwork-file-preview";
-import { DB_MATCH_DISPLAY_THRESHOLD } from "@/features/(user)/upload-artwork/lib/similarity-display";
-import { UploadArtworkProgress } from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
-import { UploadHero } from "@/features/(user)/upload-artwork/components/upload-hero";
-import { RegistrationForm } from "@/features/(user)/upload-artwork/components/registration-form";
-import { SimilarityReportDetailed } from "@/features/(user)/upload-artwork/components/similarity-report-detailed";
-import { SimilarityReportSummary } from "@/features/(user)/upload-artwork/components/similarity-report-summary";
+} from "@/features/user/upload-artwork/schemas/artwork-schema";
+import type { OtherSearchMatch } from "@/features/public/plagiarise-checker/types";
+import { useUploadArtworkForm } from "@/features/user/upload-artwork/hooks/use-upload-artwork-form";
+import { useArtworkFilePreview } from "@/features/user/upload-artwork/hooks/use-artwork-file-preview";
+import { DB_MATCH_DISPLAY_THRESHOLD } from "@/features/user/upload-artwork/lib/similarity-display";
+import { UploadArtworkProgress } from "@/features/user/upload-artwork/components/upload-artwork-progress";
+import { UploadHero } from "@/features/user/upload-artwork/components/upload-hero";
+import { RegistrationForm } from "@/features/user/upload-artwork/components/registration-form";
+import { SimilarityReportDetailed } from "@/features/user/upload-artwork/components/similarity-report-detailed";
+import { SimilarityReportSummary } from "@/features/user/upload-artwork/components/similarity-report-summary";
 import { ConfirmUploadModal } from "./confirm-upload-modal";
 import { GenreTaggingModal } from "./genre-tagging-modal";
 

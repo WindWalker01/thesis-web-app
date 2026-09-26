@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Database, ExternalLink, Globe } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { getSimilarityLabel } from "@/features/(user)/upload-artwork/lib/similarity-display";
+import { getSimilarityLabel } from "@/features/user/upload-artwork/lib/similarity-display";
 
 type MatchThumbnailProps = {
   imageUrl: string;

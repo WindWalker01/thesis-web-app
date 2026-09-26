@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ReportUnreadCounts } from "@/features/reports/types";
+import type { ReportUnreadCounts } from "@/features/shared/reports/types";
 
 /**
  * Module-level reference-counting map to prevent duplicate Supabase

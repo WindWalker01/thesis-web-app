@@ -344,4 +344,4 @@ export {
   GUIDELINE_ARTWORK_DEFAULTS,
   getRecommendedActions,
   validateActionCombination,
-} from "@/features/reports/lib/moderation-recommendations";
+} from "@/features/shared/reports/lib/moderation-recommendations";

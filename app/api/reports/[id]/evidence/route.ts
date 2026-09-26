@@ -6,12 +6,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
-import * as repo from "@/features/reports/server/reports-repository";
-import * as service from "@/features/reports/server/reports-service";
+import * as repo from "@/features/shared/reports/server/reports-repository";
+import * as service from "@/features/shared/reports/server/reports-service";
 import {
   MAX_EVIDENCE_FILE_SIZE,
   isAllowedFileType,
-} from "@/features/reports/schemas/report-schemas";
+} from "@/features/shared/reports/schemas/report-schemas";
 
 export async function GET(
   _request: NextRequest,

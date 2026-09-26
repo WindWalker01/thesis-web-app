@@ -5,11 +5,11 @@ import {
   getPrimarySimilarityMatch,
   getSimilarityMatches,
   getSimilarityReportMatch,
-} from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+} from "@/features/user/upload-artwork/server/art-similarity-scan";
 import type {
   CheckPlagiarismWebResult,
   SearchMatch,
-} from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/types";
 
 function match(overrides: Partial<SearchMatch>): SearchMatch {
   return {

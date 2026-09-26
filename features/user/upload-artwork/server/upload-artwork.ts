@@ -5,28 +5,28 @@ import { ethers } from "ethers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveAccount } from "@/lib/account-status";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { formSchema } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
+import { formSchema } from "@/features/user/upload-artwork/schemas/artwork-schema";
 import {
   downloadCloudinaryAsset,
   deleteArtworkImageFromCloudinary,
-} from "@/features/(user)/upload-artwork/server/upload-image";
+} from "@/features/user/upload-artwork/server/upload-image";
 import { cloudinaryAssetMetadataSchema } from "@/lib/cloudinary/metadata-schema";
 import {
   ACCEPTED_TYPES,
   MAX_FILE_SIZE,
-} from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
+} from "@/features/user/upload-artwork/schemas/artwork-schema";
+import { checkPlagiarismWeb } from "@/features/public/plagiarise-checker";
 import {
   isUuidLike,
   resolveDbArtworkById,
-} from "@/features/plagiarise-checker/server/resolve-db-artwork";
-import type { OtherSearchMatch } from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/server/resolve-db-artwork";
+import type { OtherSearchMatch } from "@/features/public/plagiarise-checker/types";
 import {
   buildSimilarityReport,
   buildSimilarityScanInsert,
   getPrimarySimilarityMatch,
   getSimilarityReportMatch,
-} from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+} from "@/features/user/upload-artwork/server/art-similarity-scan";
 
 import {
   RecordArtworkInDatabaseResult,
@@ -37,11 +37,11 @@ import {
   sha256Hex,
   normalizePerceptualHashToBytes32,
   stableStringify,
-} from "@/features/(user)/upload-artwork/lib/artwork-hashing";
-import { getArtworkStatusFromSimilarity } from "@/features/(user)/upload-artwork/lib/moderation-policy";
+} from "@/features/user/upload-artwork/lib/artwork-hashing";
+import { getArtworkStatusFromSimilarity } from "@/features/user/upload-artwork/lib/moderation-policy";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
 import { fetchGenreClassification } from "./fetch-genre";
-import { getLicense, DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
+import { getLicense, DEFAULT_LICENSE_ID } from "@/features/user/artwork-licensing/lib/licenses";
 
 async function rollbackArtworkInsert(params: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;

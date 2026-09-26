@@ -5,12 +5,12 @@ import { ChatMessage } from "./ChatMessage";
 import { TypingIndicator } from "./TypingIndicator";
 import { ConnectionStatus } from "./ConnectionStatus";
 import { NewMessagesButton } from "./NewMessagesButton";
-import { useChatScroll } from "@/features/reports/hooks/useChatScroll";
-import { useTypingIndicator } from "@/features/reports/hooks/useTypingIndicator";
-import { useReadReceipts } from "@/features/reports/hooks/useReadReceipts";
-import { useDesktopNotification } from "@/features/reports/hooks/useDesktopNotification";
+import { useChatScroll } from "@/features/shared/reports/hooks/useChatScroll";
+import { useTypingIndicator } from "@/features/shared/reports/hooks/useTypingIndicator";
+import { useReadReceipts } from "@/features/shared/reports/hooks/useReadReceipts";
+import { useDesktopNotification } from "@/features/shared/reports/hooks/useDesktopNotification";
 import { ChatInput } from "./ChatInput";
-import type { ChatMessage as ChatMessageType, RealtimeConnectionStatus } from "@/features/reports/types";
+import type { ChatMessage as ChatMessageType, RealtimeConnectionStatus } from "@/features/shared/reports/types";
 
 type ChatContainerProps = {
   reportId: string;

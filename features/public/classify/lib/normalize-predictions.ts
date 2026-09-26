@@ -1,4 +1,4 @@
-import type { ClassificationLabel } from "@/features/classify/types";
+import type { ClassificationLabel } from "@/features/public/classify/types";
 
 /**
  * Normalizes the raw classification API payload into `ClassificationLabel[]`,

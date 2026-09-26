@@ -12,13 +12,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+import type { SimilarityReport } from "@/features/user/upload-artwork/server/art-similarity-scan";
 import type {
   OtherSearchMatch,
   SearchMatch,
-} from "@/features/plagiarise-checker/types";
-import { RegisteredArtworkMatch } from "@/features/plagiarise-checker/components/registered-artwork-match";
-import { MatchActionButton } from "@/features/plagiarise-checker/components/match-action-button";
+} from "@/features/public/plagiarise-checker/types";
+import { RegisteredArtworkMatch } from "@/features/public/plagiarise-checker/components/registered-artwork-match";
+import { MatchActionButton } from "@/features/public/plagiarise-checker/components/match-action-button";
 import { similarityReportToMatchContext } from "../lib/match-context";
 import { MatchThumbnail } from "./match-thumbnail";
 import { ReferenceLink } from "./reference-link";

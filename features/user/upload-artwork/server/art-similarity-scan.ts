@@ -1,11 +1,11 @@
 import type {
   SearchMatch,
   CheckPlagiarismWebResult,
-} from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/types";
 import {
   DB_MATCH_DISPLAY_THRESHOLD,
   MIN_RENDER_THRESHOLD,
-} from "@/features/shared/similarity-thresholds";
+} from "@/features/shared/similarity/similarity-thresholds";
 
 export type SimilarityReport = {
   similarityPercentage: number | null;

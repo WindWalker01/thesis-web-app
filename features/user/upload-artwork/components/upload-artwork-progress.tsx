@@ -16,7 +16,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { StatusProgress } from "@/features/(user)/upload-artwork/components/status-progress";
+import { StatusProgress } from "@/features/user/upload-artwork/components/status-progress";
 
 export type UploadStepStatus =
     | "waiting"

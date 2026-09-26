@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatBlockchainError } from "@/features/txs/server/blockchain-error";
+import { formatBlockchainError } from "@/features/public/txs/server/blockchain-error";
 
 /** Builds an ethers.js "could not coalesce error" carrying a raw RPC message. */
 function coalescedError(rpcMessage: string): Error {

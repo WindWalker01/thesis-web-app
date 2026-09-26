@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { classifyArtworkFile } from "../api-client";
-import type { ClassificationLabel } from "../../../types";
+import type { ClassificationLabel } from "../../types";
 
 function makeFile(type = "image/png", size = 8): File {
   return new File([new ArrayBuffer(size)], "test.png", { type });

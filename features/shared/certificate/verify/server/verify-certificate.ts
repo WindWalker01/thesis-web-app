@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthUser } from "@/lib/server-utils";
-import { resolveLicense } from "@/features/artwork-licensing/lib/licenses";
+import { resolveLicense } from "@/features/user/artwork-licensing/lib/licenses";
 import { readOnChainWork } from "./read-onchain-work";
 import type {
     CertificateVerificationResult,

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import type { Report } from "@/features/reports/types";
+import type { Report } from "@/features/shared/reports/types";
 import { StatusBadge } from "./StatusBadge";
-import { REPORT_TYPE_LABELS } from "@/features/reports/lib/report-utils";
-import { formatTimeAgo } from "@/features/reports/lib/report-utils";
+import { REPORT_TYPE_LABELS } from "@/features/shared/reports/lib/report-utils";
+import { formatTimeAgo } from "@/features/shared/reports/lib/report-utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/client-utils";

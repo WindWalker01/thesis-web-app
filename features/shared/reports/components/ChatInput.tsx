@@ -8,7 +8,7 @@ import {
   MAX_EVIDENCE_FILE_SIZE,
   ALLOWED_EVIDENCE_MIME_TYPES,
   isAllowedFileType,
-} from "@/features/reports/schemas/report-schemas";
+} from "@/features/shared/reports/schemas/report-schemas";
 
 type ChatInputProps = {
   onSend: (message: string) => Promise<void>;

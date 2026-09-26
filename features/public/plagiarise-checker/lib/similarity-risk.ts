@@ -1,7 +1,7 @@
 import {
   MANUAL_REVIEW_THRESHOLD,
   SIMILARITY_THRESHOLD,
-} from "@/features/shared/similarity-thresholds";
+} from "@/features/shared/similarity/similarity-thresholds";
 
 /**
  * Thresholds driving the red/amber/green similarity indicator on the

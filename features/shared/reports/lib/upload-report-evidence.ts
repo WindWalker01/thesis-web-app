@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { describeAnalysisError } from "@/lib/analysis-errors";
-import type { ReportEvidence } from "@/features/reports/types";
+import type { ReportEvidence } from "@/features/shared/reports/types";
 
 type EvidenceUploadTicket = { storagePath: string; token: string };
 

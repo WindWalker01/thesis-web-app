@@ -1,5 +1,5 @@
-import { classificationSchema } from "@/features/classify/schemas/classification-schema";
-import type { ClassifyArtworkResult } from "@/features/classify/types";
+import { classificationSchema } from "@/features/public/classify/schemas/classification-schema";
+import type { ClassifyArtworkResult } from "@/features/public/classify/types";
 import { describeAnalysisError } from "@/lib/analysis-errors";
 import { normalizePredictions } from "./normalize-predictions";
 

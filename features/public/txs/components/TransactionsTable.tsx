@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 
-import { TransactionStatusBadge } from "@/features/txs/components/TransactionStatusBadge";
-import type { BlockchainTransactionItem } from "@/features/txs/types";
+import { TransactionStatusBadge } from "@/features/public/txs/components/TransactionStatusBadge";
+import type { BlockchainTransactionItem } from "@/features/public/txs/types";
 import { formatTimeAgo, truncateHash } from "@/lib/client-utils";
 
 function MethodBadge({

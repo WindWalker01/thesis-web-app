@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import { CertificateVerifyPage } from "@/features/certificate-verify/components/Page";
-import { verifyCertificate } from "@/features/certificate-verify/server/verify-certificate";
+import { CertificateVerifyPage } from "@/features/shared/certificate/verify/components/Page";
+import { verifyCertificate } from "@/features/shared/certificate/verify/server/verify-certificate";
 
 export const metadata: Metadata = {
   title: "Certificate Verification - ArtForgeLab",

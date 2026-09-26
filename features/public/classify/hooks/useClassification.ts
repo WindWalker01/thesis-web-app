@@ -10,10 +10,10 @@ import {
     type ClassificationFormValues,
     ACCEPTED_CLASSIFY_TYPES,
     MAX_CLASSIFY_FILE_SIZE,
-} from "@/features/classify/schemas/classification-schema";
-import { classifyArtworkFile } from "@/features/classify/lib/api-client";
+} from "@/features/public/classify/schemas/classification-schema";
+import { classifyArtworkFile } from "@/features/public/classify/lib/api-client";
 import { describeAnalysisError } from "@/lib/analysis-errors";
-import type { ClassificationLabel } from "@/features/classify/types";
+import type { ClassificationLabel } from "@/features/public/classify/types";
 
 export function useClassification() {
     const inputRef = useRef<HTMLInputElement | null>(null);

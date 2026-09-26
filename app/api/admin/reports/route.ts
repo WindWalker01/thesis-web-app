@@ -4,9 +4,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/server-utils";
-import { adminReportsQuerySchema } from "@/features/reports/schemas/report-schemas";
-import * as repo from "@/features/reports/server/reports-repository";
-import * as service from "@/features/reports/server/reports-service";
+import { adminReportsQuerySchema } from "@/features/shared/reports/schemas/report-schemas";
+import * as repo from "@/features/shared/reports/server/reports-repository";
+import * as service from "@/features/shared/reports/server/reports-service";
 
 export async function GET(request: NextRequest) {
   try {

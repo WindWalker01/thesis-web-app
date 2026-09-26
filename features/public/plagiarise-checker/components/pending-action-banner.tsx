@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AlertTriangle, X, Flag, Loader2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import { useAuth } from "@/features/user/auth/hooks/useAuth";
 import {
   clearPendingMatchAction,
   loadPendingMatchAction,

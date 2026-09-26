@@ -1,4 +1,4 @@
-// features/(user)/auth/components/LogoutButton.tsx
+// features/user/auth/components/LogoutButton.tsx
 "use client";
 
 import { useState } from "react";

@@ -18,7 +18,7 @@ import type {
   ReportStatus,
   ReportActionType,
   MatchedArtworkRef,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 // ========== REPORTS (main table) ==========
 
@@ -680,7 +680,7 @@ export async function getModerationSummary(
   reportedArtPostId: string | null,
   artworkOwnerId: string | null,
   targetArtworkId?: string | null
-): Promise<import("@/features/reports/types").ModerationSummary> {
+): Promise<import("@/features/shared/reports/types").ModerationSummary> {
   // Fetch user stats and artwork stats in parallel
   const [userStats, artworkStats] = await Promise.all([
     artworkOwnerId
@@ -831,7 +831,7 @@ async function getModerationArtworkStats(
 export async function getReportActionsWithAdminNames(
   supabase: SupabaseClient,
   reportId: string
-): Promise<import("@/features/reports/types").ReportAction[]> {
+): Promise<import("@/features/shared/reports/types").ReportAction[]> {
   const { data, error } = await supabase
     .from("report_actions")
     .select(`
@@ -864,9 +864,9 @@ export async function getReportActionsWithAdminNames(
       id: row.id,
       report_id: row.report_id,
       admin_id: row.admin_id,
-      action: row.action as import("@/features/reports/types").ReportActionType,
-      previous_status: row.previous_status as import("@/features/reports/types").ReportStatus | null,
-      new_status: row.new_status as import("@/features/reports/types").ReportStatus | null,
+      action: row.action as import("@/features/shared/reports/types").ReportActionType,
+      previous_status: row.previous_status as import("@/features/shared/reports/types").ReportStatus | null,
+      new_status: row.new_status as import("@/features/shared/reports/types").ReportStatus | null,
       notes: row.notes,
       created_at: row.created_at,
       admin_name: adminName,

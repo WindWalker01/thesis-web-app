@@ -5,8 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { supabase } from "@/lib/supabase/client";
-import { useCurrentUserProfile } from "@/features/(user)/profile/hooks/useFetchProfile";
-import { formatNotificationTime } from "@/features/(user)/notifications-navbar/lib/format-time";
+import { useCurrentUserProfile } from "@/features/user/profile/hooks/useFetchProfile";
+import { formatNotificationTime } from "@/features/user/notifications-navbar/lib/format-time";
 
 import type {
     AppNotification,

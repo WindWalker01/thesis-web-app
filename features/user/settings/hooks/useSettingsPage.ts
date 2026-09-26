@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { signOut } from "@/features/(user)/auth/server/auth";
+import { signOut } from "@/features/user/auth/server/auth";
 
 export type SettingsTab =
     | "profile"

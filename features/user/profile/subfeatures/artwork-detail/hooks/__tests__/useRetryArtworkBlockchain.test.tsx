@@ -5,7 +5,7 @@ const { mockInvalidateQueries } = vi.hoisted(() => ({
   mockInvalidateQueries: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/retry-artwork-blockchain", () => ({
+vi.mock("@/features/user/upload-artwork/server/retry-artwork-blockchain", () => ({
   retryArtworkOnBlockchain: vi.fn(),
 }));
 
@@ -25,17 +25,17 @@ vi.mock("sonner", () => ({
   },
 }));
 
-vi.mock("@/features/(user)/profile/hooks/useFetchProfileArtworks", () => ({
+vi.mock("@/features/user/profile/hooks/useFetchProfileArtworks", () => ({
   artworkKeys: { all: () => ["artworks"] },
 }));
 
-vi.mock("@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage", () => ({
+vi.mock("@/features/user/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage", () => ({
   artworkDetailKeys: { byId: (id: string) => ["artwork-detail", id] },
 }));
 
 import { toast } from "sonner";
-import { retryArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/retry-artwork-blockchain";
-import { useRetryArtworkBlockchain } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
+import { retryArtworkOnBlockchain } from "@/features/user/upload-artwork/server/retry-artwork-blockchain";
+import { useRetryArtworkBlockchain } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
 
 const mockRetry = vi.mocked(retryArtworkOnBlockchain);
 const mockToastSuccess = vi.mocked(toast.success);

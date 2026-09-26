@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { licenseIdentifierSchema } from "@/features/artwork-licensing/lib/artwork-license-schema";
+import { licenseIdentifierSchema } from "@/features/user/artwork-licensing/lib/artwork-license-schema";
 
 export const MAX_FILE_SIZE = 96 * 1024 * 1024;
 

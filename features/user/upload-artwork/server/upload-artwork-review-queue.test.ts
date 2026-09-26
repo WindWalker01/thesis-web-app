@@ -42,11 +42,11 @@ vi.mock("@/lib/account-status", () => ({
   requireActiveAccount: vi.fn(),
 }));
 
-vi.mock("@/features/plagiarise-checker", () => ({
+vi.mock("@/features/public/plagiarise-checker", () => ({
   checkPlagiarismWeb: vi.fn(),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/upload-image", () => ({
+vi.mock("@/features/user/upload-artwork/server/upload-image", () => ({
   uploadArtworkImageToCloudinary: vi.fn(),
   deleteArtworkImageFromCloudinary: vi.fn(),
   downloadCloudinaryAsset: vi.fn(),
@@ -56,21 +56,21 @@ vi.mock("@/features/admin/settings/lib/runtime-settings", () => ({
   getRuntimeSettings: vi.fn(),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/fetch-genre", () => ({
+vi.mock("@/features/user/upload-artwork/server/fetch-genre", () => ({
   fetchGenreClassification: vi.fn(),
 }));
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireActiveAccount } from "@/lib/account-status";
-import { checkPlagiarismWeb } from "@/features/plagiarise-checker";
+import { checkPlagiarismWeb } from "@/features/public/plagiarise-checker";
 import {
   uploadArtworkImageToCloudinary,
   deleteArtworkImageFromCloudinary,
   downloadCloudinaryAsset,
-} from "@/features/(user)/upload-artwork/server/upload-image";
+} from "@/features/user/upload-artwork/server/upload-image";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
-import { fetchGenreClassification } from "@/features/(user)/upload-artwork/server/fetch-genre";
+import { fetchGenreClassification } from "@/features/user/upload-artwork/server/fetch-genre";
 
 import { recordArtworkInDatabase } from "./upload-artwork";
 import type { RecordArtworkInDatabaseResult } from "../types";

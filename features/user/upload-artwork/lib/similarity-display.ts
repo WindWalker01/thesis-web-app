@@ -2,7 +2,7 @@ import {
   DB_MATCH_DISPLAY_THRESHOLD,
   DISPLAY_LABEL_VERY_SIMILAR,
   DISPLAY_LABEL_SIMILAR,
-} from "@/features/shared/similarity-thresholds";
+} from "@/features/shared/similarity/similarity-thresholds";
 
 /**
  * Similarity % below which a database match in the "Other matches" report is

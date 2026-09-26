@@ -11,9 +11,9 @@ import {
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
-import { logModerationAction, resolveReport } from "@/features/reports/server/reports-service";
-import { resolveReportSchema } from "@/features/reports/schemas/report-schemas";
-import { validateActionCombination } from "@/features/reports/lib/moderation-recommendations";
+import { logModerationAction, resolveReport } from "@/features/shared/reports/server/reports-service";
+import { resolveReportSchema } from "@/features/shared/reports/schemas/report-schemas";
+import { validateActionCombination } from "@/features/shared/reports/lib/moderation-recommendations";
 
 export async function POST(
   request: NextRequest,

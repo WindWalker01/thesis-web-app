@@ -5,7 +5,7 @@ import { usePlagiarismChecker } from "../use-plagiarism-checker";
 import type {
   CompareResponse,
   SearchResponse,
-} from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/types";
 
 const { mockCompareFiles, mockWebFile, mockEnrich, mockReportPdf } = vi.hoisted(() => ({
   mockCompareFiles: vi.fn(),
@@ -14,16 +14,16 @@ const { mockCompareFiles, mockWebFile, mockEnrich, mockReportPdf } = vi.hoisted(
   mockReportPdf: vi.fn(),
 }));
 
-vi.mock("@/features/plagiarise-checker/lib/api-client", () => ({
+vi.mock("@/features/public/plagiarise-checker/lib/api-client", () => ({
   checkPlagiarismCompareFiles: mockCompareFiles,
   checkPlagiarismWebFile: mockWebFile,
 }));
 
-vi.mock("@/features/plagiarise-checker/server/enrich-web-matches", () => ({
+vi.mock("@/features/public/plagiarise-checker/server/enrich-web-matches", () => ({
   enrichWebMatches: mockEnrich,
 }));
 
-vi.mock("@/features/plagiarise-checker/lib/plagiarism-report", () => ({
+vi.mock("@/features/public/plagiarise-checker/lib/plagiarism-report", () => ({
   generatePlagiarismReportPdf: mockReportPdf,
 }));
 

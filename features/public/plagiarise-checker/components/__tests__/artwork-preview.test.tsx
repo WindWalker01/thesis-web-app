@@ -1,8 +1,8 @@
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ArtworkPreview } from "@/features/plagiarise-checker/components/artwork-preview";
-import type { ArtworkFileMeta } from "@/features/plagiarise-checker/lib/file-metadata";
+import { ArtworkPreview } from "@/features/public/plagiarise-checker/components/artwork-preview";
+import type { ArtworkFileMeta } from "@/features/public/plagiarise-checker/lib/file-metadata";
 
 const META: ArtworkFileMeta = {
   size: 1536 * 1024,

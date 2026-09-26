@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { retryArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/retry-artwork-blockchain";
-import { canRetryBlockchain } from "@/features/(user)/profile/lib/artwork-permissions";
-import { artworkKeys } from "@/features/(user)/profile/hooks/useFetchProfileArtworks";
+import { retryArtworkOnBlockchain } from "@/features/user/upload-artwork/server/retry-artwork-blockchain";
+import { canRetryBlockchain } from "@/features/user/profile/lib/artwork-permissions";
+import { artworkKeys } from "@/features/user/profile/hooks/useFetchProfileArtworks";
 import { artworkDetailKeys } from "./useArtworkDetailPage";
 
 type UseRetryArtworkBlockchainParams = {

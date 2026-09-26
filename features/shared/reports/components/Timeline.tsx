@@ -1,8 +1,8 @@
 "use client";
 
-import type { ReportAction } from "@/features/reports/types";
-import { formatDateTime } from "@/features/reports/lib/report-utils";
-import { STATUS_LABELS } from "@/features/reports/lib/report-utils";
+import type { ReportAction } from "@/features/shared/reports/types";
+import { formatDateTime } from "@/features/shared/reports/lib/report-utils";
+import { STATUS_LABELS } from "@/features/shared/reports/lib/report-utils";
 import { cn } from "@/lib/client-utils";
 
 type TimelineProps = {

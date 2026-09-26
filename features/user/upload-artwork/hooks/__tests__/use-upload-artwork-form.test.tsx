@@ -1,9 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
-import { useUploadArtworkForm } from "@/features/(user)/upload-artwork/hooks/use-upload-artwork-form";
-import type { UploadArtworkFormValues } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
+import { DEFAULT_LICENSE_ID } from "@/features/user/artwork-licensing/lib/licenses";
+import { useUploadArtworkForm } from "@/features/user/upload-artwork/hooks/use-upload-artwork-form";
+import type { UploadArtworkFormValues } from "@/features/user/upload-artwork/schemas/artwork-schema";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -13,26 +13,26 @@ vi.mock("@/lib/cloudinary/direct-upload", () => ({
   uploadFileToCloudinary: vi.fn(),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/upload-artwork", () => ({
+vi.mock("@/features/user/upload-artwork/server/upload-artwork", () => ({
   recordArtworkInDatabase: vi.fn(),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/record-artwork-blockchain", () => ({
+vi.mock("@/features/user/upload-artwork/server/record-artwork-blockchain", () => ({
   recordArtworkOnBlockchain: vi.fn(),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/retry-artwork-blockchain", () => ({
+vi.mock("@/features/user/upload-artwork/server/retry-artwork-blockchain", () => ({
   retryArtworkOnBlockchain: vi.fn(),
 }));
 
-vi.mock("@/features/(user)/upload-artwork/server/submit-artwork-genre", () => ({
+vi.mock("@/features/user/upload-artwork/server/submit-artwork-genre", () => ({
   submitArtworkGenres: vi.fn(),
 }));
 
 import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
-import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
-import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
-import { retryArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/retry-artwork-blockchain";
+import { recordArtworkInDatabase } from "@/features/user/upload-artwork/server/upload-artwork";
+import { recordArtworkOnBlockchain } from "@/features/user/upload-artwork/server/record-artwork-blockchain";
+import { retryArtworkOnBlockchain } from "@/features/user/upload-artwork/server/retry-artwork-blockchain";
 
 const ARTWORK_ID = "11111111-2222-3333-4444-555555555555";
 const FAIL_MESSAGE = "could not coalesce error";

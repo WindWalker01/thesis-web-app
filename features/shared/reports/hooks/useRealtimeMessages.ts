@@ -6,7 +6,7 @@ import type {
   ChatMessage,
   MessageStatus,
   ReportComment,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 type UseRealtimeMessagesOptions = {
   reportId: string;

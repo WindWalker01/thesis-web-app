@@ -15,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArtworkLicenseSelector } from "@/features/artwork-licensing/components/ArtworkLicenseSelector";
+import { ArtworkLicenseSelector } from "@/features/user/artwork-licensing/components/ArtworkLicenseSelector";
 import {
   resolveLicense,
   type LicenseIdentifier,
-} from "@/features/artwork-licensing/lib/licenses";
-import { changeArtworkLicense } from "@/features/artwork-licensing/server/change-artwork-license";
-import { artworkDetailKeys } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage";
-import { artworkKeys } from "@/features/(user)/profile/hooks/useFetchProfileArtworks";
+} from "@/features/user/artwork-licensing/lib/licenses";
+import { changeArtworkLicense } from "@/features/user/artwork-licensing/server/change-artwork-license";
+import { artworkDetailKeys } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage";
+import { artworkKeys } from "@/features/user/profile/hooks/useFetchProfileArtworks";
 
 type ChangeLicenseDialogProps = {
   open: boolean;

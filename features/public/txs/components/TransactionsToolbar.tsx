@@ -14,7 +14,7 @@ import {
 import type {
     BlockchainMethodFilter,
     BlockchainStatusFilter,
-} from "@/features/txs/types";
+} from "@/features/public/txs/types";
 
 export function TransactionsToolbar({
     search,

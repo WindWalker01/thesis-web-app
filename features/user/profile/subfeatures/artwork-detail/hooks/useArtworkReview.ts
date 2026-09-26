@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getArtworkReviewData } from "@/features/(user)/upload-artwork/server/get-artwork-review";
-import type { ArtworkReviewData } from "@/features/(user)/upload-artwork/server/get-artwork-review";
+import { getArtworkReviewData } from "@/features/user/upload-artwork/server/get-artwork-review";
+import type { ArtworkReviewData } from "@/features/user/upload-artwork/server/get-artwork-review";
 
 export const artworkReviewKeys = {
   all: () => ["artwork-review"] as const,

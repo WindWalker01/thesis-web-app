@@ -5,8 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
-import { assignAdminSchema } from "@/features/reports/schemas/report-schemas";
-import * as service from "@/features/reports/server/reports-service";
+import { assignAdminSchema } from "@/features/shared/reports/schemas/report-schemas";
+import * as service from "@/features/shared/reports/server/reports-service";
 
 export async function POST(
   request: NextRequest,

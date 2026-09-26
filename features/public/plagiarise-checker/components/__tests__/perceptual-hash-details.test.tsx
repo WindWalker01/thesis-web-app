@@ -1,7 +1,7 @@
 import * as React from "react";
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { PerceptualHashDetails } from "@/features/plagiarise-checker/components/perceptual-hash-details";
+import { PerceptualHashDetails } from "@/features/public/plagiarise-checker/components/perceptual-hash-details";
 
 describe("PerceptualHashDetails", () => {
   it("renders transform and block hash tables", () => {

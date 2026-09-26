@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { EmptyReports } from "./EmptyReports";
 import { ACTION_LABELS } from "../types";
-import type { ReportAction } from "@/features/reports/types";
+import type { ReportAction } from "@/features/shared/reports/types";
 
 interface InvestigationTimelineProps {
   actions: ReportAction[];

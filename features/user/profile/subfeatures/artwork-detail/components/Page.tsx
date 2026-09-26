@@ -22,21 +22,21 @@ import {
 import { HashInfoRow } from "./HashInfoRow";
 import { SimpleInfoRow } from "./SimpleInfoRow";
 import { SectionHeader } from "./SectionHeader";
-import { TechnicalDetailsToggle } from "@/features/(user)/profile/subfeatures/artwork-detail/components/TechnicalDetailsToggle";
-import { useArtworkDetailPage } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage";
+import { TechnicalDetailsToggle } from "@/features/user/profile/subfeatures/artwork-detail/components/TechnicalDetailsToggle";
+import { useArtworkDetailPage } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useArtworkDetailPage";
 import ArtworkDetailPageSkeleton from "./PageSkeleton";
 import { DownloadCertificateButton } from "./DownloadCertificateButton";
 import { DownloadOriginalButton } from "./DownloadOriginalButton";
-import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
-import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
-import { LicenseSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/LicenseSection";
-import { GenresSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/GenresSection";
-import { VerificationStatusCard } from "@/features/(user)/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
-import { useArtworkReview } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkReview";
-import { ArtworkRecognitionProfile } from "@/features/(user)/community/components/ArtworkRecognitionProfile";
-import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
-import { useRetryArtworkBlockchain } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
-import type { ArtworkDetail } from "@/features/(user)/profile/types";
+import { SimilarityReportSection } from "@/features/user/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
+import { ArtworkActionsMenu } from "@/features/user/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
+import { LicenseSection } from "@/features/user/profile/subfeatures/artwork-detail/components/LicenseSection";
+import { GenresSection } from "@/features/user/profile/subfeatures/artwork-detail/components/GenresSection";
+import { VerificationStatusCard } from "@/features/user/profile/subfeatures/artwork-detail/components/VerificationStatusCard";
+import { useArtworkReview } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useArtworkReview";
+import { ArtworkRecognitionProfile } from "@/features/user/community/components/ArtworkRecognitionProfile";
+import { useArtworkRecognitionProfile } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
+import { useRetryArtworkBlockchain } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
+import type { ArtworkDetail } from "@/features/user/profile/types";
 
 type Props = {
   id: string;

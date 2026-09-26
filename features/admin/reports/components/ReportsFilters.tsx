@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import type { ReportFilters } from "../types";
-import { REPORT_TYPE_LABELS } from "@/features/reports/types";
+import { REPORT_TYPE_LABELS } from "@/features/shared/reports/types";
 
 interface ReportsFiltersProps {
   filters: ReportFilters;

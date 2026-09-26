@@ -4,7 +4,7 @@ import {
   normalizePerceptualHashToBytes32,
   sha256Hex,
   stableStringify,
-} from "@/features/(user)/upload-artwork/lib/artwork-hashing";
+} from "@/features/user/upload-artwork/lib/artwork-hashing";
 
 describe("sha256Hex", () => {
   it("hashes the empty buffer to the known SHA-256 vector", () => {

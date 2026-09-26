@@ -1,8 +1,8 @@
 import * as React from "react";
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { RegisteredArtworkMatch } from "@/features/plagiarise-checker/components/registered-artwork-match";
-import type { SearchMatch } from "@/features/plagiarise-checker/types";
+import { RegisteredArtworkMatch } from "@/features/public/plagiarise-checker/components/registered-artwork-match";
+import type { SearchMatch } from "@/features/public/plagiarise-checker/types";
 
 function makeMatch(overrides: Partial<SearchMatch> = {}): SearchMatch {
   return {

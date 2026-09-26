@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { cn } from "@/lib/client-utils";
-import type { ChatMessage as ChatMessageType } from "@/features/reports/types";
-import { formatChatTimestamp } from "@/features/reports/lib/report-utils";
+import type { ChatMessage as ChatMessageType } from "@/features/shared/reports/types";
+import { formatChatTimestamp } from "@/features/shared/reports/lib/report-utils";
 
 type ChatMessageProps = {
   message: ChatMessageType;

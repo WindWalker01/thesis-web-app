@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { EmptyReports } from "./EmptyReports";
-import type { ReportComment } from "@/features/reports/types";
+import type { ReportComment } from "@/features/shared/reports/types";
 
 interface AdminNotesProps {
   comments: ReportComment[];

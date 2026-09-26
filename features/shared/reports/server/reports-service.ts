@@ -14,8 +14,8 @@ import type {
   ReportComment,
   ReportEvidence,
   ReportDecision,
-} from "@/features/reports/types";
-import { VALID_STATUS_TRANSITIONS } from "@/features/reports/types";
+} from "@/features/shared/reports/types";
+import { VALID_STATUS_TRANSITIONS } from "@/features/shared/reports/types";
 import * as repo from "./reports-repository";
 
 // ========== STATUS WORKFLOW VALIDATION ==========

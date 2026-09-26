@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/client-utils";
 import { EmptyReports } from "./EmptyReports";
-import type { ReportEvidence } from "@/features/reports/types";
+import type { ReportEvidence } from "@/features/shared/reports/types";
 
 interface EvidenceViewerProps {
   evidence: ReportEvidence[];

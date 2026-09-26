@@ -10,9 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/client-utils";
-import type { ReportStatus, ReportType } from "@/features/reports/types";
-import { REPORT_TYPE_LABELS } from "@/features/reports/lib/report-utils";
-import { STATUS_LABELS } from "@/features/reports/lib/report-utils";
+import type { ReportStatus, ReportType } from "@/features/shared/reports/types";
+import { REPORT_TYPE_LABELS } from "@/features/shared/reports/lib/report-utils";
+import { STATUS_LABELS } from "@/features/shared/reports/lib/report-utils";
 
 export type FiltersState = {
   search: string;

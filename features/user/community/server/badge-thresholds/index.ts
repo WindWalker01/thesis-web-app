@@ -37,7 +37,7 @@ export type BadgeThresholds = {
 
 /**
  * Default threshold values.
- * These match the hardcoded values in features/(user)/community/server/artist-reputation.ts
+ * These match the hardcoded values in features/user/community/server/artist-reputation.ts
  */
 export const DEFAULT_BADGE_THRESHOLDS: BadgeThresholds = {
   Recognized: 5,

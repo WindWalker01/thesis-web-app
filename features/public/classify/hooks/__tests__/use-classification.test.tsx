@@ -5,7 +5,7 @@ import { useClassification } from "../useClassification";
 
 const { mockClassify } = vi.hoisted(() => ({ mockClassify: vi.fn() }));
 
-vi.mock("@/features/classify/lib/api-client", () => ({
+vi.mock("@/features/public/classify/lib/api-client", () => ({
   classifyArtworkFile: mockClassify,
 }));
 

@@ -3,10 +3,10 @@ describe, it, expect
 } from "vitest";
 import {
 getPrimaryScore,  isNoEvidenceMatch,  getEvidenceSummary,  getEvidenceDetail,  isLowContent,  getDominantTransformLabel,  getTransformEvidenceStatus,  getBlockEvidenceStatus,  getBestScalePair,
-} from "@/features/plagiarise-checker/lib/match-metrics";
+} from "@/features/public/plagiarise-checker/lib/match-metrics";
 import type {
 MatchMetrics, SearchMatch, OtherSearchMatch
-} from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/types";
 /** Match entry from the real post-`6f114bb` smoke test (see response_1788585533000.json). */const v2CleanNegative: MatchMetrics = {
 raw_similarity: 0,  raw_similarity_legacy: 70.56,  calibrated_confidence: 0,  transform_consistency: 0,  transform_agreements: 0,  block_agreements: 0,  content_blocks_used: 5,  low_content_warning: false,
 };

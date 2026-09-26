@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/client-utils";
 import { Button } from "@/components/ui/button";
 import { usePendingReviewCount } from "@/features/admin/artwork-verification/hooks/useReviews";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import { useAuth } from "@/features/user/auth/hooks/useAuth";
 import { useSiteSettings } from "../../settings/lib/use-site-settings";
 import { DEFAULT_SETTINGS } from "@/features/admin/settings/constants";
 import {

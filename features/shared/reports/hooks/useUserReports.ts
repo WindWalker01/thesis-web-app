@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { Report } from "@/features/reports/types";
+import type { Report } from "@/features/shared/reports/types";
 
 export const userReportsKeys = {
   all: () => ["user-reports"] as const,

@@ -6,7 +6,7 @@ import type {
   ReportStatus,
   ReportType,
   ReportDecisionValue,
-} from "@/features/reports/types";
+} from "@/features/shared/reports/types";
 
 // ---- Status Display & Colors ----
 

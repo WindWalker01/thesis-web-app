@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReportDecision } from "@/features/reports/types";
-import { DECISION_LABELS, DECISION_COLORS, formatDateTime } from "@/features/reports/lib/report-utils";
+import type { ReportDecision } from "@/features/shared/reports/types";
+import { DECISION_LABELS, DECISION_COLORS, formatDateTime } from "@/features/shared/reports/lib/report-utils";
 import { cn } from "@/lib/client-utils";
 
 type DecisionCardProps = {

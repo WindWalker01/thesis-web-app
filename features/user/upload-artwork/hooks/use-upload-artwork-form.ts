@@ -12,21 +12,21 @@ import {
   MAX_FILE_SIZE_MB,
   formSchema,
   type UploadArtworkFormValues,
-} from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { DEFAULT_LICENSE_ID } from "@/features/artwork-licensing/lib/licenses";
-import { recordArtworkInDatabase } from "@/features/(user)/upload-artwork/server/upload-artwork";
-import { recordArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/record-artwork-blockchain";
-import { retryArtworkOnBlockchain } from "@/features/(user)/upload-artwork/server/retry-artwork-blockchain";
+} from "@/features/user/upload-artwork/schemas/artwork-schema";
+import { DEFAULT_LICENSE_ID } from "@/features/user/artwork-licensing/lib/licenses";
+import { recordArtworkInDatabase } from "@/features/user/upload-artwork/server/upload-artwork";
+import { recordArtworkOnBlockchain } from "@/features/user/upload-artwork/server/record-artwork-blockchain";
+import { retryArtworkOnBlockchain } from "@/features/user/upload-artwork/server/retry-artwork-blockchain";
 import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
 import { submitArtworkGenres } from "../server/submit-artwork-genre";
 import type {
   UploadArtworkStep,
   UploadStepStatus,
-} from "@/features/(user)/upload-artwork/components/upload-artwork-progress";
-import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
-import type { GenreScoreLabel } from "@/features/(user)/upload-artwork/types";
-import type { SelectedGenre } from "@/features/(user)/upload-artwork/components/genre-tagging-modal";
-import { OtherSearchMatch } from "@/features/plagiarise-checker/types";
+} from "@/features/user/upload-artwork/components/upload-artwork-progress";
+import type { SimilarityReport } from "@/features/user/upload-artwork/server/art-similarity-scan";
+import type { GenreScoreLabel } from "@/features/user/upload-artwork/types";
+import type { SelectedGenre } from "@/features/user/upload-artwork/components/genre-tagging-modal";
+import { OtherSearchMatch } from "@/features/public/plagiarise-checker/types";
 
 type ProcessingState = "idle" | "processing" | "success" | "error";
 

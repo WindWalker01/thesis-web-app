@@ -28,10 +28,10 @@ import { SharePostButton } from "./SharePostButton";
 import { ReportArtworkModal } from "../subfeatures/report-artwork/components/ReportArtworkModal";
 import { ArtworkRecognitionProfile } from "./ArtworkRecognitionProfile";
 import { ContactArtistCard } from "../subfeatures/contact-artist/components/ContactArtistCard";
-import { ArtworkLicenseDisplay } from "@/features/artwork-licensing/components/ArtworkLicenseDisplay";
+import { ArtworkLicenseDisplay } from "@/features/user/artwork-licensing/components/ArtworkLicenseDisplay";
 import { useArtPost } from "../hooks/useArtPost";
 import { usePostDetail } from "../hooks/usePostDetail";
-import { useArtworkRecognitionProfile } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
+import { useArtworkRecognitionProfile } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useArtworkRecognitionProfile";
 import type { CommunityPostDetail } from "../server/community-feed";
 
 export function PostDetailClient({

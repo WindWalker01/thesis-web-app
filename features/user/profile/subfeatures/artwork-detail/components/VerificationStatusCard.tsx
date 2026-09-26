@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn, formatTimeAgo } from "@/lib/client-utils";
-import { submitReviewEvidence } from "@/features/(user)/upload-artwork/server/submit-review-evidence";
+import { submitReviewEvidence } from "@/features/user/upload-artwork/server/submit-review-evidence";
 import { uploadFileToCloudinary } from "@/lib/cloudinary/direct-upload";
 import { describeAnalysisError } from "@/lib/analysis-errors";
 import type { ReviewStatus, ReviewActionType, ReviewEvidence } from "@/features/admin/artwork-verification/types";

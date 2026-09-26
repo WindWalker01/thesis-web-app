@@ -1,15 +1,15 @@
 import { jsPDF } from "jspdf";
-import type { SearchResponse, SearchMatch } from "@/features/plagiarise-checker";
+import type { SearchResponse, SearchMatch } from "@/features/public/plagiarise-checker";
 import {
     getPrimaryScore,
     isNoEvidenceMatch,
     isLowContent,
-} from "@/features/plagiarise-checker/lib/match-metrics";
+} from "@/features/public/plagiarise-checker/lib/match-metrics";
 import {
   PDF_REPORT_CRITICAL,
   PDF_REPORT_HIGH,
   PDF_REPORT_MODERATE,
-} from "@/features/shared/similarity-thresholds";
+} from "@/features/shared/similarity/similarity-thresholds";
 
 export type PlagiarismReportData = {
     result: SearchResponse;

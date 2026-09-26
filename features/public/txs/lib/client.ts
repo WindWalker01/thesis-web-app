@@ -4,7 +4,7 @@ import type {
   GetBlockchainTransactionsInput,
   GetBlockchainTransactionsResult,
   BlockchainTransactionItem,
-} from "@/features/txs/types";
+} from "@/features/public/txs/types";
 
 const RPC_URL =
   process.env.NEXT_PUBLIC_AMOY_RPC_URL ??

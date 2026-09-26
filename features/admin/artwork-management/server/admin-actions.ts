@@ -489,7 +489,7 @@ export async function registerArtworkBlockchain(
     }
 
     // Delegate to the shared blockchain service
-    const { registerArtworkOnBlockchain } = await import("@/features/txs/server/register-artwork-service");
+    const { registerArtworkOnBlockchain } = await import("@/features/public/txs/server/register-artwork-service");
     const result = await registerArtworkOnBlockchain({
       artworkId: artwork.id,
       ownerId: artwork.owner_id,

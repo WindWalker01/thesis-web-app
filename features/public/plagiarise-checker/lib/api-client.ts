@@ -1,7 +1,7 @@
 import type {
   CompareResponse,
   PlagiarismWebResult,
-} from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/types";
 
 /**
  * Direct browser → backend transport for the two-image "Direct Comparison".

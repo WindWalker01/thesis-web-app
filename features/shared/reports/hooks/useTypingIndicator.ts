@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
-import type { TypingUser } from "@/features/reports/types";
+import type { TypingUser } from "@/features/shared/reports/types";
 
 type UseTypingIndicatorOptions = {
   reportId: string;

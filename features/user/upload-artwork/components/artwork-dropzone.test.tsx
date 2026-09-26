@@ -2,7 +2,7 @@ import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-import { ArtworkDropzone } from "@/features/(user)/upload-artwork/components/artwork-dropzone";
+import { ArtworkDropzone } from "@/features/user/upload-artwork/components/artwork-dropzone";
 
 type DropzoneOverrides = Partial<
   React.ComponentProps<typeof ArtworkDropzone>

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchRecognitionProfileForArtwork } from "../server/community-value-for-artwork";
-import type { RecognitionProfileData } from "@/features/(user)/community/types";
+import type { RecognitionProfileData } from "@/features/user/community/types";
 
 type UseArtworkRecognitionProfileReturn = {
   profile: RecognitionProfileData | null;

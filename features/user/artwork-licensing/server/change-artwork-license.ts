@@ -1,12 +1,12 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { licenseIdentifierSchema } from "@/features/artwork-licensing/lib/artwork-license-schema";
+import { licenseIdentifierSchema } from "@/features/user/artwork-licensing/lib/artwork-license-schema";
 import {
   getLicense,
   DEFAULT_LICENSE_ID,
   type LicenseIdentifier,
-} from "@/features/artwork-licensing/lib/licenses";
+} from "@/features/user/artwork-licensing/lib/licenses";
 
 type ChangeLicenseResult =
   | { success: true; message: string }

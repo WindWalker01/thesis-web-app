@@ -1,8 +1,8 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { buildRecognitionProfile } from "@/features/(user)/community/server/artwork-recognition";
-import type { RecognitionProfileData } from "@/features/(user)/community/types";
+import { buildRecognitionProfile } from "@/features/user/community/server/artwork-recognition";
+import type { RecognitionProfileData } from "@/features/user/community/types";
 
 /**
  * Fetch the Artwork Recognition Profile for an artwork by art_id.

@@ -33,8 +33,8 @@ import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { ReportStatusBadge } from "./ReportStatusBadge";
 import { ReportActionsDropdown } from "./ReportActionsDropdown";
 import { EmptyReports } from "./EmptyReports";
-import type { AdminReportListItem, ReportStatus } from "@/features/reports/types";
-import { REPORT_TYPE_LABELS } from "@/features/reports/types";
+import type { AdminReportListItem, ReportStatus } from "@/features/shared/reports/types";
+import { REPORT_TYPE_LABELS } from "@/features/shared/reports/types";
 
 interface ReportsTableProps {
   reports: AdminReportListItem[];

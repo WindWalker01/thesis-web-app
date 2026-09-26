@@ -1,10 +1,10 @@
 "use server";
 
-import type { SearchResponse } from "@/features/plagiarise-checker/types";
+import type { SearchResponse } from "@/features/public/plagiarise-checker/types";
 import {
   isUuidLike,
   resolveDbArtworkById,
-} from "@/features/plagiarise-checker/server/resolve-db-artwork";
+} from "@/features/public/plagiarise-checker/server/resolve-db-artwork";
 
 /**
  * Server action: enrich a web-check result with artwork metadata for

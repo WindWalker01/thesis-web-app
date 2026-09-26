@@ -25,7 +25,7 @@ vi.mock("sonner", () => ({
     },
 }));
 
-vi.mock("@/features/(user)/profile/hooks/useFetchProfileArtworks", () => ({
+vi.mock("@/features/user/profile/hooks/useFetchProfileArtworks", () => ({
     artworkKeys: { all: () => ["artworks"] },
 }));
 

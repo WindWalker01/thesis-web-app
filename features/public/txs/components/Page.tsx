@@ -2,13 +2,13 @@
 
 import { AlertTriangle, LoaderCircle } from "lucide-react";
 
-import { TransactionsEmptyState } from "@/features/txs/components/TransactionsEmptyState";
-import { TransactionsHero } from "@/features/txs/components/TransactionsHero";
-import { TransactionsPagination } from "@/features/txs/components/TransactionsPagination";
-import { TransactionsPrivacyNote } from "@/features/txs/components/TransactionsPrivacyNote";
+import { TransactionsEmptyState } from "@/features/public/txs/components/TransactionsEmptyState";
+import { TransactionsHero } from "@/features/public/txs/components/TransactionsHero";
+import { TransactionsPagination } from "@/features/public/txs/components/TransactionsPagination";
+import { TransactionsPrivacyNote } from "@/features/public/txs/components/TransactionsPrivacyNote";
 import { TransactionsSkeleton } from "./TransactionSkeleton";
-import { TransactionsTable } from "@/features/txs/components/TransactionsTable";
-import { TransactionsToolbar } from "@/features/txs/components/TransactionsToolbar";
+import { TransactionsTable } from "@/features/public/txs/components/TransactionsTable";
+import { TransactionsToolbar } from "@/features/public/txs/components/TransactionsToolbar";
 import { useBlockchainTransactions } from "../hooks/useBlockchainTransaction";
 
 export default function BlockchainTransactionsPage() {

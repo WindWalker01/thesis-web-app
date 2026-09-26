@@ -8,13 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { SimilarityReport } from "@/features/(user)/upload-artwork/server/art-similarity-scan";
+import type { SimilarityReport } from "@/features/user/upload-artwork/server/art-similarity-scan";
 import {
   formatSimilarityValue,
   getMatchTypeLabel,
-} from "@/features/(user)/upload-artwork/lib/similarity-display";
-import { ReferenceLink } from "@/features/(user)/upload-artwork/components/reference-link";
-import { MatchActionButton } from "@/features/plagiarise-checker/components/match-action-button";
+} from "@/features/user/upload-artwork/lib/similarity-display";
+import { ReferenceLink } from "@/features/user/upload-artwork/components/reference-link";
+import { MatchActionButton } from "@/features/public/plagiarise-checker/components/match-action-button";
 import { similarityReportToMatchContext } from "../lib/match-context";
 
 type SimilarityReportSummaryProps = {

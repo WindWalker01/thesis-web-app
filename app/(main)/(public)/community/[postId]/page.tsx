@@ -2,8 +2,8 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PostDetailClient } from "@/features/(user)/community/components/PostDetailClient";
-import { getCommunityPostById } from "@/features/(user)/community/server/community-feed";
+import { PostDetailClient } from "@/features/user/community/components/PostDetailClient";
+import { getCommunityPostById } from "@/features/user/community/server/community-feed";
 
 type PostPageProps = {
   params: Promise<{ postId: string }>;

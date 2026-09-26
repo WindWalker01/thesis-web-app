@@ -9,7 +9,7 @@ import type {
   BlockchainTxStatus,
   GetBlockchainTransactionsInput,
   GetBlockchainTransactionsResult,
-} from "@/features/txs/types";
+} from "@/features/public/txs/types";
 
 const RPC_URL =
   process.env.AMOY_RPC_URL ?? "https://rpc-amoy.polygon.technology/";

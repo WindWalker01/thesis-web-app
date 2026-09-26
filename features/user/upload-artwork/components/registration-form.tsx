@@ -26,9 +26,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { StatusProgress } from "@/features/(user)/upload-artwork/components/status-progress";
-import type { UploadArtworkFormValues } from "@/features/(user)/upload-artwork/schemas/artwork-schema";
-import { ArtworkLicenseSelector } from "@/features/artwork-licensing/components/ArtworkLicenseSelector";
+import { StatusProgress } from "@/features/user/upload-artwork/components/status-progress";
+import type { UploadArtworkFormValues } from "@/features/user/upload-artwork/schemas/artwork-schema";
+import { ArtworkLicenseSelector } from "@/features/user/artwork-licensing/components/ArtworkLicenseSelector";
 
 type RegistrationFormProps = {
   form: UseFormReturn<UploadArtworkFormValues>;

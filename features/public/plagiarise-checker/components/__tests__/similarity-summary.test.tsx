@@ -4,15 +4,15 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Summary now renders a MatchActionButton (auth + router).
-vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
+vi.mock("@/features/user/auth/hooks/useAuth", () => ({
   useAuth: () => ({ isAuthenticated: false, user: null, loading: false }),
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
-import { SimilaritySummary } from "@/features/plagiarise-checker/components/similarity-summary";
-import type { SearchResponse } from "@/features/plagiarise-checker/types";
+import { SimilaritySummary } from "@/features/public/plagiarise-checker/components/similarity-summary";
+import type { SearchResponse } from "@/features/public/plagiarise-checker/types";
 
 function makeResult(overrides: Partial<SearchResponse> = {}): SearchResponse {
   return {

@@ -30,7 +30,7 @@ import { HashRow } from "./HashRow";
 import { InfoRow } from "./InfoRow";
 import IssueDetailPageSkeleton from "./PageSkeleton";
 import { TechnicalDetailsToggle } from "../../artwork-detail/components/TechnicalDetailsToggle";
-import { ArtworkStatusBadge } from "@/features/(user)/profile/components/ArtworkStatusBadge";
+import { ArtworkStatusBadge } from "@/features/user/profile/components/ArtworkStatusBadge";
 import {
   getIssueExplanation,
   buildChainTxUrl,
@@ -38,10 +38,10 @@ import {
   formatIssueMetric,
 } from "../utils";
 import { MetricCard } from "./MetricCard";
-import { SimilarityReportSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
-import { ArtworkActionsMenu } from "@/features/(user)/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
-import { GenresSection } from "@/features/(user)/profile/subfeatures/artwork-detail/components/GenresSection";
-import { useRetryArtworkBlockchain } from "@/features/(user)/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
+import { SimilarityReportSection } from "@/features/user/profile/subfeatures/artwork-detail/components/SimilarityReportSection";
+import { ArtworkActionsMenu } from "@/features/user/profile/subfeatures/artwork-detail/components/ArtworkActionsMenu";
+import { GenresSection } from "@/features/user/profile/subfeatures/artwork-detail/components/GenresSection";
+import { useRetryArtworkBlockchain } from "@/features/user/profile/subfeatures/artwork-detail/hooks/useRetryArtworkBlockchain";
 
 type Props = {
   id: string;

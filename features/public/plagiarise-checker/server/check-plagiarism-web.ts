@@ -1,10 +1,10 @@
 "use server";
 
-import { enrichWebMatches } from "@/features/plagiarise-checker/server/enrich-web-matches";
+import { enrichWebMatches } from "@/features/public/plagiarise-checker/server/enrich-web-matches";
 import type {
   SearchResponse,
   PlagiarismWebResult,
-} from "@/features/plagiarise-checker/types";
+} from "@/features/public/plagiarise-checker/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_DIGITAL_ART_API_URL;
 

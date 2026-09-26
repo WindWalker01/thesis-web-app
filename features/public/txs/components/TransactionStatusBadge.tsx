@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock3, XCircle } from "lucide-react";
 
-import type { BlockchainTxStatus } from "@/features/txs/types";
+import type { BlockchainTxStatus } from "@/features/public/txs/types";
 
 export function TransactionStatusBadge({
     status,

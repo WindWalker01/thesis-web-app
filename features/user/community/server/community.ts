@@ -2,7 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatTimeAgo } from "@/lib/client-utils";
-import { getShowNsfwContentAction } from "@/features/(user)/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
+import { getShowNsfwContentAction } from "@/features/user/settings/subfeatures/show-nsfw-content/server/show-nsfw-content";
 import type {
     ArtistReputation,
     CommunityPageData,

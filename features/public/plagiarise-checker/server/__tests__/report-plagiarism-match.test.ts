@@ -15,7 +15,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 vi.mock("@/lib/account-status", () => ({
   requireActiveAccount: mocks.requireActiveAccount,
 }));
-vi.mock("@/features/plagiarise-checker/server/resolve-db-artwork", () => ({
+vi.mock("@/features/public/plagiarise-checker/server/resolve-db-artwork", () => ({
   isUuidLike: (v: unknown) => typeof v === "string" && v.length === 36,
 }));
 

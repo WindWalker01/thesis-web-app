@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   formatFileSize,
   readImageDimensions,
-} from "@/features/plagiarise-checker/lib/file-metadata";
+} from "@/features/public/plagiarise-checker/lib/file-metadata";
 
 describe("formatFileSize", () => {
   it("formats bytes, KB and MB with sensible precision", () => {

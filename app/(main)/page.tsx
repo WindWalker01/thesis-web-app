@@ -21,7 +21,7 @@ import {
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import { useAuth } from "@/features/(user)/auth/hooks/useAuth";
+import { useAuth } from "@/features/user/auth/hooks/useAuth";
 import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 
 export default function Home() {
