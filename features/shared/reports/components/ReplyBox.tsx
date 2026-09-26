@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/client-utils";
 import { MAX_EVIDENCE_FILE_SIZE, ALLOWED_EVIDENCE_MIME_TYPES, isAllowedFileType } from "@/features/shared/reports/schemas/report-schemas";
 import { toast } from "sonner";
 
