@@ -222,14 +222,12 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
     const uploadChart = buildDateChart(
       (uploadChartRaw.data ?? []) as { created_at: string }[],
-      "created_at",
     );
 
     // ── Chart 2: New Users (bar) ──
 
     const newUsersChart = buildDateChart(
       (newUsersRaw.data ?? []) as { created_at: string }[],
-      "created_at",
     );
 
     // ── Chart 3: Report Statuses (pie) ──
@@ -631,7 +629,6 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
 function buildDateChart(
   rows: { created_at: string }[],
-  _field: string,
 ): ChartDataPoint[] {
   const map = new Map<string, number>();
 
