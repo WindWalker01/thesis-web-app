@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Camera, CheckCircle, Loader2, Save, User, AtSign, FileText } from "lucide-react";
+import { Camera, Loader2, Save, User, AtSign, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
