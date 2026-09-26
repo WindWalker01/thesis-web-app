@@ -21,7 +21,7 @@ export async function POST(
   try {
     const reportId = (await params).id;
     const body = await request.json();
-    const { action, reason, notes, resolveOnComplete, artworkReason } = body;
+    const { action, reason, notes, resolveOnComplete } = body;
     let artworkId: string | undefined = body.artworkId;
 
     if (!action) {
