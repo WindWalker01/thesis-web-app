@@ -11,7 +11,6 @@ import {
   User as UserIcon,
   Menu,
   X,
-  MessageCircle,
   Award,
   Flag,
 } from "lucide-react";
