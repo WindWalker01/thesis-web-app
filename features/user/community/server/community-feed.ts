@@ -15,7 +15,6 @@ import {
 } from "./artist-reputation";
 import {
   getCommunityRecognitionBadge,
-  getBadgeIconName,
   type BadgeThresholds,
 } from "./badge-thresholds";
 import { getRuntimeSettings } from "@/features/admin/settings/lib/runtime-settings";
