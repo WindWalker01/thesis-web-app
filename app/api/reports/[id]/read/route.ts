@@ -5,7 +5,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/server-utils";
-import { markReadSchema } from "@/features/shared/reports/schemas/chat-schema";
 
 export async function PATCH(
   _request: NextRequest,
