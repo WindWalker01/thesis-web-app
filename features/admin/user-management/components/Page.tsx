@@ -6,7 +6,6 @@ import {
   RefreshCw,
   Users,
   Search,
-  ChevronDown,
   Download,
   Filter,
   MoreHorizontal,
