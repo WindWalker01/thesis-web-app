@@ -14,7 +14,9 @@ const mockArtwork = {
   license_identifier: "cc-by",
 };
 
-let currentArtwork: typeof mockArtwork | null = mockArtwork;
+let currentArtwork: (Omit<typeof mockArtwork, "license_identifier"> & {
+  license_identifier: string | null;
+}) | null = mockArtwork;
 
 vi.mock("@/lib/supabase/admin", () => ({
   createSupabaseAdminClient: vi.fn(() => ({

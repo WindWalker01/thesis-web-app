@@ -84,7 +84,9 @@ describe("updateArtworkGenres", () => {
         });
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain("At least one genre");
+        if (!result.success) {
+            expect(result.message).toContain("At least one genre");
+        }
     });
 
     it("rejects non-integer genre ids", async () => {
@@ -111,7 +113,9 @@ describe("updateArtworkGenres", () => {
         });
 
         expect(result.success).toBe(false);
-        expect(result.message).toContain("not found");
+        if (!result.success) {
+            expect(result.message).toContain("not found");
+        }
     });
 
     it("deletes existing rows and inserts the new set via the admin client", async () => {
@@ -144,6 +148,8 @@ describe("updateArtworkGenres", () => {
         });
 
         expect(result.success).toBe(false);
-        expect(result.message).toBe("delete boom");
+        if (!result.success) {
+            expect(result.message).toBe("delete boom");
+        }
     });
 });

@@ -22,10 +22,12 @@ describe("useArtworkFilePreview", () => {
       .mockImplementation(() => undefined);
 
     const file = new File(["art"], "art.png", { type: "image/png" });
-    const { result, unmount, rerender } = renderHook(
-      ({ file }: { file?: File }) => useArtworkFilePreview(file),
-      { initialProps: { file } },
-    );
+    const { result, unmount, rerender } = renderHook<
+      string | null,
+      { file: File | undefined }
+    >(({ file }) => useArtworkFilePreview(file), {
+      initialProps: { file },
+    });
 
     expect(createObjectURL).toHaveBeenCalledWith(file);
     expect(result.current).toBe("blob:preview");

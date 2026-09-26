@@ -4,7 +4,14 @@ import type { PlagiarismWebResult, OtherSearchMatch } from "../../types";
 
 // We need to mock the supabase module before importing the server action
 // Use a mutable object to hold our mock implementation
-const mockSupabaseResponse = {
+const mockSupabaseResponse: {
+  data: {
+    id: string;
+    title: string;
+    c_secure_url: string;
+  } | null;
+  error: { message: string } | null;
+} = {
   data: null,
   error: null,
 };
