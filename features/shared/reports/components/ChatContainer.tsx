@@ -34,7 +34,6 @@ export function ChatContainer({
   onSendMessage,
   onUploadEvidence,
   connectionStatus,
-  reportTitle,
   disabled = false,
   adminName = "Admin",
   reporterName = "Reporter",
