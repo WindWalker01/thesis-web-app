@@ -76,12 +76,14 @@ export default function SettingsPage() {
   );
 
   // Fetch settings on mount
-  const fetchSettings = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchSettings = useCallback(async (options?: { showLoading?: boolean }) => {
+    if (options?.showLoading) {
+      setIsLoading(true);
+    }
     try {
       const settingsData = await getSettings();
       setSettings(settingsData);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
@@ -90,7 +92,7 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    fetchSettings();
+    void fetchSettings();
   }, [fetchSettings]);
 
   // Helper: get current value for a setting
@@ -763,7 +765,7 @@ export default function SettingsPage() {
           <p className="text-muted-foreground text-sm">
             {error ?? "An unexpected error occurred while loading settings."}
           </p>
-          <Button onClick={() => fetchSettings()} className="gap-2">
+          <Button onClick={() => fetchSettings({ showLoading: true })} className="gap-2">
             <RefreshCw className="h-4 w-4" /> Retry
           </Button>
         </div>
