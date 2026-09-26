@@ -15,7 +15,7 @@ export default function AuthCallbackPage() {
     const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
     useEffect(() => {
-        let subscription: any;
+        let subscription: { unsubscribe: () => void } | undefined;
 
         const handleCallback = async () => {
             const params = new URLSearchParams(window.location.search);
