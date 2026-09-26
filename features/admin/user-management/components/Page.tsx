@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import Image from "next/image";
 import {
   AlertTriangle,
   RefreshCw,
@@ -254,10 +255,12 @@ export default function UserManagementPage() {
             <div className="flex items-center gap-3">
               <div className="bg-muted relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
                 {u.c_profile_image ? (
-                  <img
+                  <Image
                     src={u.c_profile_image}
                     alt={u.username}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="36px"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-bold">
