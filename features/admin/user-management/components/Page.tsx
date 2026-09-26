@@ -194,10 +194,6 @@ export default function UserManagementPage() {
     }
   }, []);
 
-  const sortOption = useMemo(() => {
-    if (sorting.length === 0) return sort;
-    return sort;
-  }, [sorting, sort]);
 
   // ── Table Columns ──
   const columns = useMemo<ColumnDef<UserRow>[]>(
