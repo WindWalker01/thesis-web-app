@@ -216,6 +216,8 @@ export type AdminReportListItem = {
   status: ReportStatus;
   created_at: string;
   resolved_at: string | null;
+  /** Similarity scan that produced the match (checker-originated reports). */
+  related_scan_id?: string | null;
   reporter: {
     id: string;
     first_name: string;

@@ -10,11 +10,37 @@ const reportPlagiarismMatchSchema = z.object({
   /** Matched registered artwork UUID (internal match). */
   matchedArtworkId: z.string().uuid("Invalid matched artwork ID"),
   matchedArtworkTitle: z.string().max(200).nullish(),
+  /** Matched artwork image, so the report can show the artwork visually. */
+  matchedArtworkImageUrl: z.string().max(2048).nullish(),
+  /**
+   * Cloudinary URL of the artwork the reporter uploaded/checked. Captured so
+   * admins can see the reported copy next to the matched registered artwork.
+   */
+  originalImageUrl: z.string().url("Invalid original artwork URL").nullish(),
+  /** Filename of the reporter's uploaded artwork. */
+  originalTitle: z.string().max(200).nullish(),
   similarity: z.number().min(0).max(100),
   source: z.string().max(200).nullish(),
   matchedUrl: z.string().max(2048).nullish(),
   originalHash: z.string().max(200).nullish(),
   scanId: z.string().uuid("Invalid scan ID").nullish(),
+  /**
+   * Reporter's own statement: the original source link or an explanation of
+   * why the matched artwork is theirs. Required, mirroring the community
+   * copyright report rule.
+   */
+  proof: z
+    .string()
+    .trim()
+    .min(1, "Please provide the original source / link or explain why you believe it’s stolen.")
+    .max(2000, "Proof must be at most 2000 characters."),
+  /** Optional extra context for the reviewers. */
+  details: z
+    .string()
+    .trim()
+    .max(1000, "Additional details must be at most 1000 characters.")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type ReportPlagiarismMatchInput = z.infer<
@@ -115,14 +141,21 @@ export async function reportPlagiarismMatch(
   const title = data.matchedArtworkTitle
     ? `Potential Copyright Concern — "${data.matchedArtworkTitle}"`
     : "Potential Copyright Concern — Registered Artwork Match";
+
+  // The description holds the reporter's own words. Detection data (similarity,
+  // hashes, matched URL) is structured data, not prose, so it is stored in
+  // `metadata` and rendered by the admin plagiarism-report card instead of
+  // being flattened into a text blob for reviewers to parse.
+  const descriptionParts = [
+    `Original source / proof: ${data.proof}`,
+    data.details ? `Additional details: ${data.details}` : null,
+  ].filter(Boolean);
+
   const description = [
-    "A potentially similar registered artwork was detected by the plagiarism checker.",
+    "Copyright report submitted from the plagiarism checker for an internal match against a registered artwork.",
     `Similarity: ${data.similarity.toFixed(1)}%`,
-    `Source: ${data.source ?? "Registered Artwork Database"}`,
-    data.matchedUrl ? `Matched artwork URL: ${data.matchedUrl}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
+    ...descriptionParts,
+  ].join("\n\n");
 
   const { data: report, error } = await supabase
     .from("reports")
@@ -137,12 +170,22 @@ export async function reportPlagiarismMatch(
       description,
       metadata: {
         match_type: "internal",
+        origin: "plagiarism_checker",
         source: data.source ?? "registered_arts",
         similarity_percentage: data.similarity,
         matched_art_id: data.matchedArtworkId,
         matched_artwork_title: data.matchedArtworkTitle ?? null,
+        matched_artwork_image_url: data.matchedArtworkImageUrl ?? null,
         matched_url: data.matchedUrl ?? null,
+        // The reporter's own uploaded copy. Same field name as
+        // artwork_reviews.original_artwork_url so both admin surfaces agree.
+        original_artwork_url: data.originalImageUrl ?? null,
+        original_artwork_title: data.originalTitle ?? null,
         original_hash: data.originalHash ?? null,
+        // Reporter's statement, kept structured so the admin UI can render the
+        // human text separately from the detection evidence.
+        reporter_proof: data.proof,
+        reporter_details: data.details || null,
         detected_at: new Date().toISOString(),
       },
     })

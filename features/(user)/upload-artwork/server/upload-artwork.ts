@@ -284,7 +284,12 @@ export async function recordArtworkInDatabase(
         databaseRenderThreshold: settings.db_match_display_threshold,
         minRenderThreshold: settings.min_render_threshold,
       });
-      similarityReport = buildSimilarityReport(result);
+      const builtReport = buildSimilarityReport(result);
+      // The user's own artwork is already in Cloudinary (the client uploads
+      // before calling this action), so carry its URL through for reports.
+      similarityReport = builtReport
+        ? { ...builtReport, originalArtworkUrl: assetMeta.data.secureUrl }
+        : null;
       // The moderation decision must use the PRIMARY match (highest similarity,
       // database-weighted) — not the display-curated report, which may select a
       // different match for presentation purposes.

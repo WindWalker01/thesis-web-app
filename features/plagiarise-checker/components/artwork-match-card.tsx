@@ -24,6 +24,8 @@ interface ArtworkMatchCardProps {
   thresholds?: SimilarityRiskThresholds;
   /** Original file being checked (external reviews upload it as evidence). */
   originalFile?: File | null;
+  /** Local preview of the checked artwork, shown in the report modal. */
+  originalPreviewUrl?: string | null;
   /** Filename of the artwork being checked. */
   filename?: string | null;
   /** Perceptual hash of the artwork being checked. */
@@ -75,6 +77,7 @@ export function ArtworkMatchCard({
   isBest,
   thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
   originalFile,
+  originalPreviewUrl,
   filename,
   originalHash,
   scanId,
@@ -142,6 +145,7 @@ export function ArtworkMatchCard({
             <MatchActionButton
               context={context}
               originalFile={originalFile}
+              originalPreviewUrl={originalPreviewUrl}
               filename={filename}
               size="sm"
             />

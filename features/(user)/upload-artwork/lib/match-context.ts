@@ -17,6 +17,11 @@ export function similarityReportToMatchContext(
     matchedArtworkUrl: internal
       ? report.matchedArtworkCommunityUrl ?? report.matchedArtworkImageUrl
       : null,
+    // Kept separate so the copyright-report modal can render the artwork as an
+    // image instead of a bare URL.
+    matchedArtworkImageUrl: internal ? report.matchedArtworkImageUrl : null,
+    matchedArtworkCommunityUrl: internal ? report.matchedArtworkCommunityUrl : null,
+    matchedArtworkAuthor: internal ? report.matchedArtworkAuthorName : null,
     externalUrl: internal ? null : report.link ?? report.url,
     externalSource: internal ? null : report.source,
     similarity: report.similarityPercentage,

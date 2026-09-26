@@ -1,6 +1,7 @@
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 // Summary now renders a MatchActionButton (auth + router).
 vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
@@ -30,6 +31,39 @@ function makeResult(overrides: Partial<SearchResponse> = {}): SearchResponse {
 const PREVIEW = "blob:preview";
 
 describe("SimilaritySummary", () => {
+  it("forwards the checked artwork preview to the report modal", async () => {
+    const user = userEvent.setup();
+    render(
+      <SimilaritySummary
+        preview={PREVIEW}
+        filename="mine.png"
+        result={makeResult({
+          best_match: {
+            type: "database",
+            source: "Registered Artwork",
+            url: "3213a9dc-ff10-40f2-8a1e-17017d1b40cb",
+            similarity: 74.8,
+            title: "PowerPuff Girls",
+            imageUrl: "https://res.cloudinary.com/example/powerpuff.jpg",
+          },
+        })}
+        onViewAnalysis={() => {}}
+        onReset={() => {}}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /report artwork/i }));
+
+    // The summary view is the default screen after analysis, so it must pass
+    // its own preview through — otherwise the modal shows a placeholder while
+    // the report still uploads the real file.
+    expect(await screen.findByAltText("Artwork you uploaded")).toHaveAttribute(
+      "src",
+      PREVIEW,
+    );
+    expect(screen.queryByText(/no preview available/i)).toBeNull();
+  });
+
   it("shows the best match identity and opens the detailed analysis", () => {
     const onViewAnalysis = vi.fn();
     render(

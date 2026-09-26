@@ -192,6 +192,7 @@ export function SimilaritySummary({
                   <MatchActionButton
                     context={bestContext}
                     originalFile={originalFile}
+                    originalPreviewUrl={preview}
                     filename={filename}
                     size="sm"
                   />

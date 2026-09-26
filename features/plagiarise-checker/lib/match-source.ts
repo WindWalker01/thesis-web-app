@@ -47,6 +47,12 @@ export type PlagiarismMatchContext = {
   matchedArtworkTitle: string | null;
   /** Matched artwork URL (community post or image URL; internal only). */
   matchedArtworkUrl: string | null;
+  /** Matched artwork image (Cloudinary URL) — used to render a visual preview. */
+  matchedArtworkImageUrl: string | null;
+  /** Public community post URL of the matched artwork, when it has one. */
+  matchedArtworkCommunityUrl: string | null;
+  /** Matched artwork owner display name (internal only). */
+  matchedArtworkAuthor: string | null;
   /** External result URL (external only). */
   externalUrl: string | null;
   /** External source, e.g. "Google Images" / "SerpAPI" (external only). */
@@ -79,6 +85,11 @@ export function buildMatchContext(
     matchedArtworkUrl: internal
       ? match.communityUrl ?? match.imageUrl ?? null
       : null,
+    // Kept separate from `matchedArtworkUrl` so the report UI can render the
+    // artwork as an image instead of showing a raw URL string.
+    matchedArtworkImageUrl: internal ? match.imageUrl ?? null : null,
+    matchedArtworkCommunityUrl: internal ? match.communityUrl ?? null : null,
+    matchedArtworkAuthor: internal ? match.authorName ?? null : null,
     externalUrl: internal ? null : match.link ?? match.url ?? null,
     externalSource: internal ? null : match.source ?? null,
     similarity: typeof match.similarity === "number" ? match.similarity : null,

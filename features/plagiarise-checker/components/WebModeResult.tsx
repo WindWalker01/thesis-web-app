@@ -105,6 +105,7 @@ export function WebModeResult({
             isBest={!isBestDb}
             thresholds={thresholds}
             originalFile={originalFile}
+            originalPreviewUrl={preview}
             filename={result.filename}
             originalHash={result.original_hash}
             scanId={scanId}
@@ -127,6 +128,7 @@ export function WebModeResult({
             isBest={isBestDb}
             thresholds={thresholds}
             originalFile={originalFile}
+            originalPreviewUrl={preview}
             filename={result.filename}
             originalHash={result.original_hash}
             scanId={scanId}

@@ -473,6 +473,7 @@ export async function getAdminReportsList(params: {
       resolved_at,
       target_type,
       target_id,
+      related_scan_id,
       reporter:users!reports_reporter_id_fkey (
         id,
         first_name,

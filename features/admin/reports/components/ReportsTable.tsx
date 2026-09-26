@@ -17,6 +17,7 @@ import {
   ImageIcon,
   MessageSquare,
   Gavel,
+  ScanSearch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -169,9 +170,21 @@ export function ReportsTable({
         header: "Category",
         accessorKey: "report_type",
         cell: ({ row }) => (
-          <Badge variant="outline" className="text-xs capitalize">
-            {REPORT_TYPE_LABELS[row.original.report_type] ?? row.original.report_type}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="outline" className="text-xs capitalize">
+              {REPORT_TYPE_LABELS[row.original.report_type] ?? row.original.report_type}
+            </Badge>
+            {row.original.related_scan_id && (
+              <Badge
+                variant="outline"
+                className="gap-1 border-primary/30 bg-primary/10 text-[10px] text-primary"
+                title="Submitted from the plagiarism checker"
+              >
+                <ScanSearch size={9} />
+                Plagiarism
+              </Badge>
+            )}
+          </div>
         ),
         enableSorting: true,
       },

@@ -14,6 +14,13 @@ export type SimilarityReport = {
   url: string | null;
   type: string | null;
   previewImageUrl: string | null;
+  /**
+   * Cloudinary URL of the artwork the user just uploaded. Already known by the
+   * time this report is built (the client uploads before calling the action),
+   * so a copyright report raised from the registration flow can show the
+   * reported copy beside the matched artwork.
+   */
+  originalArtworkUrl: string | null;
   matchedArtworkId: string | null;
   matchedArtworkTitle: string | null;
   matchedArtworkImageUrl: string | null;
@@ -198,6 +205,8 @@ export function buildSimilarityReport(
     url: best.url,
     type: best.type,
     previewImageUrl: best.type === "internet" ? best.url : null,
+    // Filled in by the upload action, which owns the Cloudinary asset metadata.
+    originalArtworkUrl: null,
     matchedArtworkId: best.type === "database" ? best.url : null,
     matchedArtworkTitle: null,
     matchedArtworkImageUrl: null,

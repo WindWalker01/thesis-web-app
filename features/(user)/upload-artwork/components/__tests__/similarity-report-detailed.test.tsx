@@ -22,6 +22,7 @@ function makeReport(overrides: Partial<SimilarityReport> = {}): SimilarityReport
     url: "3213a9dc-ff10-40f2-8a1e-17017d1b40cb",
     type: "database",
     previewImageUrl: "https://res.cloudinary.com/example/powerpuff.jpg",
+    originalArtworkUrl: "https://res.cloudinary.com/example/my-upload.png",
     matchedArtworkId: "3213a9dc-ff10-40f2-8a1e-17017d1b40cb",
     matchedArtworkTitle: "PowerPuff Girls",
     matchedArtworkImageUrl: "https://res.cloudinary.com/example/powerpuff.jpg",

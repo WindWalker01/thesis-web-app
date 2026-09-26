@@ -134,6 +134,10 @@ export function SimilarityReportSummary({
               context={matchContext}
               size="sm"
               artworkId={artworkId}
+              // Already uploaded by the registration flow, so no re-upload is
+              // needed: the report carries the user's own artwork.
+              originalImageUrl={similarityReport.originalArtworkUrl}
+              originalPreviewUrl={similarityReport.originalArtworkUrl}
             />
           </div>
         </div>

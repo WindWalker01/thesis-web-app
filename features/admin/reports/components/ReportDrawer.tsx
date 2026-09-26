@@ -38,6 +38,10 @@ import { ReportStatusBadge } from "./ReportStatusBadge";
 import { StatusActions } from "./StatusActions";
 import { EvidenceViewer } from "./EvidenceViewer";
 import { ResolutionCard } from "./ResolutionCard";
+import {
+  PlagiarismReportCard,
+  isPlagiarismReport,
+} from "./PlagiarismReportCard";
 import { Timeline } from "@/features/reports/components/Timeline";
 import { ChatContainer } from "@/features/reports/components/ChatContainer";
 import { useRealtimeMessages } from "@/features/reports/hooks/useRealtimeMessages";
@@ -154,6 +158,11 @@ export function ReportDrawer({
     detail?.reported_art_post?.registered_arts ?? detail?.matched_artwork;
   const hasAssociatedArtwork = !!associatedArtwork;
   const artworkTitle = associatedArtwork?.title ?? "this artwork";
+
+  // Reports raised from the plagiarism checker get a dedicated card: the
+  // detection evidence and the reporter's statement are rendered as structured
+  // UI instead of the raw generated description blob.
+  const showPlagiarismCard = detail ? isPlagiarismReport(detail) : false;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -295,6 +304,9 @@ export function ReportDrawer({
               {/* RIGHT COLUMN: Info + Timeline + Resolution */}
               <div className="w-1/2 flex flex-col overflow-hidden">
                 <div className="overflow-y-auto p-4 space-y-4">
+                  {/* Copyright report raised from plagiarism detection */}
+                  {showPlagiarismCard && <PlagiarismReportCard detail={detail} />}
+
                   {/* Report Details Card */}
                   <div className="rounded-lg border p-3 space-y-2">
                     <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -326,7 +338,10 @@ export function ReportDrawer({
                         <p className="text-sm mt-1">{detail.report.title}</p>
                       </div>
                     )}
-                    {detail.report.description && (
+                    {/* Plagiarism reports render their description inside the
+                        plagiarism card (reporter statement + collapsible legacy
+                        summary), so it is not repeated here as a text blob. */}
+                    {detail.report.description && !showPlagiarismCard && (
                       <div className="pt-2">
                         <div className="text-xs text-muted-foreground">Additional details</div>
                         <p className="text-sm mt-1">{detail.report.description}</p>
