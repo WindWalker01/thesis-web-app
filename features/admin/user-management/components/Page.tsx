@@ -1172,10 +1172,12 @@ export default function UserManagementPage() {
                   <DialogTitle className="flex items-center gap-3 text-lg">
                     <div className="bg-muted relative h-10 w-10 overflow-hidden rounded-full">
                       {selectedUser.c_profile_image ? (
-                        <img
+                        <Image
                           src={selectedUser.c_profile_image}
                           alt={selectedUser.username}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="40px"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="text-muted-foreground flex h-full w-full items-center justify-center text-sm font-bold">
