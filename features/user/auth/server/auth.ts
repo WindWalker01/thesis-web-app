@@ -28,7 +28,7 @@ export async function signIn(input: SignInInput) {
   return { data, error: null };
 }
 
-export async function signUp(input: SignUpInput, captchaToken?: string | null) {
+export async function signUp(input: SignUpInput) {
   const parsed = signUpSchema.safeParse(input);
   if (!parsed.success) {
     return { data: null, error: { message: parsed.error.issues[0].message } };
