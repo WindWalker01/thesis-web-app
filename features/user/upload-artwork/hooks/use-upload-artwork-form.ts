@@ -140,6 +140,7 @@ export function useUploadArtworkForm() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() cannot be memoized safely
   const watchedFile = form.watch("file");
   const watchedTitle = form.watch("title");
   const watchedDescription = form.watch("description") ?? "";
