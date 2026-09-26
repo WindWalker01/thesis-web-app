@@ -14,7 +14,6 @@ import {
   Users,
   ImageIcon,
   FileText,
-  ChevronLeft,
   Settings2,
   ShieldCheck,
   User as UserIcon,
