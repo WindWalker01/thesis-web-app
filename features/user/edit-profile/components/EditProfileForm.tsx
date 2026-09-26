@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { Camera, CheckCircle, Loader2, Save, User, AtSign, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
