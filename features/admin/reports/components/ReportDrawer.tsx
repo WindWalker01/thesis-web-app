@@ -73,7 +73,6 @@ export function ReportDrawer({
   onAddComment,
   onUploadEvidence,
   isUpdatingStatus,
-  isSendingComment,
   onRefresh,
 }: ReportDrawerProps) {
   const [showTimeline, setShowTimeline] = useState(false);
