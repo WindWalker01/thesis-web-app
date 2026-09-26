@@ -95,7 +95,6 @@ export function ReportDrawer({
   // Realtime messages for this report
   const {
     messages,
-    sendMessage,
     connectionStatus,
   } = useRealtimeMessages({
     reportId: detail?.report.id ?? "",
