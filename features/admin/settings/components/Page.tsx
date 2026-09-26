@@ -75,7 +75,31 @@ export default function SettingsPage() {
     new Map(),
   );
 
-  // Fetch settings on mount
+  // Fetch settings on mount (inline so the effect does not call a setState helper)
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const settingsData = await getSettings();
+        if (cancelled) return;
+        setSettings(settingsData);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load settings");
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const fetchSettings = useCallback(async (options?: { showLoading?: boolean }) => {
     if (options?.showLoading) {
       setIsLoading(true);
@@ -90,10 +114,6 @@ export default function SettingsPage() {
       setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    void fetchSettings();
-  }, [fetchSettings]);
 
   // Helper: get current value for a setting
   const getValue = useCallback(
