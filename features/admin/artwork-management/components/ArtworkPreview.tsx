@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ImageIcon, User, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { formatDate, cn } from "@/lib/client-utils";
+import { formatDate } from "@/lib/client-utils";
 import { ArtworkStatusBadge, NeedsReviewBadge } from "./ArtworkStatusBadge";
 import type { ArtworkDetail } from "../types";
 
