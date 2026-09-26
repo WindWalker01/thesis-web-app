@@ -32,6 +32,7 @@ export function useRegisterForm() {
     reValidateMode: "onChange",
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() cannot be memoized safely
   const password = watch("password", "");
   const confirmPassword = watch("confirmPassword", "");
   const firstName = watch("firstName", "");
