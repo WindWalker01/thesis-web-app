@@ -46,7 +46,6 @@ import { useRealtimeMessages } from "@/features/shared/reports/hooks/useRealtime
 import type {
   AdminReportDetail,
   ReportStatus,
-  ReportAction,
 } from "@/features/shared/reports/types";
 import { REPORT_TYPE_LABELS } from "@/features/shared/reports/types";
 
