@@ -41,6 +41,15 @@ import { SettingSelect } from "./SettingSelect";
 import { SettingDateTime } from "./SettingDateTime";
 import { ConfirmDialog } from "./ConfirmDialog";
 
+const MAINTENANCE_CHILD_KEYS = new Set([
+  "maintenance_message",
+  "scheduled_maintenance",
+  "scheduled_maintenance_start",
+  "scheduled_maintenance_end",
+  "allow_admin_login_during_maintenance",
+  "display_countdown",
+]);
+
 export default function SettingsPage() {
   // Data state
   const [settings, setSettings] = useState<Record<string, SettingValue> | null>(
@@ -75,23 +84,45 @@ export default function SettingsPage() {
     new Map(),
   );
 
-  // Fetch settings on mount
-  const fetchSettings = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  // Fetch settings on mount (inline so the effect does not call a setState helper)
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const settingsData = await getSettings();
+        if (cancelled) return;
+        setSettings(settingsData);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load settings");
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const fetchSettings = useCallback(async (options?: { showLoading?: boolean }) => {
+    if (options?.showLoading) {
+      setIsLoading(true);
+    }
     try {
       const settingsData = await getSettings();
       setSettings(settingsData);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
       setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
 
   // Helper: get current value for a setting
   const getValue = useCallback(
@@ -569,15 +600,6 @@ export default function SettingsPage() {
   // so only the main toggle is visible. When maintenance_mode is ON,
   // all configuration fields appear (with scheduled datetime fields
   // further gated by scheduled_maintenance).
-  const MAINTENANCE_CHILD_KEYS = new Set([
-    "maintenance_message",
-    "scheduled_maintenance",
-    "scheduled_maintenance_start",
-    "scheduled_maintenance_end",
-    "allow_admin_login_during_maintenance",
-    "display_countdown",
-  ]);
-
   const isSettingVisible = useCallback(
     (setting: SettingDefinition): boolean => {
       // Gate scheduled datetime fields by BOTH maintenance_mode AND scheduled_maintenance.
@@ -743,7 +765,7 @@ export default function SettingsPage() {
         </div>
       );
     },
-    [renderSetting, renderSettingCard, expandedGroups],
+    [renderSetting, renderSettingCard, expandedGroups, isSettingVisible],
   );
 
   const totalDirtyCount = dirtyChanges.size;
@@ -763,7 +785,7 @@ export default function SettingsPage() {
           <p className="text-muted-foreground text-sm">
             {error ?? "An unexpected error occurred while loading settings."}
           </p>
-          <Button onClick={() => fetchSettings()} className="gap-2">
+          <Button onClick={() => fetchSettings({ showLoading: true })} className="gap-2">
             <RefreshCw className="h-4 w-4" /> Retry
           </Button>
         </div>

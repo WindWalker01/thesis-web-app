@@ -77,7 +77,6 @@ export async function buildRecognitionProfile(
           const down = input.downvoteCount;
           const isPositive = up > down;
           const isNegative = down > up;
-          const isNeutral = up === down;
 
           let satisfied: boolean;
           let description: string;

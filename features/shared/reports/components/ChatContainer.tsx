@@ -8,7 +8,6 @@ import { NewMessagesButton } from "./NewMessagesButton";
 import { useChatScroll } from "@/features/shared/reports/hooks/useChatScroll";
 import { useTypingIndicator } from "@/features/shared/reports/hooks/useTypingIndicator";
 import { useReadReceipts } from "@/features/shared/reports/hooks/useReadReceipts";
-import { useDesktopNotification } from "@/features/shared/reports/hooks/useDesktopNotification";
 import { ChatInput } from "./ChatInput";
 import type { ChatMessage as ChatMessageType, RealtimeConnectionStatus } from "@/features/shared/reports/types";
 
@@ -35,7 +34,6 @@ export function ChatContainer({
   onSendMessage,
   onUploadEvidence,
   connectionStatus,
-  reportTitle,
   disabled = false,
   adminName = "Admin",
   reporterName = "Reporter",
@@ -69,22 +67,7 @@ export function ChatContainer({
     enabled: !disabled,
   });
 
-  // Desktop notifications
-  const { notifyNewMessage } = useDesktopNotification({
-    reportId,
-    reportTitle,
-    enabled: true,
-  });
 
-  // Determine if current user is admin for display purposes
-  const isCurrentUserAdmin = useCallback(
-    (userId: string) => {
-      // We determine this based on the message is_admin flag for the most recent message from this user
-      const userMessages = messages.filter((m) => m.user_id === userId);
-      return userMessages.some((m) => m.is_admin);
-    },
-    [messages]
-  );
 
   // Get display name for a user
   const getDisplayName = useCallback(
@@ -112,15 +95,6 @@ export function ChatContainer({
     });
   }, [typingUsers, messages, getDisplayName]);
 
-  // Handle new message notification
-  const handleIncomingMessage = useCallback(
-    (comment: ChatMessageType) => {
-      if (comment.user_id !== currentUserId && !document.hasFocus()) {
-        notifyNewMessage(comment, comment.is_admin);
-      }
-    },
-    [currentUserId, notifyNewMessage]
-  );
 
   return (
     <div className="flex h-full flex-col bg-gradient-to-b from-background to-background/95">

@@ -15,13 +15,12 @@ export default function AuthCallbackPage() {
     const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
     useEffect(() => {
-        let subscription: any;
+        let subscription: { unsubscribe: () => void } | undefined;
 
         const handleCallback = async () => {
             const params = new URLSearchParams(window.location.search);
 
             const urlError = params.get("error_description");
-            const email = params.get("email");
 
             if (urlError) {
                 setStatus("error");
@@ -94,9 +93,9 @@ export default function AuthCallbackPage() {
             setResendStatus("sent");
             setCooldown(60);
 
-        } catch (err: any) {
+        } catch (err) {
             setResendStatus("error");
-            setErrorMessage(err.message);
+            setErrorMessage(err instanceof Error ? err.message : "Failed to resend confirmation email");
         }
     };
 

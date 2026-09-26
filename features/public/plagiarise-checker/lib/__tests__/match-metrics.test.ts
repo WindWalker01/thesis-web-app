@@ -31,9 +31,7 @@ it("returns 0 when only calibrated_confidence is present (no raw score)", () => 
 expect(getPrimaryScore({
 raw_similarity: 22.4, calibrated_confidence: 99.2
 })).toBe(0);
-    // Cast to any to satisfy the type checker - the function ignores extra
-    // properties and treats this as "no raw score" → 0.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Extra calibrated_confidence is ignored; without a raw score this is 0.
 });
 it("falls back to similarity for legacy responses", () => {
 expect(getPrimaryScore({

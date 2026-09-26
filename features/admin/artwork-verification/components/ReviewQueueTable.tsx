@@ -16,7 +16,6 @@ import {
   ChevronRight,
   ImageIcon,
   Globe,
-  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -223,6 +222,7 @@ export function ReviewQueueTable({
     []
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function identities
   const table = useReactTable({
     data: reviews,
     columns,

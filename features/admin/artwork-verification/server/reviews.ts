@@ -521,8 +521,6 @@ export async function assignReviewer(
       return { success: false, message: "Cannot assign an already decided review" };
     }
 
-    const previousStatus = review.status;
-
     // Update review
     const updatePayload: Record<string, any> = {
       reviewer_id: reviewerId,
@@ -871,7 +869,6 @@ export async function requestInformation(
 
     const artwork = (review as any).artwork;
     const previousStatus = review.status;
-
     // Update review — also set reviewer_id to the admin who made the decision
     await supabase
       .from("artwork_reviews")

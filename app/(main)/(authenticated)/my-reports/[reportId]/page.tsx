@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useReportDetail } from "@/features/shared/reports/hooks/useReportDetail";
 import { useRealtimeMessages } from "@/features/shared/reports/hooks/useRealtimeMessages";
 import { useUploadEvidence } from "@/features/shared/reports/hooks/useUploadEvidence";
-import { useAppealReport } from "@/features/shared/reports/hooks/useAppealReport";
 import { StatusBadge } from "@/features/shared/reports/components/StatusBadge";
 import { Timeline } from "@/features/shared/reports/components/Timeline";
 import { ChatContainer } from "@/features/shared/reports/components/ChatContainer";
@@ -55,7 +54,6 @@ export default function ReportDetailPage({ params }: PageParams) {
   } = useReportDetail(reportId);
 
   const uploadEvidenceMutation = useUploadEvidence();
-  const appealMutation = useAppealReport();
 
   // Realtime messages
   const { messages, sendMessage, connectionStatus } = useRealtimeMessages({

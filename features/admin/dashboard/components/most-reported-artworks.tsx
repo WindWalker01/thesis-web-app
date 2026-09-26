@@ -4,6 +4,7 @@ import { AlertTriangle, ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { MostReportedArtwork } from "../types";
+import Image from "next/image";
 
 type Props = {
   artworks: MostReportedArtwork[];
@@ -39,12 +40,14 @@ export function MostReportedArtworks({ artworks }: Props) {
               key={artwork.artwork_id}
               className="border-border flex items-center gap-3 border-b pb-3 last:border-0 last:pb-0"
             >
-              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+              <div className="relative h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                 {artwork.thumbnail ? (
-                  <img
+                  <Image
                     src={artwork.thumbnail}
                     alt={artwork.artwork_title}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="40px"
+                    className="object-cover"
                   />
                 ) : (
                   <ImageIcon className="h-5 w-5 text-muted-foreground/50" />

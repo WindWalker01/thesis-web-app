@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { signOut } from "@/features/user/auth/server/auth";
 
 export type SettingsTab =
@@ -20,24 +20,24 @@ export function useSettingsPage() {
     const [showLogout, setShowLogout] = useState(false);
     const [isLoggingOut, startLogoutTransition] = useTransition();
 
-    function openLogoutModal() {
+    const openLogoutModal = useCallback(() => {
         setShowLogout(true);
-    }
+    }, []);
 
-    function closeLogoutModal() {
+    const closeLogoutModal = useCallback(() => {
         if (isLoggingOut) return;
         setShowLogout(false);
-    }
+    }, [isLoggingOut]);
 
-    function handleTabChange(tab: SettingsTab) {
+    const handleTabChange = useCallback((tab: SettingsTab) => {
         setActiveTab(tab);
-    }
+    }, []);
 
-    function handleLogout() {
+    const handleLogout = useCallback(() => {
         startLogoutTransition(async () => {
             await signOut();
         });
-    }
+    }, [startLogoutTransition]);
 
     return useMemo(
         () => ({
@@ -49,6 +49,6 @@ export function useSettingsPage() {
             handleLogout,
             isLoggingOut,
         }),
-        [activeTab, showLogout, isLoggingOut, closeLogoutModal]
+        [activeTab, showLogout, isLoggingOut, openLogoutModal, closeLogoutModal, handleLogout, handleTabChange]
     );
 }

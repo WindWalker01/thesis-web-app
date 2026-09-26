@@ -41,14 +41,14 @@ export async function getBlockchainTransactionsClient(
     const toBlock = Math.max(0, latest - (page - 1) * windowSize);
     const fromBlock = Math.max(0, toBlock - windowSize + 1);
 
-    const filter = {
+    const filter: ethers.Filter = {
       address: CONTRACT_ADDRESS,
       fromBlock,
       toBlock,
       topics: [[WORK_REGISTERED_TOPIC, WORK_REVOKED_TOPIC]],
-    } as const;
+    };
 
-    const logs = await provider.getLogs(filter as any);
+    const logs = await provider.getLogs(filter);
 
     const items: BlockchainTransactionItem[] = [];
 

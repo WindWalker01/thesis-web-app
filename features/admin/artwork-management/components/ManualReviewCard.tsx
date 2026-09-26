@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/client-utils";
 import { toast } from "sonner";
 import type { ArtworkDetail } from "../types";
 

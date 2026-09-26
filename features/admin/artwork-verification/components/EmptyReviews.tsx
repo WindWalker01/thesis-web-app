@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Search, AlertTriangle, Clock } from "lucide-react";
+import { ShieldCheck, Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface EmptyReviewsProps {

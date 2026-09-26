@@ -215,7 +215,7 @@ export async function getArtworksList(
   const genreIds = Array.from(
     new Set((artGenresAll ?? []).map((g: any) => g.genre_id)),
   );
-  let genreMap: Record<number, string> = {};
+  const genreMap: Record<number, string> = {};
   if (genreIds.length > 0) {
     const { data: genreNames } = await adminSupabase
       .from("genres")

@@ -46,7 +46,7 @@ function deriveSummary(
  * panelists understand what this profile represents — and what it does not.
  */
 export function ArtworkRecognitionProfile({ profile }: Props) {
-    const { label, satisfied, total, dense } = deriveSummary(profile);
+    const { satisfied, total, dense } = deriveSummary(profile);
 
     return (
         <section className="overflow-hidden rounded-3xl border border-border/70 bg-card/85 backdrop-blur-xl">

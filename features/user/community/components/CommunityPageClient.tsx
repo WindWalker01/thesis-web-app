@@ -29,7 +29,6 @@ import type { CommunityPageData } from "../types";
 export default function CommunityPageClient({
   authed,
   currentUserId,
-  currentUsername,
   posts,
   stats,
 }: CommunityPageData) {
@@ -42,6 +41,8 @@ export default function CommunityPageClient({
 
   const {
     state: feedState,
+    filtersButtonRef,
+    filtersMenuRef,
     actions: feedActions,
   } = useCommunityFeed({
     authed,
@@ -194,7 +195,7 @@ export default function CommunityPageClient({
 
                     <div className="relative">
                       <button
-                        ref={feedState.filtersButtonRef}
+                        ref={filtersButtonRef}
                         type="button"
                         aria-haspopup="menu"
                         aria-expanded={feedState.filtersOpen}
@@ -216,7 +217,7 @@ export default function CommunityPageClient({
 
                       {authed && feedState.filtersOpen ? (
                         <div
-                          ref={feedState.filtersMenuRef}
+                          ref={filtersMenuRef}
                           className="absolute right-0 z-30 mt-2 w-[320px] rounded-2xl border border-border bg-card p-4 shadow-xl"
                         >
                           <div className="space-y-4">

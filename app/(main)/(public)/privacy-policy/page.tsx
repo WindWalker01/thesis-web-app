@@ -1,14 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import NavBar from "@/components/blocks/navbar";
 import { useEffect, useRef } from "react";
 import {
   ShieldCheck, Database, Eye, Lock, UserCheck, RefreshCw, Globe,
-  AlertTriangle, BookOpen, Mail, Share2Icon, MapPin,
-  FileText, Scale, FileClockIcon, Users, Blocks, BrainCircuit,
+  FileText,
 } from "lucide-react";
-import Image from "next/image";
 
 /* ── Canva-style scroll-up reveal ── */
 function Reveal({

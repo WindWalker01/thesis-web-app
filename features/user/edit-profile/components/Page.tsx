@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import NavBar from "@/components/blocks/navbar";
-import { ArrowLeft, CheckCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 import { useCurrentUserProfile } from "@/features/user/profile/hooks/useFetchProfile";
 import { EditProfileForm } from "./EditProfileForm";

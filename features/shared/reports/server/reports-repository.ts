@@ -803,7 +803,7 @@ async function getModerationArtworkStats(
     };
   }
 
-  const [allRes, copyrightRes, removedRes] = await Promise.all([
+  const settled = await Promise.all([
     supabase.from("reports").select("*", { count: "exact", head: true }).eq("reported_art_post_id", artPostId),
     supabase.from("reports").select("*", { count: "exact", head: true }).eq("reported_art_post_id", artPostId).eq("report_type", "copyright"),
     supabase.from("report_actions")
@@ -811,6 +811,8 @@ async function getModerationArtworkStats(
       .eq("action", "artwork_removed")
       .in("report_id", (await supabase.from("reports").select("id").eq("reported_art_post_id", artPostId)).data?.map((r: { id: string }) => r.id) ?? []),
   ]);
+  const allRes = settled[0];
+  const copyrightRes = settled[1];
 
   // Simpler fallback for wasRemoved: check art_posts is_archived
   const { data: artPost } = await supabase

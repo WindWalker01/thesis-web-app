@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import NavBar from "@/components/blocks/navbar";
 import { useEffect, useRef } from "react";
 import {
   AlertTriangle, FileText, ShieldCheck, Scale, UserCheck,
-  ThumbsUp, Flag, RefreshCw, Globe, BookOpen, Mail,
-  Share2Icon, MapPin, BrainCircuit, FileClockIcon, Users, Blocks,
+  ThumbsUp, Flag, RefreshCw, Globe,
 } from "lucide-react";
 
 /* ── Canva-style scroll reveal ── */
@@ -118,7 +115,7 @@ export default function TermsOfUsePage() {
             { label: "Total Clauses", value: "10" },
             { label: "Jurisdiction", value: "Philippines" },
             { label: "Effective", value: "Jan 2026" },
-          ].map((item, i) => (
+          ].map((item) => (
             <div key={item.label} className="flex items-center gap-2 text-base">
               <span className="text-blue-200 text-sm uppercase tracking-widest font-medium">{item.label}</span>
               <span className="text-white font-black">{item.value}</span>

@@ -2,26 +2,21 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import {
   ShieldCheck,
   Clock,
   XCircle,
   HelpCircle,
-  AlertTriangle,
   Upload,
   Loader2,
   FileText,
-  Download,
   ChevronDown,
   ChevronUp,
-  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn, formatTimeAgo } from "@/lib/client-utils";
 import { submitReviewEvidence } from "@/features/user/upload-artwork/server/submit-review-evidence";

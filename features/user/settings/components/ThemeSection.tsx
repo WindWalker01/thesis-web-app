@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { Palette, Sun, Moon, Monitor } from "lucide-react";
 import { Card } from "../subfeatures/artwork-ownership/components/ArtworkOwnershipSection";
 
 export default function ThemeSection() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
   const { theme, setTheme, resolvedTheme } = useTheme();
-
-  useEffect(() => setMounted(true), []);
 
   /* ── Theme options ── */
   const THEME_OPTIONS = [

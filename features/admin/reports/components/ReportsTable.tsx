@@ -257,6 +257,7 @@ export function ReportsTable({
     [onViewReport, onAssign, onWarnUser, onSuspendUser, onBanUser]
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function identities
   const table = useReactTable({
     data: reports,
     columns,

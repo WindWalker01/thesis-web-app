@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useSyncExternalStore } from "react";
 import {
-  BadgeCheck,
-  Bell,
   ChevronsUpDown,
   LayoutDashboard,
   Loader2,
@@ -16,14 +14,11 @@ import {
   Users,
   ImageIcon,
   FileText,
-  ChevronLeft,
   Settings2,
   ShieldCheck,
   User as UserIcon,
-  PanelLeftIcon,
 } from "lucide-react";
 import { cn } from "@/lib/client-utils";
-import { Button } from "@/components/ui/button";
 import { usePendingReviewCount } from "@/features/admin/artwork-verification/hooks/useReviews";
 import { useAuth } from "@/features/user/auth/hooks/useAuth";
 import { useSiteSettings } from "../../settings/lib/use-site-settings";

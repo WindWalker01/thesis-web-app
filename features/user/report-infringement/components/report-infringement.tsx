@@ -173,7 +173,9 @@ export default function ReportInfringementPageShadcn() {
                                         <Label className="text-base font-medium">What are you reporting?</Label>
                                         <RadioGroup
                                             value={reportKind}
-                                            onValueChange={(v) => setReportKind(v as any)}
+                                            onValueChange={(v) =>
+                                                setReportKind(v as "copied" | "dispute")
+                                            }
                                             className="grid grid-cols-1 md:grid-cols-2 gap-3"
                                         >
                                             <label className="flex items-start gap-3 rounded-lg border p-3 cursor-pointer">

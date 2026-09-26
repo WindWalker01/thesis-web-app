@@ -3,9 +3,7 @@
 import { motion } from "framer-motion";
 import {
   Clock,
-  AlertTriangle,
   CheckCircle2,
-  XCircle,
   ShieldAlert,
   Timer,
   FileText,

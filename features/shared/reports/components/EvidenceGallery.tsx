@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import type { ReportEvidence } from "@/features/shared/reports/types";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, getFileIcon } from "@/features/shared/reports/lib/report-utils";
@@ -17,7 +18,6 @@ type EvidenceGalleryProps = {
 
 export function EvidenceGallery({
   evidence,
-  reportId,
   canUpload = false,
   onUpload,
 }: EvidenceGalleryProps) {
@@ -92,11 +92,13 @@ export function EvidenceGallery({
             >
               {/* Preview */}
               {isImage(item.mime_type) ? (
-                <div className="aspect-video overflow-hidden bg-muted">
-                  <img
+                <div className="relative aspect-video overflow-hidden bg-muted">
+                  <Image
                     src={item.file_url}
                     alt={item.file_name}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover transition-transform group-hover:scale-105"
                   />
                 </div>
               ) : (

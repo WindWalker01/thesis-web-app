@@ -11,7 +11,6 @@ import {
   Lock,
   MoreHorizontal,
   Pencil,
-  Share2,
   Trash2,
   X,
 } from "lucide-react";

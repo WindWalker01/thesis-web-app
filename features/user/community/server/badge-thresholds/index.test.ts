@@ -5,7 +5,6 @@ import {
   getBadgeIconName,
   validateBadgeThresholds,
   type BadgeThresholds,
-  type CommunityRecognitionBadge,
   DEFAULT_BADGE_THRESHOLDS,
 } from "./index";
 

@@ -1,5 +1,4 @@
 import {
-    Bell,
     CheckCircle2,
     AlertTriangle,
     XCircle,

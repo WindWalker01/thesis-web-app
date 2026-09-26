@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase/client";
 
 type UseReadReceiptsOptions = {
   reportId: string;

@@ -89,7 +89,7 @@ export async function GET(
   let upstream: Response;
   try {
     upstream = await fetch(artwork.c_secure_url, { signal: AbortSignal.timeout(8_000) });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to download the original artwork." },
       { status: 502 },

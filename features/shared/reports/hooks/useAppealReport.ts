@@ -14,7 +14,7 @@ type AppealInput = {
  * The backend endpoint is not yet implemented; this prepares the UI for future integration.
  * Currently simulates a successful appeal after a short delay.
  */
-async function submitAppeal({ reportId, reason }: AppealInput): Promise<{ success: true }> {
+async function submitAppeal({}: AppealInput): Promise<{ success: true }> {
   // TODO: Replace with actual API call when backend is ready
   // Expected endpoint: POST /api/reports/${reportId}/appeal
   // Body: { reason: string }

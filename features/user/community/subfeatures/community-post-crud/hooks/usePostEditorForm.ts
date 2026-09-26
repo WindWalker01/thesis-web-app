@@ -40,6 +40,7 @@ export function usePostEditorForm({
         },
     });
 
+    // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() cannot be memoized safely
     const selectedArtworkId = form.watch("artId");
 
     const selectedArtwork = useMemo<UserArtworkOption | null>(() => {

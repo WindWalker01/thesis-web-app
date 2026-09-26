@@ -16,8 +16,6 @@ export function useDesktopNotification({
 }: UseDesktopNotificationOptions) {
   const lastNotifiedId = useRef<string | null>(null);
   const isFocused = useRef(true);
-  const previousMessageCount = useRef(0);
-
   // Track page focus
   useEffect(() => {
     const handleFocus = () => {

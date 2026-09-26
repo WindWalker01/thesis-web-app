@@ -22,8 +22,6 @@ export function BlockchainCard({ artwork, onRefresh }: BlockchainCardProps) {
   const isRegistered = !!(tx_hash && currentStatus === "active");
   const isPending = currentStatus === "pending_blockchain";
   const isFailed = currentStatus === "blockchain_failed";
-  const canRetry = isPending || isFailed;
-
   const explorerUrl = chain && tx_hash
     ? chain === "polygon_amoy"
       ? `https://amoy.polygonscan.com/tx/${tx_hash}`

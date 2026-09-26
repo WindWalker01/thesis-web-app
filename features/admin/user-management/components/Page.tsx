@@ -1,24 +1,22 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import Image from "next/image";
 import {
   AlertTriangle,
   RefreshCw,
   Users,
   Search,
-  ChevronDown,
   Download,
   Filter,
   MoreHorizontal,
   Eye,
   ExternalLink,
   CheckCircle2,
-  XCircle,
   Clock,
   ShieldAlert,
   Verified,
   Ban,
-  UserX,
   UserCheck,
   KeyRound,
   Bell,
@@ -74,7 +72,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useUserManagement,
   useUserManagementStats,
@@ -92,7 +89,6 @@ import { cn } from "@/lib/client-utils";
 import { UserManagementSkeleton } from "./page-skeleton";
 import type {
   UserRow,
-  UserManagementStats,
   UserFilters,
   UserSortOption,
   AccountStatus,
@@ -154,7 +150,7 @@ export default function UserManagementPage() {
       sort,
     });
 
-  const { stats, isLoading: statsLoading } = useUserManagementStats();
+  const { stats } = useUserManagementStats();
 
   const { user: selectedUser, isLoading: userLoading } =
     useUserDetail(selectedUserId);
@@ -199,10 +195,6 @@ export default function UserManagementPage() {
     }
   }, []);
 
-  const sortOption = useMemo(() => {
-    if (sorting.length === 0) return sort;
-    return sort;
-  }, [sorting, sort]);
 
   // ── Table Columns ──
   const columns = useMemo<ColumnDef<UserRow>[]>(
@@ -263,10 +255,12 @@ export default function UserManagementPage() {
             <div className="flex items-center gap-3">
               <div className="bg-muted relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
                 {u.c_profile_image ? (
-                  <img
+                  <Image
                     src={u.c_profile_image}
                     alt={u.username}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="36px"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs font-bold">
@@ -454,9 +448,12 @@ export default function UserManagementPage() {
         enableSorting: false,
       },
     ],
+    // Handlers are defined later in the component; cells close over them lazily.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid TDZ by keeping handler defs below columns
     [users, bulkSelection],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table returns unstable function identities
   const table = useReactTable({
     data: users,
     columns,
@@ -1175,10 +1172,12 @@ export default function UserManagementPage() {
                   <DialogTitle className="flex items-center gap-3 text-lg">
                     <div className="bg-muted relative h-10 w-10 overflow-hidden rounded-full">
                       {selectedUser.c_profile_image ? (
-                        <img
+                        <Image
                           src={selectedUser.c_profile_image}
                           alt={selectedUser.username}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="40px"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="text-muted-foreground flex h-full w-full items-center justify-center text-sm font-bold">
@@ -1429,12 +1428,14 @@ export default function UserManagementPage() {
                             key={art.id}
                             className="border-border flex items-center gap-3 rounded-lg border p-3"
                           >
-                            <div className="bg-muted h-14 w-14 shrink-0 overflow-hidden rounded-md">
+                            <div className="bg-muted relative h-14 w-14 shrink-0 overflow-hidden rounded-md">
                               {art.c_secure_url ? (
-                                <img
+                                <Image
                                   src={art.c_secure_url}
                                   alt={art.title}
-                                  className="h-full w-full object-cover"
+                                  fill
+                                  sizes="56px"
+                                  className="object-cover"
                                 />
                               ) : (
                                 <div className="text-muted-foreground flex h-full w-full items-center justify-center text-xs">

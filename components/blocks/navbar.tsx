@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -12,11 +11,6 @@ import {
   User as UserIcon,
   Menu,
   X,
-  ShieldCheck,
-  ScanSearch,
-  FileCheck,
-  MessageCircle,
-  Award,
   Flag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,19 +25,8 @@ import { getNotificationUI } from "@/features/user/notifications-navbar/lib/noti
 import { formatNotificationTime } from "@/features/user/notifications-navbar/lib/format-time";
 import { useCurrentUserProfile } from "@/features/user/profile/hooks/useFetchProfile";
 import { Logo } from "@/components/blocks/Logo";
-import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 
 /* ── Types ── */
-interface Notification {
-  id: number;
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-  text: string;
-  time: string;
-  read: boolean;
-}
-
 type NavLink = {
   label: string;
   href: string;
@@ -76,7 +59,6 @@ export default function NavBar() {
 
   const { user } = useAuth();
   const { profile } = useCurrentUserProfile();
-  const { settings } = useSiteSettings();
   const isAdmin = profile?.role === "admin";
 
   const {

@@ -238,9 +238,9 @@ export function useCommunityFeed({
             filteredPosts,
             featuredPosts,
             availableFilters,
-            filtersButtonRef,
-            filtersMenuRef,
         },
+        filtersButtonRef,
+        filtersMenuRef,
         actions: {
             setSearch,
             setActiveFilter,

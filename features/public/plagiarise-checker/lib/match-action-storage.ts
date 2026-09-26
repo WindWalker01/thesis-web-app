@@ -41,7 +41,10 @@ export function savePendingMatchAction(value: PendingMatchAction): void {
     // re-attached later, so the report simply goes in without the artwork.
     if (value.originalPreviewDataUrl) {
       try {
-        const { originalPreviewDataUrl: _dropped, ...rest } = value;
+        const rest = (({ originalPreviewDataUrl, ...r }: PendingMatchAction) => {
+          void originalPreviewDataUrl;
+          return r;
+        })(value);
         window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
         return;
       } catch {

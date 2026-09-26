@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  approveArtworkFromReview,
   rejectArtworkFromReview,
   removeArtworkFromReports,
   requestArtworkInformation,
@@ -22,7 +21,7 @@ export async function POST(
   try {
     const reportId = (await params).id;
     const body = await request.json();
-    const { action, reason, notes, resolveOnComplete, userReason, artworkReason } = body;
+    const { action, reason, notes, resolveOnComplete } = body;
     let artworkId: string | undefined = body.artworkId;
 
     if (!action) {
@@ -201,7 +200,7 @@ export async function POST(
         }
 
         // Step 3: Resolve the report
-        const resolution = await resolveReport(serverSupabase, {
+        await resolveReport(serverSupabase, {
           reportId,
           adminId,
           decision: resolveDecision as "no_violation" | "guideline_violation" | "copyright_confirmed" | "insufficient_evidence" | "false_report",

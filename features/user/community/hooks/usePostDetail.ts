@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Post, VoteType } from "../types";
@@ -31,15 +31,17 @@ export function usePostDetail({
   const [, startTransition] = useTransition();
 
   const [post, setPost] = useState<Post>(initialPost);
+  const [prevInitialPost, setPrevInitialPost] = useState(initialPost);
   const [reportOpen, setReportOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isVoting, setIsVoting] = useState(false);
 
   // Keep local state in sync when the server component re-renders (router.refresh).
-  useEffect(() => {
+  if (initialPost !== prevInitialPost) {
+    setPrevInitialPost(initialPost);
     setPost(initialPost);
-  }, [initialPost]);
+  }
 
   const isOwner = currentUserId !== null && currentUserId === post.userId;
 
