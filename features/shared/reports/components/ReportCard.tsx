@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { Report } from "@/features/shared/reports/types";
 import { StatusBadge } from "./StatusBadge";
 import { REPORT_TYPE_LABELS } from "@/features/shared/reports/lib/report-utils";
@@ -40,10 +41,12 @@ export function ReportCard({
           {/* Artwork Thumbnail */}
           <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
             {artworkThumbnail ? (
-              <img
+              <Image
                 src={artworkThumbnail}
                 alt={artworkTitle ?? "Artwork thumbnail"}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                fill
+                sizes="64px"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-muted-foreground/60">
