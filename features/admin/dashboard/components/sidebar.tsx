@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useSyncExternalStore } from "react";
 import {
-  BadgeCheck,
   Bell,
   ChevronsUpDown,
   LayoutDashboard,
