@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,6 @@ import type { ReviewFilters as FilterState } from "../types";
 import { DEFAULT_REVIEW_FILTERS } from "../types";
 
 export default function ArtworkVerificationPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Pagination
