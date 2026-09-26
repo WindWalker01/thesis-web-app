@@ -63,6 +63,9 @@ export default function ArtworkReviewWorkspace() {
 
   // State
   const [reviewNotes, setReviewNotes] = useState("");
+  const [prevServerNotes, setPrevServerNotes] = useState<string | undefined>(
+    undefined,
+  );
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -87,12 +90,11 @@ export default function ArtworkReviewWorkspace() {
     reviewNotesRef.current = reviewNotes;
   }, [reviewNotes]);
 
-  // Update notes when detail loads
-  useEffect(() => {
-    if (detail?.review_notes) {
-      setReviewNotes(detail.review_notes);
-    }
-  }, [detail?.review_notes]);
+  // Sync local notes when server notes change (adjust during render, not in an effect)
+  if (detail?.review_notes && detail.review_notes !== prevServerNotes) {
+    setPrevServerNotes(detail.review_notes);
+    setReviewNotes(detail.review_notes);
+  }
 
   // Derive decision status
   const isDecided = detail && (detail.status === "approved" || detail.status === "rejected");
