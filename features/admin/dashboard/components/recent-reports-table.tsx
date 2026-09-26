@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { RecentReport } from "../types";
+import Image from "next/image";
 
 type Props = {
   reports: RecentReport[];
@@ -66,12 +67,14 @@ export function RecentReportsTable({ reports }: Props) {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                      <div className="relative h-7 w-7 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                         {report.reporter.avatar ? (
-                          <img
+                          <Image
                             src={report.reporter.avatar}
                             alt=""
-                            className="h-full w-full object-cover"
+                            fill
+                            sizes="28px"
+                            className="object-cover"
                           />
                         ) : (
                           <span className="text-xs font-medium text-muted-foreground">
