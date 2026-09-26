@@ -25,7 +25,6 @@ import { getNotificationUI } from "@/features/user/notifications-navbar/lib/noti
 import { formatNotificationTime } from "@/features/user/notifications-navbar/lib/format-time";
 import { useCurrentUserProfile } from "@/features/user/profile/hooks/useFetchProfile";
 import { Logo } from "@/components/blocks/Logo";
-import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 
 /* ── Types ── */
 type NavLink = {
@@ -60,7 +59,6 @@ export default function NavBar() {
 
   const { user } = useAuth();
   const { profile } = useCurrentUserProfile();
-  const { settings } = useSiteSettings();
   const isAdmin = profile?.role === "admin";
 
   const {
