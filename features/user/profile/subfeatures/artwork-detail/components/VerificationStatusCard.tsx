@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import {
   ShieldCheck,
   Clock,
