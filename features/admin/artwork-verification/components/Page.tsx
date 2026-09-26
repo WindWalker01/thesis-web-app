@@ -18,7 +18,6 @@ import { ArtworkVerificationInfoBanner } from "./InfoBanner";
 import { ReviewStatusDescription } from "./StatusDescription";
 import { ReviewQuickViewDialog } from "./ReviewQuickViewDialog";
 import { exportReviewsCSV } from "../server/export";
-import { assignReviewer, unassignReviewer } from "../server/reviews";
 import type { ReviewFilters as FilterState } from "../types";
 import { DEFAULT_REVIEW_FILTERS } from "../types";
 
@@ -112,19 +111,6 @@ export default function ArtworkVerificationPage() {
   }, []);
 
 
-  const handleUnassign = useCallback(async (reviewId: string) => {
-    try {
-      const result = await unassignReviewer(reviewId);
-      if (result.success) {
-        toast.success(result.message);
-        invalidateAll();
-      } else {
-        toast.error(result.message);
-      }
-    } catch {
-      toast.error("Failed to unassign review");
-    }
-  }, [invalidateAll]);
 
   const handleExport = useCallback(async () => {
     try {
