@@ -521,8 +521,6 @@ export async function assignReviewer(
       return { success: false, message: "Cannot assign an already decided review" };
     }
 
-    const previousStatus = review.status;
-
     // Update review
     const updatePayload: Record<string, any> = {
       reviewer_id: reviewerId,
@@ -568,8 +566,6 @@ export async function unassignReviewer(
       .single();
 
     if (!review) return { success: false, message: "Review not found" };
-
-    const previousStatus = review.status;
 
     await supabase
       .from("artwork_reviews")
@@ -635,8 +631,6 @@ export async function approveArtwork(
     if (artwork.tx_hash && artwork.status === "active") {
       return { success: false, message: "Artwork is already registered on blockchain" };
     }
-
-    const previousStatus = review.status;
 
     // Update review — also set reviewer_id to the admin who made the decision
     const now = new Date().toISOString();
@@ -870,8 +864,6 @@ export async function requestInformation(
     }
 
     const artwork = (review as any).artwork;
-    const previousStatus = review.status;
-
     // Update review — also set reviewer_id to the admin who made the decision
     await supabase
       .from("artwork_reviews")
