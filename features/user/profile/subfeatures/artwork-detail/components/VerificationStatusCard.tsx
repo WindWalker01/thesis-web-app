@@ -10,7 +10,6 @@ import {
   Upload,
   Loader2,
   FileText,
-  Download,
   ChevronDown,
   ChevronUp,
   RefreshCw,
