@@ -28,16 +28,6 @@ import { Logo } from "@/components/blocks/Logo";
 import { useSiteSettings } from "@/features/admin/settings/lib/use-site-settings";
 
 /* ── Types ── */
-interface Notification {
-  id: number;
-  icon: React.ElementType;
-  color: string;
-  bg: string;
-  text: string;
-  time: string;
-  read: boolean;
-}
-
 type NavLink = {
   label: string;
   href: string;
