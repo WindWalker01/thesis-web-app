@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Sun, Moon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,14 +9,16 @@ import { motion, AnimatePresence } from "framer-motion";
  * ThemeToggle
  * Drop-in anywhere — navbar, settings, etc.
  * Reads the resolved theme from next-themes and toggles between light / dark.
- * Uses `mounted` guard to avoid hydration mismatch.
+ * Uses a client-mount store so server HTML matches without an effect setState.
  */
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
-  // Only render after mount so server HTML matches
-  useEffect(() => setMounted(true), []);
   if (!mounted) {
     // Placeholder same size to prevent layout shift
     return <div className={`w-9 h-9 rounded-lg ${className}`} />;
