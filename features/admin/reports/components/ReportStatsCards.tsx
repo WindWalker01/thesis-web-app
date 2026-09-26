@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import {
   Clock,
   CheckCircle2,
-  XCircle,
   ShieldAlert,
   Timer,
   FileText,
