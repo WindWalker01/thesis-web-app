@@ -1,7 +1,22 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { Artwork, ViewMode, ArtworkStatus, HashStatus } from "../types";
+
+const MOBILE_BREAKPOINT = 640;
+
+function subscribeViewport(onStoreChange: () => void) {
+  window.addEventListener("resize", onStoreChange);
+  return () => window.removeEventListener("resize", onStoreChange);
+}
+
+function getIsNarrow() {
+  return window.innerWidth < MOBILE_BREAKPOINT;
+}
+
+function getServerIsNarrow() {
+  return false;
+}
 
 export function useProfilePage(artworks: Artwork[], sortOptions: readonly string[]) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,41 +27,25 @@ export function useProfilePage(artworks: Artwork[], sortOptions: readonly string
   const [sortBy, setSortBy] = useState(sortOptions[0]);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
+  const isNarrow = useSyncExternalStore(
+    subscribeViewport,
+    getIsNarrow,
+    getServerIsNarrow,
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [prevIsNarrow, setPrevIsNarrow] = useState(isNarrow);
+
+  // Follow breakpoint changes without a mount effect setState.
+  if (isNarrow !== prevIsNarrow) {
+    setPrevIsNarrow(isNarrow);
+    setSidebarOpen(!isNarrow);
+  }
+
   const [sortOpen, setSortOpen] = useState(false);
 
   const [catOpen, setCatOpen] = useState(true);
   const [statusOpen, setStatusOpen] = useState(true);
   const [hashOpen, setHashOpen] = useState(false);
-
-  // Dynamically control sidebar visibility based on screen width.
-  // Handled in useEffect to prevent server/client hydration mismatch.
-  // Only triggers state changes when the width actually changes,
-  // preventing scroll-induced address bar resizes on mobile from closing the sidebar.
-  useEffect(() => {
-    let lastWidth = window.innerWidth;
-
-    const handleResize = () => {
-      const currentWidth = window.innerWidth;
-      if (currentWidth === lastWidth) return;
-      lastWidth = currentWidth;
-
-      if (currentWidth < 640) { // sm breakpoint
-        setSidebarOpen(false);
-      } else {
-        setSidebarOpen(true);
-      }
-    };
-
-    // Initialize state on mount
-    if (window.innerWidth < 640) {
-      setSidebarOpen(false);
-    }
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   const filtered = useMemo(() => {
     let list = [...artworks];
 
