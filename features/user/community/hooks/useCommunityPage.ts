@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState, useTransition, useCallback } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { CommunityPageData, Post, VoteType } from "../types";
 import type { ReportPayload } from "../subfeatures/report-artwork/types";
@@ -25,6 +25,7 @@ export function useCommunityPage({
   const [, startTransition] = useTransition();
 
   const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [prevInitialPosts, setPrevInitialPosts] = useState(initialPosts);
   const [reportOpen, setReportOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [postViewerOpen, setPostViewerOpen] = useState(false);
@@ -32,9 +33,10 @@ export function useCommunityPage({
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [pendingPostId, setPendingPostId] = useState<string | null>(null);
 
-  useEffect(() => {
+  if (initialPosts !== prevInitialPosts) {
+    setPrevInitialPosts(initialPosts);
     setPosts(initialPosts);
-  }, [initialPosts]);
+  }
 
   const openPostViewer = useCallback((post: Post) => {
     setSelectedPost(post);
