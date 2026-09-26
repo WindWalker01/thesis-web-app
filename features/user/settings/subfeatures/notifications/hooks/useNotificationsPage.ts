@@ -93,7 +93,7 @@ export function useNotificationsPage() {
         };
     }, [profile?.id, queryClient]);
 
-    const notifications = query.data ?? [];
+    const notifications = useMemo(() => query.data ?? [], [query.data]);
 
     const filtered = useMemo(() => {
         if (activeCategory === "all") return notifications;
