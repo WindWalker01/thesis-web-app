@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -94,15 +93,6 @@ export default function ArtworkVerificationPage() {
     error: detailError,
     refetch: refetchDetail,
   } = useReviewDetail(dialogOpen ? selectedReviewId : null);
-
-  const queryClient = useQueryClient();
-
-  // Helper to invalidate all review-related queries
-  const invalidateAll = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["admin-artwork-reviews"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-stats"] });
-    queryClient.invalidateQueries({ queryKey: ["admin-artwork-review-pending-count"] });
-  }, [queryClient]);
 
   // Handlers
   const handleViewReview = useCallback((reviewId: string) => {
