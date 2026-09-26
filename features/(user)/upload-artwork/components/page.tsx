@@ -61,6 +61,7 @@ export default function UploadArtworkPage() {
     processingMessage,
     steps,
     similarityReport,
+    artworkId,
     resetProgressState,
     handleFileSelect,
     handleDrop,
@@ -327,10 +328,12 @@ export default function UploadArtworkPage() {
                         Boolean(otherMatchesReport) &&
                         otherMatchesReport!.length > 0
                       }
+                      artworkId={artworkId}
                     />
                   ) : (
                     <SimilarityReportSummary
                       similarityReport={similarityReport}
+                      artworkId={artworkId}
                     />
                   )
                 ) : null}

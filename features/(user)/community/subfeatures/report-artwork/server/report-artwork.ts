@@ -62,12 +62,28 @@ export async function submitArtworkReport(rawInput: ReportArtworkInput) {
 
     const input = parsed.data;
 
+    // Link the report to the registered artwork as well as the community post.
+    // `target_type`/`target_id` is the canonical report -> artwork link (used by
+    // plagiarism reports and by every admin surface to resolve and moderate the
+    // reported artwork); `reported_art_post_id` alone leaves admin tooling
+    // dependent on the art_posts join.
+    const { data: post } = await supabase
+        .from("art_posts")
+        .select("art_id")
+        .eq("id", input.postId)
+        .maybeSingle();
+
+    const artworkId = post?.art_id ?? null;
+
     const payload = {
         reporter_id: userId,
         reported_art_post_id: input.postId,
         report_type: mapReasonToDbReportType(input.reason),
         title: buildReportTitle(input.reason),
         description: buildReportDescription(input),
+        ...(artworkId
+            ? { target_type: "artwork" as const, target_id: artworkId }
+            : {}),
     };
 
     const { error } = await supabase.from("reports").insert(payload);

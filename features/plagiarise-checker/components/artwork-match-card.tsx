@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Database, Globe, Trophy } from "lucide-react";
 import type { SearchMatch } from "../types";
@@ -7,8 +9,10 @@ import {
   DEFAULT_SIMILARITY_RISK_THRESHOLDS,
   getSimilarityRiskTier,
 } from "../lib/similarity-risk";
+import { buildMatchContext } from "../lib/match-source";
 import { RegisteredArtworkMatch } from "./registered-artwork-match";
 import { WebSourceMatch } from "./web-source-match";
+import { MatchActionButton } from "./match-action-button";
 
 export type ArtworkMatchSourceType = "registered_artwork" | "web" | "other";
 
@@ -18,6 +22,14 @@ interface ArtworkMatchCardProps {
   sourceType?: ArtworkMatchSourceType;
   isBest?: boolean;
   thresholds?: SimilarityRiskThresholds;
+  /** Original file being checked (external reviews upload it as evidence). */
+  originalFile?: File | null;
+  /** Filename of the artwork being checked. */
+  filename?: string | null;
+  /** Perceptual hash of the artwork being checked. */
+  originalHash?: string | null;
+  /** Persisted similarity scan id, when available (upload flow). */
+  scanId?: string | null;
 }
 
 const SOURCE_TITLES: Record<ArtworkMatchSourceType, string> = {
@@ -62,10 +74,16 @@ export function ArtworkMatchCard({
   sourceType,
   isBest,
   thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+  originalFile,
+  filename,
+  originalHash,
+  scanId,
 }: ArtworkMatchCardProps) {
   const type = sourceType ?? resolveSourceType(match);
   const isRegistered = type === "registered_artwork";
   const risk = getRiskBadge(getPrimaryScore(match), thresholds);
+  const showAction = type !== "other";
+  const context = buildMatchContext(match, { originalHash, scanId });
 
   return (
     <div
@@ -110,6 +128,25 @@ export function ArtworkMatchCard({
         <RegisteredArtworkMatch match={match} thresholds={thresholds} />
       ) : (
         <WebSourceMatch match={match} thresholds={thresholds} />
+      )}
+
+      {/* Action — driven by the match source, not its score */}
+      {showAction && context && (
+        <div className="border-t border-border px-4 py-3.5 sm:px-5">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-prose">
+              {isRegistered
+                ? "This artwork is registered on ArtForgeLab. If you believe this may constitute a copyright concern, you can report it for review."
+                : "This match was found outside ArtForgeLab. You can request a manual review so the result can be investigated."}
+            </p>
+            <MatchActionButton
+              context={context}
+              originalFile={originalFile}
+              filename={filename}
+              size="sm"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

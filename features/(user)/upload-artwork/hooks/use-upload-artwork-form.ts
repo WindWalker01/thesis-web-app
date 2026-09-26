@@ -590,6 +590,7 @@ export function useUploadArtworkForm() {
     processingMessage,
     steps,
     similarityReport,
+    artworkId: pendingGenreArtworkId,
     confirmOpen,
     pendingValues,
     genreModalOpen,

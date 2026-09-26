@@ -1,6 +1,8 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { resolveMatchedArtworksForReports } from "@/features/reports/server/reports-repository";
 import { formatTimeAgo } from "@/lib/client-utils";
 import type {
   AdminDashboardResult,
@@ -19,20 +21,20 @@ import type {
 
 export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
   try {
-    const supabase = await createSupabaseServerClient();
+    const sessionClient = await createSupabaseServerClient();
 
     // Verify authentication
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await sessionClient.auth.getUser();
 
     if (authError || !user) {
       return { success: false, message: "Not authenticated." };
     }
 
     // Verify admin role
-    const { data: profile } = await supabase
+    const { data: profile } = await sessionClient
       .from("users")
       .select("role")
       .eq("id", user.id)
@@ -44,6 +46,13 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
         message: "Unauthorized. Admin access required.",
       };
     }
+
+    // All reporting queries below run on the service-role client: they span
+    // tables such as `registered_arts` that only expose owner/public-post SELECT
+    // policies, so a user-scoped client returns nothing for an admin who is not
+    // the owner (artwork totals read as zero and the "Most Reported Artworks"
+    // widget falls back to "Unknown Artwork").
+    const supabase = createSupabaseAdminClient();
 
     // Run all queries in parallel for performance
     const [
@@ -170,14 +179,19 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
         )
         .order("created_at", { ascending: false })
         .limit(50),
-      // Most reported artworks
+      // Most reported artworks, grouped by registered artwork (a report may link
+      // the artwork directly via target_id or indirectly through an art post)
       supabase.from("reports").select(`
+          id,
           reported_art_post_id,
+          target_type,
+          target_id,
           report_type,
           status,
           reported_art_post:art_posts!reports_reported_art_post_id_fkey (
             id,
-            registered_arts:registered_arts!art_posts_art_id_fkey ( title, c_secure_url )
+            art_id,
+            registered_arts:registered_arts!art_posts_art_id_fkey ( id, title, c_secure_url )
           )
         `),
       // Admin notifications
@@ -455,37 +469,47 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
 
     const mostReportedRows = mostReportedRaw as unknown as {
       data: Array<{
-        reported_art_post_id: string;
+        id: string;
+        reported_art_post_id: string | null;
+        target_type: string | null;
+        target_id: string | null;
         report_type: string;
         status: string;
         reported_art_post: {
           id: string;
+          art_id: string | null;
           registered_arts:
-            | { title: string; c_secure_url: string | null }
-            | { title: string; c_secure_url: string | null }[]
+            | { id: string; title: string; c_secure_url: string | null }
+            | { id: string; title: string; c_secure_url: string | null }[]
             | null;
         } | null;
       }> | null;
     };
 
+    // Resolve the registered artwork per report through the same helper the
+    // Reports tab uses, so both surfaces agree on the artwork a report is about
+    // and neither depends on the art_posts embed alone.
+    const reportedArtworks = await resolveMatchedArtworksForReports(
+      supabase,
+      mostReportedRows.data ?? []
+    );
+
     for (const row of mostReportedRows.data ?? []) {
-      const postId = row.reported_art_post_id;
-      if (!reportGroupMap.has(postId)) {
-        const artData = row.reported_art_post;
-        const registered = artData
-          ? Array.isArray(artData.registered_arts)
-            ? artData.registered_arts[0]
-            : artData.registered_arts
-          : null;
-        reportGroupMap.set(postId, {
+      const artwork = reportedArtworks.get(row.id);
+      // Skip reports whose artwork cannot be resolved at all: a broken link
+      // should not surface as a phantom "Unknown Artwork" entry.
+      if (!artwork) continue;
+
+      if (!reportGroupMap.has(artwork.id)) {
+        reportGroupMap.set(artwork.id, {
           count: 0,
           reasons: new Map(),
           status: row.status,
-          title: registered?.title ?? "Unknown Artwork",
-          thumbnail: registered?.c_secure_url ?? null,
+          title: artwork.title,
+          thumbnail: artwork.c_secure_url,
         });
       }
-      const entry = reportGroupMap.get(postId)!;
+      const entry = reportGroupMap.get(artwork.id)!;
       entry.count++;
       entry.reasons.set(
         row.report_type,
@@ -496,13 +520,13 @@ export async function fetchAdminDashboardData(): Promise<AdminDashboardResult> {
     const mostReported: MostReportedArtwork[] = Array.from(
       reportGroupMap.entries(),
     )
-      .map(([artPostId, entry]) => {
+      .map(([artworkId, entry]) => {
         const topReason =
           Array.from(entry.reasons.entries()).sort(
-            (a, b) => b[1] - a[1],
+            (a, b) => (b[1] ?? 0) - (a[1] ?? 0),
           )[0]?.[0] ?? "Unknown";
         return {
-          art_post_id: artPostId,
+          artwork_id: artworkId,
           artwork_title: entry.title,
           thumbnail: entry.thumbnail,
           report_count: entry.count,

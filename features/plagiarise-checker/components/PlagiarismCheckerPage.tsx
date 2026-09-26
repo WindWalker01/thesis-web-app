@@ -22,6 +22,8 @@ import {
   CompareModeResult,
 } from "@/features/plagiarise-checker";
 
+import { PendingActionBanner } from "@/features/plagiarise-checker/components/pending-action-banner";
+
 import { usePlagiarismChecker } from "@/features/plagiarise-checker/hooks/use-plagiarism-checker";
 import { useSimilarityRiskThresholds } from "@/features/plagiarise-checker/hooks/use-similarity-risk-thresholds";
 
@@ -127,6 +129,9 @@ export default function PlagiarismCheckerPage() {
 
       {/* ── Body ── */}
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+        {/* Resume an action started before signing in */}
+        <PendingActionBanner />
+
         {/* Mode toggle */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <ModeToggle mode={mode} onChange={handleModeChange} />
@@ -301,6 +306,7 @@ export default function PlagiarismCheckerPage() {
                 thresholds={thresholds}
                 onViewAnalysis={handleViewAnalysis}
                 onReset={handleReset}
+                originalFile={webFile}
               />
             )}
             {stage === "result" && webPreview && webResult && (
@@ -310,6 +316,7 @@ export default function PlagiarismCheckerPage() {
                 thresholds={thresholds}
                 onRetry={webFile ? () => handleAnalyzeWeb() : undefined}
                 onBackToSummary={handleBackToSummary}
+                originalFile={webFile}
               />
             )}
           </>

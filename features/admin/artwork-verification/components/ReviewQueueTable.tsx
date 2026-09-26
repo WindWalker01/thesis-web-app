@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
+  Globe,
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -92,19 +93,26 @@ export function ReviewQueueTable({
           const art = row.original.artwork;
           
           if (!art) {
+            const isExternal = row.original.review_source === "external";
             return (
               <div className="flex items-center gap-3">
                 <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
                   <div className="flex h-full w-full items-center justify-center">
-                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    {isExternal ? (
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    )}
                   </div>
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium max-w-[180px] text-muted-foreground">
-                    Unknown Artwork
+                    {isExternal ? "External Match" : "Unknown Artwork"}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    — Deleted or Unavailable —
+                    {isExternal
+                      ? row.original.external_source ?? "External source"
+                      : "— Deleted or Unavailable —"}
                   </p>
                 </div>
               </div>

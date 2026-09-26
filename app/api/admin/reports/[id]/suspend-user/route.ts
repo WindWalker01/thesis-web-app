@@ -4,38 +4,56 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAuthUser } from "@/lib/server-utils";
 import * as adminActions from "@/features/admin/user-management/server/admin-actions";
 
 /**
  * Resolves the reported user ID from a report.
- * Looks up the art post owner from the report's reported_art_post_id.
+ * Looks up the art post owner from the report's reported_art_post_id, falling
+ * back to target_type='artwork' + target_id for plagiarism reports (which have
+ * no art_post — the reported user is the matched artwork's owner).
  */
 async function resolveReportedUserId(reportId: string): Promise<string | null> {
   const supabase = await createSupabaseServerClient();
+  // `registered_arts` has no admin SELECT policy (only owner/public-post
+  // policies), so artwork-owner lookups must use the service-role client.
+  const adminSupabase = createSupabaseAdminClient();
   const { data: report } = await supabase
     .from("reports")
-    .select("reported_art_post_id")
+    .select("reported_art_post_id, target_type, target_id")
     .eq("id", reportId)
     .single();
 
-  if (!report?.reported_art_post_id) return null;
+  if (report?.reported_art_post_id) {
+    const { data: artPost } = await supabase
+      .from("art_posts")
+      .select("art_id")
+      .eq("id", report.reported_art_post_id)
+      .single();
 
-  const { data: artPost } = await supabase
-    .from("art_posts")
-    .select("art_id")
-    .eq("id", report.reported_art_post_id)
-    .single();
+    if (!artPost?.art_id) return null;
 
-  if (!artPost?.art_id) return null;
+    const { data: artwork } = await adminSupabase
+      .from("registered_arts")
+      .select("owner_id")
+      .eq("id", artPost.art_id)
+      .single();
 
-  const { data: artwork } = await supabase
-    .from("registered_arts")
-    .select("owner_id")
-    .eq("id", artPost.art_id)
-    .single();
+    return artwork?.owner_id ?? null;
+  }
 
-  return artwork?.owner_id ?? null;
+  if (report?.target_type === "artwork" && report.target_id) {
+    const { data: artwork } = await adminSupabase
+      .from("registered_arts")
+      .select("owner_id")
+      .eq("id", report.target_id)
+      .single();
+
+    return artwork?.owner_id ?? null;
+  }
+
+  return null;
 }
 
 export async function POST(

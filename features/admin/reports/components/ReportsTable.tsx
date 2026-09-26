@@ -96,9 +96,14 @@ export function ReportsTable({
       {
         id: "artwork",
         header: "Reported Artwork",
-        accessorFn: (row) => row.reported_art_post?.registered_arts?.title ?? "Unknown",
+        accessorFn: (row) =>
+          row.reported_art_post?.registered_arts?.title ??
+          row.matched_artwork?.title ??
+          "Unknown",
         cell: ({ row }) => {
-          const art = row.original.reported_art_post?.registered_arts;
+          const art =
+            row.original.reported_art_post?.registered_arts ??
+            row.original.matched_artwork;
           return (
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">

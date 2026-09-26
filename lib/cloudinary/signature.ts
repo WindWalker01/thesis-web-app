@@ -13,6 +13,8 @@ const ALLOWED_FOLDERS = [
   "registered-arts",
   "profile-images",
   "review-evidence",
+  // Original artwork uploaded for an external plagiarism manual-review request.
+  "plagiarism-review",
 ] as const;
 
 /**

@@ -90,7 +90,8 @@ export type TopArtist = {
 };
 
 export type MostReportedArtwork = {
-  art_post_id: string;
+  /** `registered_arts.id` of the reported artwork (not the art post id). */
+  artwork_id: string;
   artwork_title: string;
   thumbnail: string | null;
   report_count: number;

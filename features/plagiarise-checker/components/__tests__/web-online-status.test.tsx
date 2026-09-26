@@ -1,6 +1,15 @@
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+
+// WebModeResult now renders match cards with a MatchActionButton (auth + router).
+vi.mock("@/features/(user)/auth/hooks/useAuth", () => ({
+  useAuth: () => ({ isAuthenticated: false, user: null, loading: false }),
+}));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
 import { WebModeResult } from "@/features/plagiarise-checker/components/WebModeResult";
 import type { SearchResponse } from "@/features/plagiarise-checker/types";
 

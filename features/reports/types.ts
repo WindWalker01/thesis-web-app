@@ -47,13 +47,21 @@ export type ReportActionType =
 export type Report = {
   id: string;
   reporter_id: string;
-  reported_art_post_id: string;
+  reported_art_post_id: string | null;
   report_type: ReportType;
   title: string;
   description: string;
   status: ReportStatus;
   created_at: string;
   resolved_at: string | null;
+  /** Polymorphic target (newer reports): 'artwork' | 'comment' | 'user' | 'collection'. */
+  target_type?: string;
+  /** Target id for target_type='artwork' (matched registered artwork UUID). */
+  target_id?: string | null;
+  /** Similarity scan that produced the plagiarism match (nullable). */
+  related_scan_id?: string | null;
+  /** Similarity/scan context snapshot. */
+  metadata?: Record<string, unknown> | null;
 };
 
 // ---- Report Comment (enhanced for live chat) ----
@@ -188,6 +196,18 @@ export type PaginatedResponse<T> = {
   totalPages: number;
 };
 
+// ---- Matched registered artwork (plagiarism reports keyed by target_id) ----
+export type MatchedArtworkRef = {
+  id: string;
+  title: string;
+  c_secure_url: string | null;
+  status: string;
+  description?: string | null;
+  file_hash?: string;
+  created_at?: string;
+  owner_id?: string;
+};
+
 // ---- Admin Report List Item ----
 export type AdminReportListItem = {
   id: string;
@@ -212,6 +232,9 @@ export type AdminReportListItem = {
       c_secure_url: string | null;
     } | null;
   } | null;
+  /** Matched registered artwork resolved from target_type='artwork' + target_id
+   *  (plagiarism reports without an art_post). */
+  matched_artwork?: MatchedArtworkRef | null;
   evidence_count: number;
   comment_count: number;
   has_decision: boolean;
@@ -243,6 +266,9 @@ export type AdminReportDetail = {
       owner_id: string;
     } | null;
   } | null;
+  /** Matched registered artwork resolved from target_type='artwork' + target_id
+   *  (used for plagiarism reports that have no art_post). */
+  matched_artwork: MatchedArtworkRef | null;
   evidence: ReportEvidence[];
   comments: ReportComment[];
   decision: ReportDecision | null;

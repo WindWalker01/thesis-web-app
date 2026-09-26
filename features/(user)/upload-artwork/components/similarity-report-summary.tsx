@@ -14,9 +14,13 @@ import {
   getMatchTypeLabel,
 } from "@/features/(user)/upload-artwork/lib/similarity-display";
 import { ReferenceLink } from "@/features/(user)/upload-artwork/components/reference-link";
+import { MatchActionButton } from "@/features/plagiarise-checker/components/match-action-button";
+import { similarityReportToMatchContext } from "../lib/match-context";
 
 type SimilarityReportSummaryProps = {
   similarityReport: SimilarityReport;
+  /** Registered artwork id (present for `under_review` external matches). */
+  artworkId?: string | null;
 };
 
 /**
@@ -25,12 +29,14 @@ type SimilarityReportSummaryProps = {
  */
 export function SimilarityReportSummary({
   similarityReport,
+  artworkId,
 }: SimilarityReportSummaryProps) {
   const similarityValue = formatSimilarityValue(
     similarityReport.similarityPercentage,
   );
   const matchTypeLabel = getMatchTypeLabel(similarityReport.type);
   const matchPreviewUrl = similarityReport.previewImageUrl ?? null;
+  const matchContext = similarityReportToMatchContext(similarityReport);
 
   return (
     <Card>
@@ -115,6 +121,22 @@ export function SimilarityReportSummary({
             </div>
           </div>
         )}
+
+        {/* Action — internal matches are reportable; external ones go to review */}
+        <div className="rounded-lg border p-4">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-prose">
+              {similarityReport.type === "database"
+                ? "A potentially similar registered artwork was detected. You can report it for review."
+                : "A potentially similar external match was detected. You can request a manual review so a reviewer can investigate."}
+            </p>
+            <MatchActionButton
+              context={matchContext}
+              size="sm"
+              artworkId={artworkId}
+            />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

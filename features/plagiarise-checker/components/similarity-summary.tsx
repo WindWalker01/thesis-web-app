@@ -16,6 +16,8 @@ import {
 } from "../lib/match-metrics";
 import type { SimilarityRiskThresholds } from "../lib/similarity-risk";
 import { DEFAULT_SIMILARITY_RISK_THRESHOLDS } from "../lib/similarity-risk";
+import { buildMatchContext } from "../lib/match-source";
+import { MatchActionButton } from "./match-action-button";
 
 interface SimilaritySummaryProps {
   preview: string;
@@ -24,6 +26,10 @@ interface SimilaritySummaryProps {
   thresholds?: SimilarityRiskThresholds;
   onViewAnalysis: () => void;
   onReset: () => void;
+  /** Original file being checked (external reviews upload it as evidence). */
+  originalFile?: File | null;
+  /** Persisted similarity scan id, when available (upload flow). */
+  scanId?: string | null;
 }
 
 function sourceLabel(type: string | undefined): string {
@@ -39,12 +45,18 @@ export function SimilaritySummary({
   thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
   onViewAnalysis,
   onReset,
+  originalFile,
+  scanId,
 }: SimilaritySummaryProps) {
   const best = result.best_match ?? null;
   const score = getPrimaryScore(best);
   const noEvidence = isNoEvidenceMatch(best);
   const hasMatch = !!best && !noEvidence;
   const isDb = best?.type === "database";
+  const bestContext = buildMatchContext(best, {
+    originalHash: result.original_hash,
+    scanId,
+  });
 
   return (
     <div className="space-y-5">
@@ -167,6 +179,25 @@ export function SimilaritySummary({
                 className="pt-0.5"
               />
             </div>
+
+            {/* Best-match action — driven by the match source, not the score */}
+            {hasMatch && bestContext && (
+              <div className="border-t border-border px-4 py-3.5">
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-prose">
+                    {isDb
+                      ? "This best match is registered on ArtForgeLab. If you believe this may constitute a copyright concern, you can report it for review."
+                      : "This best match was found outside ArtForgeLab. You can request a manual review so the result can be investigated."}
+                  </p>
+                  <MatchActionButton
+                    context={bestContext}
+                    originalFile={originalFile}
+                    filename={filename}
+                    size="sm"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-6 flex flex-col items-center justify-center gap-2 text-center">

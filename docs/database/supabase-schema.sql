@@ -743,24 +743,32 @@ CREATE OR REPLACE FUNCTION "public"."notify_report_submitted_to_admins"() RETURN
     SET "search_path" TO ''
     AS $$
 DECLARE
-  v_artwork_title text;
+  v_artwork_title text := 'Unknown Artwork';
 BEGIN
-  -- Get the artwork title from the art post relationship
-  BEGIN
-    SELECT COALESCE(ra.title, 'Unknown Artwork') INTO v_artwork_title
-    FROM public.art_posts ap
-    JOIN public.registered_arts ra ON ra.id = ap.art_id
-    WHERE ap.id = NEW.reported_art_post_id;
-  EXCEPTION WHEN OTHERS THEN
-    v_artwork_title := 'Unknown Artwork';
-  END;
-  
-  -- Notify all admins (skip if application code already inserted)
+  IF NEW.reported_art_post_id IS NOT NULL THEN
+    BEGIN
+      SELECT COALESCE(ra.title, 'Unknown Artwork') INTO v_artwork_title
+      FROM public.art_posts ap
+      JOIN public.registered_arts ra ON ra.id = ap.art_id
+      WHERE ap.id = NEW.reported_art_post_id;
+    EXCEPTION WHEN OTHERS THEN
+      v_artwork_title := 'Unknown Artwork';
+    END;
+  ELSIF NEW.target_type = 'artwork' AND NEW.target_id IS NOT NULL THEN
+    BEGIN
+      SELECT COALESCE(ra.title, 'Unknown Artwork') INTO v_artwork_title
+      FROM public.registered_arts ra
+      WHERE ra.id = NEW.target_id;
+    EXCEPTION WHEN OTHERS THEN
+      v_artwork_title := 'Unknown Artwork';
+    END;
+  END IF;
+
   INSERT INTO public.notifications (
     user_id, type, title, message,
     related_report_id, action_url, metadata, is_read
   )
-  SELECT 
+  SELECT
     u.id,
     'report_submitted',
     'New Report Submitted',
@@ -771,10 +779,10 @@ BEGIN
     false
   FROM public.users u
   WHERE u.role = 'admin'
-  ON CONFLICT (user_id, related_report_id, type) 
+  ON CONFLICT (user_id, related_report_id, type)
   WHERE related_report_id IS NOT NULL
   DO NOTHING;
-  
+
   RETURN NEW;
 END;
 $$;
@@ -1128,7 +1136,7 @@ ALTER TABLE "public"."artwork_review_evidence" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."artwork_reviews" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "artwork_id" "uuid" NOT NULL,
+    "artwork_id" "uuid",
     "reviewer_id" "uuid",
     "status" "text" DEFAULT 'pending'::"text" NOT NULL,
     "decision" "text",
@@ -1140,8 +1148,19 @@ CREATE TABLE IF NOT EXISTS "public"."artwork_reviews" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "resubmission_count" integer DEFAULT 0 NOT NULL,
+    "review_source" "text" DEFAULT 'registration'::"text" NOT NULL,
+    "requested_by" "uuid",
+    "external_url" "text",
+    "external_source" "text",
+    "similarity_percentage" numeric(5,2),
+    "related_scan_id" "uuid",
+    "match_metadata" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "original_artwork_url" "text",
+    "original_artwork_title" "text",
+    "original_hash" "text",
     CONSTRAINT "artwork_reviews_decision_check" CHECK ((("decision" IS NULL) OR ("decision" = ANY (ARRAY['approved'::"text", 'rejected'::"text", 'needs_info'::"text"])))),
-    CONSTRAINT "artwork_reviews_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'under_review'::"text", 'needs_info'::"text", 'approved'::"text", 'rejected'::"text"])))
+    CONSTRAINT "artwork_reviews_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'under_review'::"text", 'needs_info'::"text", 'approved'::"text", 'rejected'::"text"]))),
+    CONSTRAINT "artwork_reviews_review_source_check" CHECK (("review_source" = ANY (ARRAY['registration'::"text", 'external'::"text"])))
 );
 
 
@@ -1441,7 +1460,7 @@ ALTER TABLE "public"."report_typing_indicators" OWNER TO "postgres";
 CREATE TABLE IF NOT EXISTS "public"."reports" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "reporter_id" "uuid" NOT NULL,
-    "reported_art_post_id" "uuid" NOT NULL,
+    "reported_art_post_id" "uuid",
     "report_type" "public"."report_type" NOT NULL,
     "title" "text" NOT NULL,
     "description" "text" NOT NULL,
@@ -1451,6 +1470,8 @@ CREATE TABLE IF NOT EXISTS "public"."reports" (
     "assigned_admin_id" "uuid",
     "target_type" "public"."report_target_type" DEFAULT 'artwork'::"public"."report_target_type" NOT NULL,
     "target_id" "uuid",
+    "related_scan_id" "uuid",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
     CONSTRAINT "reports_target_type_check" CHECK (("target_type" = ANY (ARRAY['artwork'::"public"."report_target_type", 'comment'::"public"."report_target_type", 'user'::"public"."report_target_type", 'collection'::"public"."report_target_type"])))
 );
 
@@ -1458,7 +1479,11 @@ CREATE TABLE IF NOT EXISTS "public"."reports" (
 ALTER TABLE "public"."reports" OWNER TO "postgres";
 
 
-COMMENT ON COLUMN "public"."reports"."reported_art_post_id" IS 'DEPRECATED. Use target_type + target_id. Kept for backward compatibility only.';
+COMMENT ON COLUMN "public"."reports"."reported_art_post_id" IS 'DEPRECATED. Use target_type + target_id. Kept for backward compatibility only. Nullable: plagiarism reports for a matched artwork with no public community post leave this NULL.';
+
+
+
+COMMENT ON COLUMN "public"."reports"."target_id" IS 'Canonical report -> artwork link when target_type = ''artwork'' (registered_arts.id). Admin tooling (reports list/detail, dashboard "Most Reported", artwork moderation, warn/suspend/ban) resolves the reported artwork from it, falling back to art_posts.art_id via reported_art_post_id for rows created before this link was written. Backfilled by migration 20260926_backfill_report_target_artwork.sql.';
 
 
 

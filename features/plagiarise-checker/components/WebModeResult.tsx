@@ -17,6 +17,10 @@ interface WebModeResultProps {
   onRetry?: () => void;
   onBackToSummary?: () => void;
   thresholds?: SimilarityRiskThresholds;
+  /** Original file being checked (external reviews upload it as evidence). */
+  originalFile?: File | null;
+  /** Persisted similarity scan id, when available (upload flow). */
+  scanId?: string | null;
 }
 
 function NoMatchNote() {
@@ -34,6 +38,8 @@ export function WebModeResult({
   onRetry,
   onBackToSummary,
   thresholds = DEFAULT_SIMILARITY_RISK_THRESHOLDS,
+  originalFile,
+  scanId,
 }: WebModeResultProps) {
   const hasWebDiagnostics = !!result.web_diagnostics;
   const isBestDb = result.best_match?.type === "database";
@@ -98,6 +104,10 @@ export function WebModeResult({
             sourceType="web"
             isBest={!isBestDb}
             thresholds={thresholds}
+            originalFile={originalFile}
+            filename={result.filename}
+            originalHash={result.original_hash}
+            scanId={scanId}
           />
         ) : !hasWebDiagnostics ? (
           <NoMatchNote />
@@ -116,6 +126,10 @@ export function WebModeResult({
             sourceType="registered_artwork"
             isBest={isBestDb}
             thresholds={thresholds}
+            originalFile={originalFile}
+            filename={result.filename}
+            originalHash={result.original_hash}
+            scanId={scanId}
           />
         ) : (
           <NoMatchNote />

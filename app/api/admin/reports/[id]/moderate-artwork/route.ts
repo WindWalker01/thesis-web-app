@@ -22,7 +22,8 @@ export async function POST(
   try {
     const reportId = (await params).id;
     const body = await request.json();
-    const { action, reason, notes, artworkId, resolveOnComplete, userReason, artworkReason } = body;
+    const { action, reason, notes, resolveOnComplete, userReason, artworkReason } = body;
+    let artworkId: string | undefined = body.artworkId;
 
     if (!action) {
       return NextResponse.json(
@@ -44,6 +45,29 @@ export async function POST(
     // Use admin client for service-role DB operations (bypasses RLS)
     const supabase = createSupabaseAdminClient();
     const serverSupabase = await createSupabaseServerClient();
+
+    // The report links its artwork either directly (target_type='artwork' +
+    // target_id, used by plagiarism reports) or through the reported community
+    // post. Resolve it server-side so moderation always acts on the artwork the
+    // report is about, even when the client cannot derive the id.
+    if (!artworkId) {
+      const { data: report } = await supabase
+        .from("reports")
+        .select("reported_art_post_id, target_type, target_id")
+        .eq("id", reportId)
+        .maybeSingle();
+
+      if (report?.target_type === "artwork" && report.target_id) {
+        artworkId = report.target_id;
+      } else if (report?.reported_art_post_id) {
+        const { data: artPost } = await supabase
+          .from("art_posts")
+          .select("art_id")
+          .eq("id", report.reported_art_post_id)
+          .maybeSingle();
+        if (artPost?.art_id) artworkId = artPost.art_id;
+      }
+    }
 
     let result;
 
@@ -189,6 +213,12 @@ export async function POST(
       }
 
       case "reject_artwork": {
+        if (!artworkId) {
+          return NextResponse.json(
+            { success: false, error: { message: "No associated artwork found for this report" } },
+            { status: 400 }
+          );
+        }
         // Check if artwork is already blockchain-registered
         const { data: artworkForReject } = await supabase
           .from("registered_arts")
@@ -236,6 +266,12 @@ export async function POST(
       }
 
       case "remove_artwork": {
+        if (!artworkId) {
+          return NextResponse.json(
+            { success: false, error: { message: "No associated artwork found for this report" } },
+            { status: 400 }
+          );
+        }
         result = await removeArtworkFromReports(
           artworkId,
           reason ?? "Removed via report moderation"
@@ -261,6 +297,12 @@ export async function POST(
       }
 
       case "restore_artwork": {
+        if (!artworkId) {
+          return NextResponse.json(
+            { success: false, error: { message: "No associated artwork found for this report" } },
+            { status: 400 }
+          );
+        }
         // Un-archive the artwork post and set visibility back to public
         const { data: artPosts } = await supabase
           .from("art_posts")
@@ -307,6 +349,12 @@ export async function POST(
       }
 
       case "mark_nsfw": {
+        if (!artworkId) {
+          return NextResponse.json(
+            { success: false, error: { message: "No associated artwork found for this report" } },
+            { status: 400 }
+          );
+        }
         const { error: nsfwError } = await supabase
           .from("art_posts")
           .update({ is_nsfw: true })
@@ -341,6 +389,12 @@ export async function POST(
       }
 
       case "rerun_plagiarism": {
+        if (!artworkId) {
+          return NextResponse.json(
+            { success: false, error: { message: "No associated artwork found for this report" } },
+            { status: 400 }
+          );
+        }
         // Check if a scan is already pending/running
         const { data: existingScan } = await supabase
           .from("art_similarity_scans")
@@ -401,6 +455,12 @@ export async function POST(
       }
 
       case "request_more_info": {
+        if (!artworkId) {
+          return NextResponse.json(
+            { success: false, error: { message: "No associated artwork found for this report" } },
+            { status: 400 }
+          );
+        }
         // Get the existing review for this artwork
         const existingReviewId = await getReviewForArtwork(artworkId);
         if (!existingReviewId) {

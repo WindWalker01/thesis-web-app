@@ -130,6 +130,12 @@ export async function getReviewQueue(
       assigned_at,
       created_at,
       resubmission_count,
+      review_source,
+      external_url,
+      external_source,
+      similarity_percentage,
+      original_artwork_url,
+      original_artwork_title,
       reviewer:users!artwork_reviews_reviewer_id_fkey (
         id, first_name, last_name, username
       ),
@@ -214,17 +220,23 @@ export async function getReviewQueue(
   // Fetch scan data for each review
   const itemsWithScans = await Promise.all(
     items.map(async (item) => {
-      const { data: scan } = await supabase
-        .from("art_similarity_scans")
-        .select(
-          "id, best_similarity_percentage, best_source, best_link, best_url, total_matches, matches, hashes, completed_at"
-        )
-        .eq("art_id", item.artwork_id)
-        .single();
+      // External plagiarism reviews have no artwork_id; resolve their scan via
+      // related_scan_id when present, otherwise leave scan null.
+      let scan: ReviewQueueItem["scan"] = null;
+      if (item.artwork_id) {
+        const { data } = await supabase
+          .from("art_similarity_scans")
+          .select(
+            "id, best_similarity_percentage, best_source, best_link, best_url, total_matches, matches, hashes, completed_at"
+          )
+          .eq("art_id", item.artwork_id)
+          .maybeSingle();
+        scan = (data as ReviewQueueItem["scan"]) ?? null;
+      }
 
       return {
         ...item,
-        scan: scan ?? null,
+        scan,
       };
     })
   );
@@ -369,6 +381,9 @@ export async function getReviewDetail(
       id, artwork_id, status, decision, decision_reason, review_notes,
       requested_documents, reviewer_id, assigned_at, reviewed_at,
       created_at, updated_at,
+      review_source, requested_by, external_url, external_source,
+      similarity_percentage, related_scan_id, match_metadata,
+      original_artwork_url, original_artwork_title, original_hash,
       reviewer:users!artwork_reviews_reviewer_id_fkey (
         id, first_name, last_name, username
       ),
@@ -390,14 +405,20 @@ export async function getReviewDetail(
 
   if (reviewError || !review) return null;
 
-  // Then fetch scan (needs artwork_id), actions, evidence
+  // Then fetch scan (needs artwork_id or related_scan_id), actions, evidence
   const artworkId = review.artwork_id;
+  const scanQuery = artworkId
+    ? supabase.from("art_similarity_scans").select("*").eq("art_id", artworkId).maybeSingle()
+    : review.related_scan_id
+      ? supabase
+          .from("art_similarity_scans")
+          .select("*")
+          .eq("id", review.related_scan_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null });
+
   const [scanResult, actionsResult, evidenceResult] = await Promise.all([
-    supabase
-      .from("art_similarity_scans")
-      .select("*")
-      .eq("art_id", artworkId)
-      .maybeSingle(),
+    scanQuery,
     supabase
       .from("artwork_review_actions")
       .select(

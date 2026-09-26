@@ -12,9 +12,18 @@ import {
   XCircle,
   HelpCircle,
   Loader2,
+  ExternalLink,
+  Globe,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -310,6 +319,140 @@ export default function ArtworkReviewWorkspace() {
   }
 
   const artwork = detail.artwork;
+
+  // External plagiarism match review — no registered artwork. Render the
+  // evidence (external URL, source, similarity, original artwork) so the
+  // reviewer does not have to reproduce the plagiarism scan manually.
+  if (detail.review_source === "external" && !artwork) {
+    const meta = (detail.match_metadata ?? {}) as Record<string, unknown>;
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push("/admin/artwork-verification")}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm font-semibold">
+                  External Match Review
+                </h1>
+                <ReviewStatusBadge status={detail.status} />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-4xl space-y-4 p-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Globe className="h-4 w-4 text-sky-400" />
+                External Match Evidence
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Similarity</p>
+                  <p className="text-lg font-semibold">
+                    {detail.similarity_percentage != null
+                      ? `${detail.similarity_percentage.toFixed(1)}%`
+                      : "N/A"}
+                  </p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Source</p>
+                  <p className="text-sm font-semibold capitalize">
+                    {detail.external_source ?? "External API"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground mb-1">External URL</p>
+                {detail.external_url ? (
+                  <a
+                    href={detail.external_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary inline-flex items-center gap-1 text-sm break-all underline underline-offset-4"
+                  >
+                    {detail.external_url}
+                    <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No URL available.</p>
+                )}
+              </div>
+
+              {detail.original_artwork_url && (
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Original artwork</p>
+                  <a
+                    href={detail.original_artwork_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={detail.original_artwork_url}
+                      alt={detail.original_artwork_title ?? "Original artwork"}
+                      className="max-h-64 w-auto rounded-lg border object-contain"
+                    />
+                  </a>
+                  {detail.original_artwork_title && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {detail.original_artwork_title}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Original hash</p>
+                  <p className="text-xs font-mono break-all">
+                    {detail.original_hash ?? String(meta.original_hash ?? "N/A")}
+                  </p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> Submitted
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {detail.created_at
+                      ? new Date(detail.created_at).toLocaleString()
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ReviewNotesSection
+              reviewNotes={reviewNotes}
+              isSaving={isSavingNotes}
+              isDisabled={!!isDecided}
+              onChange={handleNotesChange}
+            />
+            <ActivityFeedSection actions={detail.actions} />
+          </div>
+
+          {detail.evidence && detail.evidence.length > 0 && (
+            <EvidenceViewerPanel evidence={detail.evidence} />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Guard against missing artwork data
   if (!artwork) {

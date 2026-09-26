@@ -4,6 +4,7 @@
 // ============================================
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Report,
@@ -16,6 +17,7 @@ import type {
   ReportStatistics,
   ReportStatus,
   ReportActionType,
+  MatchedArtworkRef,
 } from "@/features/reports/types";
 
 // ========== REPORTS (main table) ==========
@@ -312,6 +314,121 @@ export async function getReportDecision(
 
 // ========== ADMIN QUERIES ==========
 
+/** Minimal report shape needed to resolve the linked registered artwork. */
+type ReportArtworkLinkInput = {
+  id: string;
+  reported_art_post_id: string | null;
+  target_type?: string | null;
+  target_id?: string | null;
+  reported_art_post?: {
+    id: string;
+    registered_arts?: { id: string } | { id: string }[] | null;
+  } | null;
+};
+
+/**
+ * PostgREST returns an embedded to-one resource as an object, but an array when
+ * the relationship cardinality is ambiguous. Normalise both shapes.
+ */
+function extractEmbeddedArtworkId(
+  artPost: ReportArtworkLinkInput["reported_art_post"]
+): string | null {
+  const embedded = artPost?.registered_arts;
+  if (!embedded) return null;
+  if (Array.isArray(embedded)) return embedded[0]?.id ?? null;
+  return embedded.id ?? null;
+}
+
+/**
+ * Resolves the registered artwork each report is about, keyed by report id.
+ *
+ * A report can point at its artwork in three ways, tried in order:
+ *  1. the `art_posts -> registered_arts` embed already present on the row;
+ *  2. `target_type='artwork'` + `target_id` (plagiarism reports, including
+ *     matches whose artwork has no public community post);
+ *  3. `reported_art_post_id` resolved through `art_posts.art_id` (reports
+ *     created before the `target_id` link existed).
+ *
+ * Every report therefore resolves through a single batched artwork query, so
+ * admin list/detail views never depend on per-row joins and always expose the
+ * artwork id needed for moderation actions.
+ *
+ * `supabase` should be a service-role client: `registered_arts` has no admin
+ * SELECT policy, so a user-scoped client would silently return no rows.
+ */
+export async function resolveMatchedArtworksForReports<
+  T extends ReportArtworkLinkInput,
+>(
+  supabase: SupabaseClient,
+  reports: T[]
+): Promise<Map<string, MatchedArtworkRef>> {
+  const artworkIdByReport = new Map<string, string>();
+  const unresolvedPostIds = new Set<string>();
+
+  for (const report of reports) {
+    const embeddedId = extractEmbeddedArtworkId(report.reported_art_post);
+    if (embeddedId) {
+      artworkIdByReport.set(report.id, embeddedId);
+      continue;
+    }
+    if (report.target_type === "artwork" && report.target_id) {
+      artworkIdByReport.set(report.id, report.target_id);
+      continue;
+    }
+    if (report.reported_art_post_id) unresolvedPostIds.add(report.reported_art_post_id);
+  }
+
+  // Reports linked only by art post: resolve the post's artwork in one batch.
+  if (unresolvedPostIds.size > 0) {
+    // Graceful degradation: a failed lookup must never break the report list.
+    const { data } = await supabase
+      .from("art_posts")
+      .select("id, art_id")
+      .in("id", Array.from(unresolvedPostIds));
+
+    const artIdByPost = new Map(
+      (data ?? []).map((post) => [post.id as string, post.art_id as string | null])
+    );
+    for (const report of reports) {
+      if (!report.reported_art_post_id || artworkIdByReport.has(report.id)) continue;
+      const artId = artIdByPost.get(report.reported_art_post_id);
+      if (artId) artworkIdByReport.set(report.id, artId);
+    }
+  }
+
+  const artworkIds = new Set(artworkIdByReport.values());
+  const byArtworkId = new Map<string, MatchedArtworkRef>();
+  if (artworkIds.size > 0) {
+    const { data, error } = await supabase
+      .from("registered_arts")
+      .select("id, title, c_secure_url, status")
+      .in("id", Array.from(artworkIds));
+
+    if (!error) {
+      for (const row of (data ?? []) as Array<{
+        id: string;
+        title: string;
+        c_secure_url: string | null;
+        status: string;
+      }>) {
+        byArtworkId.set(row.id, {
+          id: row.id,
+          title: row.title,
+          c_secure_url: row.c_secure_url,
+          status: row.status,
+        });
+      }
+    }
+  }
+
+  const map = new Map<string, MatchedArtworkRef>();
+  for (const [reportId, artworkId] of artworkIdByReport) {
+    const ref = byArtworkId.get(artworkId);
+    if (ref) map.set(reportId, ref);
+  }
+  return map;
+}
+
 export async function getAdminReportsList(params: {
   page: number;
   limit: number;
@@ -337,8 +454,14 @@ export async function getAdminReportsList(params: {
     .single();
   if (!profile || profile.role !== "admin") throw new Error("Not authorized");
 
+  // Admin reads run on the service-role client: `registered_arts` has no admin
+  // SELECT policy (only owner / public-post policies), so a user-scoped client
+  // silently returns no artwork rows and every report renders as
+  // "Unknown Artwork" with no moderation actions available.
+  const adminSupabase = createSupabaseAdminClient();
+
   // Build query
-  let query = supabase
+  let query = adminSupabase
     .from("reports")
     .select(
       `
@@ -348,6 +471,8 @@ export async function getAdminReportsList(params: {
       status,
       created_at,
       resolved_at,
+      target_type,
+      target_id,
       reporter:users!reports_reporter_id_fkey (
         id,
         first_name,
@@ -397,18 +522,28 @@ export async function getAdminReportsList(params: {
 
   const items = (data ?? []) as unknown as AdminReportListItem[];
 
+  // Resolve the registered artwork each report is about (embed, target_id, or
+  // the reported art post's art_id) in a single batched lookup.
+  const matchedArtworks = await resolveMatchedArtworksForReports(
+    adminSupabase,
+    (data ?? []) as unknown as Parameters<
+      typeof resolveMatchedArtworksForReports
+    >[1]
+  );
+
   // Fetch evidence and comment counts for each report
   const itemsWithCounts = await Promise.all(
     items.map(async (item) => {
       const [evidenceCount, commentCount] = await Promise.all([
-        getReportEvidenceCount(supabase, item.id),
-        getReportCommentCount(supabase, item.id),
+        getReportEvidenceCount(adminSupabase, item.id),
+        getReportCommentCount(adminSupabase, item.id),
       ]);
 
-      const decision = await getReportDecision(supabase, item.id);
+      const decision = await getReportDecision(adminSupabase, item.id);
 
       return {
         ...item,
+        matched_artwork: matchedArtworks.get(item.id) ?? null,
         evidence_count: evidenceCount,
         comment_count: commentCount,
         has_decision: decision !== null,
@@ -438,23 +573,30 @@ export async function getAdminReportDetail(
     .single();
   if (!profile || profile.role !== "admin") throw new Error("Not authorized");
 
+  // Service-role client for every data read (see getAdminReportsList for why).
+  const adminSupabase = createSupabaseAdminClient();
+
   // Fetch report
-  const report = await getReportById(supabase, reportId);
+  const report = await getReportById(adminSupabase, reportId);
   if (!report) return null;
 
   // Fetch reporter
-  const { data: reporter } = await supabase
+  const { data: reporter } = await adminSupabase
     .from("users")
     .select("id, first_name, last_name, middle_name, username, email, c_profile_image, created_at")
     .eq("id", report.reporter_id)
     .single();
 
-  // Fetch reported art post
-  const { data: artPost } = await supabase
-    .from("art_posts")
-    .select(
-      `
+  // Fetch reported art post (nullable for plagiarism reports keyed by target_id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let artPost: any = null;
+  if (report.reported_art_post_id) {
+    const { data } = await adminSupabase
+      .from("art_posts")
+      .select(
+        `
       id,
+      art_id,
       registered_arts:registered_arts!art_posts_art_id_fkey (
         id,
         title,
@@ -466,35 +608,62 @@ export async function getAdminReportDetail(
         owner_id
       )
     `
-    )
-    .eq("id", report.reported_art_post_id)
-    .single();
+      )
+      .eq("id", report.reported_art_post_id)
+      .maybeSingle();
+    artPost = data;
+  }
+
+  // Resolve the registered artwork this report is about, however it is linked
+  // (art post embed -> target_id -> art post's art_id). Moderation actions need
+  // this id for reports whose artwork has no public community post, and the
+  // drawer needs the artwork record for every other report.
+  const artworkId =
+    extractEmbeddedArtworkId(artPost) ??
+    (report.target_type === "artwork" ? report.target_id : null) ??
+    artPost?.art_id ??
+    null;
+
+  let matchedArtwork: AdminReportDetail["matched_artwork"] = null;
+  if (artworkId) {
+    const { data } = await adminSupabase
+      .from("registered_arts")
+      .select(
+        "id, title, description, c_secure_url, file_hash, status, created_at, owner_id"
+      )
+      .eq("id", artworkId)
+      .maybeSingle();
+    matchedArtwork = (data as AdminReportDetail["matched_artwork"]) ?? null;
+  }
 
   // Fetch evidence, comments, decision, actions in parallel
   const [evidence, comments, decision, actions] = await Promise.all([
-    getReportEvidence(supabase, reportId),
-    getReportComments(supabase, reportId),
-    getReportDecision(supabase, reportId),
-    getReportActions(supabase, reportId),
+    getReportEvidence(adminSupabase, reportId),
+    getReportComments(adminSupabase, reportId),
+    getReportDecision(adminSupabase, reportId),
+    getReportActions(adminSupabase, reportId),
   ]);
 
   // Fetch moderation summary for user and artwork context
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const registeredArts = artPost?.registered_arts as any;
-  const artworkOwnerId = registeredArts?.owner_id ?? null;
+  const artworkOwnerId = matchedArtwork?.owner_id ?? null;
   const moderationSummary = await getModerationSummary(
-    supabase,
+    adminSupabase,
     report.reported_art_post_id,
-    artworkOwnerId
+    artworkOwnerId,
+    artworkId
   );
 
   // Fetch actions with admin names (join users)
-  const actionsWithNames = await getReportActionsWithAdminNames(supabase, reportId);
+  const actionsWithNames = await getReportActionsWithAdminNames(
+    adminSupabase,
+    reportId
+  );
 
   return {
     report,
     reporter: reporter as AdminReportDetail["reporter"],
     reported_art_post: (artPost as AdminReportDetail["reported_art_post"]) ?? null,
+    matched_artwork: (matchedArtwork as AdminReportDetail["matched_artwork"]) ?? null,
     evidence,
     comments,
     decision,
@@ -507,15 +676,16 @@ export async function getAdminReportDetail(
 
 export async function getModerationSummary(
   supabase: SupabaseClient,
-  reportedArtPostId: string,
-  artworkOwnerId: string | null
+  reportedArtPostId: string | null,
+  artworkOwnerId: string | null,
+  targetArtworkId?: string | null
 ): Promise<import("@/features/reports/types").ModerationSummary> {
   // Fetch user stats and artwork stats in parallel
   const [userStats, artworkStats] = await Promise.all([
     artworkOwnerId
       ? getModerationUserStats(supabase, artworkOwnerId)
       : Promise.resolve({ warnings: 0, suspensions: 0, bans: 0, previousReports: 0, resolvedReports: 0 }),
-    getModerationArtworkStats(supabase, reportedArtPostId),
+    getModerationArtworkStats(supabase, reportedArtPostId, targetArtworkId ?? null),
   ]);
 
   return {
@@ -591,12 +761,47 @@ async function getModerationUserStats(
 
 async function getModerationArtworkStats(
   supabase: SupabaseClient,
-  artPostId: string
+  artPostId: string | null,
+  targetArtworkId?: string | null
 ): Promise<{
   previousReports: number;
   copyrightReports: number;
   wasRemoved: boolean;
 }> {
+  if (!artPostId && !targetArtworkId) {
+    return { previousReports: 0, copyrightReports: 0, wasRemoved: false };
+  }
+
+  // Plagiarism reports link the artwork via target_type='artwork' + target_id.
+  if (!artPostId && targetArtworkId) {
+    const [allRes, copyrightRes, artworkRes] = await Promise.all([
+      supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("target_type", "artwork")
+        .eq("target_id", targetArtworkId),
+      supabase
+        .from("reports")
+        .select("*", { count: "exact", head: true })
+        .eq("target_type", "artwork")
+        .eq("target_id", targetArtworkId)
+        .eq("report_type", "copyright"),
+      // These matches often have no community post, so the artwork's own
+      // lifecycle status is the only signal that it was removed.
+      supabase
+        .from("registered_arts")
+        .select("status")
+        .eq("id", targetArtworkId)
+        .maybeSingle(),
+    ]);
+
+    return {
+      previousReports: allRes.count ?? 0,
+      copyrightReports: copyrightRes.count ?? 0,
+      wasRemoved: artworkRes.data?.status === "removed",
+    };
+  }
+
   const [allRes, copyrightRes, removedRes] = await Promise.all([
     supabase.from("reports").select("*", { count: "exact", head: true }).eq("reported_art_post_id", artPostId),
     supabase.from("reports").select("*", { count: "exact", head: true }).eq("reported_art_post_id", artPostId).eq("report_type", "copyright"),

@@ -60,7 +60,7 @@ export type ReviewEvidence = {
 // ── Review Queue Item ──
 export type ReviewQueueItem = {
   id: string;
-  artwork_id: string;
+  artwork_id: string | null;
   status: ReviewStatus;
   reviewer_id: string | null;
   reviewer: {
@@ -72,6 +72,12 @@ export type ReviewQueueItem = {
   assigned_at: string | null;
   created_at: string;
   resubmission_count: number;
+  review_source: string | null;
+  external_url: string | null;
+  external_source: string | null;
+  similarity_percentage: number | null;
+  original_artwork_url: string | null;
+  original_artwork_title: string | null;
   artwork: {
     id: string;
     title: string;
@@ -106,7 +112,7 @@ export type ReviewQueueItem = {
 // ── Review Detail ──
 export type ReviewDetail = {
   id: string;
-  artwork_id: string;
+  artwork_id: string | null;
   status: ReviewStatus;
   decision: ReviewDecision | null;
   decision_reason: string | null;
@@ -123,6 +129,17 @@ export type ReviewDetail = {
   reviewed_at: string | null;
   created_at: string;
   updated_at: string;
+  /** "registration" (uploaded artwork) or "external" (plagiarism external match). */
+  review_source: string | null;
+  requested_by: string | null;
+  external_url: string | null;
+  external_source: string | null;
+  similarity_percentage: number | null;
+  related_scan_id: string | null;
+  match_metadata: unknown;
+  original_artwork_url: string | null;
+  original_artwork_title: string | null;
+  original_hash: string | null;
   artwork: {
     id: string;
     title: string;

@@ -18,6 +18,8 @@ import type {
   SearchMatch,
 } from "@/features/plagiarise-checker/types";
 import { RegisteredArtworkMatch } from "@/features/plagiarise-checker/components/registered-artwork-match";
+import { MatchActionButton } from "@/features/plagiarise-checker/components/match-action-button";
+import { similarityReportToMatchContext } from "../lib/match-context";
 import { MatchThumbnail } from "./match-thumbnail";
 import { ReferenceLink } from "./reference-link";
 import { formatSimilarityValue } from "../lib/similarity-display";
@@ -27,6 +29,8 @@ type SimilarityReportDetailedProps = {
   databaseMatches: OtherSearchMatch[];
   webMatches: OtherSearchMatch[];
   hasOtherMatches: boolean;
+  /** Registered artwork id (present for `under_review` external matches). */
+  artworkId?: string | null;
 };
 
 function toDbMatch(report: SimilarityReport): SearchMatch {
@@ -53,6 +57,7 @@ export function SimilarityReportDetailed({
   databaseMatches,
   webMatches,
   hasOtherMatches,
+  artworkId,
 }: SimilarityReportDetailedProps) {
   const isDatabase = similarityReport.type === "database";
   const hasResolvedMetadata =
@@ -62,6 +67,7 @@ export function SimilarityReportDetailed({
         similarityReport.matchedArtworkImageUrl ||
         similarityReport.matchedArtworkAuthorName,
     );
+  const matchContext = similarityReportToMatchContext(similarityReport);
 
   return (
     <div className="space-y-5">
@@ -77,6 +83,23 @@ export function SimilarityReportDetailed({
       ) : (
         <WebSourceBlockedCard report={similarityReport} />
       )}
+
+      {/* Action — internal matches are reportable; external ones go to review */}
+      <div className="rounded-xl border border-border bg-muted/30 px-4 py-3.5">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-prose">
+            {isDatabase
+              ? "Your artwork could not be automatically registered because a potentially similar registered artwork was detected. You can report it for review."
+              : "Your artwork was held for manual review because a potentially similar external match was detected. You can request a manual review so a reviewer can investigate."}
+          </p>
+          <MatchActionButton
+            context={matchContext}
+            filename={similarityReport.matchedArtworkTitle ?? undefined}
+            size="sm"
+            artworkId={artworkId}
+          />
+        </div>
+      </div>
 
       {hasOtherMatches && (
         <div className="space-y-3">

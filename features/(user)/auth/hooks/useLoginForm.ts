@@ -9,6 +9,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 
+/**
+ * Reads a same-origin `?next=` path from the current URL for post-login
+ * redirection. Only accepts absolute paths (no scheme/authority) to prevent
+ * open-redirect abuse.
+ */
+function getNextPath(): string | null {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+    return null;
+}
+
 export function useLoginForm() {
     const router = useRouter();
     const queryClient = useQueryClient();
@@ -41,6 +54,15 @@ export function useLoginForm() {
         }
         queryClient.clear();
         router.refresh();
+
+        // Return to the page that triggered authentication (e.g. a plagiarism
+        // match action) when one was provided via ?next=. Only allow same-origin
+        // absolute paths to avoid open-redirect abuse.
+        const next = getNextPath();
+        if (next) {
+            router.push(next);
+            return;
+        }
 
         // Determine redirect based on user role
         const { data: { session } } = await supabase.auth.getSession();

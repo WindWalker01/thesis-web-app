@@ -36,7 +36,7 @@ export function MostReportedArtworks({ artworks }: Props) {
         <div className="space-y-3">
           {artworks.map((artwork) => (
             <div
-              key={artwork.art_post_id}
+              key={artwork.artwork_id}
               className="border-border flex items-center gap-3 border-b pb-3 last:border-0 last:pb-0"
             >
               <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">

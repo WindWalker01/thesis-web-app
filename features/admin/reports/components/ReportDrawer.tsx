@@ -107,7 +107,9 @@ export function ReportDrawer({
   // Handle artwork moderation from the report drawer
   const handleModerateArtwork = async (action: string, reason: string) => {
     if (!detail) return;
-    const artworkId = detail.reported_art_post?.registered_arts?.id;
+    const artworkId =
+      detail.reported_art_post?.registered_arts?.id ??
+      detail.matched_artwork?.id;
     if (!artworkId) {
       toast.error("No associated artwork found for this report");
       return;
@@ -146,10 +148,12 @@ export function ReportDrawer({
     ? `${detail.reporter.first_name} ${detail.reporter.last_name ?? ""}`.trim()
     : "";
 
-  // Determine if this report has an associated artwork
-  const hasAssociatedArtwork = !!detail?.reported_art_post?.registered_arts;
-  const artworkTitle =
-    detail?.reported_art_post?.registered_arts?.title ?? "this artwork";
+  // Determine if this report has an associated artwork (plagiarism reports
+  // without an art_post fall back to the matched artwork resolved from target_id)
+  const associatedArtwork =
+    detail?.reported_art_post?.registered_arts ?? detail?.matched_artwork;
+  const hasAssociatedArtwork = !!associatedArtwork;
+  const artworkTitle = associatedArtwork?.title ?? "this artwork";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -338,17 +342,17 @@ export function ReportDrawer({
                   />
 
                   {/* Associated Artwork */}
-                  {detail.reported_art_post?.registered_arts && (
+                  {associatedArtwork && (
                     <div className="rounded-lg border p-3 space-y-2">
                       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Reported Artwork
                       </h4>
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
-                          {detail.reported_art_post.registered_arts.c_secure_url ? (
+                          {associatedArtwork.c_secure_url ? (
                             <Image
-                              src={detail.reported_art_post.registered_arts.c_secure_url}
-                              alt={detail.reported_art_post.registered_arts.title}
+                              src={associatedArtwork.c_secure_url}
+                              alt={associatedArtwork.title}
                               fill
                               className="object-cover"
                             />
@@ -360,10 +364,10 @@ export function ReportDrawer({
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {detail.reported_art_post.registered_arts.title}
+                            {associatedArtwork.title}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Status: {detail.reported_art_post.registered_arts.status}
+                            Status: {associatedArtwork.status}
                           </p>
                         </div>
                       </div>
@@ -424,7 +428,7 @@ export function ReportDrawer({
                           decision={detail.decision}
                           hasAssociatedArtwork={hasAssociatedArtwork}
                           artworkIsArchived={false}
-                          artworkId={detail.reported_art_post?.registered_arts?.id}
+                          artworkId={associatedArtwork?.id}
                           artworkTitle={artworkTitle}
                           isUpdatingStatus={isUpdatingStatus}
                           onResolved={onRefresh}
