@@ -94,9 +94,9 @@ export default function AuthCallbackPage() {
             setResendStatus("sent");
             setCooldown(60);
 
-        } catch (err: any) {
+        } catch (err) {
             setResendStatus("error");
-            setErrorMessage(err.message);
+            setErrorMessage(err instanceof Error ? err.message : "Failed to resend confirmation email");
         }
     };
 
