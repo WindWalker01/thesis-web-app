@@ -42,7 +42,8 @@ export default function CommunityPageClient({
 
   const {
     state: feedState,
-    refs: feedRefs,
+    filtersButtonRef,
+    filtersMenuRef,
     actions: feedActions,
   } = useCommunityFeed({
     authed,
@@ -195,7 +196,7 @@ export default function CommunityPageClient({
 
                     <div className="relative">
                       <button
-                        ref={feedRefs.filtersButtonRef}
+                        ref={filtersButtonRef}
                         type="button"
                         aria-haspopup="menu"
                         aria-expanded={feedState.filtersOpen}
@@ -217,7 +218,7 @@ export default function CommunityPageClient({
 
                       {authed && feedState.filtersOpen ? (
                         <div
-                          ref={feedRefs.filtersMenuRef}
+                          ref={filtersMenuRef}
                           className="absolute right-0 z-30 mt-2 w-[320px] rounded-2xl border border-border bg-card p-4 shadow-xl"
                         >
                           <div className="space-y-4">

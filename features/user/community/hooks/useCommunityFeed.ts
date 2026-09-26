@@ -239,10 +239,8 @@ export function useCommunityFeed({
             featuredPosts,
             availableFilters,
         },
-        refs: {
-            filtersButtonRef,
-            filtersMenuRef,
-        },
+        filtersButtonRef,
+        filtersMenuRef,
         actions: {
             setSearch,
             setActiveFilter,
