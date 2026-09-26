@@ -88,7 +88,6 @@ import { cn } from "@/lib/client-utils";
 import { UserManagementSkeleton } from "./page-skeleton";
 import type {
   UserRow,
-  UserManagementStats,
   UserFilters,
   UserSortOption,
   AccountStatus,
