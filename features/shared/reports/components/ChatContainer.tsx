@@ -76,15 +76,6 @@ export function ChatContainer({
     enabled: true,
   });
 
-  // Determine if current user is admin for display purposes
-  const isCurrentUserAdmin = useCallback(
-    (userId: string) => {
-      // We determine this based on the message is_admin flag for the most recent message from this user
-      const userMessages = messages.filter((m) => m.user_id === userId);
-      return userMessages.some((m) => m.is_admin);
-    },
-    [messages]
-  );
 
   // Get display name for a user
   const getDisplayName = useCallback(
