@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { ReviewQueueItem, ReviewStatistics, ReviewActivityItem, ReviewsQueryParams } from "../types";
+import type { ReviewQueueItem, ReviewStatistics, ReviewActivityItem } from "../types";
 
 interface UseReviewsParams {
   page: number;
