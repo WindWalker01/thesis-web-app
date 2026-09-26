@@ -12,7 +12,6 @@ import {
   FileText,
   FileClockIcon,
   Scale,
-  BookOpen,
   Mail,
   Share2Icon,
   Globe,
