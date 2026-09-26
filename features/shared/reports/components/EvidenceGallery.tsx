@@ -17,7 +17,6 @@ type EvidenceGalleryProps = {
 
 export function EvidenceGallery({
   evidence,
-  reportId,
   canUpload = false,
   onUpload,
 }: EvidenceGalleryProps) {
