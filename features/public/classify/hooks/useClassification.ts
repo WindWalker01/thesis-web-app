@@ -30,6 +30,7 @@ export function useClassification() {
         mode: "onChange",
     });
 
+    // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() cannot be memoized safely
     const watchedFile = form.watch("file");
 
     const previewUrl = useMemo(() => {
