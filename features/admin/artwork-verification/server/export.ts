@@ -1,6 +1,5 @@
 "use server";
 
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ReviewsQueryParams } from "../types";
 import { getReviewQueue } from "./reviews";
 
@@ -8,8 +7,6 @@ export async function exportReviewsCSV(
   params: ReviewsQueryParams
 ): Promise<{ success: boolean; data?: string; message?: string }> {
   try {
-    const supabase = createSupabaseAdminClient();
-
     const result = await getReviewQueue(params);
     const items = result.items;
 
