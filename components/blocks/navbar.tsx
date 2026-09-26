@@ -11,7 +11,6 @@ import {
   User as UserIcon,
   Menu,
   X,
-  ScanSearch,
   FileCheck,
   MessageCircle,
   Award,
