@@ -91,7 +91,7 @@ export function ProductStackSection() {
     <section
       id="product-stack"
       aria-labelledby="product-stack-title"
-      className="overflow-x-clip bg-background-light dark:bg-background-dark"
+      className="bg-background-light dark:bg-background-dark overflow-x-clip"
     >
       {pinned ? (
         <PinnedStack
@@ -165,8 +165,16 @@ function StackStage({
   animated?: boolean;
   onGoTo: (index: number) => void;
 }) {
+  const step = STEPS[active];
+
   return (
-    <div className="mt-10">
+    <div className="mt-10 grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
+      <div>
+        <StackCopy step={step} index={active} />
+        <div className="mt-8">
+          <StackControls active={active} onGoTo={onGoTo} />
+        </div>
+      </div>
       <div className="overflow-hidden">
         <div
           className={cn(
@@ -178,62 +186,45 @@ function StackStage({
             transform: stackStripOffset(progress, STEPS.length),
           }}
         >
-          {STEPS.map((step, index) => (
-            <StackSlide
-              key={step.title}
-              step={step}
-              index={index}
-              active={active}
-              live={index <= Math.floor(progress + 0.001)}
-            />
+          {STEPS.map((diagramStep, index) => (
+            <div
+              key={diagramStep.title}
+              aria-hidden={index !== active}
+              className="px-1"
+              style={{ width: `${100 / STEPS.length}%` }}
+            >
+              <StackDiagram
+                step={diagramStep}
+                live={index <= Math.floor(progress + 0.001)}
+              />
+            </div>
           ))}
         </div>
-      </div>
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <StackControls active={active} onGoTo={onGoTo} />
       </div>
     </div>
   );
 }
 
-function StackSlide({
-  step,
-  index,
-  active,
-  live,
-}: {
-  step: ProductStackStep;
-  index: number;
-  active: number;
-  live: boolean;
-}) {
+function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
   return (
-    <article
-      aria-hidden={index !== active}
-      inert={index !== active}
-      className="grid items-center gap-8 px-1 lg:grid-cols-2 lg:gap-16"
-      style={{ width: `${100 / STEPS.length}%` }}
-    >
-      <div>
-        <p className="text-sm font-semibold tracking-widest text-slate-400">
-          {stackStepLabel(index, STEPS.length)}
-        </p>
-        <h3 className="mt-2 text-4xl font-black text-blue-500 md:text-5xl">
-          {step.title}
-        </h3>
-        <p className="mt-3 max-w-sm text-base leading-relaxed text-slate-600 dark:text-slate-300">
-          {step.description}
-        </p>
-        <Link
-          href={step.href}
-          className="mt-6 inline-flex items-center gap-3 rounded-lg border border-slate-300 px-4 py-2.5 text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:border-blue-500 hover:text-blue-500 dark:border-slate-600 dark:text-slate-100"
-        >
-          Learn more
-          <ChevronRight className="h-4 w-4" />
-        </Link>
-      </div>
-      <StackDiagram step={step} live={live} />
-    </article>
+    <div>
+      <p className="text-sm font-semibold tracking-widest text-slate-400">
+        {stackStepLabel(index, STEPS.length)}
+      </p>
+      <h3 className="mt-2 text-4xl font-black text-blue-500 md:text-5xl">
+        {step.title}
+      </h3>
+      <p className="mt-3 max-w-sm text-base leading-relaxed text-slate-600 dark:text-slate-300">
+        {step.description}
+      </p>
+      <Link
+        href={step.href}
+        className="mt-6 inline-flex items-center gap-3 rounded-lg border border-slate-300 px-4 py-2.5 text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:border-blue-500 hover:text-blue-500 dark:border-slate-600 dark:text-slate-100"
+      >
+        Learn more
+        <ChevronRight className="h-4 w-4" />
+      </Link>
+    </div>
   );
 }
 

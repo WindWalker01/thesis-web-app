@@ -56,17 +56,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto mt-20 min-h-screen max-w-7xl">
+      <section className="mx-auto mt-20 mb-16 max-w-7xl">
         <div className="flex flex-col gap-5 text-start">
           <h1 className="text-5xl font-normal">
             The first new money rail
             <br /> in fifty years
           </h1>
           <p className="max-w-2xl">
-            If your business moves money across borders, you&apos;re used to cut-off
-            times, weekend delays, and fees taken by every bank in between.
-            Stablecoins settle in seconds, any day of the year, cost a fraction
-            as much, and can be programmed to move the moment they land.
+            If your business moves money across borders, you&apos;re used to
+            cut-off times, weekend delays, and fees taken by every bank in
+            between. Stablecoins settle in seconds, any day of the year, cost a
+            fraction as much, and can be programmed to move the moment they
+            land.
           </p>
         </div>
 
