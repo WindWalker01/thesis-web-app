@@ -92,7 +92,7 @@ describe("product stack scroll", () => {
     const joined = railDotMotion(0.68);
     expect(joined.merged).toBe(true);
     if (!joined.merged) return;
-    expect(joined.point.x).toBeGreaterThan(50);
+    expect(joined.point.x).toBeCloseTo(30);
     expect(joined.point.y).toBeCloseTo(50);
 
     const done = railDotMotion(1);

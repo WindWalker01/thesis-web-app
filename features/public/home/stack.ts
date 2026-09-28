@@ -41,7 +41,8 @@ export function stackStripOffset(progress: number, stepCount: number): string {
   for (let index = 0; index < whole; index += 1) {
     traveled += stackFrameShare(index, stepCount);
   }
-  if (whole < stepCount) traveled += fraction * stackFrameShare(whole, stepCount);
+  if (whole < stepCount)
+    traveled += fraction * stackFrameShare(whole, stepCount);
   return `translate3d(-${(traveled / total) * 100}%, 0, 0)`;
 }
 
@@ -82,7 +83,10 @@ export function stackRailLeft(index: number, stepCount: number): string {
 
 export function stackForkLeft(stepCount: number): string {
   const frame = stackFrameShare(0, stepCount);
-  const left = Math.max(0, (STACK_SCREENSHOT_SHARE - FORK_CARD_OVERLAP) / frame);
+  const left = Math.max(
+    0,
+    (STACK_SCREENSHOT_SHARE - FORK_CARD_OVERLAP) / frame,
+  );
   return `${left * 100}%`;
 }
 
@@ -95,7 +99,7 @@ const MID_LAG = 0.22;
 /** Share of the middle curve used to fade the dot in as it leaves the anchor. */
 const MID_FADE = 0.35;
 
-const MEET: RailPoint = { x: 58, y: 50 };
+const MEET: RailPoint = { x: 30, y: 50 };
 const LINE_END: RailPoint = { x: 100, y: 50 };
 
 const CURVE_START_X = (() => {
@@ -107,35 +111,44 @@ const CURVE_START_X = (() => {
 
 const TOP: readonly [RailPoint, RailPoint, RailPoint, RailPoint] = [
   { x: CURVE_START_X, y: 22 },
-  { x: 30, y: 22 },
-  { x: 46, y: 50 },
+  { x: 17, y: 22 },
+  { x: 24, y: 50 },
   MEET,
 ];
 const MID: readonly [RailPoint, RailPoint, RailPoint, RailPoint] = [
   { x: CURVE_START_X, y: 50 },
-  { x: 26, y: 50 },
-  { x: 44, y: 50 },
+  { x: 15, y: 50 },
+  { x: 23, y: 50 },
   MEET,
 ];
 const BOT: readonly [RailPoint, RailPoint, RailPoint, RailPoint] = [
   { x: CURVE_START_X, y: 78 },
-  { x: 30, y: 78 },
-  { x: 46, y: 50 },
+  { x: 17, y: 78 },
+  { x: 24, y: 50 },
   MEET,
 ];
 
+function curvePath(
+  curve: readonly [RailPoint, RailPoint, RailPoint, RailPoint],
+): string {
+  const [start, controlA, controlB, end] = curve;
+  return `M ${start.x} ${start.y} C ${controlA.x} ${controlA.y}, ${controlB.x} ${controlB.y}, ${end.x} ${end.y}`;
+}
+
 export const RAIL_CURVES = {
-  top: `M ${CURVE_START_X} 22 C 30 22, 46 50, 58 50`,
-  mid: `M ${CURVE_START_X} 50 C 26 50, 44 50, 58 50`,
-  bot: `M ${CURVE_START_X} 78 C 30 78, 46 50, 58 50`,
-  line: "M 58 50 L 100 50",
+  top: curvePath(TOP),
+  mid: curvePath(MID),
+  bot: curvePath(BOT),
+  line: `M ${MEET.x} ${MEET.y} L ${LINE_END.x} ${LINE_END.y}`,
 } as const;
 
 export const FORK_OUTPUT_ANCHORS = [22, 50, 78] as const;
 
 function cubic(t: number, p0: number, p1: number, p2: number, p3: number) {
   const u = 1 - t;
-  return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+  return (
+    u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3
+  );
 }
 
 function curvePoint(
@@ -172,10 +185,16 @@ const FORK_WEIGHT = 1.35;
 export function railPhases(travel: number, count: number): number[] {
   const total = Math.max(1, Math.floor(count));
   const start = ((travel % 1) + 1) % 1;
-  return Array.from({ length: total }, (_, index) => (start + index / total) % 1);
+  return Array.from(
+    { length: total },
+    (_, index) => (start + index / total) % 1,
+  );
 }
 
-export function railJourney(travel: number, stepCount: number): RailJourney | null {
+export function railJourney(
+  travel: number,
+  stepCount: number,
+): RailJourney | null {
   const connectors = Math.max(stepCount - 1, 0);
   if (connectors === 0) return null;
 
