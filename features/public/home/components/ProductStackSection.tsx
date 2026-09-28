@@ -11,6 +11,7 @@ import {
 } from "@/features/public/home/content";
 import {
   activeStackStep,
+  FORK_OUTPUT_ANCHORS,
   RAIL_CURVES,
   railDotMotion,
   railJourney,
@@ -264,6 +265,7 @@ function StackFrame({
             sizes="(min-width: 1024px) 42vw, 70vw"
           />
         </div>
+        <ImageAnchors role={role} />
       </div>
       {role === "fork" ? (
         <ForkRail
@@ -374,6 +376,35 @@ function LineRail({ points }: { points: RailPoint[] }) {
         <RailDot key={index} point={point} />
       ))}
     </div>
+  );
+}
+
+function ImageAnchors({ role }: { role: "fork" | "line" | "none" }) {
+  const outputs = role === "fork" ? FORK_OUTPUT_ANCHORS : role === "line" ? [50] : [];
+  const inputs = role === "fork" ? [] : [50];
+
+  return (
+    <>
+      {inputs.map((y) => (
+        <RailAnchor key={`input-${y}`} side="input" y={y} />
+      ))}
+      {outputs.map((y) => (
+        <RailAnchor key={`output-${y}`} side="output" y={y} />
+      ))}
+    </>
+  );
+}
+
+function RailAnchor({ side, y }: { side: "input" | "output"; y: number }) {
+  return (
+    <span
+      data-rail-anchor={side}
+      className={cn(
+        "absolute z-30 size-3.5 -translate-y-1/2 rounded-full border-2 border-blue-500 bg-white shadow-[0_0_0_4px_rgba(59,130,246,0.28)] dark:bg-slate-900",
+        side === "input" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2",
+      )}
+      style={{ top: `${y}%` }}
+    />
   );
 }
 
