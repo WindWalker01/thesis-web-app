@@ -8,9 +8,35 @@ const HEADING_END = HERO_PORTION;
 /** The screenshot starts moving as soon as the page scrolls. */
 const IMAGE_START = 0;
 const HEADING_LIFT = 36;
+/** Scroll, in viewport heights, that plays the hero-to-dashboard animation. */
+export const SCENE_ANIMATION_VH = 35;
+/** One typical mouse-wheel notch. Four of these hold the finished frame. */
+const WHEEL_NOTCH_PX = 300;
+export const SCENE_HOLD_NOTCHES = 8;
+export const SCENE_HOLD_PX = SCENE_HOLD_NOTCHES * WHEEL_NOTCH_PX;
 
 export const IMAGE_PEEK_FRACTION = 0.16;
-export const IMAGE_REVEAL_FRACTION = 0.85;
+export const IMAGE_REVEAL_FRACTION = 0.75;
+
+/** Height of the pinned scene: one screen, the animation, then the hold. */
+export function sceneSectionHeight(): string {
+  return `calc(100vh + ${SCENE_ANIMATION_VH}vh + ${SCENE_HOLD_PX}px)`;
+}
+
+/**
+ * Maps pinned-scroll progress so the animation finishes first, then the
+ * remaining distance keeps the last frame in place.
+ */
+export function sceneAnimationProgress(
+  progress: number,
+  viewportHeight: number,
+): number {
+  const amount = clamp01(progress);
+  if (viewportHeight <= 0) return amount;
+  const animationPx = (SCENE_ANIMATION_VH / 100) * viewportHeight;
+  const span = animationPx / (animationPx + SCENE_HOLD_PX);
+  return clamp01(amount / span);
+}
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));

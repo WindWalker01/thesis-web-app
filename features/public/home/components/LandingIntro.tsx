@@ -15,6 +15,8 @@ import {
   imageLiftPixels,
   IMAGE_REVEAL_FRACTION,
   landingSceneMotion,
+  sceneAnimationProgress,
+  sceneSectionHeight,
 } from "@/features/public/home/landing-scene";
 import { TechnologyMarquee } from "@/features/public/home/components/TechnologyMarquee";
 
@@ -117,7 +119,7 @@ export function LandingIntro() {
   }, [reduceMotion]);
 
   const scene = useTransform(scrollYProgress, (progress) =>
-    landingSceneMotion(progress),
+    landingSceneMotion(sceneAnimationProgress(progress, viewportHeight)),
   );
   const y = useTransform(scene, (frame) => frame.hero.y);
   const scale = useTransform(scene, (frame) => frame.hero.scale);
@@ -160,7 +162,11 @@ export function LandingIntro() {
 
   return (
     <>
-      <section ref={sceneRef} className="relative h-[135vh]">
+      <section
+        ref={sceneRef}
+        className="relative"
+        style={{ height: sceneSectionHeight() }}
+      >
         <div className="sticky top-0 h-screen overflow-hidden">
           <motion.div
             ref={headingRef}
