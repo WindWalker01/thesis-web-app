@@ -168,7 +168,7 @@ function StackStage({
   const step = STEPS[active];
 
   return (
-    <div className="mt-10 grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
+    <div className="mt-10 grid items-center gap-8 lg:grid-cols-[3fr_7fr] lg:gap-16">
       <div>
         <StackCopy step={step} index={active} />
         <div className="mt-8">
@@ -219,7 +219,7 @@ function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
       </p>
       <Link
         href={step.href}
-        className="mt-6 inline-flex items-center gap-3 rounded-lg border border-slate-300 px-4 py-2.5 text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:border-blue-500 hover:text-blue-500 dark:border-slate-600 dark:text-slate-100"
+        className="mt-10 mb-10 inline-flex items-center gap-3 rounded-lg border border-slate-300 px-4 py-2.5 text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:border-blue-500 hover:text-blue-500 dark:border-slate-600 dark:text-slate-100"
       >
         Learn more
         <ChevronRight className="h-4 w-4" />
