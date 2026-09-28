@@ -21,6 +21,7 @@ describe("landingSceneMotion", () => {
     expect(scene.heading).toEqual({ opacity: 0, y: 36 });
     expect(scene.imageFraction).toBe(IMAGE_PEEK_FRACTION);
     expect(scene.imageFade).toBe(0);
+    expect(scene.marqueeOpacity).toBe(0);
   });
 
   it("fades the hero while the dashboard heading is arriving", () => {
@@ -32,6 +33,12 @@ describe("landingSceneMotion", () => {
     expect(mid.imageFraction).toBeGreaterThan(IMAGE_PEEK_FRACTION);
     expect(mid.imageFraction).toBeLessThan(IMAGE_REVEAL_FRACTION);
     expect(mid.imageFade).toBe(0);
+    expect(mid.marqueeOpacity).toBe(0);
+  });
+
+  it("fades in the technology marquee as the screenshot lifts into place", () => {
+    const halfway = landingSceneMotion(0.675);
+    expect(halfway.marqueeOpacity).toBeCloseTo(0.5);
   });
 
   it("ends with the hero gone, the heading in place, and the image cropped", () => {
@@ -41,6 +48,7 @@ describe("landingSceneMotion", () => {
     expect(end.heading).toEqual({ opacity: 1, y: 0 });
     expect(end.imageFraction).toBe(IMAGE_REVEAL_FRACTION);
     expect(end.imageFade).toBe(1);
+    expect(end.marqueeOpacity).toBe(1);
   });
 
   it("clamps progress outside 0 to 1", () => {
@@ -54,7 +62,7 @@ describe("scene hold", () => {
     expect(sceneSectionHeight()).toBe(
       `calc(100vh + ${SCENE_ANIMATION_VH}vh + ${SCENE_HOLD_PX}px)`,
     );
-    expect(SCENE_HOLD_PX).toBe(2400);
+    expect(SCENE_HOLD_PX).toBe(1600);
   });
 
   it("finishes the animation before the hold and then stays on the last frame", () => {

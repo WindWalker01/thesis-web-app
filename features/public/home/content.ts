@@ -86,7 +86,7 @@ export const PRODUCT_STACK_STEPS: readonly ProductStackStep[] = [
   {
     title: "Monitor",
     description:
-      "Review the portfolio, similarity signals, and reports in one studio.",
+      "Review the artworks, similarity scans, and reports in one dashboard.",
     href: "/dashboard",
     image: "/landing-page-elements/dashboard.png",
     imageAlt: "Artist dashboard",

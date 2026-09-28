@@ -77,10 +77,9 @@ describe("LandingIntro", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("Next.js").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Polygon").length).toBeGreaterThan(0);
-    expect(screen.queryByText("all technologies used")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("region", { name: "Technologies used" }).closest(".sticky"),
-    ).not.toBeNull();
+    const marquee = screen.getByRole("region", { name: "Technologies used" });
+    expect(marquee.closest(".sticky")).not.toBeNull();
+    expect(marquee.parentElement).toHaveStyle({ opacity: "0" });
   });
 
   it("shows the cropped dashboard image when motion is reduced", () => {

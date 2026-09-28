@@ -142,6 +142,7 @@ export function LandingIntro() {
     ),
   );
   const imageFade = useTransform(scene, (frame) => frame.imageFade);
+  const marqueeOpacity = useTransform(scene, (frame) => frame.marqueeOpacity);
 
   if (reduceMotion) {
     return (
@@ -211,9 +212,12 @@ export function LandingIntro() {
                 className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t to-transparent"
               />
             </div>
-            <div className="absolute inset-x-0 top-full">
+            <motion.div
+              style={{ opacity: marqueeOpacity }}
+              className="absolute inset-x-0 top-full"
+            >
               <TechnologyMarquee />
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>

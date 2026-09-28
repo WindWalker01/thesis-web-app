@@ -11,7 +11,7 @@ const HEADING_LIFT = 36;
 /** Scroll, in viewport heights, that plays the hero-to-dashboard animation. */
 export const SCENE_ANIMATION_VH = 35;
 /** One typical mouse-wheel notch. Four of these hold the finished frame. */
-const WHEEL_NOTCH_PX = 300;
+const WHEEL_NOTCH_PX = 200;
 export const SCENE_HOLD_NOTCHES = 8;
 export const SCENE_HOLD_PX = SCENE_HOLD_NOTCHES * WHEEL_NOTCH_PX;
 
@@ -67,6 +67,7 @@ export function landingSceneMotion(progress: number) {
     },
     imageFraction,
     imageFade: clamp01((imageOpen - fadeStart) / (1 - fadeStart)),
+    marqueeOpacity: clamp01((amount - fadeStart) / (1 - fadeStart)),
   };
 }
 
