@@ -3,6 +3,14 @@ import { describe, expect, it } from "vitest";
 import { ProductStackSection } from "@/features/public/home/components/ProductStackSection";
 
 describe("ProductStackSection", () => {
+  it("clips sideways overflow without a scroll container that would unpin the stage", () => {
+    const { container } = render(<ProductStackSection />);
+    const section = container.querySelector("#product-stack");
+
+    expect(section?.className).toContain("overflow-x-clip");
+    expect(section?.className).not.toContain("overflow-x-hidden");
+  });
+
   it("starts on upload and steps through the workflow", () => {
     render(<ProductStackSection />);
 

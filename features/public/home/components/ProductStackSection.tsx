@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import {
   PRODUCT_STACK,
   PRODUCT_STACK_STEPS,
@@ -56,7 +51,10 @@ export function ProductStackSection() {
     const update = () => {
       const rect = track.getBoundingClientRect();
       const scrollable = track.offsetHeight - window.innerHeight;
-      const scrolled = Math.min(Math.max(-rect.top, 0), Math.max(scrollable, 0));
+      const scrolled = Math.min(
+        Math.max(-rect.top, 0),
+        Math.max(scrollable, 0),
+      );
       setProgress(stackScrollProgress(scrolled, scrollable, STEPS.length));
     };
     const onScroll = () => {
@@ -93,7 +91,7 @@ export function ProductStackSection() {
     <section
       id="product-stack"
       aria-labelledby="product-stack-title"
-      className="overflow-x-hidden bg-background-light dark:bg-background-dark"
+      className="overflow-x-clip bg-background-light dark:bg-background-dark"
     >
       {pinned ? (
         <PinnedStack
@@ -171,7 +169,10 @@ function StackStage({
     <div className="mt-10">
       <div className="overflow-hidden">
         <div
-          className={cn("flex", animated && "transition-transform duration-500 ease-out")}
+          className={cn(
+            "flex",
+            animated && "transition-transform duration-500 ease-out",
+          )}
           style={{
             width: `${STEPS.length * 100}%`,
             transform: stackStripOffset(progress, STEPS.length),
@@ -361,7 +362,9 @@ function StackControls({
             onClick={() => onGoTo(index)}
             className={cn(
               "h-1 rounded-full transition-all",
-              index === active ? "w-10 bg-blue-500" : "w-6 bg-slate-300 dark:bg-slate-600",
+              index === active
+                ? "w-10 bg-blue-500"
+                : "w-6 bg-slate-300 dark:bg-slate-600",
             )}
           />
         ))}
