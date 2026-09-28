@@ -19,11 +19,12 @@ describe("landingSceneMotion", () => {
     expect(scene.imageFade).toBe(0);
   });
 
-  it("fades the hero while the image is already moving into place", () => {
+  it("fades the hero while the dashboard heading is arriving", () => {
     const mid = landingSceneMotion(0.31);
 
     expect(mid.hero).toEqual(heroScrollMotion(0.5));
-    expect(mid.heading.opacity).toBe(0);
+    expect(mid.heading.opacity).toBeGreaterThan(0);
+    expect(mid.heading.opacity).toBeLessThan(1);
     expect(mid.imageFraction).toBeGreaterThan(IMAGE_PEEK_FRACTION);
     expect(mid.imageFraction).toBeLessThan(IMAGE_REVEAL_FRACTION);
     expect(mid.imageFade).toBe(0);

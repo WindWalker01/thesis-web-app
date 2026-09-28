@@ -2,8 +2,9 @@ import { heroScrollMotion } from "@/features/public/home/hero-scroll";
 
 /** Share of the pinned scroll used to finish the hero fade. */
 const HERO_PORTION = 0.62;
-/** Heading starts once the hero is nearly gone. */
-const HEADING_START = 0.58;
+/** Dashboard copy fades in across the same stretch the hero is leaving. */
+const HEADING_START = 0.15;
+const HEADING_END = HERO_PORTION;
 /** The screenshot starts moving as soon as the page scrolls. */
 const IMAGE_START = 0;
 const HEADING_LIFT = 36;
@@ -24,7 +25,9 @@ function clamp01(value: number): number {
 export function landingSceneMotion(progress: number) {
   const amount = clamp01(progress);
   const imageOpen = clamp01((amount - IMAGE_START) / (1 - IMAGE_START));
-  const headingOpen = clamp01((amount - HEADING_START) / (1 - HEADING_START));
+  const headingOpen = clamp01(
+    (amount - HEADING_START) / (HEADING_END - HEADING_START),
+  );
   const imageFraction =
     IMAGE_PEEK_FRACTION +
     (IMAGE_REVEAL_FRACTION - IMAGE_PEEK_FRACTION) * imageOpen;
