@@ -6,6 +6,7 @@ import {
   railPhases,
   railRole,
   stackScrollProgress,
+  stackEdgeMask,
   stackStepLabel,
   stackStripOffset,
   stackStripScale,
@@ -109,5 +110,14 @@ describe("product stack scroll", () => {
     expect(stackStripOffset(1, 4)).toBe(`translate3d(-${shift}%, 0, 0)`);
     expect(stackFrameShare(0, 4)).toBeGreaterThan(stackFrameShare(3, 4));
     expect(stackRailLeft(1, 4)).toBe(stackRailLeft(2, 4));
+    expect(stackEdgeMask(0)).toBe(
+      "linear-gradient(to right, black 0%, black 92%, transparent)",
+    );
+    expect(stackEdgeMask(0.5)).toBe(
+      "linear-gradient(to right, transparent, black 4%, black 92%, transparent)",
+    );
+    expect(stackEdgeMask(1)).toBe(
+      "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
+    );
   });
 });

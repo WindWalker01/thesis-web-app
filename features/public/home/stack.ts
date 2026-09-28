@@ -46,6 +46,16 @@ export function stackStripOffset(progress: number, stepCount: number): string {
   return `translate3d(-${(traveled / total) * 100}%, 0, 0)`;
 }
 
+const EDGE_FADE = 8;
+
+export function stackEdgeMask(progress: number): string {
+  const amount = Math.min(1, Math.max(0, progress));
+  const left = amount * EDGE_FADE;
+  const right = `black ${100 - EDGE_FADE}%, transparent`;
+  if (left <= 0) return `linear-gradient(to right, black 0%, ${right})`;
+  return `linear-gradient(to right, transparent, black ${left}%, ${right})`;
+}
+
 /** Screenshot width as a fraction of the visible diagram. */
 export const STACK_SCREENSHOT_SHARE = 0.55;
 /** Connector length as a fraction of the visible diagram. */

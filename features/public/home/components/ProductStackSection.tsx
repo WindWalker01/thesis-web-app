@@ -18,6 +18,7 @@ import {
   railPhases,
   railRole,
   stackScrollProgress,
+  stackEdgeMask,
   stackStepLabel,
   stackStripOffset,
   stackStripScale,
@@ -144,7 +145,7 @@ function PinnedStack({
   return (
     <div ref={trackRef} style={{ height: stackTrackHeight(STEPS.length) }}>
       <div className="sticky top-0 flex h-svh items-center pt-16">
-        <div className="mx-auto flex w-full max-w-7xl flex-col px-6 lg:px-8">
+        <div className="mx-auto flex w-full max-w-[96rem] flex-col px-6 lg:px-8">
           <StackHeading />
           <StackStage progress={progress} active={active} onGoTo={onGoTo} />
         </div>
@@ -185,16 +186,24 @@ function StackStage({
   const journeys = railPhases(travel, RAIL_DOT_COUNT)
     .map((phase) => railJourney(phase, STEPS.length))
     .filter((journey) => journey !== null);
+  const edgeMask = stackEdgeMask(progress);
 
   return (
-    <div className="mt-10 grid items-center gap-8 lg:grid-cols-[3fr_7fr] lg:gap-16">
+    <div className="mt-10 grid items-center gap-8 lg:grid-cols-[2.5fr_7.5fr] lg:gap-16">
       <div>
         <StackCopy step={step} index={active} />
         <div className="mt-8">
           <StackControls active={active} onGoTo={onGoTo} />
         </div>
       </div>
-      <div className="overflow-hidden">
+      <div
+        data-stack-stage
+        className="overflow-hidden"
+        style={{
+          maskImage: edgeMask,
+          WebkitMaskImage: edgeMask,
+        }}
+      >
         <div
           className={cn(
             "flex",
