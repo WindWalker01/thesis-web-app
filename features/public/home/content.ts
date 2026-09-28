@@ -301,4 +301,3 @@ export const EVIDENCE_CARDS: readonly EvidenceCard[] = [
 export function evidenceCardBackground(card: EvidenceCard): string {
   return card.background ?? "#0f1013";
 }
-

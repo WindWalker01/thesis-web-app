@@ -19,6 +19,7 @@ import {
   sceneSectionHeight,
 } from "@/features/public/home/landing-scene";
 import { TechnologyMarquee } from "@/features/public/home/components/TechnologyMarquee";
+import { WireframeBlocks } from "@/features/public/home/components/WireframeBlocks";
 
 function HeroCopy() {
   return (
@@ -169,6 +170,24 @@ export function LandingIntro() {
         style={{ height: sceneSectionHeight() }}
       >
         <div className="sticky top-0 h-screen overflow-hidden">
+          {/* 3D Wireframe Outline Blocks background with brand colors */}
+          <motion.div
+            style={{ opacity }}
+            className="pointer-events-auto absolute inset-0 z-0 overflow-hidden"
+          >
+            <WireframeBlocks
+              cubeCount={16}
+              primaryColor="rgba(59, 130, 246, 0.45)"
+              accentColor="rgba(249, 115, 22, 0.4)"
+            />
+            {/* Ambient center spotlight glow using brand blue and orange */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="h-[460px] w-[720px] rounded-full bg-gradient-to-tr from-blue-600/15 via-orange-500/10 to-transparent blur-[140px]" />
+            </div>
+            {/* Soft radial vignette mask to blend into the background at the edges */}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,var(--background)_90%)]" />
+          </motion.div>
+
           <motion.div
             ref={headingRef}
             style={{ opacity: headingOpacity, y: headingY }}
@@ -186,9 +205,11 @@ export function LandingIntro() {
               WebkitMaskImage: maskImage,
               pointerEvents: heroPointerEvents,
             }}
-            className="absolute inset-0 z-20 flex origin-center flex-col items-center justify-center px-6 pb-28 will-change-transform"
+            className="pointer-events-none absolute inset-0 z-20 flex origin-center flex-col items-center justify-center px-6 pb-28 will-change-transform"
           >
-            <HeroCopy />
+            <div className="pointer-events-auto flex flex-col items-center">
+              <HeroCopy />
+            </div>
           </motion.div>
 
           <motion.div

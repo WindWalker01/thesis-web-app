@@ -261,7 +261,7 @@ function StackHeading() {
     <div className="mx-auto max-w-3xl text-center">
       <h2
         id="product-stack-title"
-        className="text-3xl font-normal tracking-wide text-balance text-slate-900 sm:text-4xl md:text-5xl dark:text-white"
+        className="text-foreground text-4xl font-normal tracking-tight md:text-5xl"
       >
         {PRODUCT_STACK.title}
       </h2>
