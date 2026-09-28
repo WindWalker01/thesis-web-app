@@ -123,8 +123,11 @@ export function stackForkLeft(stepCount: number): string {
 
 export type RailPoint = { x: number; y: number; opacity?: number };
 
-/** Share of the step used to travel the three curves before they merge. */
-const CURVE_SPAN = 0.68;
+/** Share of the first rail's path spent on the curves, before timing. */
+const CURVE_PATH_SPAN = 0.68;
+/** Path weight of the first rail relative to one straight rail at the same pace. */
+const FORK_PATH_WEIGHT = 1.35;
+const LINE_PATH_WEIGHT = 1;
 /** How far behind the outer dots the middle dot stays, as a fraction of the curve. */
 const MID_LAG = 0.22;
 /** Share of the middle curve used to fade the dot in as it leaves the anchor. */
@@ -211,8 +214,6 @@ export type RailJourney = {
   local: number;
 };
 
-const FORK_WEIGHT = 1.35;
-
 export function railPhases(travel: number, count: number): number[] {
   const total = Math.max(1, Math.floor(count));
   const start = ((travel % 1) + 1) % 1;
@@ -222,20 +223,83 @@ export function railPhases(travel: number, count: number): number[] {
   );
 }
 
+/** Share of the first rail's time spent on the curves at these two paces. */
+export function forkCurveSpan(
+  curveInterval: number,
+  lineInterval: number,
+): number {
+  const curve = CURVE_PATH_SPAN * Math.max(curveInterval, 0);
+  const line = (1 - CURVE_PATH_SPAN) * Math.max(lineInterval, 0);
+  const total = curve + line;
+  if (total <= 0) return CURVE_PATH_SPAN;
+  return curve / total;
+}
+
+function pathTotal(connectors: number): number {
+  return FORK_PATH_WEIGHT + Math.max(connectors - 1, 0) * LINE_PATH_WEIGHT;
+}
+
+/** Time for one connector inside a single dot's trip, before multiplying by the dot count. */
+function connectorPace(
+  index: number,
+  connectors: number,
+  curveInterval: number,
+  lineInterval: number,
+): number {
+  const total = pathTotal(connectors);
+  if (total <= 0) return 0;
+  if (index === 0) {
+    const fork = FORK_PATH_WEIGHT / total;
+    return (
+      fork * CURVE_PATH_SPAN * curveInterval +
+      fork * (1 - CURVE_PATH_SPAN) * lineInterval
+    );
+  }
+  return (LINE_PATH_WEIGHT / total) * lineInterval;
+}
+
+/**
+ * Length of one full trip. Curves keep the pace of `curveInterval`, and every
+ * straight stretch keeps the pace of `lineInterval`.
+ */
+export function railLoopDuration(
+  dotCount: number,
+  stepCount: number,
+  curveInterval: number,
+  lineInterval: number,
+): number {
+  const count = Math.max(1, Math.floor(dotCount));
+  const connectors = Math.max(stepCount - 1, 0);
+  if (connectors === 0) return Math.max(curveInterval, 0) * count;
+  let time = 0;
+  for (let index = 0; index < connectors; index += 1) {
+    time += connectorPace(index, connectors, curveInterval, lineInterval);
+  }
+  return time * count;
+}
+
 export function railJourney(
   travel: number,
   stepCount: number,
+  curveInterval = 600,
+  lineInterval = 1600,
 ): RailJourney | null {
   const connectors = Math.max(stepCount - 1, 0);
   if (connectors === 0) return null;
 
   const t = ((travel % 1) + 1) % 1;
-  const total = FORK_WEIGHT + (connectors - 1);
-  let cursor = 0;
-
+  let total = 0;
+  const weights: number[] = [];
   for (let index = 0; index < connectors; index += 1) {
-    const weight = index === 0 ? FORK_WEIGHT : 1;
-    const span = weight / total;
+    const weight = connectorPace(index, connectors, curveInterval, lineInterval);
+    weights.push(weight);
+    total += weight;
+  }
+  if (total <= 0) return null;
+
+  let cursor = 0;
+  for (let index = 0; index < connectors; index += 1) {
+    const span = weights[index] / total;
     const end = index === connectors - 1 ? 1 : cursor + span;
     if (t < end || index === connectors - 1) {
       const local = span === 0 ? 0 : (t - cursor) / span;
@@ -251,10 +315,14 @@ export function railJourney(
   return null;
 }
 
-export function railDotMotion(travel: number): RailDots {
+export function railDotMotion(
+  travel: number,
+  curveSpan = forkCurveSpan(600, 1600),
+): RailDots {
+  const span = Math.min(1, Math.max(0, curveSpan));
   const t = Math.min(1, Math.max(0, travel));
-  if (t < CURVE_SPAN) {
-    const along = t / CURVE_SPAN;
+  if (span > 0 && t < span) {
+    const along = t / span;
     const midAlong = along <= MID_LAG ? 0 : (along - MID_LAG) / (1 - MID_LAG);
     return {
       merged: false,
@@ -267,7 +335,8 @@ export function railDotMotion(travel: number): RailDots {
     };
   }
 
-  const along = (t - CURVE_SPAN) / (1 - CURVE_SPAN);
+  const remaining = 1 - span;
+  const along = remaining <= 0 ? 1 : (t - span) / remaining;
   return {
     merged: true,
     point: {

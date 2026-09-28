@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   activeStackStep,
+  forkCurveSpan,
   railDotMotion,
   railJourney,
+  railLoopDuration,
   railPhases,
   railRole,
   stackScrollProgress,
@@ -62,7 +64,23 @@ describe("product stack scroll", () => {
     expect(wrapped[1]).toBeCloseTo(0.3);
   });
 
+  it("keeps the curves on a faster pace than the straight rails", () => {
+    const pathTotal = 1.35 + 2;
+    const curveMs = ((1.35 * 0.68) / pathTotal) * 600 * 4;
+    const forkLineMs = ((1.35 * 0.32) / pathTotal) * 1600 * 4;
+    const lineMs = (1 / pathTotal) * 1600 * 4;
+    expect(railLoopDuration(4, 4, 600, 1600)).toBeCloseTo(
+      curveMs + forkLineMs + lineMs * 2,
+    );
+
+    const span = forkCurveSpan(600, 1600);
+    const atJoin = railJourney(curveMs / (curveMs + forkLineMs + lineMs * 2), 4);
+    expect(atJoin).toMatchObject({ index: 0, role: "fork" });
+    expect(atJoin?.local).toBeCloseTo(span);
+  });
+
   it("keeps the outer dots together and lets the middle dot catch up at the join", () => {
+    const span = forkCurveSpan(600, 1600);
     const start = railDotMotion(0);
     expect(start.merged).toBe(false);
     if (start.merged) return;
@@ -70,7 +88,7 @@ describe("product stack scroll", () => {
     expect(start.bot.y).toBeGreaterThan(start.mid.y);
     expect(start.top.x).toBeCloseTo(start.bot.x);
 
-    const early = railDotMotion(0.08);
+    const early = railDotMotion(span * 0.1);
     expect(early.merged).toBe(false);
     if (early.merged) return;
     expect(early.top.x).toBeGreaterThan(start.top.x);
@@ -79,7 +97,7 @@ describe("product stack scroll", () => {
     expect(start.mid.opacity).toBe(0);
     expect(early.mid.opacity).toBe(0);
 
-    const fading = railDotMotion(0.25);
+    const fading = railDotMotion(span * 0.3);
     expect(fading.merged).toBe(false);
     if (!fading.merged) {
       expect(fading.mid.opacity).toBeGreaterThan(0);
@@ -87,11 +105,11 @@ describe("product stack scroll", () => {
       expect(fading.mid.x).toBeGreaterThan(start.mid.x);
     }
 
-    const visible = railDotMotion(0.45);
+    const visible = railDotMotion(span * 0.6);
     expect(visible.merged).toBe(false);
     if (!visible.merged) expect(visible.mid.opacity).toBe(1);
 
-    const joined = railDotMotion(0.68);
+    const joined = railDotMotion(span);
     expect(joined.merged).toBe(true);
     if (!joined.merged) return;
     expect(joined.point.x).toBeCloseTo(30);

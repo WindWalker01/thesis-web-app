@@ -13,8 +13,10 @@ import {
   activeStackStep,
   FORK_OUTPUT_ANCHORS,
   RAIL_CURVES,
+  forkCurveSpan,
   railDotMotion,
   railJourney,
+  railLoopDuration,
   railPhases,
   railRole,
   stackScrollProgress,
@@ -33,7 +35,10 @@ import {
 import { cn } from "@/lib/client-utils";
 
 const STEPS = PRODUCT_STACK_STEPS;
-const RAIL_DOT_INTERVAL_MS = 600;
+/** Pace of the dots while they follow the curves on the first image. */
+const CURVE_DOT_INTERVAL_MS = 600;
+/** Pace of the dots on the straight rails toward the later images. */
+const LINE_DOT_INTERVAL_MS = 1600;
 const RAIL_DOT_COUNT = 4;
 
 function usePinnedStack() {
@@ -279,9 +284,24 @@ function StackStage({
   onGoTo: (index: number) => void;
 }) {
   const step = STEPS[active];
-  const travel = useRailLoop(RAIL_DOT_INTERVAL_MS * RAIL_DOT_COUNT);
+  const travel = useRailLoop(
+    railLoopDuration(
+      RAIL_DOT_COUNT,
+      STEPS.length,
+      CURVE_DOT_INTERVAL_MS,
+      LINE_DOT_INTERVAL_MS,
+    ),
+  );
+  const curveSpan = forkCurveSpan(CURVE_DOT_INTERVAL_MS, LINE_DOT_INTERVAL_MS);
   const journeys = railPhases(travel, RAIL_DOT_COUNT)
-    .map((phase) => railJourney(phase, STEPS.length))
+    .map((phase) =>
+      railJourney(
+        phase,
+        STEPS.length,
+        CURVE_DOT_INTERVAL_MS,
+        LINE_DOT_INTERVAL_MS,
+      ),
+    )
     .filter((journey) => journey !== null);
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[2.5fr_7.5fr] lg:gap-16">
@@ -310,6 +330,7 @@ function StackStage({
                 step={diagramStep}
                 hidden={index !== active}
                 role={railRole(index, STEPS.length)}
+                curveSpan={curveSpan}
                 journeys={journeys.filter((journey) => journey.index === index)}
               />
             ))}
@@ -372,12 +393,14 @@ function StackFrame({
   step,
   hidden,
   role,
+  curveSpan,
   journeys,
 }: {
   index: number;
   step: ProductStackStep;
   hidden: boolean;
   role: "fork" | "line" | "none";
+  curveSpan: number;
   journeys: { role: "fork" | "line"; local: number }[];
 }) {
   return (
@@ -396,7 +419,7 @@ function StackFrame({
           left={stackForkLeft(STEPS.length)}
           motions={journeys
             .filter((journey) => journey.role === "fork")
-            .map((journey) => railDotMotion(journey.local))}
+            .map((journey) => railDotMotion(journey.local, curveSpan))}
         />
       ) : null}
       {role === "line" ? (
