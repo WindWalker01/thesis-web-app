@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   activeStackStep,
+  railDotMotion,
   stackScrollProgress,
   stackStepLabel,
   stackStripOffset,
@@ -22,6 +23,33 @@ describe("product stack scroll", () => {
     expect(activeStackStep(0.5, 4)).toBe(1);
     expect(activeStackStep(2.6, 4)).toBe(3);
     expect(activeStackStep(9, 4)).toBe(3);
+  });
+
+  it("keeps the outer dots together and lets the middle dot catch up at the join", () => {
+    const start = railDotMotion(0);
+    expect(start.merged).toBe(false);
+    if (start.merged) return;
+    expect(start.top.y).toBeLessThan(start.mid.y);
+    expect(start.bot.y).toBeGreaterThan(start.mid.y);
+    expect(start.top.x).toBeCloseTo(start.bot.x);
+
+    const early = railDotMotion(0.08);
+    expect(early.merged).toBe(false);
+    if (early.merged) return;
+    expect(early.top.x).toBeGreaterThan(start.top.x);
+    expect(early.bot.x).toBeCloseTo(early.top.x);
+    expect(early.mid.x).toBeCloseTo(start.mid.x);
+
+    const joined = railDotMotion(0.68);
+    expect(joined.merged).toBe(true);
+    if (!joined.merged) return;
+    expect(joined.point.x).toBeGreaterThan(50);
+    expect(joined.point.y).toBeCloseTo(50);
+
+    const done = railDotMotion(1);
+    expect(done.merged).toBe(true);
+    if (!done.merged) return;
+    expect(done.point.x).toBeCloseTo(100);
   });
 
   it("formats the step counter and track size", () => {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -10,6 +11,8 @@ import {
 } from "@/features/public/home/content";
 import {
   activeStackStep,
+  RAIL_CURVES,
+  railDotMotion,
   stackScrollProgress,
   stackStepLabel,
   stackStripOffset,
@@ -187,17 +190,13 @@ function StackStage({
           }}
         >
           {STEPS.map((diagramStep, index) => (
-            <div
+            <StackFrame
               key={diagramStep.title}
-              aria-hidden={index !== active}
-              className="px-1"
-              style={{ width: `${100 / STEPS.length}%` }}
-            >
-              <StackDiagram
-                step={diagramStep}
-                live={index <= Math.floor(progress + 0.001)}
-              />
-            </div>
+              step={diagramStep}
+              hidden={index !== active}
+              travel={railTravel(progress, index)}
+              animate={index === active}
+            />
           ))}
         </div>
       </div>
@@ -228,89 +227,128 @@ function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
   );
 }
 
-function StackDiagram({
+function railTravel(progress: number, index: number): number {
+  if (progress >= index + 1) return 1;
+  if (progress <= index) return 0;
+  return progress - index;
+}
+
+function StackFrame({
   step,
-  live,
+  hidden,
+  travel,
+  animate,
 }: {
   step: ProductStackStep;
-  live: boolean;
+  hidden: boolean;
+  travel: number;
+  animate: boolean;
 }) {
-  const stroke = live ? "rgb(59, 130, 246)" : "rgb(148, 163, 184)";
+  return (
+    <div
+      aria-hidden={hidden}
+      className="relative"
+      style={{ width: `${100 / STEPS.length}%` }}
+    >
+      <div className="w-[70%]">
+        <div className="relative aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <Image
+            src={step.image}
+            alt={step.imageAlt}
+            fill
+            className="object-contain object-center p-3"
+            sizes="(min-width: 1024px) 42vw, 70vw"
+          />
+        </div>
+      </div>
+      <StackRail travel={travel} animate={animate} />
+    </div>
+  );
+}
+
+function useLoopingTravel(enabled: boolean) {
+  const [travel, setTravel] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      setTravel(((now - start) % 3200) / 3200);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [enabled]);
+
+  return travel;
+}
+
+function StackRail({ travel, animate }: { travel: number; animate: boolean }) {
+  const settled = travel <= 0.02 || travel >= 0.98;
+  const loop = useLoopingTravel(animate && settled);
+  const motion = animate && settled ? loop : travel;
+  const dots = railDotMotion(motion);
 
   return (
-    <div className="flex min-w-0 items-center gap-1">
-      <ul className="flex min-w-0 flex-1 flex-col gap-3 sm:max-w-64">
-        {step.cards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <li
-              key={card.tag}
-              className="flex h-[68px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900"
-            >
-              <div
-                className={cn(
-                  "flex w-12 shrink-0 items-center justify-center text-white",
-                  card.rail,
-                )}
-              >
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col justify-center px-3">
-                <p className="text-sm leading-tight font-bold text-slate-900 dark:text-white">
-                  {card.title}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {card.detail}
-                  <span className="ml-2 text-[10px] font-bold tracking-widest text-blue-500">
-                    {card.tag}
-                  </span>
-                </p>
-              </div>
-              <span className="my-auto mr-2 h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
-            </li>
-          );
-        })}
-      </ul>
+    <div
+      data-stack-rail
+      className="pointer-events-none absolute inset-y-0 left-[64%] right-0"
+      aria-hidden="true"
+    >
       <svg
-        viewBox="0 0 240 228"
-        className="h-[228px] w-20 shrink-0 sm:w-auto sm:min-w-[140px] sm:flex-1"
+        viewBox="0 0 100 100"
         preserveAspectRatio="none"
-        aria-hidden="true"
+        className="h-full w-full overflow-visible text-blue-500"
       >
-        <line
-          x1="186"
-          y1="114"
-          x2="240"
-          y2="114"
-          stroke={stroke}
+        <path
+          d={RAIL_CURVES.top}
+          fill="none"
+          stroke="currentColor"
           strokeWidth="1.5"
           vectorEffect="non-scaling-stroke"
         />
         <path
-          d="M 0 34 C 80 34 130 114 180 114"
+          d={RAIL_CURVES.mid}
           fill="none"
-          stroke={stroke}
+          stroke="currentColor"
           strokeWidth="1.5"
           vectorEffect="non-scaling-stroke"
         />
         <path
-          d="M 0 114 C 80 114 130 114 180 114"
+          d={RAIL_CURVES.bot}
           fill="none"
-          stroke={stroke}
+          stroke="currentColor"
           strokeWidth="1.5"
           vectorEffect="non-scaling-stroke"
         />
         <path
-          d="M 0 194 C 80 194 130 114 180 114"
+          d={RAIL_CURVES.line}
           fill="none"
-          stroke={stroke}
+          stroke="currentColor"
           strokeWidth="1.5"
           vectorEffect="non-scaling-stroke"
         />
-        <circle cx="186" cy="114" r="5" fill={stroke} />
       </svg>
-      <p className="sr-only">{step.hub}</p>
+      {dots.merged ? (
+        <RailDot point={dots.point} />
+      ) : (
+        <>
+          <RailDot point={dots.top} />
+          <RailDot point={dots.mid} />
+          <RailDot point={dots.bot} />
+        </>
+      )}
     </div>
+  );
+}
+
+function RailDot({ point }: { point: { x: number; y: number } }) {
+  return (
+    <span
+      className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.28)]"
+      style={{ left: `${point.x}%`, top: `${point.y}%` }}
+    />
   );
 }
 

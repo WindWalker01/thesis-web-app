@@ -1,15 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Blocks,
-  Clock,
   FileClockIcon,
-  FileText,
   Fingerprint,
   Flag,
   ImageIcon,
   Search,
   ShieldCheck,
-  Tags,
   Users,
 } from "lucide-react";
 
@@ -48,20 +44,12 @@ export const HERO_STATS = [
   { value: "Blockchain", label: "Immutable Documentation" },
 ] as const;
 
-export type ProductStackCard = {
-  title: string;
-  detail: string;
-  tag: string;
-  icon: LucideIcon;
-  rail: string;
-};
-
 export type ProductStackStep = {
   title: string;
   description: string;
   href: string;
-  hub: string;
-  cards: readonly [ProductStackCard, ProductStackCard, ProductStackCard];
+  image: string;
+  imageAlt: string;
 };
 
 export const PRODUCT_STACK = {
@@ -76,120 +64,32 @@ export const PRODUCT_STACK_STEPS: readonly ProductStackStep[] = [
     description:
       "Bring in the file, the title, and the details that identify the work.",
     href: "/upload-artwork",
-    hub: "Intake",
-    cards: [
-      {
-        title: "Artwork file",
-        detail: "Image",
-        tag: "FILE",
-        icon: ImageIcon,
-        rail: "bg-blue-600",
-      },
-      {
-        title: "Title & artist",
-        detail: "Record",
-        tag: "META",
-        icon: FileText,
-        rail: "bg-orange-500",
-      },
-      {
-        title: "Classification",
-        detail: "Label",
-        tag: "CLASS",
-        icon: Tags,
-        rail: "bg-indigo-500",
-      },
-    ],
+    image: "/landing-page-elements/upload-artwork.png",
+    imageAlt: "Artwork upload form",
   },
   {
     title: "Fingerprints",
     description:
       "A visual hash catches similar images. A cryptographic hash shows the file was not changed.",
     href: "/plagiarism-checker",
-    hub: "Hashes",
-    cards: [
-      {
-        title: "Perceptual hash",
-        detail: "Visual",
-        tag: "PHASH",
-        icon: Fingerprint,
-        rail: "bg-blue-600",
-      },
-      {
-        title: "Cryptographic hash",
-        detail: "Integrity",
-        tag: "SHA",
-        icon: ShieldCheck,
-        rail: "bg-orange-500",
-      },
-      {
-        title: "Compared works",
-        detail: "Matches",
-        tag: "SCAN",
-        icon: Search,
-        rail: "bg-indigo-500",
-      },
-    ],
+    image: "/landing-page-elements/similiarity-checking.png",
+    imageAlt: "Similarity check results",
   },
   {
     title: "On-chain record",
     description:
       "The cryptographic hash and a timestamp go to the registry. The image stays off the chain.",
     href: "/txs",
-    hub: "Registry",
-    cards: [
-      {
-        title: "Artwork hash",
-        detail: "Digest",
-        tag: "HASH",
-        icon: Fingerprint,
-        rail: "bg-blue-600",
-      },
-      {
-        title: "Timestamp",
-        detail: "Moment",
-        tag: "TIME",
-        icon: Clock,
-        rail: "bg-orange-500",
-      },
-      {
-        title: "Registry tx",
-        detail: "Amoy",
-        tag: "CHAIN",
-        icon: Blocks,
-        rail: "bg-indigo-500",
-      },
-    ],
+    image: "/landing-page-elements/on-chain-record.png",
+    imageAlt: "On-chain registry record",
   },
   {
     title: "Monitor",
     description:
       "Keep the portfolio, review similarity signals, and follow reports from one studio.",
     href: "/dashboard",
-    hub: "Studio",
-    cards: [
-      {
-        title: "Similarity",
-        detail: "Signals",
-        tag: "MATCH",
-        icon: Search,
-        rail: "bg-blue-600",
-      },
-      {
-        title: "Portfolio",
-        detail: "Works",
-        tag: "ART",
-        icon: ImageIcon,
-        rail: "bg-orange-500",
-      },
-      {
-        title: "Reports",
-        detail: "Status",
-        tag: "CASE",
-        icon: Flag,
-        rail: "bg-indigo-500",
-      },
-    ],
+    image: "/landing-page-elements/dashboard.png",
+    imageAlt: "Artist dashboard",
   },
 ];
 

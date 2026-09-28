@@ -25,6 +25,11 @@ describe("ProductStackSection", () => {
       "href",
       "/upload-artwork",
     );
+    expect(screen.getByRole("img", { name: "Artwork upload form" })).toHaveAttribute(
+      "src",
+      "/landing-page-elements/upload-artwork.png",
+    );
+    expect(document.querySelectorAll("[data-stack-rail]")).toHaveLength(4);
     expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
@@ -35,6 +40,12 @@ describe("ProductStackSection", () => {
     expect(screen.getByRole("link", { name: /learn more/i })).toHaveAttribute(
       "href",
       "/plagiarism-checker",
+    );
+    expect(
+      screen.getByRole("img", { name: "Similarity check results" }),
+    ).toHaveAttribute(
+      "src",
+      "/landing-page-elements/similiarity-checking.png",
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Go to step 4" }));

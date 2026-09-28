@@ -48,5 +48,11 @@ describe("home content", () => {
       "/txs",
       "/dashboard",
     ]);
+    expect(PRODUCT_STACK_STEPS.map((step) => step.image)).toEqual([
+      "/landing-page-elements/upload-artwork.png",
+      "/landing-page-elements/similiarity-checking.png",
+      "/landing-page-elements/on-chain-record.png",
+      "/landing-page-elements/dashboard.png",
+    ]);
   });
 });
