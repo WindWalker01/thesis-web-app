@@ -18,6 +18,7 @@ import {
   railPhases,
   railRole,
   stackScrollProgress,
+  stackSnapIndex,
   stackEdgeMask,
   stackStepLabel,
   stackStripOffset,
@@ -85,6 +86,62 @@ export function ProductStackSection() {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+    };
+  }, [pinned]);
+
+  useEffect(() => {
+    if (!pinned) return;
+    const track = trackRef.current;
+    if (!track) return;
+
+    let animating = false;
+    let timer = 0;
+
+    const settle = () => {
+      const rect = track.getBoundingClientRect();
+      const viewport = window.innerHeight;
+      if (rect.top > 1 || rect.bottom < viewport - 1) return;
+
+      const scrollable = track.offsetHeight - viewport;
+      if (scrollable <= 0) return;
+      const scrolled = Math.min(Math.max(-rect.top, 0), scrollable);
+      const index = stackSnapIndex(
+        stackScrollProgress(scrolled, scrollable, STEPS.length),
+        STEPS.length,
+      );
+      if (index === null) {
+        animating = false;
+        return;
+      }
+
+      const target =
+        window.scrollY + rect.top + (index / (STEPS.length - 1)) * scrollable;
+      if (Math.abs(target - window.scrollY) < 4) {
+        animating = false;
+        return;
+      }
+      if (animating) return;
+
+      animating = true;
+      window.scrollTo({ top: target, behavior: "smooth" });
+    };
+
+    const onScrollEnd = () => {
+      window.clearTimeout(timer);
+      animating = false;
+      settle();
+    };
+    const onScroll = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(settle, 160);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scrollend", onScrollEnd);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scrollend", onScrollEnd);
     };
   }, [pinned]);
 

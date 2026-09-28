@@ -8,6 +8,7 @@ import {
   stackScrollProgress,
   stackEdgeMask,
   stackStepLabel,
+  stackSnapIndex,
   stackStripOffset,
   stackStripScale,
   stackFrameShare,
@@ -106,8 +107,27 @@ describe("product stack scroll", () => {
     expect(stackStepLabel(0, 4)).toBe("01/04");
     expect(stackStepLabel(3, 4)).toBe("04/04");
     expect(stackTrackHeight(4, 85)).toBe("calc(100svh + 255svh)");
-    const shift = (stackFrameShare(0, 4) / stackStripScale(4)) * 100;
-    expect(stackStripOffset(1, 4)).toBe(`translate3d(-${shift}%, 0, 0)`);
+    const total = stackStripScale(4);
+    const inset = (1 - 0.55) / 2;
+    const centered = (traveled: number) =>
+      `translate3d(-${((traveled - inset) / total) * 100}%, 0, 0)`;
+    expect(stackSnapIndex(0.49, 4)).toBeNull();
+    expect(stackSnapIndex(0.5, 4)).toBe(1);
+    expect(stackSnapIndex(1.2, 4)).toBe(1);
+    expect(stackSnapIndex(1.5, 4)).toBe(2);
+    expect(stackSnapIndex(2.6, 4)).toBe(3);
+    expect(stackSnapIndex(3, 4)).toBe(3);
+    expect(stackSnapIndex(1, 1)).toBeNull();
+    expect(stackStripOffset(0, 4)).toBe("translate3d(-0%, 0, 0)");
+    expect(stackStripOffset(1, 4)).toBe(centered(stackFrameShare(0, 4)));
+    expect(stackStripOffset(2, 4)).toBe(
+      centered(stackFrameShare(0, 4) + stackFrameShare(1, 4)),
+    );
+    expect(stackStripOffset(3, 4)).toBe(
+      centered(
+        stackFrameShare(0, 4) + stackFrameShare(1, 4) + stackFrameShare(2, 4),
+      ),
+    );
     expect(stackFrameShare(0, 4)).toBeGreaterThan(stackFrameShare(3, 4));
     expect(stackRailLeft(1, 4)).toBe(stackRailLeft(2, 4));
     expect(stackEdgeMask(0)).toBe(

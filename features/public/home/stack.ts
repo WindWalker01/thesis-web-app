@@ -16,6 +16,22 @@ export function activeStackStep(progress: number, stepCount: number): number {
   return Math.min(stepCount - 1, Math.max(0, index));
 }
 
+/**
+ * Step to settle on once scrolling stops inside a later screenshot.
+ * The first screenshot stays put. From halfway toward the next one, the
+ * nearest later step is the resting place.
+ */
+export function stackSnapIndex(
+  progress: number,
+  stepCount: number,
+): number | null {
+  if (stepCount <= 1) return null;
+  const clamped = Math.min(Math.max(progress, 0), stepCount - 1);
+  const nearest = Math.round(clamped);
+  if (nearest <= 0) return null;
+  return nearest;
+}
+
 export function stackStepLabel(index: number, stepCount: number): string {
   const current = String(index + 1).padStart(2, "0");
   const total = String(stepCount).padStart(2, "0");
@@ -28,6 +44,12 @@ export function stackTrackHeight(
 ): string {
   const extra = Math.max(stepCount - 1, 0) * stepViewportUnits;
   return `calc(100svh + ${extra}svh)`;
+}
+
+/** How far a settled screenshot sits in from the left so it is centered. */
+function stackCenterInset(progress: number): number {
+  const ramp = Math.min(1, Math.max(0, progress));
+  return ((1 - STACK_SCREENSHOT_SHARE) / 2) * ramp;
 }
 
 export function stackStripOffset(progress: number, stepCount: number): string {
@@ -43,7 +65,8 @@ export function stackStripOffset(progress: number, stepCount: number): string {
   }
   if (whole < stepCount)
     traveled += fraction * stackFrameShare(whole, stepCount);
-  return `translate3d(-${(traveled / total) * 100}%, 0, 0)`;
+  const shift = Math.max(0, traveled - stackCenterInset(clamped));
+  return `translate3d(-${(shift / total) * 100}%, 0, 0)`;
 }
 
 const EDGE_FADE = 8;
