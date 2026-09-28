@@ -16,8 +16,6 @@ interface Cube {
   speedX: number;
   speedY: number;
   speedZ: number;
-  color: string;
-  glowColor: string;
   isAccent: boolean;
   scale: number;
   screenX: number;
@@ -31,6 +29,7 @@ interface WireframeBlocksProps {
   accentColor?: string;
 }
 
+// 8 vertices of a perfect 1:1:1 unit cube
 const BASE_VERTICES: readonly [number, number, number][] = [
   [-1, -1, -1],
   [1, -1, -1],
@@ -42,6 +41,7 @@ const BASE_VERTICES: readonly [number, number, number][] = [
   [-1, 1, 1],
 ];
 
+// 12 edges connecting the 8 vertices
 const EDGES: readonly [number, number][] = [
   [0, 1],
   [1, 2],
@@ -59,8 +59,8 @@ const EDGES: readonly [number, number][] = [
 
 export const WireframeBlocks = memo(function WireframeBlocks({
   cubeCount = 14,
-  primaryColor = "rgba(59, 130, 246, 0.55)", // ArtForgeLab Blue (#3b82f6)
-  accentColor = "rgba(249, 115, 22, 0.5)", // ArtForgeLab Orange (#f97316)
+  primaryColor,
+  accentColor,
 }: WireframeBlocksProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -92,7 +92,7 @@ export const WireframeBlocks = memo(function WireframeBlocks({
     resize();
     window.addEventListener("resize", resize);
 
-    const fov = 420;
+    const fov = 440;
 
     // Mouse / Pointer Interaction state
     const mouse = {
@@ -105,7 +105,7 @@ export const WireframeBlocks = memo(function WireframeBlocks({
       cameraTiltY: 0,
     };
 
-    // Helper to spawn a cube around the perimeter of the hero section (avoiding center text)
+    // Helper to spawn cubes around the perimeter of the hero section (avoiding center text)
     function spawnAroundPerimeter(index: number) {
       const zone = index % 4;
       const z = 160 + Math.random() * 450;
@@ -140,14 +140,13 @@ export const WireframeBlocks = memo(function WireframeBlocks({
       };
     }
 
-    // Initialize cubes distributed across the perimeter with zero initial overlaps
+    // Initialize cubes with verified zero initial overlaps
     const cubes: Cube[] = [];
     for (let i = 0; i < cubeCount; i++) {
       const isAccent = i % 3 === 0;
-      const size = 32 + Math.random() * 40;
+      const size = 32 + Math.random() * 36;
       let pos = spawnAroundPerimeter(i);
 
-      // Verify no overlap with already spawned cubes
       for (let attempt = 0; attempt < 10; attempt++) {
         let hasOverlap = false;
         for (const existing of cubes) {
@@ -172,17 +171,11 @@ export const WireframeBlocks = memo(function WireframeBlocks({
         rx: Math.random() * Math.PI * 2,
         ry: Math.random() * Math.PI * 2,
         rz: Math.random() * Math.PI * 2,
-        // Gentle, calm drift across the hero flanks
         vx: (Math.random() - 0.5) * 0.35,
         vy: (Math.random() - 0.5) * 0.28,
-        // Serene, slow tumbling (no dizziness)
         speedX: (Math.random() - 0.5) * 0.0007,
         speedY: (Math.random() - 0.5) * 0.0007,
         speedZ: (Math.random() - 0.5) * 0.0004,
-        color: isAccent ? accentColor : primaryColor,
-        glowColor: isAccent
-          ? "rgba(249, 115, 22, 0.7)"
-          : "rgba(59, 130, 246, 0.7)",
         isAccent,
         scale: pos.scale,
         screenX: 0,
@@ -216,7 +209,6 @@ export const WireframeBlocks = memo(function WireframeBlocks({
 
         canvas.style.cursor = "grabbing";
       } else {
-        // Hit test for hover
         let foundHover: Cube | null = null;
         for (let i = cubes.length - 1; i >= 0; i--) {
           const cube = cubes[i];
@@ -270,10 +262,33 @@ export const WireframeBlocks = memo(function WireframeBlocks({
       frameCount++;
       ctx.clearRect(0, 0, width, height);
 
+      // Check dark mode dynamically
+      const isDark = document.documentElement.classList.contains("dark");
+
+      // Adaptive Color Palette:
+      // - Dark mode: Glowing neon cyan/blue and orange with soft transparency
+      // - Light mode: Strong, punchy, high-contrast royal blue and deep orange (no washed-out faint lines)
+      const colors = {
+        primary:
+          primaryColor ||
+          (isDark ? "rgba(59, 130, 246, 0.55)" : "rgba(29, 78, 216, 0.92)"),
+        accent:
+          accentColor ||
+          (isDark ? "rgba(249, 115, 22, 0.5)" : "rgba(194, 65, 12, 0.92)"),
+        primaryGlow: isDark
+          ? "rgba(59, 130, 246, 0.7)"
+          : "rgba(37, 99, 235, 0.35)",
+        accentGlow: isDark
+          ? "rgba(249, 115, 22, 0.7)"
+          : "rgba(234, 88, 12, 0.35)",
+        edgeWidth: isDark ? 1.3 : 1.8, // Bolder stroke in light mode for crisp definition
+        shadowBlur: isDark ? 7 : 3,
+      };
+
       const cx = width / 2;
       const cy = height / 2;
 
-      // Hero Content Avoidance Zone Dimensions (Headline, Paragraph, CTA)
+      // Hero Content Avoidance Zone Dimensions
       const textZoneW = Math.min(340, width * 0.32);
       const textZoneH = Math.min(220, height * 0.28);
 
@@ -316,11 +331,10 @@ export const WireframeBlocks = memo(function WireframeBlocks({
             const c1 = cubes[i];
             const c2 = cubes[j];
 
-            // 2D Screen Space Distance: guarantees blocks NEVER overlap from camera viewpoint
             const sDx = c2.screenX - c1.screenX;
             const sDy = c2.screenY - c1.screenY;
             const sDistSq = sDx * sDx + sDy * sDy;
-            const minScreenDist = c1.screenRadius + c2.screenRadius + 24; // 24px clean separation buffer
+            const minScreenDist = c1.screenRadius + c2.screenRadius + 24;
             const minScreenDistSq = minScreenDist * minScreenDist;
 
             if (sDistSq < minScreenDistSq && sDistSq > 0.001) {
@@ -397,7 +411,6 @@ export const WireframeBlocks = memo(function WireframeBlocks({
           if (Math.abs(cube.vy) < 0.08) cube.vy += (Math.random() - 0.5) * 0.04;
         }
 
-        // Re-evaluate projected center after physics
         cube.screenX = cx + cube.x * cube.scale;
         cube.screenY = cy + cube.y * cube.scale;
       });
@@ -423,13 +436,13 @@ export const WireframeBlocks = memo(function WireframeBlocks({
             // Skip drawing lines that intersect right through the central reading area
             if (midDistToCenter < 190) continue;
 
-            const lineOpacity = Math.max(0, (1 - dist / maxConnectDist) * 0.32);
+            const lineOpacity = Math.max(0, (1 - dist / maxConnectDist) * (isDark ? 0.32 : 0.6));
 
             ctx.save();
             ctx.strokeStyle = c1.isAccent || c2.isAccent
-              ? `rgba(249, 115, 22, ${lineOpacity})`
-              : `rgba(59, 130, 246, ${lineOpacity})`;
-            ctx.lineWidth = 1.1;
+              ? (isDark ? `rgba(249, 115, 22, ${lineOpacity})` : `rgba(194, 65, 12, ${lineOpacity})`)
+              : (isDark ? `rgba(59, 130, 246, ${lineOpacity})` : `rgba(29, 78, 216, ${lineOpacity})`);
+            ctx.lineWidth = isDark ? 1.1 : 1.3;
             ctx.shadowColor = c1.isAccent ? "#f97316" : "#3b82f6";
             ctx.shadowBlur = 4;
 
@@ -444,9 +457,11 @@ export const WireframeBlocks = memo(function WireframeBlocks({
             const photonX = c1.screenX + (c2.screenX - c1.screenX) * pulseT;
             const photonY = c1.screenY + (c2.screenY - c1.screenY) * pulseT;
 
-            ctx.fillStyle = c1.isAccent ? "#f97316" : "#ffffff";
+            ctx.fillStyle = c1.isAccent
+              ? (isDark ? "#f97316" : "#c2410c")
+              : (isDark ? "#ffffff" : "#1d4ed8");
             ctx.shadowColor = c1.isAccent ? "#f97316" : "#60a5fa";
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = isDark ? 8 : 4;
             ctx.beginPath();
             ctx.arc(photonX, photonY, 2.2, 0, Math.PI * 2);
             ctx.fill();
@@ -456,7 +471,7 @@ export const WireframeBlocks = memo(function WireframeBlocks({
         }
       }
 
-      // 5. Render 3D Wireframe Cubes
+      // 5. Render 3D Wireframe Cubes - Exact 1:1:1 Orthonormal Matrix (Never a Slab or Rectangle!)
       cubes.forEach((cube) => {
         const isHovered = mouse.hoveredCube === cube;
         const isDragged = mouse.draggedCube === cube;
@@ -465,47 +480,50 @@ export const WireframeBlocks = memo(function WireframeBlocks({
         const radY = cube.ry + mouse.cameraTiltX;
         const radZ = cube.rz;
 
-        const cosX = Math.cos(radX);
-        const sinX = Math.sin(radX);
-        const cosY = Math.cos(radY);
-        const sinY = Math.sin(radY);
-        const cosZ = Math.cos(radZ);
-        const sinZ = Math.sin(radZ);
+        // Exact 3D Orthonormal Euler rotation matrix (Rz * Ry * Rx)
+        // Guarantees all 12 edges remain identical length in 3D and all 6 faces are perfect squares!
+        const cosX = Math.cos(radX), sinX = Math.sin(radX);
+        const cosY = Math.cos(radY), sinY = Math.sin(radY);
+        const cosZ = Math.cos(radZ), sinZ = Math.sin(radZ);
 
+        const r00 = cosY * cosZ;
+        const r01 = sinX * sinY * cosZ - cosX * sinZ;
+        const r02 = cosX * sinY * cosZ + sinX * sinZ;
+
+        const r10 = cosY * sinZ;
+        const r11 = sinX * sinY * sinZ + cosX * cosZ;
+        const r12 = cosX * sinY * sinZ - sinX * cosZ;
+
+        // Project with uniform scale per cube to prevent non-affine perspective shearing
         const projected = BASE_VERTICES.map(([vx, vy, vz]) => {
           const x0 = vx * cube.size;
           const y0 = vy * cube.size;
           const z0 = vz * cube.size;
 
-          const y1 = y0 * cosX - z0 * sinX;
-          const z1 = y0 * sinX + z0 * cosX;
-          const x2 = x0 * cosY + z1 * sinY;
-          const z2 = -x0 * sinY + z1 * cosY;
-          const x3 = x2 * cosZ - y1 * sinZ;
-          const y3 = x2 * sinZ + y1 * cosZ;
+          const rotX = r00 * x0 + r01 * y0 + r02 * z0;
+          const rotY = r10 * x0 + r11 * y0 + r12 * z0;
 
-          const finalX = x3 + cube.x;
-          const finalY = y3 + cube.y;
-          const finalZ = z2 + cube.z;
-
-          const scale = fov / (fov + finalZ);
           return {
-            x: cx + finalX * scale,
-            y: cy + finalY * scale,
-            scale,
+            x: cx + (cube.x + rotX) * cube.scale,
+            y: cy + (cube.y + rotY) * cube.scale,
+            scale: cube.scale,
           };
         });
 
-        let baseAlpha = Math.max(0.2, Math.min(0.85, 1 - cube.z / 900));
+        const strokeColor = cube.isAccent ? colors.accent : colors.primary;
+        const glowColor = cube.isAccent ? colors.accentGlow : colors.primaryGlow;
+
+        let baseAlpha = Math.max(0.35, Math.min(1.0, 1 - cube.z / 950));
         if (isHovered || isDragged) baseAlpha = 1.0;
 
         ctx.save();
-        ctx.strokeStyle = cube.color;
-        ctx.lineWidth = isHovered || isDragged ? 2.0 : 1.3;
-        ctx.shadowColor = cube.glowColor;
-        ctx.shadowBlur = isHovered || isDragged ? 14 : 7;
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = isHovered || isDragged ? colors.edgeWidth + 0.8 : colors.edgeWidth;
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = isHovered || isDragged ? colors.shadowBlur + 8 : colors.shadowBlur;
         ctx.globalAlpha = baseAlpha;
 
+        // Draw 12 edges of the perfect square/cube
         ctx.beginPath();
         EDGES.forEach(([p1, p2]) => {
           ctx.moveTo(projected[p1].x, projected[p1].y);
@@ -513,10 +531,17 @@ export const WireframeBlocks = memo(function WireframeBlocks({
         });
         ctx.stroke();
 
-        ctx.fillStyle = isHovered ? "#ffffff" : cube.isAccent ? "#fed7aa" : "#e0f2fe";
+        // High-contrast vertex corner points
+        if (isDark) {
+          ctx.fillStyle = isHovered ? "#ffffff" : cube.isAccent ? "#fed7aa" : "#e0f2fe";
+        } else {
+          // Strong punchy dark vertex in light mode
+          ctx.fillStyle = isHovered ? "#000000" : cube.isAccent ? "#9a3412" : "#1e40af";
+        }
+
         projected.forEach((p) => {
           ctx.beginPath();
-          ctx.arc(p.x, p.y, Math.max(1.2, (isHovered ? 2.5 : 1.8) * p.scale), 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, Math.max(1.5, (isHovered ? 2.6 : 1.9) * p.scale), 0, Math.PI * 2);
           ctx.fill();
         });
 

@@ -27,6 +27,8 @@ describe("WireframeBlocks", () => {
           fill: vi.fn(),
           save: vi.fn(),
           restore: vi.fn(),
+          setLineDash: vi.fn(),
+          lineDashOffset: 0,
         }) as unknown,
     ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
   });
