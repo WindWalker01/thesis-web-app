@@ -2,28 +2,67 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRef } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { ProductStackSection } from "@/features/public/home/components/ProductStackSection";
+import { heroScrollMotion } from "@/features/public/home/hero-scroll";
 
 export default function Home() {
+  const heroRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion() === true;
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end end"],
+  });
+
+  const y = useTransform(scrollYProgress, (progress) =>
+    heroScrollMotion(reduceMotion ? 0 : progress).y,
+  );
+  const scale = useTransform(scrollYProgress, (progress) =>
+    heroScrollMotion(reduceMotion ? 0 : progress).scale,
+  );
+  const opacity = useTransform(scrollYProgress, (progress) =>
+    heroScrollMotion(reduceMotion ? 0 : progress).opacity,
+  );
+  const maskImage = useTransform(scrollYProgress, (progress) =>
+    heroScrollMotion(reduceMotion ? 0 : progress).maskImage,
+  );
+
   return (
     <main className="h-full w-full">
-      <section className="flex min-h-screen flex-col items-center justify-center">
-        <h1 className="text-center text-6xl leading-18 font-semibold tracking-wider">
-          Document your <br />{" "}
-          <span className="text-blue-500">Digital Artwork</span>
-        </h1>
-        <p className="text-normal mt-5 max-w-120 text-center">
-          Upload, classify, and document your digital artwork. Detect visually
-          similar works using perceptual hashing. Secure immutable evidence on
-          the blockchain and establish verifiable proof of authorship.
-        </p>
+      <section
+        ref={heroRef}
+        className={reduceMotion ? "min-h-screen" : "relative h-[160vh]"}
+      >
+        <div className="sticky top-0 flex h-screen flex-col items-center justify-center">
+          <motion.div
+            style={{ y, scale, opacity, maskImage, WebkitMaskImage: maskImage }}
+            className="flex origin-center flex-col items-center will-change-transform"
+          >
+            <h1 className="text-center text-6xl leading-18 font-semibold tracking-wider">
+              Document your <br />{" "}
+              <span className="text-blue-500">Digital Artwork</span>
+            </h1>
+            <p className="text-normal mt-7 max-w-120 text-center">
+              Upload, classify, and document your digital artwork. Detect visually
+              similar works using perceptual hashing. Secure immutable evidence on
+              the blockchain and establish verifiable proof of authorship.
+            </p>
 
-        <Link
-          href={"upload-artwork"}
-          className="mt-5 rounded-xs bg-blue-700 px-4 py-2 text-sm"
-        >
-          TRY UPLOADING ARTWORK
-        </Link>
+            <Link
+              href={"upload-artwork"}
+              className="mt-7 rounded-xs bg-blue-700 px-6 py-4 text-sm"
+            >
+              TRY UPLOADING ARTWORK
+            </Link>
+          </motion.div>
+        </div>
       </section>
 
       <section className="min-h-screen">
