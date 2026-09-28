@@ -76,6 +76,9 @@ describe("LandingIntro", () => {
     expect(screen.getAllByText("Next.js").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Polygon").length).toBeGreaterThan(0);
     expect(screen.queryByText("all technologies used")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Technologies used" }).closest(".sticky"),
+    ).not.toBeNull();
   });
 
   it("shows the cropped dashboard image when motion is reduced", () => {

@@ -22,12 +22,13 @@ function HeroCopy() {
   return (
     <>
       <h1 className="text-center text-6xl leading-18 font-semibold tracking-wider">
-        Document your <br /> <span className="text-blue-500">Digital Artwork</span>
+        Document your <br />{" "}
+        <span className="text-blue-500">Digital Artwork</span>
       </h1>
       <p className="text-normal mt-7 max-w-120 text-center">
         Upload, classify, and document your digital artwork. Detect visually
-        similar works using perceptual hashing. Secure immutable evidence on
-        the blockchain and establish verifiable proof of authorship.
+        similar works using perceptual hashing. Secure immutable evidence on the
+        blockchain and establish verifiable proof of authorship.
       </p>
       <Link
         href={"upload-artwork"}
@@ -135,7 +136,7 @@ export function LandingIntro() {
       frameWidth,
       frame.imageFraction,
       viewportHeight,
-      headingHeight > 0 ? headingHeight + 80 : 0,
+      headingHeight > 0 ? headingHeight + 60 : 0,
     ),
   );
   const imageFade = useTransform(scene, (frame) => frame.imageFade);
@@ -184,27 +185,32 @@ export function LandingIntro() {
           </motion.div>
 
           <motion.div
-            ref={imageFrameRef}
             style={{ height: imageHeight, y: imageY }}
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 mx-auto w-full max-w-4xl overflow-hidden rounded-t-lg"
+            className="absolute inset-x-0 bottom-0 z-10"
           >
-            <Image
-              src="/landing-page-elements/transactions.png"
-              alt="Polygonscan contract transactions"
-              width={1280}
-              height={900}
-              priority
-              className="absolute inset-x-0 top-0 h-auto w-full"
-            />
-            <motion.div
-              style={{ opacity: imageFade }}
-              className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t to-transparent"
-            />
+            <div
+              ref={imageFrameRef}
+              className="pointer-events-none relative mx-auto h-full w-full max-w-4xl overflow-hidden rounded-t-lg"
+            >
+              <Image
+                src="/landing-page-elements/transactions.png"
+                alt="Polygonscan contract transactions"
+                width={1280}
+                height={900}
+                priority
+                className="absolute inset-x-0 top-0 h-auto w-full"
+              />
+              <motion.div
+                style={{ opacity: imageFade }}
+                className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t to-transparent"
+              />
+            </div>
+            <div className="absolute inset-x-0 top-full">
+              <TechnologyMarquee />
+            </div>
           </motion.div>
         </div>
       </section>
-
-      <TechnologyMarquee />
     </>
   );
 }

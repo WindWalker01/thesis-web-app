@@ -25,7 +25,7 @@ export function TechnologyMarquee() {
   return (
     <section
       aria-label="Technologies used"
-      className="tech-marquee relative mt-20 overflow-hidden"
+      className="tech-marquee relative mx-auto w-full max-w-[100rem] overflow-hidden"
     >
       <div className="from-background pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-linear-to-r to-transparent" />
       <div className="from-background pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-linear-to-l to-transparent" />
