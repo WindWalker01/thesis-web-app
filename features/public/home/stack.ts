@@ -32,8 +32,58 @@ export function stackTrackHeight(
 
 export function stackStripOffset(progress: number, stepCount: number): string {
   if (stepCount <= 0) return "translate3d(0, 0, 0)";
-  const shift = (progress / stepCount) * 100;
-  return `translate3d(-${shift}%, 0, 0)`;
+  const total = stackStripScale(stepCount);
+  if (total <= 0) return "translate3d(0, 0, 0)";
+  const clamped = Math.min(Math.max(progress, 0), Math.max(stepCount - 1, 0));
+  const whole = Math.floor(clamped);
+  const fraction = clamped - whole;
+  let traveled = 0;
+  for (let index = 0; index < whole; index += 1) {
+    traveled += stackFrameShare(index, stepCount);
+  }
+  if (whole < stepCount) traveled += fraction * stackFrameShare(whole, stepCount);
+  return `translate3d(-${(traveled / total) * 100}%, 0, 0)`;
+}
+
+/** Screenshot width as a fraction of the visible diagram. */
+export const STACK_SCREENSHOT_SHARE = 0.55;
+/** Connector length as a fraction of the visible diagram. */
+export const STACK_RAIL_SHARE = 1;
+const FORK_CARD_OVERLAP = 0.06;
+
+export function stackFrameShare(index: number, stepCount: number): number {
+  if (stepCount <= 1 || index >= stepCount - 1) return STACK_SCREENSHOT_SHARE;
+  return STACK_SCREENSHOT_SHARE + STACK_RAIL_SHARE;
+}
+
+export function stackStripScale(stepCount: number): number {
+  let total = 0;
+  for (let index = 0; index < Math.max(stepCount, 0); index += 1) {
+    total += stackFrameShare(index, stepCount);
+  }
+  return total;
+}
+
+export function stackFrameWidth(index: number, stepCount: number): string {
+  const total = stackStripScale(stepCount);
+  if (total <= 0) return "100%";
+  return `${(stackFrameShare(index, stepCount) / total) * 100}%`;
+}
+
+export function stackScreenshotWidth(index: number, stepCount: number): string {
+  const frame = stackFrameShare(index, stepCount);
+  if (frame <= 0) return "100%";
+  return `${(STACK_SCREENSHOT_SHARE / frame) * 100}%`;
+}
+
+export function stackRailLeft(index: number, stepCount: number): string {
+  return stackScreenshotWidth(index, stepCount);
+}
+
+export function stackForkLeft(stepCount: number): string {
+  const frame = stackFrameShare(0, stepCount);
+  const left = Math.max(0, (STACK_SCREENSHOT_SHARE - FORK_CARD_OVERLAP) / frame);
+  return `${left * 100}%`;
 }
 
 export type RailPoint = { x: number; y: number; opacity?: number };
@@ -48,7 +98,12 @@ const MID_FADE = 0.35;
 const MEET: RailPoint = { x: 58, y: 50 };
 const LINE_END: RailPoint = { x: 100, y: 50 };
 
-const CURVE_START_X = 17;
+const CURVE_START_X = (() => {
+  const frame = STACK_SCREENSHOT_SHARE + STACK_RAIL_SHARE;
+  const overlayLeft = (STACK_SCREENSHOT_SHARE - FORK_CARD_OVERLAP) / frame;
+  const imageRight = STACK_SCREENSHOT_SHARE / frame;
+  return ((imageRight - overlayLeft) / (1 - overlayLeft)) * 100;
+})();
 
 const TOP: readonly [RailPoint, RailPoint, RailPoint, RailPoint] = [
   { x: CURVE_START_X, y: 22 },
@@ -70,9 +125,9 @@ const BOT: readonly [RailPoint, RailPoint, RailPoint, RailPoint] = [
 ];
 
 export const RAIL_CURVES = {
-  top: "M 17 22 C 30 22, 46 50, 58 50",
-  mid: "M 17 50 C 26 50, 44 50, 58 50",
-  bot: "M 17 78 C 30 78, 46 50, 58 50",
+  top: `M ${CURVE_START_X} 22 C 30 22, 46 50, 58 50`,
+  mid: `M ${CURVE_START_X} 50 C 26 50, 44 50, 58 50`,
+  bot: `M ${CURVE_START_X} 78 C 30 78, 46 50, 58 50`,
   line: "M 58 50 L 100 50",
 } as const;
 

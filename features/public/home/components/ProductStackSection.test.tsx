@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ProductStackSection } from "@/features/public/home/components/ProductStackSection";
+import { stackRailLeft } from "@/features/public/home/stack";
 
 describe("ProductStackSection", () => {
   it("clips sideways overflow without a scroll container that would unpin the stage", () => {
@@ -31,9 +32,9 @@ describe("ProductStackSection", () => {
     );
     expect(document.querySelectorAll("[data-rail-role='fork']")).toHaveLength(1);
     expect(document.querySelectorAll("[data-rail-role='line']")).toHaveLength(2);
-    expect(document.querySelector("[data-rail-role='line']")?.className).toContain(
-      "left-[70%]",
-    );
+    expect(document.querySelector("[data-rail-role='line']")).toHaveStyle({
+      left: stackRailLeft(1, 4),
+    });
     expect(document.querySelectorAll("[data-stack-rail]")).toHaveLength(3);
     expect(document.querySelector("[data-rail-anchor='output']")?.className).toContain(
       "bg-blue-500",

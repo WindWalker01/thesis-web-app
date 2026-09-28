@@ -20,6 +20,11 @@ import {
   stackScrollProgress,
   stackStepLabel,
   stackStripOffset,
+  stackStripScale,
+  stackForkLeft,
+  stackFrameWidth,
+  stackRailLeft,
+  stackScreenshotWidth,
   stackTrackHeight,
   type RailPoint,
 } from "@/features/public/home/stack";
@@ -196,13 +201,14 @@ function StackStage({
             animated && "transition-transform duration-500 ease-out",
           )}
           style={{
-            width: `${STEPS.length * 100}%`,
+            width: `${stackStripScale(STEPS.length) * 100}%`,
             transform: stackStripOffset(progress, STEPS.length),
           }}
         >
           {STEPS.map((diagramStep, index) => (
             <StackFrame
               key={diagramStep.title}
+              index={index}
               step={diagramStep}
               hidden={index !== active}
               role={railRole(index, STEPS.length)}
@@ -239,11 +245,13 @@ function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
 }
 
 function StackFrame({
+  index,
   step,
   hidden,
   role,
   journeys,
 }: {
+  index: number;
   step: ProductStackStep;
   hidden: boolean;
   role: "fork" | "line" | "none";
@@ -253,22 +261,26 @@ function StackFrame({
     <div
       aria-hidden={hidden}
       className="relative"
-      style={{ width: `${100 / STEPS.length}%` }}
+      style={{ width: stackFrameWidth(index, STEPS.length) }}
     >
-      <div className="relative z-10 w-[70%]">
+      <div
+        className="relative z-10"
+        style={{ width: stackScreenshotWidth(index, STEPS.length) }}
+      >
         <div className="relative aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <Image
             src={step.image}
             alt={step.imageAlt}
             fill
             className="object-contain object-center p-3"
-            sizes="(min-width: 1024px) 42vw, 70vw"
+            sizes="(min-width: 1024px) 35vw, 58vw"
           />
         </div>
         <ImageAnchors role={role} />
       </div>
       {role === "fork" ? (
         <ForkRail
+          left={stackForkLeft(STEPS.length)}
           motions={journeys
             .filter((journey) => journey.role === "fork")
             .map((journey) => railDotMotion(journey.local))}
@@ -276,6 +288,7 @@ function StackFrame({
       ) : null}
       {role === "line" ? (
         <LineRail
+          left={stackRailLeft(index, STEPS.length)}
           points={journeys
             .filter((journey) => journey.role === "line")
             .map((journey) => ({ x: journey.local * 100, y: 50 }))}
@@ -303,15 +316,18 @@ function useRailLoop(duration: number) {
 }
 
 function ForkRail({
+  left,
   motions,
 }: {
+  left: string;
   motions: ReturnType<typeof railDotMotion>[];
 }) {
   return (
     <div
       data-stack-rail
       data-rail-role="fork"
-      className="pointer-events-none absolute inset-y-0 right-0 left-[64%] z-20"
+      className="pointer-events-none absolute inset-y-0 right-0 z-20"
+      style={{ left }}
       aria-hidden="true"
     >
       <svg
@@ -363,12 +379,13 @@ function ForkRail({
   );
 }
 
-function LineRail({ points }: { points: RailPoint[] }) {
+function LineRail({ left, points }: { left: string; points: RailPoint[] }) {
   return (
     <div
       data-stack-rail
       data-rail-role="line"
-      className="pointer-events-none absolute inset-y-0 right-0 left-[70%] z-20"
+      className="pointer-events-none absolute inset-y-0 right-0 z-20"
+      style={{ left }}
       aria-hidden="true"
     >
       <div className="absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-blue-500" />

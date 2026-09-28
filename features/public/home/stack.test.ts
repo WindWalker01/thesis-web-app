@@ -8,6 +8,9 @@ import {
   stackScrollProgress,
   stackStepLabel,
   stackStripOffset,
+  stackStripScale,
+  stackFrameShare,
+  stackRailLeft,
   stackTrackHeight,
 } from "@/features/public/home/stack";
 
@@ -102,6 +105,9 @@ describe("product stack scroll", () => {
     expect(stackStepLabel(0, 4)).toBe("01/04");
     expect(stackStepLabel(3, 4)).toBe("04/04");
     expect(stackTrackHeight(4, 85)).toBe("calc(100svh + 255svh)");
-    expect(stackStripOffset(1, 4)).toBe("translate3d(-25%, 0, 0)");
+    const shift = (stackFrameShare(0, 4) / stackStripScale(4)) * 100;
+    expect(stackStripOffset(1, 4)).toBe(`translate3d(-${shift}%, 0, 0)`);
+    expect(stackFrameShare(0, 4)).toBeGreaterThan(stackFrameShare(3, 4));
+    expect(stackRailLeft(1, 4)).toBe(stackRailLeft(2, 4));
   });
 });
