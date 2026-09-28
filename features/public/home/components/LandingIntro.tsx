@@ -18,8 +18,31 @@ import {
   sceneAnimationProgress,
   sceneSectionHeight,
 } from "@/features/public/home/landing-scene";
+import {
+  BUTTON_CORNER_CLIP,
+  ScrambledText,
+  useScrambleHover,
+} from "@/features/public/home/components/ScrambledText";
 import { TechnologyMarquee } from "@/features/public/home/components/TechnologyMarquee";
 import { WireframeBlocks } from "@/features/public/home/components/WireframeBlocks";
+
+const UPLOAD_LABEL = "TRY UPLOADING ARTWORK";
+
+function UploadArtworkLink() {
+  const { display, scrambleHover } = useScrambleHover(UPLOAD_LABEL);
+
+  return (
+    <Link
+      href="upload-artwork"
+      aria-label={UPLOAD_LABEL}
+      {...scrambleHover}
+      className="mt-7 inline-flex rounded-xs bg-blue-700 px-6 py-4 text-sm whitespace-nowrap"
+      style={{ clipPath: BUTTON_CORNER_CLIP }}
+    >
+      <ScrambledText text={UPLOAD_LABEL} display={display} />
+    </Link>
+  );
+}
 
 function HeroCopy() {
   return (
@@ -33,12 +56,7 @@ function HeroCopy() {
         similar works using perceptual hashing. Secure immutable evidence on the
         blockchain and establish verifiable proof of authorship.
       </p>
-      <Link
-        href={"upload-artwork"}
-        className="mt-7 rounded-xs bg-blue-700 px-6 py-4 text-sm"
-      >
-        TRY UPLOADING ARTWORK
-      </Link>
+      <UploadArtworkLink />
     </>
   );
 }

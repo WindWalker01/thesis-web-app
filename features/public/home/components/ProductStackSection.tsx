@@ -32,7 +32,14 @@ import {
   stackTrackHeight,
   type RailPoint,
 } from "@/features/public/home/stack";
+import {
+  BUTTON_CORNER_CLIP,
+  ScrambledText,
+  useScrambleHover,
+} from "@/features/public/home/components/ScrambledText";
 import { cn } from "@/lib/client-utils";
+
+const LEARN_MORE_LABEL = "LEARN MORE";
 
 const STEPS = PRODUCT_STACK_STEPS;
 /** Pace of the dots while they follow the curves on the first image. */
@@ -377,14 +384,30 @@ function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
           );
         })}
       </div>
-      <Link
-        href={step.href}
-        className="mt-10 mb-10 inline-flex items-center gap-3 rounded-lg border border-slate-300 px-4 py-2.5 text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:border-blue-500 hover:text-blue-500 dark:border-slate-600 dark:text-slate-100"
-      >
-        Learn more
-        <ChevronRight className="h-4 w-4" />
-      </Link>
+      <LearnMoreLink href={step.href} />
     </div>
+  );
+}
+
+function LearnMoreLink({ href }: { href: string }) {
+  const { display, scrambleHover } = useScrambleHover(LEARN_MORE_LABEL);
+
+  return (
+    <Link
+      href={href}
+      aria-label="Learn more"
+      {...scrambleHover}
+      className="mt-10 mb-10 inline-flex bg-slate-300 p-px text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:bg-blue-500 hover:text-blue-500 dark:bg-slate-600 dark:text-slate-100"
+      style={{ clipPath: BUTTON_CORNER_CLIP }}
+    >
+      <span
+        className="inline-flex items-center gap-3 bg-background-light px-6 py-4 whitespace-nowrap dark:bg-background-dark"
+        style={{ clipPath: BUTTON_CORNER_CLIP }}
+      >
+        <ScrambledText text={LEARN_MORE_LABEL} display={display} />
+        <ChevronRight className="h-4 w-4" />
+      </span>
+    </Link>
   );
 }
 

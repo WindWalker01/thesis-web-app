@@ -29,10 +29,12 @@ describe("ProductStackSection", () => {
     const copyText = document.querySelector("[data-stack-copy-text]");
     expect(copyText?.className).toContain("transition-opacity");
     expect(copyText?.querySelector("a")).toBeNull();
-    expect(screen.getByRole("link", { name: /learn more/i })).toHaveAttribute(
-      "href",
-      "/upload-artwork",
-    );
+    const learnMore = screen.getByRole("link", { name: /learn more/i });
+    expect(learnMore).toHaveAttribute("href", "/upload-artwork");
+    expect(learnMore).toHaveStyle({
+      clipPath:
+        "polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)",
+    });
     expect(screen.getByRole("img", { name: "Artwork upload form" })).toHaveAttribute(
       "src",
       "/landing-page-elements/upload-artwork.png",

@@ -86,9 +86,14 @@ describe("LandingIntro", () => {
     reducedMotion.current = true;
     render(<LandingIntro />);
 
-    expect(
-      screen.getByRole("link", { name: "TRY UPLOADING ARTWORK" }),
-    ).toHaveAttribute("href", "upload-artwork");
+    const uploadLink = screen.getByRole("link", {
+      name: "TRY UPLOADING ARTWORK",
+    });
+    expect(uploadLink).toHaveAttribute("href", "upload-artwork");
+    expect(uploadLink).toHaveStyle({
+      clipPath:
+        "polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)",
+    });
     expect(
       screen.getByRole("img", { name: "Polygonscan contract transactions" }),
     ).toBeInTheDocument();
