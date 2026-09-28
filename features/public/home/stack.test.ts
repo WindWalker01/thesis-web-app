@@ -111,7 +111,8 @@ describe("product stack scroll", () => {
     const inset = (1 - 0.55) / 2;
     const centered = (traveled: number) =>
       `translate3d(-${((traveled - inset) / total) * 100}%, 0, 0)`;
-    expect(stackSnapIndex(0.49, 4)).toBeNull();
+    expect(stackSnapIndex(0, 4)).toBe(0);
+    expect(stackSnapIndex(0.49, 4)).toBe(0);
     expect(stackSnapIndex(0.5, 4)).toBe(1);
     expect(stackSnapIndex(1.2, 4)).toBe(1);
     expect(stackSnapIndex(1.5, 4)).toBe(2);

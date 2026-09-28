@@ -56,6 +56,7 @@ function usePinnedStack() {
 export function ProductStackSection() {
   const pinned = usePinnedStack();
   const trackRef = useRef<HTMLDivElement>(null);
+  const snapScroll = useRef<(top: number) => void>(() => {});
   const [progress, setProgress] = useState(0);
   const active = activeStackStep(progress, STEPS.length);
 
@@ -96,8 +97,57 @@ export function ProductStackSection() {
 
     let animating = false;
     let timer = 0;
+    let frame = 0;
+    const root = document.documentElement;
+    let previousScrollBehavior = "";
+
+    const restoreScrollBehavior = () => {
+      root.style.scrollBehavior = previousScrollBehavior;
+    };
+
+    const cancelSnap = () => {
+      if (!animating) return;
+      animating = false;
+      cancelAnimationFrame(frame);
+      restoreScrollBehavior();
+    };
+
+    const animateTo = (target: number) => {
+      const start = window.scrollY;
+      const delta = target - start;
+      if (Math.abs(delta) < 4) return;
+
+      cancelSnap();
+      animating = true;
+      previousScrollBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = "auto";
+      const distance = Math.min(1, Math.abs(delta) / window.innerHeight);
+      const duration = 780 + distance * 520;
+      const started = performance.now();
+
+      const tick = (now: number) => {
+        if (!animating) return;
+        const amount = Math.min(1, (now - started) / duration);
+        const eased = 1 - (1 - amount) ** 3;
+        window.scrollTo({
+          top: start + delta * eased,
+          behavior: "instant",
+        });
+        if (amount < 1) {
+          frame = requestAnimationFrame(tick);
+          return;
+        }
+        animating = false;
+        restoreScrollBehavior();
+      };
+
+      frame = requestAnimationFrame(tick);
+    };
+
+    snapScroll.current = animateTo;
 
     const settle = () => {
+      if (animating) return;
       const rect = track.getBoundingClientRect();
       const viewport = window.innerHeight;
       if (rect.top > 1 || rect.bottom < viewport - 1) return;
@@ -109,39 +159,29 @@ export function ProductStackSection() {
         stackScrollProgress(scrolled, scrollable, STEPS.length),
         STEPS.length,
       );
-      if (index === null) {
-        animating = false;
-        return;
-      }
+      if (index === null) return;
 
       const target =
         window.scrollY + rect.top + (index / (STEPS.length - 1)) * scrollable;
-      if (Math.abs(target - window.scrollY) < 4) {
-        animating = false;
-        return;
-      }
-      if (animating) return;
-
-      animating = true;
-      window.scrollTo({ top: target, behavior: "smooth" });
+      animateTo(target);
     };
 
-    const onScrollEnd = () => {
-      window.clearTimeout(timer);
-      animating = false;
-      settle();
-    };
     const onScroll = () => {
+      if (animating) return;
       window.clearTimeout(timer);
-      timer = window.setTimeout(settle, 160);
+      timer = window.setTimeout(settle, 70);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("scrollend", onScrollEnd);
+    window.addEventListener("wheel", cancelSnap, { passive: true });
+    window.addEventListener("touchmove", cancelSnap, { passive: true });
     return () => {
       window.clearTimeout(timer);
+      cancelSnap();
+      snapScroll.current = () => {};
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("scrollend", onScrollEnd);
+      window.removeEventListener("wheel", cancelSnap);
+      window.removeEventListener("touchmove", cancelSnap);
     };
   }, [pinned]);
 
@@ -157,7 +197,7 @@ export function ProductStackSection() {
     const scrollable = track.offsetHeight - window.innerHeight;
     const target =
       window.scrollY + rect.top + (next / (STEPS.length - 1)) * scrollable;
-    window.scrollTo({ top: target, behavior: "smooth" });
+    snapScroll.current(target);
   }
 
   return (
