@@ -35,6 +35,9 @@ describe("ProductStackSection", () => {
       "left-[70%]",
     );
     expect(document.querySelectorAll("[data-stack-rail]")).toHaveLength(3);
+    expect(document.querySelector("[data-rail-anchor='output']")?.className).toContain(
+      "bg-blue-500",
+    );
     expect(document.querySelectorAll("[data-rail-anchor='output']")).toHaveLength(5);
     expect(document.querySelectorAll("[data-rail-anchor='input']")).toHaveLength(3);
     expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();

@@ -26,7 +26,7 @@ import {
 import { cn } from "@/lib/client-utils";
 
 const STEPS = PRODUCT_STACK_STEPS;
-const RAIL_DOT_INTERVAL_MS = 1000;
+const RAIL_DOT_INTERVAL_MS = 600;
 const RAIL_DOT_COUNT = 4;
 
 function usePinnedStack() {
@@ -380,7 +380,8 @@ function LineRail({ points }: { points: RailPoint[] }) {
 }
 
 function ImageAnchors({ role }: { role: "fork" | "line" | "none" }) {
-  const outputs = role === "fork" ? FORK_OUTPUT_ANCHORS : role === "line" ? [50] : [];
+  const outputs =
+    role === "fork" ? FORK_OUTPUT_ANCHORS : role === "line" ? [50] : [];
   const inputs = role === "fork" ? [] : [50];
 
   return (
@@ -400,8 +401,10 @@ function RailAnchor({ side, y }: { side: "input" | "output"; y: number }) {
     <span
       data-rail-anchor={side}
       className={cn(
-        "absolute z-30 size-3.5 -translate-y-1/2 rounded-full border-2 border-blue-500 bg-white shadow-[0_0_0_4px_rgba(59,130,246,0.28)] dark:bg-slate-900",
-        side === "input" ? "left-0 -translate-x-1/2" : "right-0 translate-x-1/2",
+        "absolute z-30 size-3 -translate-y-1/2 rounded-full bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.28)]",
+        side === "input"
+          ? "left-0 -translate-x-1/2"
+          : "right-0 translate-x-1/2",
       )}
       style={{ top: `${y}%` }}
     />
