@@ -4,12 +4,12 @@ import { heroScrollMotion } from "@/features/public/home/hero-scroll";
 const HERO_PORTION = 0.62;
 /** Heading starts once the hero is nearly gone. */
 const HEADING_START = 0.58;
-/** Image stays a short peek, then opens toward the end of the pin. */
-const IMAGE_START = 0.4;
+/** The screenshot starts moving as soon as the page scrolls. */
+const IMAGE_START = 0;
 const HEADING_LIFT = 36;
 
 export const IMAGE_PEEK_FRACTION = 0.16;
-export const IMAGE_REVEAL_FRACTION = 0.75;
+export const IMAGE_REVEAL_FRACTION = 0.85;
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -18,8 +18,8 @@ function clamp01(value: number): number {
 /**
  * One pinned scroll drives the hero exit, then the dashboard heading
  * and the transactions image.
- * Image fraction is a portion of the screenshot height: a short top peek,
- * then 75% with the bottom fade.
+ * Image fraction is a portion of the screenshot height: a short top peek
+ * that travels into place and opens to the reveal crop with the bottom fade.
  */
 export function landingSceneMotion(progress: number) {
   const amount = clamp01(progress);

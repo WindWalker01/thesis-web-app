@@ -1,4 +1,4 @@
-const LIFT_PX = -120;
+const LIFT_PX = -32;
 const SCALE_END = 0.92;
 /** Keep the hero solid until this point, then fade the remainder out. */
 const OPACITY_FADE_START = 0.45;

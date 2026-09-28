@@ -14,7 +14,7 @@ describe("heroScrollMotion", () => {
   it("lifts, compresses, and clears from the bottom while scrolling", () => {
     const mid = heroScrollMotion(0.5);
 
-    expect(mid.y).toBe(-60);
+    expect(mid.y).toBe(-16);
     expect(mid.scale).toBeCloseTo(0.96);
     expect(mid.opacity).toBeCloseTo(1 - 0.05 / 0.55);
     expect(mid.maskImage).toBe(
@@ -24,7 +24,7 @@ describe("heroScrollMotion", () => {
 
   it("finishes lifted, slightly smaller, and fully faded", () => {
     expect(heroScrollMotion(1)).toEqual({
-      y: -120,
+      y: -32,
       scale: 0.92,
       opacity: 0,
       maskImage:

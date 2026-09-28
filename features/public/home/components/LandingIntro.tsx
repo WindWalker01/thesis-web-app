@@ -160,7 +160,7 @@ export function LandingIntro() {
 
   return (
     <>
-      <section ref={sceneRef} className="relative h-[200vh]">
+      <section ref={sceneRef} className="relative h-[135vh]">
         <div className="sticky top-0 h-screen overflow-hidden">
           <motion.div
             ref={headingRef}
