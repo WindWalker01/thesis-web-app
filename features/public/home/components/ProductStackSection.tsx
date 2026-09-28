@@ -411,11 +411,15 @@ function RailAnchor({ side, y }: { side: "input" | "output"; y: number }) {
   );
 }
 
-function RailDot({ point }: { point: { x: number; y: number } }) {
+function RailDot({ point }: { point: RailPoint }) {
   return (
     <span
       className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.28)]"
-      style={{ left: `${point.x}%`, top: `${point.y}%` }}
+      style={{
+        left: `${point.x}%`,
+        top: `${point.y}%`,
+        opacity: point.opacity ?? 1,
+      }}
     />
   );
 }

@@ -36,12 +36,14 @@ export function stackStripOffset(progress: number, stepCount: number): string {
   return `translate3d(-${shift}%, 0, 0)`;
 }
 
-export type RailPoint = { x: number; y: number };
+export type RailPoint = { x: number; y: number; opacity?: number };
 
 /** Share of the step used to travel the three curves before they merge. */
 const CURVE_SPAN = 0.68;
 /** How far behind the outer dots the middle dot stays, as a fraction of the curve. */
 const MID_LAG = 0.22;
+/** Share of the middle curve used to fade the dot in as it leaves the anchor. */
+const MID_FADE = 0.35;
 
 const MEET: RailPoint = { x: 58, y: 50 };
 const LINE_END: RailPoint = { x: 100, y: 50 };
@@ -152,7 +154,10 @@ export function railDotMotion(travel: number): RailDots {
     return {
       merged: false,
       top: curvePoint(along, TOP),
-      mid: curvePoint(midAlong, MID),
+      mid: {
+        ...curvePoint(midAlong, MID),
+        opacity: Math.min(1, midAlong / MID_FADE),
+      },
       bot: curvePoint(along, BOT),
     };
   }

@@ -71,6 +71,20 @@ describe("product stack scroll", () => {
     expect(early.top.x).toBeGreaterThan(start.top.x);
     expect(early.bot.x).toBeCloseTo(early.top.x);
     expect(early.mid.x).toBeCloseTo(start.mid.x);
+    expect(start.mid.opacity).toBe(0);
+    expect(early.mid.opacity).toBe(0);
+
+    const fading = railDotMotion(0.25);
+    expect(fading.merged).toBe(false);
+    if (!fading.merged) {
+      expect(fading.mid.opacity).toBeGreaterThan(0);
+      expect(fading.mid.opacity).toBeLessThan(1);
+      expect(fading.mid.x).toBeGreaterThan(start.mid.x);
+    }
+
+    const visible = railDotMotion(0.45);
+    expect(visible.merged).toBe(false);
+    if (!visible.merged) expect(visible.mid.opacity).toBe(1);
 
     const joined = railDotMotion(0.68);
     expect(joined.merged).toBe(true);
