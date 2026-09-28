@@ -73,7 +73,9 @@ describe("LandingIntro", () => {
     expect(
       screen.getByRole("img", { name: "Polygonscan contract transactions" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("all technologies used")).toBeInTheDocument();
+    expect(screen.getAllByText("Next.js").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Polygon").length).toBeGreaterThan(0);
+    expect(screen.queryByText("all technologies used")).not.toBeInTheDocument();
   });
 
   it("shows the cropped dashboard image when motion is reduced", () => {

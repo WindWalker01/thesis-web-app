@@ -16,6 +16,7 @@ import {
   IMAGE_REVEAL_FRACTION,
   landingSceneMotion,
 } from "@/features/public/home/landing-scene";
+import { TechnologyMarquee } from "@/features/public/home/components/TechnologyMarquee";
 
 function HeroCopy() {
   return (
@@ -150,9 +151,7 @@ export function LandingIntro() {
           <div className="mt-20">
             <TransactionsImage clip={imageClipCss(IMAGE_REVEAL_FRACTION)} />
           </div>
-          <div className="mx-auto mt-20 h-25 max-w-[100rem] bg-green-100">
-            <p>all technologies used</p>
-          </div>
+          <TechnologyMarquee />
         </section>
       </>
     );
@@ -205,9 +204,7 @@ export function LandingIntro() {
         </div>
       </section>
 
-      <div className="mx-auto mt-20 h-25 max-w-[100rem] bg-green-100">
-        <p>all technologies used</p>
-      </div>
+      <TechnologyMarquee />
     </>
   );
 }
