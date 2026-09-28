@@ -70,7 +70,7 @@ export const PRODUCT_STACK_STEPS: readonly ProductStackStep[] = [
   {
     title: "Fingerprints",
     description:
-      "A visual hash catches similar images. A cryptographic hash shows the file was not changed.",
+      "Catch similar images with a visual hash and prove the file is unchanged.",
     href: "/plagiarism-checker",
     image: "/landing-page-elements/similiarity-checking.png",
     imageAlt: "Similarity check results",
@@ -78,7 +78,7 @@ export const PRODUCT_STACK_STEPS: readonly ProductStackStep[] = [
   {
     title: "On-chain record",
     description:
-      "The cryptographic hash and a timestamp go to the registry. The image stays off the chain.",
+      "Record the file hash and a timestamp. The image stays off the chain.",
     href: "/txs",
     image: "/landing-page-elements/on-chain-record.png",
     imageAlt: "On-chain registry record",
@@ -86,7 +86,7 @@ export const PRODUCT_STACK_STEPS: readonly ProductStackStep[] = [
   {
     title: "Monitor",
     description:
-      "Keep the portfolio, review similarity signals, and follow reports from one studio.",
+      "Review the portfolio, similarity signals, and reports in one studio.",
     href: "/dashboard",
     image: "/landing-page-elements/dashboard.png",
     imageAlt: "Artist dashboard",

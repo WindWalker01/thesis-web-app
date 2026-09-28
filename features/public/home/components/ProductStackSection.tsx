@@ -232,16 +232,34 @@ function StackStage({
 
 function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
   return (
-    <div>
-      <p className="text-sm font-semibold tracking-widest text-slate-400">
-        {stackStepLabel(index, STEPS.length)}
-      </p>
-      <h3 className="mt-2 text-4xl font-black text-blue-500 md:text-5xl">
-        {step.title}
-      </h3>
-      <p className="mt-3 max-w-sm text-base leading-relaxed text-slate-600 dark:text-slate-300">
-        {step.description}
-      </p>
+    <div data-stack-copy>
+      <div className="grid">
+        {STEPS.map((item, itemIndex) => {
+          const current = itemIndex === index;
+
+          return (
+            <div
+              key={item.title}
+              data-stack-copy-text
+              aria-hidden={!current}
+              className={cn(
+                "col-start-1 row-start-1 transition-opacity duration-500 ease-in-out motion-reduce:transition-none",
+                current ? "opacity-100" : "pointer-events-none opacity-0",
+              )}
+            >
+              <p className="text-sm font-semibold tracking-widest text-slate-400">
+                {stackStepLabel(itemIndex, STEPS.length)}
+              </p>
+              <h3 className="mt-2 text-4xl font-black text-blue-500 md:text-5xl">
+                {item.title}
+              </h3>
+              <p className="mt-3 max-w-sm text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                {item.description}
+              </p>
+            </div>
+          );
+        })}
+      </div>
       <Link
         href={step.href}
         className="mt-10 mb-10 inline-flex items-center gap-3 rounded-lg border border-slate-300 px-4 py-2.5 text-xs font-bold tracking-widest text-slate-800 uppercase transition-colors hover:border-blue-500 hover:text-blue-500 dark:border-slate-600 dark:text-slate-100"

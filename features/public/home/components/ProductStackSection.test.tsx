@@ -25,6 +25,9 @@ describe("ProductStackSection", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("01/04")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Upload" })).toBeInTheDocument();
+    const copyText = document.querySelector("[data-stack-copy-text]");
+    expect(copyText?.className).toContain("transition-opacity");
+    expect(copyText?.querySelector("a")).toBeNull();
     expect(screen.getByRole("link", { name: /learn more/i })).toHaveAttribute(
       "href",
       "/upload-artwork",
