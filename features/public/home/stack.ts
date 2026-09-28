@@ -65,12 +65,16 @@ export function stackStripOffset(progress: number, stepCount: number): string {
 
 const EDGE_FADE = 8;
 
-export function stackEdgeMask(progress: number): string {
+/** Edge fade painted over the stage. A mask would resample the screenshots. */
+export function stackEdgeFade(progress: number): string {
   const amount = Math.min(1, Math.max(0, progress));
   const left = amount * EDGE_FADE;
-  const right = `black ${100 - EDGE_FADE}%, transparent`;
-  if (left <= 0) return `linear-gradient(to right, black 0%, ${right})`;
-  return `linear-gradient(to right, transparent, black ${left}%, ${right})`;
+  const edge = "var(--stack-edge)";
+  const right = `${100 - EDGE_FADE}%`;
+  if (left <= 0) {
+    return `linear-gradient(to right, transparent 0%, transparent ${right}, ${edge})`;
+  }
+  return `linear-gradient(to right, ${edge}, transparent ${left}%, transparent ${right}, ${edge})`;
 }
 
 /** Screenshot width as a fraction of the visible diagram. */

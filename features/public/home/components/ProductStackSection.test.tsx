@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ProductStackSection } from "@/features/public/home/components/ProductStackSection";
-import { stackEdgeMask, stackRailLeft } from "@/features/public/home/stack";
+import { stackEdgeFade, stackRailLeft } from "@/features/public/home/stack";
 
 describe("ProductStackSection", () => {
   it("clips sideways overflow without a scroll container that would unpin the stage", () => {
@@ -10,8 +10,9 @@ describe("ProductStackSection", () => {
 
     expect(section?.className).toContain("overflow-x-clip");
     expect(section?.className).not.toContain("overflow-x-hidden");
-    expect(container.querySelector("[data-stack-stage]")).toHaveStyle({
-      maskImage: stackEdgeMask(0),
+    expect(container.querySelector("[data-stack-stage]")?.getAttribute("style")).toBeNull();
+    expect(container.querySelector("[data-stack-fade]")).toHaveStyle({
+      background: stackEdgeFade(0),
     });
   });
 
@@ -50,8 +51,8 @@ describe("ProductStackSection", () => {
     expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
-    expect(document.querySelector("[data-stack-stage]")).toHaveStyle({
-      maskImage: stackEdgeMask(1),
+    expect(document.querySelector("[data-stack-fade]")).toHaveStyle({
+      background: stackEdgeFade(1),
     });
     expect(screen.getByText("02/04")).toBeInTheDocument();
     expect(

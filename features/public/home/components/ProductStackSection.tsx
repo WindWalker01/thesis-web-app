@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { memo, useEffect, useRef, useState, type RefObject } from "react";
 import {
   PRODUCT_STACK,
   PRODUCT_STACK_STEPS,
@@ -19,7 +19,7 @@ import {
   railRole,
   stackScrollProgress,
   stackSnapIndex,
-  stackEdgeMask,
+  stackEdgeFade,
   stackStepLabel,
   stackStripOffset,
   stackStripScale,
@@ -283,8 +283,6 @@ function StackStage({
   const journeys = railPhases(travel, RAIL_DOT_COUNT)
     .map((phase) => railJourney(phase, STEPS.length))
     .filter((journey) => journey !== null);
-  const edgeMask = stackEdgeMask(progress);
-
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[2.5fr_7.5fr] lg:gap-16">
       <div>
@@ -293,35 +291,36 @@ function StackStage({
           <StackControls active={active} onGoTo={onGoTo} />
         </div>
       </div>
-      <div
-        data-stack-stage
-        className="overflow-hidden"
-        style={{
-          maskImage: edgeMask,
-          WebkitMaskImage: edgeMask,
-        }}
-      >
-        <div
-          className={cn(
-            "flex",
-            animated && "transition-transform duration-500 ease-out",
-          )}
-          style={{
-            width: `${stackStripScale(STEPS.length) * 100}%`,
-            transform: stackStripOffset(progress, STEPS.length),
-          }}
-        >
-          {STEPS.map((diagramStep, index) => (
-            <StackFrame
-              key={diagramStep.title}
-              index={index}
-              step={diagramStep}
-              hidden={index !== active}
-              role={railRole(index, STEPS.length)}
-              journeys={journeys.filter((journey) => journey.index === index)}
-            />
-          ))}
+      <div className="relative">
+        <div data-stack-stage className="overflow-hidden">
+          <div
+            className={cn(
+              "flex",
+              animated && "transition-transform duration-500 ease-out",
+            )}
+            style={{
+              width: `${stackStripScale(STEPS.length) * 100}%`,
+              transform: stackStripOffset(progress, STEPS.length),
+            }}
+          >
+            {STEPS.map((diagramStep, index) => (
+              <StackFrame
+                key={diagramStep.title}
+                index={index}
+                step={diagramStep}
+                hidden={index !== active}
+                role={railRole(index, STEPS.length)}
+                journeys={journeys.filter((journey) => journey.index === index)}
+              />
+            ))}
+          </div>
         </div>
+        <div
+          data-stack-fade
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-30 [--stack-edge:var(--background-light)] dark:[--stack-edge:var(--background-dark)]"
+          style={{ background: stackEdgeFade(progress) }}
+        />
       </div>
     </div>
   );
@@ -387,21 +386,11 @@ function StackFrame({
       className="relative"
       style={{ width: stackFrameWidth(index, STEPS.length) }}
     >
-      <div
-        className="relative z-10"
-        style={{ width: stackScreenshotWidth(index, STEPS.length) }}
-      >
-        <div className="relative aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <Image
-            src={step.image}
-            alt={step.imageAlt}
-            fill
-            className="object-contain object-center p-3"
-            sizes="(min-width: 1024px) 35vw, 58vw"
-          />
-        </div>
-        <ImageAnchors role={role} />
-      </div>
+      <StackScreenshot
+        step={step}
+        role={role}
+        width={stackScreenshotWidth(index, STEPS.length)}
+      />
       {role === "fork" ? (
         <ForkRail
           left={stackForkLeft(STEPS.length)}
@@ -421,6 +410,31 @@ function StackFrame({
     </div>
   );
 }
+
+const StackScreenshot = memo(function StackScreenshot({
+  step,
+  role,
+  width,
+}: {
+  step: ProductStackStep;
+  role: "fork" | "line" | "none";
+  width: string;
+}) {
+  return (
+    <div className="relative z-10" style={{ width }}>
+      <div className="relative aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <Image
+          src={step.image}
+          alt={step.imageAlt}
+          fill
+          className="object-contain object-center p-3"
+          sizes="(min-width: 1024px) 35vw, 58vw"
+        />
+      </div>
+      <ImageAnchors role={role} />
+    </div>
+  );
+});
 
 function useRailLoop(duration: number) {
   const [travel, setTravel] = useState(0);
@@ -450,7 +464,7 @@ function ForkRail({
     <div
       data-stack-rail
       data-rail-role="fork"
-      className="pointer-events-none absolute inset-y-0 right-0 z-20"
+      className="pointer-events-none absolute inset-y-0 right-0 z-20 transform-gpu [contain:paint]"
       style={{ left }}
       aria-hidden="true"
     >
@@ -508,7 +522,7 @@ function LineRail({ left, points }: { left: string; points: RailPoint[] }) {
     <div
       data-stack-rail
       data-rail-role="line"
-      className="pointer-events-none absolute inset-y-0 right-0 z-20"
+      className="pointer-events-none absolute inset-y-0 right-0 z-20 transform-gpu [contain:paint]"
       style={{ left }}
       aria-hidden="true"
     >
