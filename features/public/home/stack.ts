@@ -108,6 +108,12 @@ export type RailJourney = {
 
 const FORK_WEIGHT = 1.35;
 
+export function railPhases(travel: number, count: number): number[] {
+  const total = Math.max(1, Math.floor(count));
+  const start = ((travel % 1) + 1) % 1;
+  return Array.from({ length: total }, (_, index) => (start + index / total) % 1);
+}
+
 export function railJourney(travel: number, stepCount: number): RailJourney | null {
   const connectors = Math.max(stepCount - 1, 0);
   if (connectors === 0) return null;

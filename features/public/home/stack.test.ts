@@ -3,6 +3,7 @@ import {
   activeStackStep,
   railDotMotion,
   railJourney,
+  railPhases,
   railRole,
   stackScrollProgress,
   stackStepLabel,
@@ -42,6 +43,18 @@ describe("product stack scroll", () => {
 
     const ending = railJourney(0.99, 4);
     expect(ending?.index).toBe(2);
+  });
+
+  it("spaces several travelers along one loop", () => {
+    const phases = railPhases(0.1, 4);
+    expect(phases).toHaveLength(4);
+    phases.forEach((phase, index) => {
+      expect(phase).toBeCloseTo((0.1 + index / 4) % 1);
+    });
+    expect(railPhases(0.9, 4)[1]).toBeCloseTo(0.15);
+    const wrapped = railPhases(-0.2, 2);
+    expect(wrapped[0]).toBeCloseTo(0.8);
+    expect(wrapped[1]).toBeCloseTo(0.3);
   });
 
   it("keeps the outer dots together and lets the middle dot catch up at the join", () => {

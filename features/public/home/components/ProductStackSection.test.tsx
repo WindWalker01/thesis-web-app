@@ -31,6 +31,9 @@ describe("ProductStackSection", () => {
     );
     expect(document.querySelectorAll("[data-rail-role='fork']")).toHaveLength(1);
     expect(document.querySelectorAll("[data-rail-role='line']")).toHaveLength(2);
+    expect(document.querySelector("[data-rail-role='line']")?.className).toContain(
+      "left-[70%]",
+    );
     expect(document.querySelectorAll("[data-stack-rail]")).toHaveLength(3);
     expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();
 

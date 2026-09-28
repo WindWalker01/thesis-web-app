@@ -14,6 +14,7 @@ import {
   RAIL_CURVES,
   railDotMotion,
   railJourney,
+  railPhases,
   railRole,
   stackScrollProgress,
   stackStepLabel,
@@ -24,6 +25,8 @@ import {
 import { cn } from "@/lib/client-utils";
 
 const STEPS = PRODUCT_STACK_STEPS;
+const RAIL_DOT_INTERVAL_MS = 1000;
+const RAIL_DOT_COUNT = 4;
 
 function usePinnedStack() {
   const [pinned, setPinned] = useState(false);
@@ -172,8 +175,10 @@ function StackStage({
   onGoTo: (index: number) => void;
 }) {
   const step = STEPS[active];
-  const travel = useRailLoop(1500);
-  const journey = railJourney(travel, STEPS.length);
+  const travel = useRailLoop(RAIL_DOT_INTERVAL_MS * RAIL_DOT_COUNT);
+  const journeys = railPhases(travel, RAIL_DOT_COUNT)
+    .map((phase) => railJourney(phase, STEPS.length))
+    .filter((journey) => journey !== null);
 
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[3fr_7fr] lg:gap-16">
@@ -200,7 +205,7 @@ function StackStage({
               step={diagramStep}
               hidden={index !== active}
               role={railRole(index, STEPS.length)}
-              journey={journey?.index === index ? journey : null}
+              journeys={journeys.filter((journey) => journey.index === index)}
             />
           ))}
         </div>
@@ -236,12 +241,12 @@ function StackFrame({
   step,
   hidden,
   role,
-  journey,
+  journeys,
 }: {
   step: ProductStackStep;
   hidden: boolean;
   role: "fork" | "line" | "none";
-  journey: { role: "fork" | "line"; local: number } | null;
+  journeys: { role: "fork" | "line"; local: number }[];
 }) {
   return (
     <div
@@ -261,15 +266,17 @@ function StackFrame({
         </div>
       </div>
       {role === "fork" ? (
-        <ForkRail motion={journey?.role === "fork" ? railDotMotion(journey.local) : null} />
+        <ForkRail
+          motions={journeys
+            .filter((journey) => journey.role === "fork")
+            .map((journey) => railDotMotion(journey.local))}
+        />
       ) : null}
       {role === "line" ? (
         <LineRail
-          point={
-            journey?.role === "line"
-              ? { x: 70 + journey.local * 30, y: 50 }
-              : null
-          }
+          points={journeys
+            .filter((journey) => journey.role === "line")
+            .map((journey) => ({ x: journey.local * 100, y: 50 }))}
         />
       ) : null}
     </div>
@@ -294,15 +301,15 @@ function useRailLoop(duration: number) {
 }
 
 function ForkRail({
-  motion,
+  motions,
 }: {
-  motion: ReturnType<typeof railDotMotion> | null;
+  motions: ReturnType<typeof railDotMotion>[];
 }) {
   return (
     <div
       data-stack-rail
       data-rail-role="fork"
-      className="pointer-events-none absolute inset-y-0 left-[64%] right-0 z-20"
+      className="pointer-events-none absolute inset-y-0 right-0 left-[64%] z-20"
       aria-hidden="true"
     >
       <svg
@@ -339,29 +346,33 @@ function ForkRail({
           vectorEffect="non-scaling-stroke"
         />
       </svg>
-      {motion?.merged ? (
-        <RailDot point={motion.point} />
-      ) : motion ? (
-        <>
-          <RailDot point={motion.top} />
-          <RailDot point={motion.mid} />
-          <RailDot point={motion.bot} />
-        </>
-      ) : null}
+      {motions.map((motion, index) =>
+        motion.merged ? (
+          <RailDot key={index} point={motion.point} />
+        ) : (
+          <span key={index}>
+            <RailDot point={motion.top} />
+            <RailDot point={motion.mid} />
+            <RailDot point={motion.bot} />
+          </span>
+        ),
+      )}
     </div>
   );
 }
 
-function LineRail({ point }: { point: RailPoint | null }) {
+function LineRail({ points }: { points: RailPoint[] }) {
   return (
     <div
       data-stack-rail
       data-rail-role="line"
-      className="pointer-events-none absolute inset-0 z-20"
+      className="pointer-events-none absolute inset-y-0 right-0 left-[70%] z-20"
       aria-hidden="true"
     >
-      <div className="absolute top-1/2 right-0 left-[70%] h-px -translate-y-1/2 bg-blue-500" />
-      {point ? <RailDot point={point} /> : null}
+      <div className="absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-blue-500" />
+      {points.map((point, index) => (
+        <RailDot key={index} point={point} />
+      ))}
     </div>
   );
 }
