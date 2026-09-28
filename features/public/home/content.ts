@@ -255,3 +255,50 @@ export function heroCtaLabel(isAuthenticated: boolean) {
 export function closingCtaLabel(isAuthenticated: boolean) {
   return isAuthenticated ? "Upload Artwork" : "Get Started";
 }
+
+export type EvidenceCard = {
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  imagePosition?: string;
+  background?: string;
+};
+
+export const EVIDENCE_CARDS_COPY = {
+  titleLines: ["The record that", "outlasts the post"],
+  description:
+    "Platforms close and social accounts disappear. Keep permanent, cryptographic proof of your artwork's existence and ownership.",
+} as const;
+
+export const EVIDENCE_CARDS: readonly EvidenceCard[] = [
+  {
+    title: "Proof of Authorship",
+    description:
+      "A timestamped cryptographic fingerprint recorded on Polygon Amoy testnet.",
+    image: "/landing-page-elements/upload-artwork.png",
+    imageAlt: "Proof of authorship on blockchain",
+    imagePosition: "center",
+  },
+  {
+    title: "Visual Invariance",
+    description:
+      "Perceptual hashing detects visual duplicates even when cropped, scaled, or flipped.",
+    image: "/landing-page-elements/similiarity-checking.png",
+    imageAlt: "Similarity check results",
+    imagePosition: "center",
+  },
+  {
+    title: "Immutable History",
+    description:
+      "Every registered art piece has an auditable record that cannot be retroactively edited.",
+    image: "/landing-page-elements/on-chain-record.png",
+    imageAlt: "On-chain transaction logs",
+    imagePosition: "center",
+  },
+];
+
+export function evidenceCardBackground(card: EvidenceCard): string {
+  return card.background ?? "#0f1013";
+}
+
