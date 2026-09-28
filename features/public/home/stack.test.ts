@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   activeStackStep,
   railDotMotion,
+  railJourney,
+  railRole,
   stackScrollProgress,
   stackStepLabel,
   stackStripOffset,
@@ -23,6 +25,23 @@ describe("product stack scroll", () => {
     expect(activeStackStep(0.5, 4)).toBe(1);
     expect(activeStackStep(2.6, 4)).toBe(3);
     expect(activeStackStep(9, 4)).toBe(3);
+  });
+
+  it("runs one loop from the first fork through every line except the last screenshot", () => {
+    expect(railRole(0, 4)).toBe("fork");
+    expect(railRole(1, 4)).toBe("line");
+    expect(railRole(2, 4)).toBe("line");
+    expect(railRole(3, 4)).toBe("none");
+
+    const opening = railJourney(0, 4);
+    expect(opening).toMatchObject({ index: 0, role: "fork" });
+
+    const later = railJourney(0.85, 4);
+    expect(later?.role).toBe("line");
+    expect(later?.index).toBeGreaterThan(0);
+
+    const ending = railJourney(0.99, 4);
+    expect(ending?.index).toBe(2);
   });
 
   it("keeps the outer dots together and lets the middle dot catch up at the join", () => {

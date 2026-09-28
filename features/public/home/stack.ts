@@ -92,6 +92,48 @@ export type RailDots =
   | { merged: false; top: RailPoint; mid: RailPoint; bot: RailPoint }
   | { merged: true; point: RailPoint };
 
+export type RailRole = "fork" | "line" | "none";
+
+export function railRole(index: number, count: number): RailRole {
+  if (count <= 1 || index >= count - 1) return "none";
+  if (index <= 0) return "fork";
+  return "line";
+}
+
+export type RailJourney = {
+  index: number;
+  role: Exclude<RailRole, "none">;
+  local: number;
+};
+
+const FORK_WEIGHT = 1.35;
+
+export function railJourney(travel: number, stepCount: number): RailJourney | null {
+  const connectors = Math.max(stepCount - 1, 0);
+  if (connectors === 0) return null;
+
+  const t = ((travel % 1) + 1) % 1;
+  const total = FORK_WEIGHT + (connectors - 1);
+  let cursor = 0;
+
+  for (let index = 0; index < connectors; index += 1) {
+    const weight = index === 0 ? FORK_WEIGHT : 1;
+    const span = weight / total;
+    const end = index === connectors - 1 ? 1 : cursor + span;
+    if (t < end || index === connectors - 1) {
+      const local = span === 0 ? 0 : (t - cursor) / span;
+      return {
+        index,
+        role: index === 0 ? "fork" : "line",
+        local: Math.min(1, Math.max(0, local)),
+      };
+    }
+    cursor += span;
+  }
+
+  return null;
+}
+
 export function railDotMotion(travel: number): RailDots {
   const t = Math.min(1, Math.max(0, travel));
   if (t < CURVE_SPAN) {

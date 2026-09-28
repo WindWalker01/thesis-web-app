@@ -29,7 +29,9 @@ describe("ProductStackSection", () => {
       "src",
       "/landing-page-elements/upload-artwork.png",
     );
-    expect(document.querySelectorAll("[data-stack-rail]")).toHaveLength(4);
+    expect(document.querySelectorAll("[data-rail-role='fork']")).toHaveLength(1);
+    expect(document.querySelectorAll("[data-rail-role='line']")).toHaveLength(2);
+    expect(document.querySelectorAll("[data-stack-rail]")).toHaveLength(3);
     expect(screen.getByRole("button", { name: "Prev" })).toBeDisabled();
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }));

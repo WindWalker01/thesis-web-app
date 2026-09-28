@@ -13,10 +13,13 @@ import {
   activeStackStep,
   RAIL_CURVES,
   railDotMotion,
+  railJourney,
+  railRole,
   stackScrollProgress,
   stackStepLabel,
   stackStripOffset,
   stackTrackHeight,
+  type RailPoint,
 } from "@/features/public/home/stack";
 import { cn } from "@/lib/client-utils";
 
@@ -169,6 +172,8 @@ function StackStage({
   onGoTo: (index: number) => void;
 }) {
   const step = STEPS[active];
+  const travel = useRailLoop(1500);
+  const journey = railJourney(travel, STEPS.length);
 
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[3fr_7fr] lg:gap-16">
@@ -194,8 +199,8 @@ function StackStage({
               key={diagramStep.title}
               step={diagramStep}
               hidden={index !== active}
-              travel={railTravel(progress, index)}
-              animate={index === active}
+              role={railRole(index, STEPS.length)}
+              journey={journey?.index === index ? journey : null}
             />
           ))}
         </div>
@@ -227,22 +232,16 @@ function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
   );
 }
 
-function railTravel(progress: number, index: number): number {
-  if (progress >= index + 1) return 1;
-  if (progress <= index) return 0;
-  return progress - index;
-}
-
 function StackFrame({
   step,
   hidden,
-  travel,
-  animate,
+  role,
+  journey,
 }: {
   step: ProductStackStep;
   hidden: boolean;
-  travel: number;
-  animate: boolean;
+  role: "fork" | "line" | "none";
+  journey: { role: "fork" | "line"; local: number } | null;
 }) {
   return (
     <div
@@ -250,7 +249,7 @@ function StackFrame({
       className="relative"
       style={{ width: `${100 / STEPS.length}%` }}
     >
-      <div className="w-[70%]">
+      <div className="relative z-10 w-[70%]">
         <div className="relative aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <Image
             src={step.image}
@@ -261,39 +260,49 @@ function StackFrame({
           />
         </div>
       </div>
-      <StackRail travel={travel} animate={animate} />
+      {role === "fork" ? (
+        <ForkRail motion={journey?.role === "fork" ? railDotMotion(journey.local) : null} />
+      ) : null}
+      {role === "line" ? (
+        <LineRail
+          point={
+            journey?.role === "line"
+              ? { x: 70 + journey.local * 30, y: 50 }
+              : null
+          }
+        />
+      ) : null}
     </div>
   );
 }
 
-function useLoopingTravel(enabled: boolean) {
+function useRailLoop(duration: number) {
   const [travel, setTravel] = useState(0);
 
   useEffect(() => {
-    if (!enabled) return;
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
-      setTravel(((now - start) % 3200) / 3200);
+      setTravel(((now - start) % duration) / duration);
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [enabled]);
+  }, [duration]);
 
   return travel;
 }
 
-function StackRail({ travel, animate }: { travel: number; animate: boolean }) {
-  const settled = travel <= 0.02 || travel >= 0.98;
-  const loop = useLoopingTravel(animate && settled);
-  const motion = animate && settled ? loop : travel;
-  const dots = railDotMotion(motion);
-
+function ForkRail({
+  motion,
+}: {
+  motion: ReturnType<typeof railDotMotion> | null;
+}) {
   return (
     <div
       data-stack-rail
-      className="pointer-events-none absolute inset-y-0 left-[64%] right-0"
+      data-rail-role="fork"
+      className="pointer-events-none absolute inset-y-0 left-[64%] right-0 z-20"
       aria-hidden="true"
     >
       <svg
@@ -330,15 +339,29 @@ function StackRail({ travel, animate }: { travel: number; animate: boolean }) {
           vectorEffect="non-scaling-stroke"
         />
       </svg>
-      {dots.merged ? (
-        <RailDot point={dots.point} />
-      ) : (
+      {motion?.merged ? (
+        <RailDot point={motion.point} />
+      ) : motion ? (
         <>
-          <RailDot point={dots.top} />
-          <RailDot point={dots.mid} />
-          <RailDot point={dots.bot} />
+          <RailDot point={motion.top} />
+          <RailDot point={motion.mid} />
+          <RailDot point={motion.bot} />
         </>
-      )}
+      ) : null}
+    </div>
+  );
+}
+
+function LineRail({ point }: { point: RailPoint | null }) {
+  return (
+    <div
+      data-stack-rail
+      data-rail-role="line"
+      className="pointer-events-none absolute inset-0 z-20"
+      aria-hidden="true"
+    >
+      <div className="absolute top-1/2 right-0 left-[70%] h-px -translate-y-1/2 bg-blue-500" />
+      {point ? <RailDot point={point} /> : null}
     </div>
   );
 }
