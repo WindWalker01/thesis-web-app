@@ -1,9 +1,8 @@
 "use client";
 
-import { HomePage } from "@/features/public/home/components/HomePage";
-import DotField from "@/components/blocks/DotField";
 import Link from "next/link";
 import Image from "next/image";
+import { ProductStackSection } from "@/features/public/home/components/ProductStackSection";
 
 export default function Home() {
   return (
@@ -64,7 +63,7 @@ export default function Home() {
             <br /> in fifty years
           </h1>
           <p className="max-w-2xl">
-            If your business moves money across borders, you're used to cut-off
+            If your business moves money across borders, you&apos;re used to cut-off
             times, weekend delays, and fees taken by every bank in between.
             Stablecoins settle in seconds, any day of the year, cost a fraction
             as much, and can be programmed to move the moment they land.
@@ -119,30 +118,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mt-10 min-h-screen">
-        <div className="flex flex-col gap-5 text-center">
-          <h1 className="text-5xl font-normal">
-            A complete stack, or just the
-            <br /> parts you need.
-          </h1>
-
-          <p className="mx-auto max-w-3xl">
-            Use OMS end-to-end, or integrate individual pieces alongside your
-            existing infrastructure. Open means no forced lock-in — every
-            component works on its own.
-          </p>
-        </div>
-
-        <div className="mt-10 flex gap-5">
-          <div className="flex flex-col items-start">
-            <p>01/07</p>
-            <p>Payins</p>
-            <p>Accept payments from anywhere your customers are.</p>
-          </div>
-
-          <div></div>
-        </div>
-      </section>
+      <ProductStackSection />
     </main>
   );
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   HOME_FAQS,
   PLATFORM_FEATURES,
+  PRODUCT_STACK_STEPS,
   TEAM_MEMBERS,
   closingCtaLabel,
   heroCtaLabel,
@@ -35,5 +36,17 @@ describe("home content", () => {
       "Nathaniel",
     ]);
     expect(HOME_FAQS).toHaveLength(6);
+    expect(PRODUCT_STACK_STEPS.map((step) => step.title)).toEqual([
+      "Upload",
+      "Fingerprints",
+      "On-chain record",
+      "Monitor",
+    ]);
+    expect(PRODUCT_STACK_STEPS.map((step) => step.href)).toEqual([
+      "/upload-artwork",
+      "/plagiarism-checker",
+      "/txs",
+      "/dashboard",
+    ]);
   });
 });
