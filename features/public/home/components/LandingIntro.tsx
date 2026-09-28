@@ -46,13 +46,13 @@ function DashboardCopy() {
   return (
     <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-12 px-6">
       <h1 className="max-w-3xl text-start text-6xl leading-15 font-semibold tracking-wider">
-        End-to-end money movement in{" "}
-        <span className="text-blue-500">one dashboard.</span>
+        Artwork evidence, sealed{" "}
+        <span className="text-blue-500">on the blockchain.</span>
       </h1>
       <p className="max-w-sm shrink-0">
-        Accept deposits, convert currencies, move funds, pay out to 100+
-        countries, and monitor every transaction in real time — from a single
-        interface.
+        These rows are the live transactions from our own contract address.
+        Each one is tamper-proof evidence that authorship was recorded on this
+        chain.
       </p>
     </div>
   );

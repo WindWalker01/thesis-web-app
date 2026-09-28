@@ -68,7 +68,9 @@ describe("LandingIntro", () => {
       screen.getByRole("heading", { name: /document your digital artwork/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /one dashboard/i }),
+      screen.getByRole("heading", {
+        name: /artwork evidence, sealed on the blockchain/i,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("img", { name: "Polygonscan contract transactions" }),
