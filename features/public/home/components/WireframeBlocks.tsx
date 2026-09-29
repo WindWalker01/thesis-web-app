@@ -27,6 +27,12 @@ interface WireframeBlocksProps {
   cubeCount?: number;
   primaryColor?: string;
   accentColor?: string;
+  /** Soft shadow on edges and connecting lines. Off for small screens. */
+  glow?: boolean;
+  /** Caps the canvas backing-store scale. Phones stay at 1. */
+  maxDpr?: number;
+  /** Stops the frame loop without tearing down the cubes. */
+  paused?: boolean;
 }
 
 // 8 vertices of a perfect 1:1:1 unit cube
@@ -61,8 +67,18 @@ export const WireframeBlocks = memo(function WireframeBlocks({
   cubeCount = 14,
   primaryColor,
   accentColor,
+  glow = true,
+  maxDpr = 2,
+  paused = false,
 }: WireframeBlocksProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pausedRef = useRef(paused);
+  const resumeRef = useRef<(() => void) | null>(null);
+  pausedRef.current = paused;
+
+  useEffect(() => {
+    if (!paused) resumeRef.current?.();
+  }, [paused]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -70,9 +86,17 @@ export const WireframeBlocks = memo(function WireframeBlocks({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
+    let animId = 0;
     let frameCount = 0;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const narrow =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(max-width: 1023px)").matches;
+    const drawGlow = glow && !narrow;
+    const dpr = Math.min(window.devicePixelRatio || 1, narrow ? 1 : maxDpr);
+    const count = narrow ? Math.min(cubeCount, 6) : cubeCount;
+    canvas.dataset.resolvedCount = String(count);
+    canvas.dataset.resolvedDpr = String(dpr);
+    canvas.dataset.resolvedGlow = drawGlow ? "true" : "false";
 
     let width = 0;
     let height = 0;
@@ -142,7 +166,7 @@ export const WireframeBlocks = memo(function WireframeBlocks({
 
     // Initialize cubes with verified zero initial overlaps
     const cubes: Cube[] = [];
-    for (let i = 0; i < cubeCount; i++) {
+    for (let i = 0; i < count; i++) {
       const isAccent = i % 3 === 0;
       const size = 32 + Math.random() * 36;
       let pos = spawnAroundPerimeter(i);
@@ -259,6 +283,11 @@ export const WireframeBlocks = memo(function WireframeBlocks({
     canvas.addEventListener("pointerleave", onPointerLeave);
 
     const render = () => {
+      if (pausedRef.current) {
+        animId = 0;
+        return;
+      }
+
       frameCount++;
       ctx.clearRect(0, 0, width, height);
 
@@ -282,7 +311,7 @@ export const WireframeBlocks = memo(function WireframeBlocks({
           ? "rgba(249, 115, 22, 0.7)"
           : "rgba(234, 88, 12, 0.35)",
         edgeWidth: isDark ? 1.3 : 1.8, // Bolder stroke in light mode for crisp definition
-        shadowBlur: isDark ? 7 : 3,
+        shadowBlur: drawGlow ? (isDark ? 7 : 3) : 0,
       };
 
       const cx = width / 2;
@@ -443,8 +472,12 @@ export const WireframeBlocks = memo(function WireframeBlocks({
               ? (isDark ? `rgba(249, 115, 22, ${lineOpacity})` : `rgba(194, 65, 12, ${lineOpacity})`)
               : (isDark ? `rgba(59, 130, 246, ${lineOpacity})` : `rgba(29, 78, 216, ${lineOpacity})`);
             ctx.lineWidth = isDark ? 1.1 : 1.3;
-            ctx.shadowColor = c1.isAccent ? "#f97316" : "#3b82f6";
-            ctx.shadowBlur = 4;
+            ctx.shadowColor = drawGlow
+              ? c1.isAccent
+                ? "#f97316"
+                : "#3b82f6"
+              : "transparent";
+            ctx.shadowBlur = drawGlow ? 4 : 0;
 
             ctx.beginPath();
             ctx.moveTo(c1.screenX, c1.screenY);
@@ -460,8 +493,12 @@ export const WireframeBlocks = memo(function WireframeBlocks({
             ctx.fillStyle = c1.isAccent
               ? (isDark ? "#f97316" : "#c2410c")
               : (isDark ? "#ffffff" : "#1d4ed8");
-            ctx.shadowColor = c1.isAccent ? "#f97316" : "#60a5fa";
-            ctx.shadowBlur = isDark ? 8 : 4;
+            ctx.shadowColor = drawGlow
+              ? c1.isAccent
+                ? "#f97316"
+                : "#60a5fa"
+              : "transparent";
+            ctx.shadowBlur = drawGlow ? (isDark ? 8 : 4) : 0;
             ctx.beginPath();
             ctx.arc(photonX, photonY, 2.2, 0, Math.PI * 2);
             ctx.fill();
@@ -519,8 +556,12 @@ export const WireframeBlocks = memo(function WireframeBlocks({
         ctx.save();
         ctx.strokeStyle = strokeColor;
         ctx.lineWidth = isHovered || isDragged ? colors.edgeWidth + 0.8 : colors.edgeWidth;
-        ctx.shadowColor = glowColor;
-        ctx.shadowBlur = isHovered || isDragged ? colors.shadowBlur + 8 : colors.shadowBlur;
+        ctx.shadowColor = drawGlow ? glowColor : "transparent";
+        ctx.shadowBlur = drawGlow
+          ? isHovered || isDragged
+            ? colors.shadowBlur + 8
+            : colors.shadowBlur
+          : 0;
         ctx.globalAlpha = baseAlpha;
 
         // Draw 12 edges of the perfect square/cube
@@ -551,9 +592,15 @@ export const WireframeBlocks = memo(function WireframeBlocks({
       animId = requestAnimationFrame(render);
     };
 
-    render();
+    const resume = () => {
+      if (pausedRef.current || animId) return;
+      animId = requestAnimationFrame(render);
+    };
+    resumeRef.current = resume;
+    if (!pausedRef.current) render();
 
     return () => {
+      resumeRef.current = null;
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", resize);
       canvas.removeEventListener("pointermove", onPointerMove);
@@ -561,12 +608,16 @@ export const WireframeBlocks = memo(function WireframeBlocks({
       window.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointerleave", onPointerLeave);
     };
-  }, [cubeCount, primaryColor, accentColor]);
+  }, [cubeCount, primaryColor, accentColor, glow, maxDpr]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 h-full w-full touch-none"
+      data-cube-count={cubeCount}
+      data-glow={glow ? "true" : "false"}
+      data-max-dpr={maxDpr}
+      data-paused={paused ? "true" : "false"}
+      className="absolute inset-0 h-full w-full touch-pan-y"
       aria-hidden="true"
     />
   );

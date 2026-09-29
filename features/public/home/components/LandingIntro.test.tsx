@@ -87,7 +87,7 @@ describe("LandingIntro", () => {
     ).toHaveClass("flex-col", "lg:flex-row");
   });
 
-  it("keeps the wireframe canvas off small screens and on for wide screens", () => {
+  it("uses a lighter wireframe on small screens and the full one on wide screens", () => {
     reducedMotion.current = false;
     const previous = window.matchMedia;
 
@@ -99,14 +99,20 @@ describe("LandingIntro", () => {
     });
 
     try {
-      vi.stubGlobal("matchMedia", media(false));
+      vi.stubGlobal("matchMedia", media(true));
       const narrow = render(<LandingIntro />);
-      expect(narrow.container.querySelector("canvas")).toBeNull();
+      const narrowCanvas = narrow.container.querySelector("canvas");
+      expect(narrowCanvas).toHaveAttribute("data-cube-count", "6");
+      expect(narrowCanvas).toHaveAttribute("data-glow", "false");
+      expect(narrowCanvas).toHaveAttribute("data-max-dpr", "1");
       narrow.unmount();
 
-      vi.stubGlobal("matchMedia", media(true));
+      vi.stubGlobal("matchMedia", media(false));
       const wide = render(<LandingIntro />);
-      expect(wide.container.querySelector("canvas")).toBeInTheDocument();
+      const wideCanvas = wide.container.querySelector("canvas");
+      expect(wideCanvas).toHaveAttribute("data-cube-count", "14");
+      expect(wideCanvas).toHaveAttribute("data-glow", "true");
+      expect(wideCanvas).toHaveAttribute("data-max-dpr", "2");
       wide.unmount();
     } finally {
       if (previous) {

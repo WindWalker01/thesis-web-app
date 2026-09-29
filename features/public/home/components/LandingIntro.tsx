@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useReducedMotion,
@@ -27,8 +27,10 @@ import { TechnologyMarquee } from "@/features/public/home/components/TechnologyM
 import { WireframeBlocks } from "@/features/public/home/components/WireframeBlocks";
 import { useMediaQuery } from "@/features/public/home/use-media-query";
 
-/** Wireframe cubes stay off phones and small tablets, where the canvas loop is costly. */
-const WIREFRAME_QUERY = "(min-width: 1024px)";
+/** Phones and small tablets draw a lighter cube field. */
+const COMPACT_WIREFRAME_QUERY = "(max-width: 1023px)";
+const WIREFRAME_CUBE_COUNT = 14;
+const COMPACT_WIREFRAME_CUBE_COUNT = 6;
 
 const UPLOAD_LABEL = "TRY UPLOADING ARTWORK";
 
@@ -119,7 +121,8 @@ export function LandingIntro() {
   const [viewportHeight, setViewportHeight] = useState(0);
   const [headingHeight, setHeadingHeight] = useState(0);
   const reduceMotion = useReducedMotion() === true;
-  const showWireframes = useMediaQuery(WIREFRAME_QUERY);
+  const compactWireframes = useMediaQuery(COMPACT_WIREFRAME_QUERY);
+  const [wireframesPaused, setWireframesPaused] = useState(false);
   const { scrollYProgress } = useScroll({
     target: sceneRef,
     offset: ["start start", "end end"],
@@ -149,6 +152,14 @@ export function LandingIntro() {
   const scale = useTransform(scene, (frame) => frame.hero.scale);
   const opacity = useTransform(scene, (frame) => frame.hero.opacity);
   const maskImage = useTransform(scene, (frame) => frame.hero.maskImage);
+
+  useEffect(() => {
+    if (typeof opacity.on !== "function") return;
+    return opacity.on("change", (value: number) => {
+      const next = value <= 0.02;
+      setWireframesPaused((current) => (current === next ? current : next));
+    });
+  }, [opacity]);
   const heroPointerEvents = useTransform(scene, (frame) =>
     frame.hero.opacity > 0.4 ? "auto" : "none",
   );
@@ -193,14 +204,21 @@ export function LandingIntro() {
         style={{ height: sceneSectionHeight() }}
       >
         <div className="sticky top-0 h-screen overflow-hidden">
-          {showWireframes ? (
-            <motion.div
-              style={{ opacity }}
-              className="pointer-events-auto absolute inset-0 z-0 overflow-hidden"
-            >
-              <WireframeBlocks cubeCount={14} />
-            </motion.div>
-          ) : null}
+          <motion.div
+            style={{ opacity }}
+            className="pointer-events-auto absolute inset-0 z-0 overflow-hidden"
+          >
+            <WireframeBlocks
+              cubeCount={
+                compactWireframes
+                  ? COMPACT_WIREFRAME_CUBE_COUNT
+                  : WIREFRAME_CUBE_COUNT
+              }
+              glow={!compactWireframes}
+              maxDpr={compactWireframes ? 1 : 2}
+              paused={wireframesPaused}
+            />
+          </motion.div>
 
           <motion.div
             ref={headingRef}
