@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { PRODUCT_STACK_STEPS } from "@/features/public/home/content";
+import {
+  PRODUCT_STACK_STEPS,
+  TEAM_MEMBERS,
+} from "@/features/public/home/content";
 
 describe("home content", () => {
   it("keeps the product path steps complete", () => {
@@ -20,6 +23,19 @@ describe("home content", () => {
       "/landing-page-elements/similiarity-checking.png",
       "/landing-page-elements/on-chain-record.png",
       "/landing-page-elements/dashboard.png",
+    ]);
+  });
+
+  it("lists the research team and keeps portfolio links optional", () => {
+    expect(TEAM_MEMBERS.map((member) => member.name)).toEqual([
+      "Ruzzel",
+      "Tenshin",
+      "Nathaniel",
+    ]);
+    expect(TEAM_MEMBERS.map((member) => member.portfolio ?? null)).toEqual([
+      "https://ruzzel.vercel.app",
+      "https://tenshinponteres.dev",
+      null,
     ]);
   });
 });

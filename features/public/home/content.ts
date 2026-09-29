@@ -6,6 +6,33 @@ export type ProductStackStep = {
   imageAlt: string;
 };
 
+export type TeamMember = {
+  name: string;
+  role: string;
+  img: string;
+  portfolio?: string;
+};
+
+export const TEAM_MEMBERS: readonly TeamMember[] = [
+  {
+    name: "Ruzzel",
+    role: "Lead Developer",
+    img: "/team-image/ruzzel.png",
+    portfolio: "https://ruzzel.vercel.app",
+  },
+  {
+    name: "Tenshin",
+    role: "Front/Backend Engineer",
+    img: "/team-image/tenshin.jpg",
+    portfolio: "https://tenshinponteres.dev",
+  },
+  {
+    name: "Nathaniel",
+    role: "UI/UX Designer",
+    img: "/team-image/nathanielSD.jpg",
+  },
+];
+
 export const PRODUCT_STACK = {
   title: "The whole path, or just the step you need.",
   description:
