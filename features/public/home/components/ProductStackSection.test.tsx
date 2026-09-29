@@ -109,5 +109,87 @@ describe("ProductStackSection", () => {
     expect(container.querySelector("[data-stack-shot]")).toHaveStyle({
       width: "100%",
     });
+    expect(container.querySelector("[data-stack-stage]")).toHaveClass(
+      "touch-pan-y",
+    );
+  });
+
+  it("swipes the compact screenshots to the next and previous step", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query.includes("max-width"),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    const { container } = render(<ProductStackSection />);
+    const stage = container.querySelector("[data-stack-stage]");
+    expect(stage).not.toBeNull();
+
+    fireEvent.pointerDown(stage!, {
+      pointerId: 1,
+      clientX: 220,
+      clientY: 80,
+      isPrimary: true,
+    });
+    fireEvent.pointerMove(stage!, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 84,
+      isPrimary: true,
+    });
+    fireEvent.pointerUp(stage!, {
+      pointerId: 1,
+      clientX: 80,
+      clientY: 86,
+      isPrimary: true,
+    });
+
+    expect(screen.getByText("02/04")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Fingerprints" }),
+    ).toBeInTheDocument();
+
+    fireEvent.pointerDown(stage!, {
+      pointerId: 2,
+      clientX: 40,
+      clientY: 80,
+      isPrimary: true,
+    });
+    fireEvent.pointerMove(stage!, {
+      pointerId: 2,
+      clientX: 120,
+      clientY: 82,
+      isPrimary: true,
+    });
+    fireEvent.pointerUp(stage!, {
+      pointerId: 2,
+      clientX: 160,
+      clientY: 84,
+      isPrimary: true,
+    });
+
+    expect(screen.getByText("01/04")).toBeInTheDocument();
+
+    fireEvent.pointerDown(stage!, {
+      pointerId: 3,
+      clientX: 100,
+      clientY: 40,
+      isPrimary: true,
+    });
+    fireEvent.pointerMove(stage!, {
+      pointerId: 3,
+      clientX: 108,
+      clientY: 140,
+      isPrimary: true,
+    });
+    fireEvent.pointerUp(stage!, {
+      pointerId: 3,
+      clientX: 110,
+      clientY: 180,
+      isPrimary: true,
+    });
+
+    expect(screen.getByText("01/04")).toBeInTheDocument();
   });
 });

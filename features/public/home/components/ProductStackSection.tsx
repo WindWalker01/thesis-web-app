@@ -3,7 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { memo, useEffect, useRef, useState, type RefObject } from "react";
+import {
+  memo,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
+} from "react";
 import {
   PRODUCT_STACK,
   PRODUCT_STACK_STEPS,
@@ -48,6 +55,76 @@ const CURVE_DOT_INTERVAL_MS = 600;
 /** Pace of the dots on the straight rails toward the later images. */
 const LINE_DOT_INTERVAL_MS = 1600;
 const RAIL_DOT_COUNT = 4;
+/** Horizontal travel that counts as a swipe to the next screenshot. */
+const SWIPE_DISTANCE_PX = 48;
+
+function useImageSwipe(
+  enabled: boolean,
+  active: number,
+  onGoTo: (index: number) => void,
+) {
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const start = useRef<{
+    x: number;
+    y: number;
+    pointerId: number;
+    dragging: boolean;
+  } | null>(null);
+
+  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!enabled || !event.isPrimary) return;
+    start.current = {
+      x: event.clientX,
+      y: event.clientY,
+      pointerId: event.pointerId,
+      dragging: false,
+    };
+  }
+
+  function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const origin = start.current;
+    if (!origin || origin.pointerId !== event.pointerId) return;
+
+    const dx = event.clientX - origin.x;
+    const dy = event.clientY - origin.y;
+    if (!origin.dragging) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+        start.current = null;
+        return;
+      }
+      if (Math.abs(dx) < 10) return;
+      origin.dragging = true;
+      setDragging(true);
+    }
+
+    const atStart = active <= 0 && dx > 0;
+    const atEnd = active >= STEPS.length - 1 && dx < 0;
+    setDragX(atStart || atEnd ? dx * 0.3 : dx);
+  }
+
+  function finish(event: ReactPointerEvent<HTMLDivElement>) {
+    const origin = start.current;
+    if (!origin || origin.pointerId !== event.pointerId) return;
+    const dx = event.clientX - origin.x;
+    const dy = event.clientY - origin.y;
+    const swiped = origin.dragging && Math.abs(dx) >= SWIPE_DISTANCE_PX && Math.abs(dx) > Math.abs(dy);
+    start.current = null;
+    setDragging(false);
+    setDragX(0);
+    if (!swiped) return;
+    onGoTo(dx < 0 ? active + 1 : active - 1);
+  }
+
+  return {
+    dragX: enabled ? dragX : 0,
+    dragging: enabled && dragging,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp: finish,
+    onPointerCancel: finish,
+  };
+}
 
 function usePinnedStack() {
   return useMediaQuery(
@@ -315,6 +392,7 @@ function StackStage({
     (Math.min(Math.max(progress, 0), Math.max(STEPS.length - 1, 0)) /
       STEPS.length) *
     100;
+  const swipe = useImageSwipe(compact, active, onGoTo);
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[2.5fr_7.5fr] lg:gap-16">
       <div>
@@ -324,18 +402,27 @@ function StackStage({
         </div>
       </div>
       <div className="relative">
-        <div data-stack-stage className="overflow-hidden">
+        <div
+          data-stack-stage
+          className={cn("overflow-hidden", compact && "touch-pan-y")}
+          onPointerDown={compact ? swipe.onPointerDown : undefined}
+          onPointerMove={compact ? swipe.onPointerMove : undefined}
+          onPointerUp={compact ? swipe.onPointerUp : undefined}
+          onPointerCancel={compact ? swipe.onPointerCancel : undefined}
+        >
           <div
             className={cn(
               "flex",
-              animated && "transition-transform duration-500 ease-out",
+              animated &&
+                !swipe.dragging &&
+                "transition-transform duration-500 ease-out",
             )}
             style={{
               width: compact
                 ? `${STEPS.length * 100}%`
                 : `${stackStripScale(STEPS.length) * 100}%`,
               transform: compact
-                ? `translate3d(-${compactShift}%, 0, 0)`
+                ? `translate3d(calc(-${compactShift}% + ${swipe.dragX}px), 0, 0)`
                 : stackStripOffset(progress, STEPS.length),
             }}
           >
