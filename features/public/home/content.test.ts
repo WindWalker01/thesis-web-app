@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  HOME_FAQS,
+  initialOpenFaqIndex,
   PRODUCT_STACK_STEPS,
   TEAM_MEMBERS,
 } from "@/features/public/home/content";
@@ -37,5 +39,11 @@ describe("home content", () => {
       "https://tenshinponteres.dev",
       null,
     ]);
+  });
+
+  it("starts the FAQ on the registration question", () => {
+    expect(HOME_FAQS).toHaveLength(6);
+    expect(initialOpenFaqIndex(HOME_FAQS)).toBe(0);
+    expect(initialOpenFaqIndex([{ q: "Closed" }])).toBeNull();
   });
 });

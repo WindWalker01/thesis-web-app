@@ -2,6 +2,7 @@ import { ProductStackSection } from "@/features/public/home/components/ProductSt
 import { LandingIntro } from "@/features/public/home/components/LandingIntro";
 import { PerceptualHashingSection } from "@/features/public/home/components/PerceptualHashingSection";
 import { TeamSection } from "@/features/public/home/components/TeamSection";
+import { FaqSection } from "@/features/public/home/components/FaqSection";
 
 export default function Home() {
   return (
@@ -13,6 +14,8 @@ export default function Home() {
       <ProductStackSection />
 
       <TeamSection />
+
+      <FaqSection />
     </main>
   );
 }
