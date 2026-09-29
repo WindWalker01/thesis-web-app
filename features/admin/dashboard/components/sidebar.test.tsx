@@ -29,6 +29,20 @@ vi.mock("@/features/admin/artwork-verification/hooks/useReviews", () => ({
   usePendingReviewCount: () => ({ data: 3 }),
 }));
 
+vi.mock("@/features/admin/settings/lib/use-site-settings", () => ({
+  useSiteSettings: () => ({
+    settings: {
+      platform_name: "Digital Art",
+      platform_description: "",
+      platform_logo_url: "/logo.png",
+      support_email: "support@example.com",
+      footer_copyright: "",
+    },
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 vi.mock("@/features/user/auth/hooks/useAuth", () => ({
   useAuth: () => ({
     user: { email: "admin@example.com" },
@@ -84,7 +98,7 @@ describe("Admin Sidebar", () => {
 
   it("applies sticky viewport classes on desktop sidebar shell", () => {
     const { container } = render(
-      <Sidebar isOpen={false} onToggle={vi.fn()} onClose={vi.fn()} />,
+      <Sidebar isOpen={false} onClose={vi.fn()} />,
     );
 
     const aside = container.querySelector("aside");
@@ -95,7 +109,7 @@ describe("Admin Sidebar", () => {
   });
 
   it("renders hydrated admin identity from email", async () => {
-    render(<Sidebar isOpen={true} onToggle={vi.fn()} onClose={vi.fn()} />);
+    render(<Sidebar isOpen={true} onClose={vi.fn()} />);
 
     await waitFor(() => {
       expect(screen.getAllByText("admin")[0]).toBeInTheDocument();
@@ -111,7 +125,7 @@ describe("Admin Sidebar", () => {
       }),
     );
 
-    render(<Sidebar isOpen={false} onToggle={vi.fn()} onClose={vi.fn()} />);
+    render(<Sidebar isOpen={false} onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByText("Log out"));
 
