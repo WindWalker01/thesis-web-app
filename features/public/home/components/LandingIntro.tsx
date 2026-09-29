@@ -25,6 +25,10 @@ import {
 } from "@/features/public/home/components/ScrambledText";
 import { TechnologyMarquee } from "@/features/public/home/components/TechnologyMarquee";
 import { WireframeBlocks } from "@/features/public/home/components/WireframeBlocks";
+import { useMediaQuery } from "@/features/public/home/use-media-query";
+
+/** Wireframe cubes stay off phones and small tablets, where the canvas loop is costly. */
+const WIREFRAME_QUERY = "(min-width: 1024px)";
 
 const UPLOAD_LABEL = "TRY UPLOADING ARTWORK";
 
@@ -36,7 +40,7 @@ function UploadArtworkLink() {
       href="upload-artwork"
       aria-label={UPLOAD_LABEL}
       {...scrambleHover}
-      className="mt-7 inline-flex rounded-xs bg-blue-700 px-6 py-4 text-sm whitespace-nowrap text-white"
+      className="mt-7 inline-flex max-w-full rounded-xs bg-blue-700 px-5 py-3.5 text-center text-sm text-white sm:px-6 sm:py-4"
       style={{ clipPath: BUTTON_CORNER_CLIP }}
     >
       <ScrambledText text={UPLOAD_LABEL} display={display} />
@@ -47,11 +51,11 @@ function UploadArtworkLink() {
 function HeroCopy() {
   return (
     <>
-      <h1 className="text-center text-6xl leading-18 font-semibold tracking-wider">
+      <h1 className="text-center text-4xl leading-tight font-semibold tracking-tight sm:text-5xl lg:text-6xl lg:leading-18 lg:tracking-wider">
         Document your <br />{" "}
         <span className="text-blue-500">Digital Artwork</span>
       </h1>
-      <p className="text-normal mt-7 max-w-120 text-center">
+      <p className="mt-6 max-w-120 text-center text-base leading-relaxed sm:mt-7 sm:text-lg">
         Upload, classify, and document your digital artwork. Detect visually
         similar works using perceptual hashing. Secure immutable evidence on the
         blockchain and establish verifiable proof of authorship.
@@ -63,12 +67,12 @@ function HeroCopy() {
 
 function DashboardCopy() {
   return (
-    <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-12 px-6">
-      <h1 className="max-w-3xl text-start text-6xl leading-15 font-semibold tracking-wider">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+      <h1 className="max-w-3xl text-start text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-6xl lg:leading-15 lg:tracking-wider">
         Artwork evidence, sealed{" "}
         <span className="text-blue-500">on the blockchain.</span>
       </h1>
-      <p className="max-w-sm shrink-0">
+      <p className="max-w-md text-sm leading-relaxed sm:text-base lg:max-w-sm lg:shrink-0">
         These rows are the live transactions from our own contract address.
         Each one is tamper-proof evidence that authorship was recorded on this
         chain.
@@ -115,6 +119,7 @@ export function LandingIntro() {
   const [viewportHeight, setViewportHeight] = useState(0);
   const [headingHeight, setHeadingHeight] = useState(0);
   const reduceMotion = useReducedMotion() === true;
+  const showWireframes = useMediaQuery(WIREFRAME_QUERY);
   const { scrollYProgress } = useScroll({
     target: sceneRef,
     offset: ["start start", "end end"],
@@ -166,7 +171,7 @@ export function LandingIntro() {
   if (reduceMotion) {
     return (
       <>
-        <section className="flex min-h-screen flex-col items-center justify-center px-6">
+        <section className="flex min-h-screen flex-col items-center justify-center px-4 sm:px-6">
           <HeroCopy />
         </section>
         <section className="pt-24">
@@ -188,18 +193,19 @@ export function LandingIntro() {
         style={{ height: sceneSectionHeight() }}
       >
         <div className="sticky top-0 h-screen overflow-hidden">
-          {/* 3D Wireframe Outline Blocks background with brand colors */}
-          <motion.div
-            style={{ opacity }}
-            className="pointer-events-auto absolute inset-0 z-0 overflow-hidden"
-          >
-            <WireframeBlocks cubeCount={14} />
-          </motion.div>
+          {showWireframes ? (
+            <motion.div
+              style={{ opacity }}
+              className="pointer-events-auto absolute inset-0 z-0 overflow-hidden"
+            >
+              <WireframeBlocks cubeCount={14} />
+            </motion.div>
+          ) : null}
 
           <motion.div
             ref={headingRef}
             style={{ opacity: headingOpacity, y: headingY }}
-            className="absolute inset-x-0 top-0 z-30 pt-24"
+            className="absolute inset-x-0 top-0 z-30 pt-16 sm:pt-24"
           >
             <DashboardCopy />
           </motion.div>
@@ -213,7 +219,7 @@ export function LandingIntro() {
               WebkitMaskImage: maskImage,
               pointerEvents: heroPointerEvents,
             }}
-            className="pointer-events-none absolute inset-0 z-20 flex origin-center flex-col items-center justify-center px-6 pb-28 will-change-transform"
+            className="pointer-events-none absolute inset-0 z-20 flex origin-center flex-col items-center justify-center px-4 pb-16 will-change-transform sm:px-6 sm:pb-28"
           >
             <div className="pointer-events-auto flex flex-col items-center">
               <HeroCopy />

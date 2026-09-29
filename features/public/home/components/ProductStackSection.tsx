@@ -37,6 +37,7 @@ import {
   ScrambledText,
   useScrambleHover,
 } from "@/features/public/home/components/ScrambledText";
+import { useMediaQuery } from "@/features/public/home/use-media-query";
 import { cn } from "@/lib/client-utils";
 
 const LEARN_MORE_LABEL = "LEARN MORE";
@@ -49,24 +50,18 @@ const LINE_DOT_INTERVAL_MS = 1600;
 const RAIL_DOT_COUNT = 4;
 
 function usePinnedStack() {
-  const [pinned, setPinned] = useState(false);
+  return useMediaQuery(
+    "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
+  );
+}
 
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(
-      "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
-    );
-    const update = () => setPinned(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-
-  return pinned;
+function useCompactStack() {
+  return useMediaQuery("(max-width: 1023px)");
 }
 
 export function ProductStackSection() {
   const pinned = usePinnedStack();
+  const compact = useCompactStack();
   const trackRef = useRef<HTMLDivElement>(null);
   const snapScroll = useRef<(top: number) => void>(() => {});
   const [progress, setProgress] = useState(0);
@@ -232,6 +227,7 @@ export function ProductStackSection() {
             progress={progress}
             active={active}
             animated
+            compact={compact}
             onGoTo={goTo}
           />
         </div>
@@ -268,7 +264,7 @@ function StackHeading() {
     <div className="mx-auto max-w-3xl text-center">
       <h2
         id="product-stack-title"
-        className="text-foreground text-4xl font-normal tracking-tight md:text-5xl"
+        className="text-foreground text-3xl leading-tight font-normal tracking-tight sm:text-4xl md:text-5xl"
       >
         {PRODUCT_STACK.title}
       </h2>
@@ -283,11 +279,13 @@ function StackStage({
   progress,
   active,
   animated = false,
+  compact = false,
   onGoTo,
 }: {
   progress: number;
   active: number;
   animated?: boolean;
+  compact?: boolean;
   onGoTo: (index: number) => void;
 }) {
   const step = STEPS[active];
@@ -298,18 +296,25 @@ function StackStage({
       CURVE_DOT_INTERVAL_MS,
       LINE_DOT_INTERVAL_MS,
     ),
+    !compact,
   );
   const curveSpan = forkCurveSpan(CURVE_DOT_INTERVAL_MS, LINE_DOT_INTERVAL_MS);
-  const journeys = railPhases(travel, RAIL_DOT_COUNT)
-    .map((phase) =>
-      railJourney(
-        phase,
-        STEPS.length,
-        CURVE_DOT_INTERVAL_MS,
-        LINE_DOT_INTERVAL_MS,
-      ),
-    )
-    .filter((journey) => journey !== null);
+  const journeys = compact
+    ? []
+    : railPhases(travel, RAIL_DOT_COUNT)
+        .map((phase) =>
+          railJourney(
+            phase,
+            STEPS.length,
+            CURVE_DOT_INTERVAL_MS,
+            LINE_DOT_INTERVAL_MS,
+          ),
+        )
+        .filter((journey) => journey !== null);
+  const compactShift =
+    (Math.min(Math.max(progress, 0), Math.max(STEPS.length - 1, 0)) /
+      STEPS.length) *
+    100;
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[2.5fr_7.5fr] lg:gap-16">
       <div>
@@ -326,8 +331,12 @@ function StackStage({
               animated && "transition-transform duration-500 ease-out",
             )}
             style={{
-              width: `${stackStripScale(STEPS.length) * 100}%`,
-              transform: stackStripOffset(progress, STEPS.length),
+              width: compact
+                ? `${STEPS.length * 100}%`
+                : `${stackStripScale(STEPS.length) * 100}%`,
+              transform: compact
+                ? `translate3d(-${compactShift}%, 0, 0)`
+                : stackStripOffset(progress, STEPS.length),
             }}
           >
             {STEPS.map((diagramStep, index) => (
@@ -336,6 +345,7 @@ function StackStage({
                 index={index}
                 step={diagramStep}
                 hidden={index !== active}
+                compact={compact}
                 role={railRole(index, STEPS.length)}
                 curveSpan={curveSpan}
                 journeys={journeys.filter((journey) => journey.index === index)}
@@ -343,12 +353,14 @@ function StackStage({
             ))}
           </div>
         </div>
-        <div
-          data-stack-fade
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-30 [--stack-edge:var(--background-light)] dark:[--stack-edge:var(--background-dark)]"
-          style={{ background: stackEdgeFade(progress) }}
-        />
+        {compact ? null : (
+          <div
+            data-stack-fade
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-30 [--stack-edge:var(--background-light)] dark:[--stack-edge:var(--background-dark)]"
+            style={{ background: stackEdgeFade(progress) }}
+          />
+        )}
       </div>
     </div>
   );
@@ -374,7 +386,7 @@ function StackCopy({ step, index }: { step: ProductStackStep; index: number }) {
               <p className="text-sm font-semibold tracking-widest text-slate-400">
                 {stackStepLabel(itemIndex, STEPS.length)}
               </p>
-              <h3 className="mt-2 text-4xl font-black text-blue-500 md:text-5xl">
+              <h3 className="mt-2 text-3xl font-black text-blue-500 sm:text-4xl md:text-5xl">
                 {item.title}
               </h3>
               <p className="mt-3 max-w-sm text-base leading-relaxed text-slate-600 dark:text-slate-300">
@@ -415,6 +427,7 @@ function StackFrame({
   index,
   step,
   hidden,
+  compact,
   role,
   curveSpan,
   journeys,
@@ -422,6 +435,7 @@ function StackFrame({
   index: number;
   step: ProductStackStep;
   hidden: boolean;
+  compact: boolean;
   role: "fork" | "line" | "none";
   curveSpan: number;
   journeys: { role: "fork" | "line"; local: number }[];
@@ -430,14 +444,19 @@ function StackFrame({
     <div
       aria-hidden={hidden}
       className="relative"
-      style={{ width: stackFrameWidth(index, STEPS.length) }}
+      style={{
+        width: compact
+          ? `${100 / STEPS.length}%`
+          : stackFrameWidth(index, STEPS.length),
+      }}
     >
       <StackScreenshot
         step={step}
-        role={role}
-        width={stackScreenshotWidth(index, STEPS.length)}
+        role={compact ? "none" : role}
+        showAnchors={!compact}
+        width={compact ? "100%" : stackScreenshotWidth(index, STEPS.length)}
       />
-      {role === "fork" ? (
+      {!compact && role === "fork" ? (
         <ForkRail
           left={stackForkLeft(STEPS.length)}
           motions={journeys
@@ -445,7 +464,7 @@ function StackFrame({
             .map((journey) => railDotMotion(journey.local, curveSpan))}
         />
       ) : null}
-      {role === "line" ? (
+      {!compact && role === "line" ? (
         <LineRail
           left={stackRailLeft(index, STEPS.length)}
           points={journeys
@@ -461,31 +480,34 @@ const StackScreenshot = memo(function StackScreenshot({
   step,
   role,
   width,
+  showAnchors,
 }: {
   step: ProductStackStep;
   role: "fork" | "line" | "none";
   width: string;
+  showAnchors: boolean;
 }) {
   return (
-    <div className="relative z-10" style={{ width }}>
+    <div className="relative z-10" data-stack-shot style={{ width }}>
       <div className="relative aspect-[5/4] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <Image
           src={step.image}
           alt={step.imageAlt}
           fill
-          className="object-contain object-center p-3"
-          sizes="(min-width: 1024px) 35vw, 58vw"
+          className="object-contain object-center p-2 sm:p-3"
+          sizes="(min-width: 1024px) 35vw, 90vw"
         />
       </div>
-      <ImageAnchors role={role} />
+      {showAnchors ? <ImageAnchors role={role} /> : null}
     </div>
   );
 });
 
-function useRailLoop(duration: number) {
+function useRailLoop(duration: number, enabled: boolean) {
   const [travel, setTravel] = useState(0);
 
   useEffect(() => {
+    if (!enabled) return;
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
@@ -494,7 +516,7 @@ function useRailLoop(duration: number) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [duration]);
+  }, [duration, enabled]);
 
   return travel;
 }

@@ -80,6 +80,41 @@ describe("LandingIntro", () => {
     const marquee = screen.getByRole("region", { name: "Technologies used" });
     expect(marquee.closest(".sticky")).not.toBeNull();
     expect(marquee.parentElement).toHaveStyle({ opacity: "0" });
+    expect(
+      screen.getByRole("heading", {
+        name: /artwork evidence, sealed on the blockchain/i,
+      }).parentElement,
+    ).toHaveClass("flex-col", "lg:flex-row");
+  });
+
+  it("keeps the wireframe canvas off small screens and on for wide screens", () => {
+    reducedMotion.current = false;
+    const previous = window.matchMedia;
+
+    const media = (matches: boolean) => () => ({
+      matches,
+      media: "",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    try {
+      vi.stubGlobal("matchMedia", media(false));
+      const narrow = render(<LandingIntro />);
+      expect(narrow.container.querySelector("canvas")).toBeNull();
+      narrow.unmount();
+
+      vi.stubGlobal("matchMedia", media(true));
+      const wide = render(<LandingIntro />);
+      expect(wide.container.querySelector("canvas")).toBeInTheDocument();
+      wide.unmount();
+    } finally {
+      if (previous) {
+        window.matchMedia = previous;
+      } else {
+        Reflect.deleteProperty(window, "matchMedia");
+      }
+    }
   });
 
   it("shows the cropped dashboard image when motion is reduced", () => {

@@ -18,7 +18,7 @@ export function FaqSection() {
     <section id="faq-section" className="scroll-mt-24 mt-16 pb-24 md:mt-24 md:pb-32">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-foreground text-4xl font-normal tracking-tight md:text-5xl">
+          <h2 className="text-foreground text-3xl leading-tight font-normal tracking-tight text-balance sm:text-4xl md:text-5xl">
             Frequently asked questions
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-600 md:text-lg dark:text-slate-300">
@@ -52,7 +52,7 @@ export function FaqSection() {
                 >
                   <span
                     className={cn(
-                      "text-base font-medium transition-colors",
+                      "min-w-0 text-base font-medium transition-colors",
                       isOpen
                         ? "text-blue-500"
                         : "text-foreground group-hover:text-blue-500",

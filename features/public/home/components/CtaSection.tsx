@@ -66,11 +66,11 @@ export function CtaSection({ signedIn }: { signedIn: boolean }) {
       className="mt-16 -mb-10 scroll-mt-24 px-4 sm:px-6 md:mt-24 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="relative overflow-hidden border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 px-6 py-14 text-center text-slate-900 sm:px-10 md:px-16 md:py-40 dark:border-white/10 dark:from-blue-950 dark:to-blue-900 dark:text-white">
+        <div className="relative overflow-hidden border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 px-5 py-12 text-center text-slate-900 sm:px-10 sm:py-16 lg:px-16 lg:py-40 dark:border-white/10 dark:from-blue-950 dark:to-blue-900 dark:text-white">
           <div className="relative mx-auto max-w-3xl">
             <h2
               id="get-started-heading"
-              className="mt-4 text-4xl font-normal tracking-tight md:text-5xl"
+              className="mt-4 text-3xl leading-tight font-normal tracking-tight text-balance sm:text-4xl md:text-5xl"
             >
               {HOME_CTA.titleLead}{" "}
               <span className="text-blue-600 dark:text-blue-400">

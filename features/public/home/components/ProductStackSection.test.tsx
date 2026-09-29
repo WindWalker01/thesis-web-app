@@ -1,9 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProductStackSection } from "@/features/public/home/components/ProductStackSection";
 import { stackEdgeFade, stackRailLeft } from "@/features/public/home/stack";
 
 describe("ProductStackSection", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("clips sideways overflow without a scroll container that would unpin the stage", () => {
     const { container } = render(<ProductStackSection />);
     const section = container.querySelector("#product-stack");
@@ -85,5 +89,25 @@ describe("ProductStackSection", () => {
     expect(
       screen.getByRole("heading", { name: "On-chain record" }),
     ).toBeInTheDocument();
+  });
+
+  it("drops the connector rails and uses a full-width screenshot on small screens", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      matches: query.includes("max-width"),
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    const { container } = render(<ProductStackSection />);
+
+    expect(container.querySelectorAll("[data-stack-rail]")).toHaveLength(0);
+    expect(container.querySelector("[data-stack-fade]")).toBeNull();
+    expect(container.querySelector("[data-stack-stage] > div")).toHaveStyle({
+      width: "400%",
+    });
+    expect(container.querySelector("[data-stack-shot]")).toHaveStyle({
+      width: "100%",
+    });
   });
 });

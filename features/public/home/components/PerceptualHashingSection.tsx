@@ -17,14 +17,13 @@ export function PerceptualHashingSection() {
     <section className="mx-auto mt-24 mb-20 max-w-7xl px-4 sm:px-6 lg:px-8">
       {/* Section Header */}
       <div className="flex flex-col gap-4 text-start">
-        <h2 className="text-foreground text-4xl font-normal tracking-tight md:text-5xl">
-          The visual fingerprint that
-          <br /> still matches after edits
+        <h2 className="text-foreground text-3xl leading-tight font-normal tracking-tight text-balance sm:text-4xl md:text-5xl">
+          The visual fingerprint that still matches after edits
         </h2>
         <p className="text-muted-foreground max-w-2xl text-base leading-relaxed md:text-lg">
           Compressing a picture, or changing one pixel, makes a normal file
-          check fail. We compare how the picture looks, so a rotated,
-          mirrored, or edited copy still matches the original.
+          check fail. We compare how the picture looks, so a rotated, mirrored,
+          or edited copy still matches the original.
         </p>
       </div>
 
@@ -32,7 +31,7 @@ export function PerceptualHashingSection() {
       <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
         {/* CARD 1: Edits still match */}
         <div
-          className="flex min-h-[530px] flex-col justify-between overflow-hidden rounded-tl-xl rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#0f1013] p-7 text-white"
+          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-xl rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
@@ -83,8 +82,7 @@ export function PerceptualHashingSection() {
 
                 {/* Animated Flow Arrow */}
                 <div className="flex flex-col items-center gap-1">
-
-                    <ArrowRight className="h-4 w-4 text-purple-600" />
+                  <ArrowRight className="h-4 w-4 text-purple-600" />
 
                   <span className="font-mono text-[9px] font-bold text-purple-600">
                     Match
@@ -145,7 +143,7 @@ export function PerceptualHashingSection() {
 
         {/* CARD 2: Combined match score */}
         <div
-          className="flex min-h-[530px] flex-col justify-between overflow-hidden rounded-tl-xl rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#0f1013] p-7 text-white"
+          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-xl rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
@@ -189,9 +187,7 @@ export function PerceptualHashingSection() {
                 <p className="text-neutral-300">
                   compare original with its mirror
                 </p>
-                <p className="text-neutral-400">
-                  match = 96.25%
-                </p>
+                <p className="text-neutral-400">match = 96.25%</p>
                 <div className="pt-0.5 text-neutral-500">
                   <span>&gt; calculating</span>
                   <motion.span
@@ -228,7 +224,9 @@ export function PerceptualHashingSection() {
                   <Check className="h-4 w-4 shrink-0 text-emerald-400" />
                 </motion.div>
                 <span>
-                  <strong className="font-semibold text-white">96.25% Match</strong>{" "}
+                  <strong className="font-semibold text-white">
+                    96.25% Match
+                  </strong>{" "}
                   • original and its mirror
                 </span>
               </div>
@@ -238,7 +236,7 @@ export function PerceptualHashingSection() {
 
         {/* CARD 3: Web search, then delete the file */}
         <div
-          className="flex min-h-[530px] flex-col justify-between overflow-hidden rounded-tl-xl rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#0f1013] p-7 text-white"
+          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-xl rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>

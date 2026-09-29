@@ -21,7 +21,7 @@ function MemberFigure({ member }: { member: TeamMember }) {
             />
           </div>
         </div>
-        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 rounded-xl bg-blue-600 px-4 py-1 text-sm font-semibold whitespace-nowrap text-white opacity-0 shadow-xl transition-all duration-500 ease-out group-hover:-translate-y-12 group-hover:opacity-100 md:group-hover:-translate-y-16">
+        <div className="pointer-events-none absolute top-0 left-1/2 w-max max-w-44 -translate-x-1/2 rounded-xl bg-blue-600 px-4 py-1 text-center text-sm font-semibold text-white opacity-0 shadow-xl transition-all duration-500 ease-out group-hover:-translate-y-12 group-hover:opacity-100 md:group-hover:-translate-y-16">
           {member.role}
         </div>
       </div>
@@ -59,14 +59,14 @@ export function TeamSection() {
     <section id="team" className="py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-foreground text-4xl font-normal tracking-tight md:text-5xl">
+          <h2 className="text-foreground text-3xl leading-tight font-normal tracking-tight text-balance sm:text-4xl md:text-5xl">
             The researchers behind the project
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-600 md:text-lg dark:text-slate-300">
             Meet the team behind this undergraduate thesis research.
           </p>
         </div>
-        <div className="mt-16 grid grid-cols-1 gap-12 pt-6 sm:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-12 pt-6 sm:grid-cols-2 lg:grid-cols-3">
           {TEAM_MEMBERS.map((member) => (
             <MemberCard key={member.name} member={member} />
           ))}
