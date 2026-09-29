@@ -16,7 +16,7 @@
     "test:record": "playwright codegen http://localhost:3000"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^5.9.1",
     "@marsidev/react-turnstile": "^1.5.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.98.0",
