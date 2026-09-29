@@ -19,29 +19,28 @@ export function PerceptualHashingSection() {
       <div className="flex flex-col gap-4 text-start">
         <h2 className="text-foreground text-4xl font-normal tracking-tight md:text-5xl">
           The visual fingerprint that
-          <br /> survives any modification
+          <br /> still matches after edits
         </h2>
         <p className="text-muted-foreground max-w-2xl text-base leading-relaxed md:text-lg">
-          Cryptographic hashes break if a single pixel shifts or an image is
-          compressed. Our perceptual hashing engine decomposes visual structure
-          across rotations, reflections, and frequency bands — detecting
-          unauthorized derivatives and stolen art in milliseconds.
+          Compressing a picture, or changing one pixel, makes a normal file
+          check fail. We compare how the picture looks, so a rotated,
+          mirrored, or edited copy still matches the original.
         </p>
       </div>
 
       {/* 3 Cards Grid */}
       <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
-        {/* CARD 1: Transform Invariance */}
+        {/* CARD 1: Edits still match */}
         <div
           className="flex min-h-[530px] flex-col justify-between overflow-hidden rounded-tl-xl rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#0f1013] p-7 text-white"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
             <h3 className="mb-2 text-2xl font-normal">
-              Cross-transform invariance
+              Still matches after flips
             </h3>
             <p className="text-sm text-neutral-400">
-              Rotated, mirrored, or flipped — nothing slips past.
+              Turn it, mirror it, or flip it — we still recognize the picture.
             </p>
           </div>
 
@@ -54,14 +53,14 @@ export function PerceptualHashingSection() {
             >
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-                  Variant Normalization
+                  Versions we check
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
                   </span>
-                  Preprocessed
+                  Ready
                 </span>
               </div>
 
@@ -88,7 +87,7 @@ export function PerceptualHashingSection() {
                     <ArrowRight className="h-4 w-4 text-purple-600" />
 
                   <span className="font-mono text-[9px] font-bold text-purple-600">
-                    pHash
+                    Match
                   </span>
                 </div>
 
@@ -121,15 +120,15 @@ export function PerceptualHashingSection() {
               {/* Transform Specs */}
               <div className="mt-3 space-y-1 text-[11px] text-neutral-600">
                 <div className="flex justify-between">
-                  <span>Filter applied:</span>
+                  <span>Blur</span>
                   <span className="font-mono font-medium text-neutral-900">
-                    Gaussian Blur (r=1)
+                    Light
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Orientations:</span>
+                  <span>Versions</span>
                   <span className="font-mono font-medium text-neutral-900">
-                    6 Variant Matrices
+                    6
                   </span>
                 </div>
               </div>
@@ -138,23 +137,24 @@ export function PerceptualHashingSection() {
                 type="button"
                 className="mt-3.5 w-full rounded-xl bg-[#7b3fe4] py-2.5 text-xs font-medium text-white transition hover:bg-[#682ecf] active:scale-[0.99]"
               >
-                Inspect Transform Matrix
+                See the comparison
               </button>
             </motion.div>
           </div>
         </div>
 
-        {/* CARD 2: Weighted Hamming Distance */}
+        {/* CARD 2: Combined match score */}
         <div
           className="flex min-h-[530px] flex-col justify-between overflow-hidden rounded-tl-xl rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#0f1013] p-7 text-white"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
             <h3 className="mb-2 text-2xl font-normal">
-              Weighted Hamming distance
+              One score from three checks
             </h3>
             <p className="text-sm text-neutral-400">
-              pHash, dHash, and wHash weighted to eliminate false positives.
+              We combine three ways of comparing pictures so lookalikes
+              aren&apos;t flagged by mistake.
             </p>
           </div>
 
@@ -173,28 +173,24 @@ export function PerceptualHashingSection() {
                   <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
                 </div>
                 <span className="flex items-center gap-1 text-[11px] text-neutral-400">
-                  <TerminalIcon className="h-3 w-3" /> compare_hashes.py
+                  <TerminalIcon className="h-3 w-3" /> similarity check
                 </span>
               </div>
 
               {/* Code lines */}
               <div className="mt-3.5 space-y-1.5 text-[11px] leading-relaxed">
                 <p className="text-neutral-400">
-                  <span className="text-purple-400">target</span> =
+                  <span className="text-purple-400">image</span> =
                   &quot;WitchCat.png&quot;
                 </p>
                 <p className="text-purple-400">
-                  weights = &#123;
-                  <span className="text-amber-300">&quot;phash&quot;</span>: 0.8,{" "}
-                  <span className="text-amber-300">&quot;dhash&quot;</span>: 0.1,{" "}
-                  <span className="text-amber-300">&quot;whash&quot;</span>: 0.1
-                  &#125;
+                  checks = look, difference, pattern
                 </p>
                 <p className="text-neutral-300">
-                  dist = compute_weighted_distance(h1, h2)
+                  compare original with its mirror
                 </p>
                 <p className="text-neutral-400">
-                  score = (1 - (2.4 / 64)) * 100
+                  match = 96.25%
                 </p>
                 <div className="pt-0.5 text-neutral-500">
                   <span>&gt; calculating</span>
@@ -209,7 +205,7 @@ export function PerceptualHashingSection() {
               {/* Animated Progress Bar */}
               <div className="mt-3.5">
                 <div className="mb-1 flex justify-between text-[10px] text-neutral-400">
-                  <span>Consensus Match</span>
+                  <span>Overall match</span>
                   <span className="font-semibold text-emerald-400">96.25%</span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
@@ -233,24 +229,24 @@ export function PerceptualHashingSection() {
                 </motion.div>
                 <span>
                   <strong className="font-semibold text-white">96.25% Match</strong>{" "}
-                  • 0° → mirror pair
+                  • original and its mirror
                 </span>
               </div>
             </motion.div>
           </div>
         </div>
 
-        {/* CARD 3: Reverse Web Scan & Zero Retention */}
+        {/* CARD 3: Web search, then delete the file */}
         <div
           className="flex min-h-[530px] flex-col justify-between overflow-hidden rounded-tl-xl rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#0f1013] p-7 text-white"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
             <h3 className="mb-2 text-2xl font-normal">
-              Zero-retention web audit
+              Search the web, then delete the file
             </h3>
             <p className="text-sm text-neutral-400">
-              Scans Google via Serper in real-time, then purges temporary data.
+              We look the image up on Google, then remove the temporary copy.
             </p>
           </div>
 
@@ -263,14 +259,14 @@ export function PerceptualHashingSection() {
             >
               <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                 <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-                  Reverse Image Audit
+                  Web search
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-50 px-2 py-0.5 text-[11px] font-medium text-purple-700">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-500 opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-purple-600" />
                   </span>
-                  Live Scan
+                  Searching
                 </span>
               </div>
 
@@ -281,17 +277,17 @@ export function PerceptualHashingSection() {
                     <div className="relative h-6 w-6 shrink-0">
                       <Image
                         src="/landing-page-elements/google.png"
-                        alt="Google Serper"
+                        alt="Google"
                         fill
                         className="object-contain"
                       />
                     </div>
                     <div>
                       <p className="text-[11px] font-semibold text-neutral-800">
-                        Serper Web Index
+                        Google results
                       </p>
                       <p className="text-[10px] text-neutral-500">
-                        1 duplicate candidate
+                        1 possible copy
                       </p>
                     </div>
                   </div>
@@ -302,7 +298,7 @@ export function PerceptualHashingSection() {
 
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold tracking-wider text-neutral-400 uppercase">
-                    Cloud Retention Policy
+                    After the search
                   </label>
                   <div className="flex items-center justify-between rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-1.5 text-emerald-800">
                     <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
@@ -312,10 +308,10 @@ export function PerceptualHashingSection() {
                       >
                         <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                       </motion.div>
-                      Auto-purged from Cloudinary
+                      Temporary file deleted
                     </span>
                     <span className="font-mono text-[10px] font-bold">
-                      200 OK
+                      Done
                     </span>
                   </div>
                 </div>

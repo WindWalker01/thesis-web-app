@@ -10,6 +10,10 @@ export default function Home() {
       <PerceptualHashingSection />
 
       <ProductStackSection />
+
+      <section className="mx-auto max-w-7xl">
+        
+      </section>
     </main>
   );
 }

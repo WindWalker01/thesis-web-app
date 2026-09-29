@@ -36,7 +36,7 @@ function UploadArtworkLink() {
       href="upload-artwork"
       aria-label={UPLOAD_LABEL}
       {...scrambleHover}
-      className="mt-7 inline-flex rounded-xs bg-blue-700 px-6 py-4 text-sm whitespace-nowrap"
+      className="mt-7 inline-flex rounded-xs bg-blue-700 px-6 py-4 text-sm whitespace-nowrap text-white"
       style={{ clipPath: BUTTON_CORNER_CLIP }}
     >
       <ScrambledText text={UPLOAD_LABEL} display={display} />

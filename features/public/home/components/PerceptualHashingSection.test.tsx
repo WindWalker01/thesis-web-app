@@ -47,7 +47,7 @@ describe("PerceptualHashingSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /the visual fingerprint that\s*survives any modification/i,
+        name: /the visual fingerprint that\s*still matches after edits/i,
       }),
     ).toBeInTheDocument();
   });
@@ -56,13 +56,15 @@ describe("PerceptualHashingSection", () => {
     render(<PerceptualHashingSection />);
 
     expect(
-      screen.getByRole("heading", { name: "Cross-transform invariance" }),
+      screen.getByRole("heading", { name: "Still matches after flips" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Weighted Hamming distance" }),
+      screen.getByRole("heading", { name: "One score from three checks" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Zero-retention web audit" }),
+      screen.getByRole("heading", {
+        name: "Search the web, then delete the file",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -73,7 +75,7 @@ describe("PerceptualHashingSection", () => {
     const transformedImg = screen.getByRole("img", {
       name: "Mirrored and Grayscale WitchCat",
     });
-    const googleImg = screen.getByRole("img", { name: "Google Serper" });
+    const googleImg = screen.getByRole("img", { name: "Google" });
 
     expect(originalImg).toHaveAttribute(
       "src",
@@ -92,10 +94,8 @@ describe("PerceptualHashingSection", () => {
   it("renders terminal algorithm details and match percentage", () => {
     render(<PerceptualHashingSection />);
 
-    expect(screen.getByText("compare_hashes.py")).toBeInTheDocument();
+    expect(screen.getByText("similarity check")).toBeInTheDocument();
     expect(screen.getAllByText(/96\.25% Match/i).length).toBeGreaterThan(0);
-    expect(
-      screen.getByText(/Auto-purged from Cloudinary/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Temporary file deleted/i)).toBeInTheDocument();
   });
 });

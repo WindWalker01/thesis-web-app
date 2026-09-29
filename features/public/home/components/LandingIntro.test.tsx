@@ -90,6 +90,7 @@ describe("LandingIntro", () => {
       name: "TRY UPLOADING ARTWORK",
     });
     expect(uploadLink).toHaveAttribute("href", "upload-artwork");
+    expect(uploadLink).toHaveClass("text-white");
     expect(uploadLink).toHaveStyle({
       clipPath:
         "polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)",
