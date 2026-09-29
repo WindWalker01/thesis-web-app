@@ -28,6 +28,11 @@ describe("CtaSection", () => {
     expect(section?.innerHTML).toContain("bg-slate-300");
     expect(section?.innerHTML).toContain("dark:bg-white/25");
     expect(section?.innerHTML).not.toMatch(/orange|amber|font-black/);
+
+    const grid = section?.querySelector("[data-cta-grid]") as HTMLElement;
+    expect(grid).toBeTruthy();
+    expect(grid.style.backgroundSize).toBe("48px 48px");
+    expect(grid.style.maskImage).toContain("linear-gradient(to top");
   });
 
   it("sends signed-in artists to upload", () => {

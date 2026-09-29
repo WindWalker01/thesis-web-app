@@ -8,6 +8,30 @@ import {
   useScrambleHover,
 } from "@/features/public/home/components/ScrambledText";
 
+/** Width and height of each CTA background grid cell, in pixels. */
+const CTA_GRID_SIZE = 48;
+
+function CtaGrid() {
+  const cell = `${CTA_GRID_SIZE}px`;
+
+  return (
+    <div
+      aria-hidden
+      data-cta-grid=""
+      className="pointer-events-none absolute inset-0 text-blue-500/40 dark:text-blue-200/30"
+      style={{
+        backgroundImage:
+          "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+        backgroundSize: `${cell} ${cell}`,
+        maskImage:
+          "linear-gradient(to top, black 0%, rgba(0, 0, 0, 0.45) 32%, transparent 68%)",
+        WebkitMaskImage:
+          "linear-gradient(to top, black 0%, rgba(0, 0, 0, 0.45) 32%, transparent 68%)",
+      }}
+    />
+  );
+}
+
 function ChamferLink({
   href,
   label,
@@ -64,7 +88,8 @@ export function CtaSection({ signedIn }: { signedIn: boolean }) {
     >
       <div className="mx-auto max-w-7xl">
         <div className="relative overflow-hidden border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 px-5 py-12 text-center text-slate-900 sm:px-10 sm:py-16 lg:px-16 lg:py-40 dark:border-white/10 dark:from-blue-950 dark:to-blue-900 dark:text-white">
-          <div className="relative mx-auto max-w-3xl">
+          <CtaGrid />
+          <div className="relative z-10 mx-auto max-w-3xl">
             <h2
               id="get-started-heading"
               className="mt-4 text-3xl leading-tight font-normal tracking-tight text-balance sm:text-4xl md:text-5xl"
