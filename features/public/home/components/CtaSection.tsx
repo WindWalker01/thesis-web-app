@@ -28,7 +28,7 @@ function ChamferLink({
         href={href}
         aria-label={label}
         {...scrambleHover}
-        className="inline-flex bg-white/25 p-px text-sm whitespace-nowrap text-white"
+        className="inline-flex bg-slate-300 p-px text-sm whitespace-nowrap text-white dark:bg-white/25"
         style={{ clipPath: BUTTON_CORNER_CLIP }}
       >
         <span
@@ -63,19 +63,21 @@ export function CtaSection({ signedIn }: { signedIn: boolean }) {
     <section
       id="get-started"
       aria-labelledby="get-started-heading"
-      className="mt-16 scroll-mt-24 px-4 sm:px-6 md:mt-24 lg:px-8"
+      className="mt-16 -mb-10 scroll-mt-24 px-4 sm:px-6 md:mt-24 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="relative overflow-hidden border border-white/5 bg-linear-to-t from-blue-800 to-blue-600 px-6 py-14 text-center text-white sm:px-10 md:px-16 md:py-40">
+        <div className="relative overflow-hidden border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 px-6 py-14 text-center text-slate-900 sm:px-10 md:px-16 md:py-40 dark:border-white/10 dark:from-blue-950 dark:to-blue-900 dark:text-white">
           <div className="relative mx-auto max-w-3xl">
             <h2
               id="get-started-heading"
               className="mt-4 text-4xl font-normal tracking-tight md:text-5xl"
             >
               {HOME_CTA.titleLead}{" "}
-              <span className="text-blue-500">{HOME_CTA.titleAccent}</span>
+              <span className="text-blue-600 dark:text-blue-400">
+                {HOME_CTA.titleAccent}
+              </span>
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-300 md:text-lg">
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg dark:text-slate-300">
               {HOME_CTA.description}
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
