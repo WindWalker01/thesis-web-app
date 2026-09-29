@@ -31,7 +31,7 @@ export function PerceptualHashingSection() {
       <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
         {/* CARD 1: Edits still match */}
         <div
-          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-xl rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
+          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-sm rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
@@ -143,7 +143,7 @@ export function PerceptualHashingSection() {
 
         {/* CARD 2: Combined match score */}
         <div
-          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-xl rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
+          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-sm rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
@@ -236,7 +236,7 @@ export function PerceptualHashingSection() {
 
         {/* CARD 3: Web search, then delete the file */}
         <div
-          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-xl rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
+          className="flex flex-col justify-between overflow-hidden rounded-tl-sm rounded-tr-sm rounded-bl-sm border border-white/5 bg-[#0f1013] p-5 text-white sm:p-7 md:min-h-[530px]"
           style={{ clipPath: CARD_CLIP }}
         >
           <div>
