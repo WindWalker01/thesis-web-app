@@ -74,6 +74,22 @@ export function initialOpenFaqIndex(
   return index >= 0 ? index : null;
 }
 
+export const HOME_DISCLAIMER = {
+  label: "Disclaimer",
+  body: "ArtForgeLab is a research-based intellectual property rights management system developed as an undergraduate thesis. It helps digital artists document authorship, detect visually similar artworks, and keep a transparent record. It does not replace formal copyright registration with IPOPHL or any other legal authority. The platform does not grant copyright, settle ownership disputes, or decide whether legal infringement has occurred.",
+} as const;
+
+export const HOME_CTA = {
+  eyebrow: "Get started",
+  titleLead: "Start documenting your",
+  titleAccent: "artwork today",
+  description:
+    "Build your portfolio, record proof of authorship, and join digital artists who document their work here.",
+  primarySignedOut: { label: "GET STARTED", href: "/register" },
+  primarySignedIn: { label: "UPLOAD ARTWORK", href: "/upload-artwork" },
+  secondary: { label: "ABOUT US", href: "/about" },
+} as const;
+
 export const PRODUCT_STACK = {
   title: "The whole path, or just the step you need.",
   description:

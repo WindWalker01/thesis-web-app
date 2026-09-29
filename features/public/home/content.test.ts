@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  HOME_CTA,
+  HOME_DISCLAIMER,
   HOME_FAQS,
   initialOpenFaqIndex,
   PRODUCT_STACK_STEPS,
@@ -45,5 +47,18 @@ describe("home content", () => {
     expect(HOME_FAQS).toHaveLength(6);
     expect(initialOpenFaqIndex(HOME_FAQS)).toBe(0);
     expect(initialOpenFaqIndex([{ q: "Closed" }])).toBeNull();
+  });
+
+  it("keeps the closing disclaimer and call to action", () => {
+    expect(HOME_DISCLAIMER.body).toMatch(/undergraduate thesis/i);
+    expect(HOME_DISCLAIMER.body).toMatch(/IPOPHL/);
+    expect(HOME_DISCLAIMER.body).toMatch(/does not grant copyright/i);
+    expect(HOME_DISCLAIMER.body).toMatch(/legal infringement/i);
+    expect(HOME_CTA.primarySignedOut).toEqual({
+      label: "GET STARTED",
+      href: "/register",
+    });
+    expect(HOME_CTA.primarySignedIn.href).toBe("/upload-artwork");
+    expect(HOME_CTA.secondary.href).toBe("/about");
   });
 });
