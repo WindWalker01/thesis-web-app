@@ -93,9 +93,9 @@ describe("WireframeBlocks", () => {
       configurable: true,
       value: 3,
     });
-    let frame: FrameRequestCallback | null = null;
+    const frame: { current: FrameRequestCallback | null } = { current: null };
     vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
-      frame = cb;
+      frame.current = cb;
       return 1;
     });
     const ctx = contextStub();
@@ -113,7 +113,7 @@ describe("WireframeBlocks", () => {
       expect(canvas).toHaveAttribute("data-resolved-dpr", "1");
       expect(canvas?.width).toBe(window.innerWidth);
 
-      frame?.(0);
+      frame.current?.(0);
       expect(ctx.shadowBlurs.length).toBeGreaterThan(0);
       expect(ctx.shadowBlurs.every((value) => value === 0)).toBe(true);
     } finally {

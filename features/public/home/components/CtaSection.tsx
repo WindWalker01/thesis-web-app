@@ -8,9 +8,6 @@ import {
   useScrambleHover,
 } from "@/features/public/home/components/ScrambledText";
 
-const PANEL_CLIP =
-  "polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%)";
-
 function ChamferLink({
   href,
   label,

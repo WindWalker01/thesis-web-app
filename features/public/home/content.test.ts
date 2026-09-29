@@ -46,7 +46,7 @@ describe("home content", () => {
   it("starts the FAQ on the registration question", () => {
     expect(HOME_FAQS).toHaveLength(6);
     expect(initialOpenFaqIndex(HOME_FAQS)).toBe(0);
-    expect(initialOpenFaqIndex([{ q: "Closed" }])).toBeNull();
+    expect(initialOpenFaqIndex([{ open: false }])).toBeNull();
   });
 
   it("keeps the closing disclaimer and call to action", () => {

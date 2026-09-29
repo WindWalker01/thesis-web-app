@@ -13,13 +13,10 @@ export const BUTTON_CORNER_CLIP =
   "polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%)";
 
 function useScrambledLabel(text: string, active: boolean) {
-  const [display, setDisplay] = useState(text);
+  const [scrambled, setScrambled] = useState(text);
 
   useEffect(() => {
-    if (!active) {
-      setDisplay(text);
-      return;
-    }
+    if (!active) return;
 
     let frame = 0;
     let lastTick = 0;
@@ -37,7 +34,7 @@ function useScrambledLabel(text: string, active: boolean) {
 
       lastTick = now;
       const progress = elapsed / SCRAMBLE_DURATION_MS;
-      setDisplay(scrambledFrame(text, progress));
+      setScrambled(scrambledFrame(text, progress));
       if (progress < 1) frame = requestAnimationFrame(tick);
     };
 
@@ -45,7 +42,7 @@ function useScrambledLabel(text: string, active: boolean) {
     return () => cancelAnimationFrame(frame);
   }, [active, text]);
 
-  return display;
+  return active ? scrambled : text;
 }
 
 export function useScrambleHover(text: string) {
