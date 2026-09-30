@@ -69,8 +69,8 @@ function HeroCopy() {
 
 function DashboardCopy() {
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
-      <h1 className="max-w-3xl text-start text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-6xl lg:leading-15 lg:tracking-wider">
+    <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-5 px-4 text-center sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:text-start">
+      <h1 className="max-w-3xl text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-start lg:text-6xl lg:leading-15 lg:tracking-wider">
         Artwork evidence, sealed{" "}
         <span className="text-blue-500">on the blockchain.</span>
       </h1>
@@ -110,6 +110,47 @@ function TransactionsImage({
         />
       </div>
     </div>
+  );
+}
+
+function StaticLanding({
+  showWireframes,
+  compactWireframes,
+}: {
+  showWireframes: boolean;
+  compactWireframes: boolean;
+}) {
+  return (
+    <>
+      <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 sm:px-6">
+        {showWireframes ? (
+          <div className="pointer-events-none absolute inset-0">
+            <WireframeBlocks
+              cubeCount={
+                compactWireframes
+                  ? COMPACT_WIREFRAME_CUBE_COUNT
+                  : WIREFRAME_CUBE_COUNT
+              }
+              glow={!compactWireframes}
+              maxDpr={compactWireframes ? 1 : 2}
+              paused={!compactWireframes}
+            />
+          </div>
+        ) : null}
+        <div className="relative z-10 flex flex-col items-center">
+          <HeroCopy />
+        </div>
+      </section>
+      <section data-landing-dashboard="" className="flex min-h-svh flex-col">
+        <div className="my-auto flex w-full flex-col py-16">
+          <DashboardCopy />
+          <div className="mt-10">
+            <TransactionsImage clip={imageClipCss(IMAGE_REVEAL_FRACTION)} />
+          </div>
+          <TechnologyMarquee />
+        </div>
+      </section>
+    </>
   );
 }
 
@@ -181,26 +222,24 @@ export function LandingIntro() {
 
   if (reduceMotion) {
     return (
-      <>
-        <section className="flex min-h-screen flex-col items-center justify-center px-4 sm:px-6">
-          <HeroCopy />
-        </section>
-        <section className="pt-24">
-          <DashboardCopy />
-          <div className="mt-20">
-            <TransactionsImage clip={imageClipCss(IMAGE_REVEAL_FRACTION)} />
-          </div>
-          <TechnologyMarquee />
-        </section>
-      </>
+      <StaticLanding
+        showWireframes={false}
+        compactWireframes={compactWireframes}
+      />
     );
   }
 
   return (
     <>
+      <div className="lg:hidden">
+        <StaticLanding
+          showWireframes
+          compactWireframes={compactWireframes}
+        />
+      </div>
       <section
         ref={sceneRef}
-        className="relative"
+        className="relative hidden lg:block"
         style={{ height: sceneSectionHeight() }}
       >
         <div className="sticky top-0 h-screen overflow-hidden">
@@ -216,7 +255,7 @@ export function LandingIntro() {
               }
               glow={!compactWireframes}
               maxDpr={compactWireframes ? 1 : 2}
-              paused={wireframesPaused}
+              paused={wireframesPaused || compactWireframes}
             />
           </motion.div>
 

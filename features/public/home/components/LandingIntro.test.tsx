@@ -62,29 +62,43 @@ beforeAll(() => {
 describe("LandingIntro", () => {
   it("renders the hero and the dashboard heading together", () => {
     reducedMotion.current = false;
-    render(<LandingIntro />);
+    const { container } = render(<LandingIntro />);
 
     expect(
-      screen.getByRole("heading", { name: /document your digital artwork/i }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("heading", { name: /document your digital artwork/i }),
+    ).toHaveLength(2);
+    const dashboardHeadings = screen.getAllByRole("heading", {
+      name: /artwork evidence, sealed on the blockchain/i,
+    });
+    expect(dashboardHeadings).toHaveLength(2);
     expect(
-      screen.getByRole("heading", {
-        name: /artwork evidence, sealed on the blockchain/i,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("img", { name: "Polygonscan contract transactions" }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("img", { name: "Polygonscan contract transactions" }),
+    ).toHaveLength(2);
     expect(screen.getAllByText("Next.js").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Polygon").length).toBeGreaterThan(0);
-    const marquee = screen.getByRole("region", { name: "Technologies used" });
-    expect(marquee.closest(".sticky")).not.toBeNull();
-    expect(marquee.parentElement).toHaveStyle({ opacity: "0" });
-    expect(
-      screen.getByRole("heading", {
-        name: /artwork evidence, sealed on the blockchain/i,
-      }).parentElement,
-    ).toHaveClass("flex-col", "lg:flex-row");
+    const marquees = screen.getAllByRole("region", { name: "Technologies used" });
+    const pinnedMarquee = marquees.find((marquee) => marquee.closest(".sticky"));
+    expect(pinnedMarquee).toBeTruthy();
+    expect(pinnedMarquee?.parentElement).toHaveStyle({ opacity: "0" });
+    for (const heading of dashboardHeadings) {
+      expect(heading.parentElement).toHaveClass(
+        "flex-col",
+        "items-center",
+        "text-center",
+        "lg:flex-row",
+        "lg:text-start",
+      );
+    }
+
+    const dashboard = container.querySelector("[data-landing-dashboard]");
+    expect(dashboard).toHaveClass("flex", "min-h-svh", "flex-col");
+    expect(dashboard?.firstElementChild).toHaveClass("my-auto");
+    expect(dashboard?.closest(".sticky")).toBeNull();
+    expect(dashboard?.parentElement).toHaveClass("lg:hidden");
+    expect(container.querySelector(".sticky")?.parentElement).toHaveClass(
+      "hidden",
+      "lg:block",
+    );
   });
 
   it("uses a lighter wireframe on small screens and the full one on wide screens", () => {
@@ -125,7 +139,7 @@ describe("LandingIntro", () => {
 
   it("shows the cropped dashboard image when motion is reduced", () => {
     reducedMotion.current = true;
-    render(<LandingIntro />);
+    const { container } = render(<LandingIntro />);
 
     const uploadLink = screen.getByRole("link", {
       name: "TRY UPLOADING ARTWORK",
@@ -139,5 +153,9 @@ describe("LandingIntro", () => {
     expect(
       screen.getByRole("img", { name: "Polygonscan contract transactions" }),
     ).toBeInTheDocument();
+    const dashboard = container.querySelector("[data-landing-dashboard]");
+    expect(dashboard).toHaveClass("min-h-svh");
+    expect(dashboard?.firstElementChild).toHaveClass("my-auto");
+    expect(dashboard?.closest(".sticky")).toBeNull();
   });
 });
