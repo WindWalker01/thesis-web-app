@@ -84,7 +84,7 @@ export function CtaSection({ signedIn }: { signedIn: boolean }) {
     <section
       id="get-started"
       aria-labelledby="get-started-heading"
-      className="mt-16 -mb-10 scroll-mt-24 px-4 sm:px-6 md:mt-24 lg:px-8"
+      className="mt-16 -mb-10 scroll-mt-24 sm:px-6 md:mt-24 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
         <div className="relative overflow-hidden border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 px-5 py-12 text-center text-slate-900 sm:px-10 sm:py-16 lg:px-16 lg:py-40 dark:border-white/10 dark:from-blue-950 dark:to-blue-900 dark:text-white">
