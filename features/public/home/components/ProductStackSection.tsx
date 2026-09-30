@@ -3,14 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  memo,
-  useEffect,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-  type RefObject,
-} from "react";
+import { memo, useEffect, useRef, useState, type RefObject } from "react";
 import {
   PRODUCT_STACK,
   PRODUCT_STACK_STEPS,
@@ -55,76 +48,6 @@ const CURVE_DOT_INTERVAL_MS = 600;
 /** Pace of the dots on the straight rails toward the later images. */
 const LINE_DOT_INTERVAL_MS = 1600;
 const RAIL_DOT_COUNT = 4;
-/** Horizontal travel that counts as a swipe to the next screenshot. */
-const SWIPE_DISTANCE_PX = 48;
-
-function useImageSwipe(
-  enabled: boolean,
-  active: number,
-  onGoTo: (index: number) => void,
-) {
-  const [dragX, setDragX] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const start = useRef<{
-    x: number;
-    y: number;
-    pointerId: number;
-    dragging: boolean;
-  } | null>(null);
-
-  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!enabled || !event.isPrimary) return;
-    start.current = {
-      x: event.clientX,
-      y: event.clientY,
-      pointerId: event.pointerId,
-      dragging: false,
-    };
-  }
-
-  function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
-    const origin = start.current;
-    if (!origin || origin.pointerId !== event.pointerId) return;
-
-    const dx = event.clientX - origin.x;
-    const dy = event.clientY - origin.y;
-    if (!origin.dragging) {
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
-        start.current = null;
-        return;
-      }
-      if (Math.abs(dx) < 10) return;
-      origin.dragging = true;
-      setDragging(true);
-    }
-
-    const atStart = active <= 0 && dx > 0;
-    const atEnd = active >= STEPS.length - 1 && dx < 0;
-    setDragX(atStart || atEnd ? dx * 0.3 : dx);
-  }
-
-  function finish(event: ReactPointerEvent<HTMLDivElement>) {
-    const origin = start.current;
-    if (!origin || origin.pointerId !== event.pointerId) return;
-    const dx = event.clientX - origin.x;
-    const dy = event.clientY - origin.y;
-    const swiped = origin.dragging && Math.abs(dx) >= SWIPE_DISTANCE_PX && Math.abs(dx) > Math.abs(dy);
-    start.current = null;
-    setDragging(false);
-    setDragX(0);
-    if (!swiped) return;
-    onGoTo(dx < 0 ? active + 1 : active - 1);
-  }
-
-  return {
-    dragX: enabled ? dragX : 0,
-    dragging: enabled && dragging,
-    onPointerDown,
-    onPointerMove,
-    onPointerUp: finish,
-    onPointerCancel: finish,
-  };
-}
 
 function usePinnedStack() {
   return useMediaQuery(
@@ -300,13 +223,16 @@ export function ProductStackSection() {
       ) : (
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <StackHeading />
-          <StackStage
-            progress={progress}
-            active={active}
-            animated
-            compact={compact}
-            onGoTo={goTo}
-          />
+          {compact ? (
+            <CompactSteps />
+          ) : (
+            <StackStage
+              progress={progress}
+              active={active}
+              animated
+              onGoTo={goTo}
+            />
+          )}
         </div>
       )}
     </section>
@@ -352,17 +278,42 @@ function StackHeading() {
   );
 }
 
+function CompactSteps() {
+  return (
+    <div className="mt-10 flex flex-col gap-16">
+      {STEPS.map((step, index) => (
+        <article key={step.title} data-stack-step>
+          <p className="text-sm font-semibold tracking-widest text-slate-400">
+            {stackStepLabel(index, STEPS.length)}
+          </p>
+          <h3 className="mt-2 text-3xl font-black text-blue-500">
+            {step.title}
+          </h3>
+          <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-300">
+            {step.description}
+          </p>
+          <LearnMoreLink href={step.href} />
+          <StackScreenshot
+            step={step}
+            role="none"
+            showAnchors={false}
+            width="100%"
+          />
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function StackStage({
   progress,
   active,
   animated = false,
-  compact = false,
   onGoTo,
 }: {
   progress: number;
   active: number;
   animated?: boolean;
-  compact?: boolean;
   onGoTo: (index: number) => void;
 }) {
   const step = STEPS[active];
@@ -373,26 +324,19 @@ function StackStage({
       CURVE_DOT_INTERVAL_MS,
       LINE_DOT_INTERVAL_MS,
     ),
-    !compact,
+    true,
   );
   const curveSpan = forkCurveSpan(CURVE_DOT_INTERVAL_MS, LINE_DOT_INTERVAL_MS);
-  const journeys = compact
-    ? []
-    : railPhases(travel, RAIL_DOT_COUNT)
-        .map((phase) =>
-          railJourney(
-            phase,
-            STEPS.length,
-            CURVE_DOT_INTERVAL_MS,
-            LINE_DOT_INTERVAL_MS,
-          ),
-        )
-        .filter((journey) => journey !== null);
-  const compactShift =
-    (Math.min(Math.max(progress, 0), Math.max(STEPS.length - 1, 0)) /
-      STEPS.length) *
-    100;
-  const swipe = useImageSwipe(compact, active, onGoTo);
+  const journeys = railPhases(travel, RAIL_DOT_COUNT)
+    .map((phase) =>
+      railJourney(
+        phase,
+        STEPS.length,
+        CURVE_DOT_INTERVAL_MS,
+        LINE_DOT_INTERVAL_MS,
+      ),
+    )
+    .filter((journey) => journey !== null);
   return (
     <div className="mt-10 grid items-center gap-8 lg:grid-cols-[2.5fr_7.5fr] lg:gap-16">
       <div>
@@ -402,28 +346,15 @@ function StackStage({
         </div>
       </div>
       <div className="relative">
-        <div
-          data-stack-stage
-          className={cn("overflow-hidden", compact && "touch-pan-y")}
-          onPointerDown={compact ? swipe.onPointerDown : undefined}
-          onPointerMove={compact ? swipe.onPointerMove : undefined}
-          onPointerUp={compact ? swipe.onPointerUp : undefined}
-          onPointerCancel={compact ? swipe.onPointerCancel : undefined}
-        >
+        <div data-stack-stage className="overflow-hidden">
           <div
             className={cn(
               "flex",
-              animated &&
-                !swipe.dragging &&
-                "transition-transform duration-500 ease-out",
+              animated && "transition-transform duration-500 ease-out",
             )}
             style={{
-              width: compact
-                ? `${STEPS.length * 100}%`
-                : `${stackStripScale(STEPS.length) * 100}%`,
-              transform: compact
-                ? `translate3d(calc(-${compactShift}% + ${swipe.dragX}px), 0, 0)`
-                : stackStripOffset(progress, STEPS.length),
+              width: `${stackStripScale(STEPS.length) * 100}%`,
+              transform: stackStripOffset(progress, STEPS.length),
             }}
           >
             {STEPS.map((diagramStep, index) => (
@@ -432,7 +363,6 @@ function StackStage({
                 index={index}
                 step={diagramStep}
                 hidden={index !== active}
-                compact={compact}
                 role={railRole(index, STEPS.length)}
                 curveSpan={curveSpan}
                 journeys={journeys.filter((journey) => journey.index === index)}
@@ -440,14 +370,12 @@ function StackStage({
             ))}
           </div>
         </div>
-        {compact ? null : (
-          <div
-            data-stack-fade
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-30 [--stack-edge:var(--background-light)] dark:[--stack-edge:var(--background-dark)]"
-            style={{ background: stackEdgeFade(progress) }}
-          />
-        )}
+        <div
+          data-stack-fade
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-30 [--stack-edge:var(--background-light)] dark:[--stack-edge:var(--background-dark)]"
+          style={{ background: stackEdgeFade(progress) }}
+        />
       </div>
     </div>
   );
@@ -514,7 +442,6 @@ function StackFrame({
   index,
   step,
   hidden,
-  compact,
   role,
   curveSpan,
   journeys,
@@ -522,7 +449,6 @@ function StackFrame({
   index: number;
   step: ProductStackStep;
   hidden: boolean;
-  compact: boolean;
   role: "fork" | "line" | "none";
   curveSpan: number;
   journeys: { role: "fork" | "line"; local: number }[];
@@ -531,19 +457,15 @@ function StackFrame({
     <div
       aria-hidden={hidden}
       className="relative"
-      style={{
-        width: compact
-          ? `${100 / STEPS.length}%`
-          : stackFrameWidth(index, STEPS.length),
-      }}
+      style={{ width: stackFrameWidth(index, STEPS.length) }}
     >
       <StackScreenshot
         step={step}
-        role={compact ? "none" : role}
-        showAnchors={!compact}
-        width={compact ? "100%" : stackScreenshotWidth(index, STEPS.length)}
+        role={role}
+        showAnchors
+        width={stackScreenshotWidth(index, STEPS.length)}
       />
-      {!compact && role === "fork" ? (
+      {role === "fork" ? (
         <ForkRail
           left={stackForkLeft(STEPS.length)}
           motions={journeys
@@ -551,7 +473,7 @@ function StackFrame({
             .map((journey) => railDotMotion(journey.local, curveSpan))}
         />
       ) : null}
-      {!compact && role === "line" ? (
+      {role === "line" ? (
         <LineRail
           left={stackRailLeft(index, STEPS.length)}
           points={journeys

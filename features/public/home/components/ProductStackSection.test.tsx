@@ -91,7 +91,7 @@ describe("ProductStackSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("drops the connector rails and uses a full-width screenshot on small screens", () => {
+  it("shows every step at once on small screens", () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query.includes("max-width"),
       media: query,
@@ -100,96 +100,32 @@ describe("ProductStackSection", () => {
     }));
 
     const { container } = render(<ProductStackSection />);
+    const steps = container.querySelectorAll("[data-stack-step]");
 
-    expect(container.querySelectorAll("[data-stack-rail]")).toHaveLength(0);
+    expect(container.querySelector("[data-stack-stage]")).toBeNull();
     expect(container.querySelector("[data-stack-fade]")).toBeNull();
-    expect(container.querySelector("[data-stack-stage] > div")).toHaveStyle({
-      width: "400%",
-    });
-    expect(container.querySelector("[data-stack-shot]")).toHaveStyle({
-      width: "100%",
-    });
-    expect(container.querySelector("[data-stack-stage]")).toHaveClass(
-      "touch-pan-y",
-    );
-  });
-
-  it("swipes the compact screenshots to the next and previous step", () => {
-    vi.stubGlobal("matchMedia", (query: string) => ({
-      matches: query.includes("max-width"),
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }));
-
-    const { container } = render(<ProductStackSection />);
-    const stage = container.querySelector("[data-stack-stage]");
-    expect(stage).not.toBeNull();
-
-    fireEvent.pointerDown(stage!, {
-      pointerId: 1,
-      clientX: 220,
-      clientY: 80,
-      isPrimary: true,
-    });
-    fireEvent.pointerMove(stage!, {
-      pointerId: 1,
-      clientX: 120,
-      clientY: 84,
-      isPrimary: true,
-    });
-    fireEvent.pointerUp(stage!, {
-      pointerId: 1,
-      clientX: 80,
-      clientY: 86,
-      isPrimary: true,
-    });
-
-    expect(screen.getByText("02/04")).toBeInTheDocument();
+    expect(container.querySelectorAll("[data-stack-rail]")).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: "Prev" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+    expect(steps).toHaveLength(4);
+    expect(screen.getByRole("heading", { name: "Upload" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Fingerprints" })).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "Fingerprints" }),
-    ).toBeInTheDocument();
-
-    fireEvent.pointerDown(stage!, {
-      pointerId: 2,
-      clientX: 40,
-      clientY: 80,
-      isPrimary: true,
-    });
-    fireEvent.pointerMove(stage!, {
-      pointerId: 2,
-      clientX: 120,
-      clientY: 82,
-      isPrimary: true,
-    });
-    fireEvent.pointerUp(stage!, {
-      pointerId: 2,
-      clientX: 160,
-      clientY: 84,
-      isPrimary: true,
-    });
-
-    expect(screen.getByText("01/04")).toBeInTheDocument();
-
-    fireEvent.pointerDown(stage!, {
-      pointerId: 3,
-      clientX: 100,
-      clientY: 40,
-      isPrimary: true,
-    });
-    fireEvent.pointerMove(stage!, {
-      pointerId: 3,
-      clientX: 108,
-      clientY: 140,
-      isPrimary: true,
-    });
-    fireEvent.pointerUp(stage!, {
-      pointerId: 3,
-      clientX: 110,
-      clientY: 180,
-      isPrimary: true,
-    });
-
-    expect(screen.getByText("01/04")).toBeInTheDocument();
+      screen.getByRole("heading", { name: "On-chain record" }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Monitor" })).toBeVisible();
+    expect(screen.getByText("01/04")).toBeVisible();
+    expect(screen.getByText("04/04")).toBeVisible();
+    const links = screen.getAllByRole("link", { name: /learn more/i });
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "/upload-artwork",
+      "/plagiarism-checker",
+      "/txs",
+      "/dashboard",
+    ]);
+    expect(screen.getAllByRole("img")).toHaveLength(4);
+    for (const shot of container.querySelectorAll("[data-stack-shot]")) {
+      expect(shot).toHaveStyle({ width: "100%" });
+    }
   });
 });
