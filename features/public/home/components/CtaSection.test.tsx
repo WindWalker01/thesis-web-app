@@ -33,6 +33,13 @@ describe("CtaSection", () => {
     expect(grid).toBeTruthy();
     expect(grid.style.backgroundSize).toBe("48px 48px");
     expect(grid.style.maskImage).toContain("linear-gradient(to top");
+
+    const blend = section?.querySelector("[data-cta-blend]") as HTMLElement;
+    expect(blend).toBeTruthy();
+    expect(blend?.className).toContain("black_4rem");
+    expect(blend?.className).toContain("lg:[mask-image:none]");
+    expect(blend?.className).toContain("from-blue-100");
+    expect(blend?.className).toContain("to-blue-50");
   });
 
   it("sends signed-in artists to upload", () => {

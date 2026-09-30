@@ -87,7 +87,13 @@ export function CtaSection({ signedIn }: { signedIn: boolean }) {
       className="mt-16 -mb-10 scroll-mt-24 sm:px-6 md:mt-24 lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="relative overflow-hidden border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 px-5 py-12 text-center text-slate-900 sm:px-10 sm:py-16 lg:px-16 lg:py-40 dark:border-white/10 dark:from-blue-950 dark:to-blue-900 dark:text-white">
+        <div className="relative overflow-hidden px-5 py-12 text-center text-slate-900 sm:px-10 sm:py-16 lg:px-16 lg:py-40 dark:text-white">
+          {/* `black_4rem` is the mobile fade height. `lg:` drops the fade. */}
+          <div
+            aria-hidden
+            data-cta-blend=""
+            className="pointer-events-none absolute inset-0 border border-blue-200 bg-linear-to-t from-blue-100 to-blue-50 [mask-image:linear-gradient(to_bottom,transparent_0%,black_4rem)] lg:[mask-image:none] dark:border-white/10 dark:from-blue-950 dark:to-blue-900"
+          />
           <CtaGrid />
           <div className="relative z-10 mx-auto max-w-3xl">
             <h2
