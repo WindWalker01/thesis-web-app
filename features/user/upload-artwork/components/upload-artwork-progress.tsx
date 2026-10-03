@@ -72,7 +72,7 @@ function StepBadge({ status }: { status: UploadStepStatus }) {
     }
 
     if (status === "error") {
-        return <Badge variant="destructive">Failed</Badge>;
+        return <Badge variant="destructive">Blocked</Badge>;
     }
 
     if (status === "warning") {
